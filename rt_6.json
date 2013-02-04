@@ -1,0 +1,51 @@
+[
+    {
+        "name": "a",
+        "states": [
+            {
+                "name": "installed",
+                "require_ports": [
+                    [
+                        "p",
+                        1
+                    ],
+                    [
+                        "r",
+                        1
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "name": "b",
+        "states": [
+            {
+                "name": "installed",
+                "provide_ports": [
+                    [
+                        "p",
+                        1
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "name": "c",
+        "states": [
+            {
+                "name": "installed",
+                "provide_ports": [
+                    [
+                        "r",
+                        1
+                    ]
+                ],
+                "conflict_ports": [
+                    "p"
+                ]
+            }
+        ]
+    }
+]

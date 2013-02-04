@@ -1,0 +1,84 @@
+<doc text="Type definitions for resource types.">
+
+type resource_type_name = string
+type state_name         = string
+type port_name          = string
+type port_quantity      = int
+
+type resource_types = resource_type list
+
+type resource_type = {
+	name   : resource_type_name;
+	states : state list;
+} <ocaml field_prefix="resource_type_">
+
+type state = {
+	name : state_name;
+	~require_ports  <ocaml default="[]"> : (port_name * port_quantity) list;
+	~provide_ports  <ocaml default="[]"> : (port_name * port_quantity) list;
+	~conflict_ports <ocaml default="[]"> : port_name list;
+} <ocaml field_prefix="state_">
+
+(* The numerical constraint concerning the port. 
+   + For provide ports it's the maximum number of bindings the port can satisfy,
+   + For require ports it's the minimum number of required bindings to distinct resources. *)
+
+
+
+
+<doc text="Type definitions for systems of resources.">
+
+type resource_name = string
+
+type resource = {
+	name : resource_name;
+	~require_ports <ocaml default="[]"> : (port_name * port_quantity) list;
+	~provide_ports <ocaml default="[]"> : (port_name * port_quantity) list;
+} <ocaml field_prefix="resource_">
+
+(* Just to have the printing function generated! *)
+type resource_type_and_state = (resource_type_name * state_name)
+
+(* TODO: "typing_entry" is not the best of names. *)
+type typing_entry = {
+	resource_name : resource_name;
+	resource_type : (resource_type_name * state_name);
+} <ocaml field_prefix="typing_entry_">
+
+type binding = {
+	port : port_name;
+	from : resource_name;
+	to   : resource_name;
+} <ocaml field_prefix="binding_">
+
+type typed_system = {
+	typing_environment : typing_entry list;
+	resources          : resource list;
+	bindings           : binding list;
+} <ocaml field_prefix="typed_system_">
+
+(*
+	Type correction:
+	The require_ports and provide_ports in a resource must be exactly the same
+	as corresponding require_ports and provide_ports in the resource type / state
+	corresponding to this resource.
+
+	Binding correction:
+	TODO
+*)
+
+
+<doc text="Type definitions for specifications.">
+
+type specification = (specification_element * specification_constraint) list
+
+type specification_element = 
+	[ Component of (resource_type_name * state_name)
+	| Port of port_name ]
+
+type specification_constraint = 
+	[ Lt  of int
+	| LEq of int
+	| Eq  of int
+	| GEq of int 
+	| Gt  of int ]

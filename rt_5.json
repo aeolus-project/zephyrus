@@ -1,0 +1,22 @@
+[
+    {
+        "name": "impossible",
+        "states": [
+            {
+                "name": "installed",
+                "require_ports": [
+                    [
+                        "p",
+                        2
+                    ]
+                ],
+                "provide_ports": [
+                    [
+                        "p",
+                        1
+                    ]
+                ]
+            }
+        ]
+    }
+]

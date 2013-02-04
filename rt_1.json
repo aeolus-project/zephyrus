@@ -1,0 +1,100 @@
+[
+    {
+        "name": "web application",
+        "states": [
+            {
+                "name": "uninstalled"
+            },
+            {
+                "name": "stopped",
+                "require_ports": [
+                    [
+                        "important library",
+                        1
+                    ]
+                ]
+            },
+            {
+                "name": "running",
+                "require_ports": [
+                    [
+                        "important library",
+                        1
+                    ],
+                    [
+                        "database",
+                        1
+                    ]
+                ],
+                "provide_ports": [
+                    [
+                        "website",
+                        100
+                    ]
+                ]
+            }
+        ]
+    },
+    {
+        "name": "library implementation A",
+        "states": [
+            {
+                "name": "uninstalled"
+            },
+            {
+                "name": "installed",
+                "provide_ports": [
+                    [
+                        "important library",
+                        100
+                    ]
+                ],
+                "conflict_ports": [
+                    "important library"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "library implementation B",
+        "states": [
+            {
+                "name": "uninstalled"
+            },
+            {
+                "name": "installed",
+                "provide_ports": [
+                    [
+                        "important library",
+                        100
+                    ]
+                ],
+                "conflict_ports": [
+                    "important library"
+                ]
+            }
+        ]
+    },
+    {
+        "name": "database",
+        "states": [
+            {
+                "name": "uninstalled"
+            },
+            {
+                "name": "stopped"
+            },
+            {
+                "name": "running",
+                "provide_ports": [
+                    [
+                        "database",
+                        100
+                    ]
+                ]
+            }
+        ]
+    }
+
+
+]

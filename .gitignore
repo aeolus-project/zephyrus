@@ -1,0 +1,17 @@
+*.cmi
+*.cmx
+*.o
+*_j.cmi
+*_j.cmx
+*_j.ml
+*_j.mli
+*_j.o
+*_t.cmi
+*_t.cmx
+*_t.ml
+*_t.mli
+*_t.o
+*.d
+*.di
+*.sublime-*
+gentlewestwind

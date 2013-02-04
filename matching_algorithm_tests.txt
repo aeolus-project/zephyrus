@@ -1,0 +1,39 @@
+open ListMatchDependersWithProviders;;
+open ListDependerProviderTypes;;
+
+matching_algorithm [("d", 1)] [("p", 1)];;
+-> Some 
+  [{requires = "d"; provides = "p"}]
+
+matching_algorithm [("d", 2)] [("p", 1)];;
+-> None
+
+matching_algorithm [("d", 2)] [("p", 2)];;
+-> None
+
+matching_algorithm [("d", 2)] [("p1", 1); ("p2", 1)];;
+-> Some
+  [{requires = "d"; provides = "p2"};
+  {requires = "d"; provides = "p1"}]
+
+matching_algorithm [("d1", 2); ("d2", 2)] [("p1", 2); ("p2", 2)];;
+-> Some
+ [{requires = "d2"; provides = "p2"};
+  {requires = "d2"; provides = "p1"};
+  {requires = "d1"; provides = "p2"};
+  {requires = "d1"; provides = "p1"}]
+
+matching_algorithm [("d1", 2); ("d2", 2)] [("p", 4)];;
+-> None
+
+matching_algorithm [("d1", 3); ("d2", 3); ("d3", 3)] [("p1", 3); ("p2", 3); ("p3", 3)];;
+-> Some
+ [{requires = "d3"; provides = "p3"};
+  {requires = "d3"; provides = "p2"};
+  {requires = "d3"; provides = "p1"};
+  {requires = "d2"; provides = "p3"};
+  {requires = "d2"; provides = "p2"};
+  {requires = "d2"; provides = "p1"};
+  {requires = "d1"; provides = "p3"};
+  {requires = "d1"; provides = "p2"};
+  {requires = "d1"; provides = "p1"}]
