@@ -1,84 +1,156 @@
-<doc text="Type definitions for resource types.">
 
-type resource_type_name = string
-type state_name         = string
-type port_name          = string
-type port_quantity      = int
+<doc text="Type definitions for naming.">
 
-type resource_types = resource_type list
-
-type resource_type = {
-	name   : resource_type_name;
-	states : state list;
-} <ocaml field_prefix="resource_type_">
-
-type state = {
-	name : state_name;
-	~require_ports  <ocaml default="[]"> : (port_name * port_quantity) list;
-	~provide_ports  <ocaml default="[]"> : (port_name * port_quantity) list;
-	~conflict_ports <ocaml default="[]"> : port_name list;
-} <ocaml field_prefix="state_">
-
-(* The numerical constraint concerning the port. 
-   + For provide ports it's the maximum number of bindings the port can satisfy,
-   + For require ports it's the minimum number of required bindings to distinct resources. *)
+type component_type_name = string
+type port_name           = string
+type component_name      = string
+type package_name        = string
+type repository_name     = string
+type location_name       = string
+type resource_name       = string
 
 
 
 
-<doc text="Type definitions for systems of resources.">
+<doc text="Type definitions for Component Type.">
 
-type resource_name = string
+type provide_arity = int (* To do: add infinite option. *)
+type require_arity = int
+type resource_consumption   = int
+type resource_provide_arity = int (* Better name? *)
 
-type resource = {
-	name : resource_name;
-	~require_ports <ocaml default="[]"> : (port_name * port_quantity) list;
-	~provide_ports <ocaml default="[]"> : (port_name * port_quantity) list;
-} <ocaml field_prefix="resource_">
+type component_type = {
+  name                           : component_type_name;
+  ~provide  <ocaml default="[]"> : (port_name * provide_arity) list;
+  ~require  <ocaml default="[]"> : (port_name * require_arity) list;
+  ~conflict <ocaml default="[]"> : port_name list;
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+} <ocaml field_prefix="component_type_">
 
-(* Just to have the printing function generated! *)
-type resource_type_and_state = (resource_type_name * state_name)
+type component_types = component_type list
 
-(* TODO: "typing_entry" is not the best of names. *)
-type typing_entry = {
-	resource_name : resource_name;
-	resource_type : (resource_type_name * state_name);
-} <ocaml field_prefix="typing_entry_">
+
+
+
+<doc text="Type definitions for Universe.">
+
+type package = {
+  name                           : package_name;
+  ~depend   <ocaml default="[]"> : (package_name list) list;
+  ~conflict <ocaml default="[]"> : package_name list;
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+}  <ocaml field_prefix="package_">
+
+type packages = package list
+
+type repository = {
+	name                           : repository_name;
+	~packages <ocaml default="[]"> : package list;
+} 
+
+type repositories = repository list
+
+type universe = {
+  ~component_types <ocaml default="[]"> : component_type list;
+  ~implementation  <ocaml default="[]"> : ( (component_name * (package_name list)) list ); (* mapping from component name to sets of package names *)
+  ~repositories    <ocaml default="[]"> : repository list
+}
+
+
+
+
+<doc text="Type definitions for Configuration.">
+
+type resources_provided = (resource_name * resource_provide_arity) list;
+
+type location = {
+  name                                     : location_name;
+  ~provide_resources  <ocaml default="[]"> : resources_provided
+  repository                               : repository_name;
+  ~packages_installed <ocaml default="[]"> : package_name list;
+}
+
+type component = {
+  name     : component_name;
+  typ      : component_type_name;
+  location : location_name;
+}
 
 type binding = {
-	port : port_name;
-	from : resource_name;
-	to   : resource_name;
-} <ocaml field_prefix="binding_">
+  port : port_name;
+  requirer : component_name;
+  provider : component_name;
+}
 
-type typed_system = {
-	typing_environment : typing_entry list;
-	resources          : resource list;
-	bindings           : binding list;
-} <ocaml field_prefix="typed_system_">
+type configuration = {
+  ~locations  <ocaml default="[]"> : location list;
+  ~components <ocaml default="[]"> : component list;
+  ~bindings   <ocaml default="[]"> : binding list;
+}
+
+
+(* 
+ * Correctness: 
+ *
+ * 1. the validity of components           (ports: requires / provides, conflicts)
+ * 2. the validity of implementation       (all components are implemented by packages)
+ * 3. the validity of package dependencies (all package dependencies are satisfied, no package conflicts are violated)
+ * 4. the validity of resource consumption (all consumed resources are provided)
+ *
+ *)
+
+
+
+
+<doc text="Type definitions for Specification.">
+
+type bare_architecture_location = {
+	name : location_name;
+	~provide_resources  <ocaml default="[]"> : resources_provided
+}
+
+type bare_architecture = bare_architecture_location list
+
+
 
 (*
-	Type correction:
-	The require_ports and provide_ports in a resource must be exactly the same
-	as corresponding require_ports and provide_ports in the resource type / state
-	corresponding to this resource.
+<doc text="Type definitions for Specification.">
 
-	Binding correction:
-	TODO
+type specification_jp =
+  [ Jp_null
+  | Jp_resources_provided : resources_provided
+  ]
+
+type specification_jd =
+  [ Jd_null
+  | Jd_repository of repository_name
+  | Jd_or of specification_jd * specification_jd
+  ]
+
+type specification_E = {
+	jp : specification_jp;
+	jd : specification_jd;
+	cm : specification_machine;
+}
+
+type specification_machine_constraint = specification_operator * specification_element;
+
+type specification_machines = specification_machine_constraint list;
+
+type specification_element =
+  [ Package   of package_name
+  | Component of component_type_name
+  | Port      of port_name
+  ]
+
+type specification_constraint = specification_operator * specification_E;
+
+type specification = specification_constraint list;
+
+type specification_operator = 
+  [ Lt  of int
+  | LEq of int
+  | Eq  of int
+  | GEq of int 
+  | Gt  of int ]
 *)
-
-
-<doc text="Type definitions for specifications.">
-
-type specification = (specification_element * specification_constraint) list
-
-type specification_element = 
-	[ Component of (resource_type_name * state_name)
-	| Port of port_name ]
-
-type specification_constraint = 
-	[ Lt  of int
-	| LEq of int
-	| Eq  of int
-	| GEq of int 
-	| Gt  of int ]

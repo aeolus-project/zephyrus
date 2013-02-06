@@ -6,6 +6,7 @@
 
 open Resource_types_t
 
+(*
 open Facile
 open Easy
 
@@ -14,7 +15,7 @@ open Typing_context
 open Facile_variables
 open Constraints
 open Resource_generation
-
+*)
 
 
 (* === Handling the arguments === *)
@@ -84,6 +85,7 @@ let () =
     print_solution               := true;
   )
 
+(*
 (* Handle the output-format argument. *)
 type output_format = Plain_output | JSON_output
 
@@ -92,7 +94,7 @@ let output_format =
   | "plain" -> Plain_output
   | "json"  -> JSON_output
   | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
-
+*)
 
 
 
@@ -101,14 +103,16 @@ let output_format =
 
 (* Read input *)
 module MyResourceTypesInput = Resource_types_input_facade.JSON_resource_types_input
-module MySpecificationInput = Specification_input_facade.JSON_specification_input
+(* module MySpecificationInput = Specification_input_facade.JSON_specification_input *)
 
 let my_resource_types =
   MyResourceTypesInput.resource_types_of_string (string_of_input_channel !resource_types_channel)
-  
+(*
 let my_specification =
   MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
+*)
 
+(*
 
 (* Prepare the typing context *)
 let my_typing_context =
@@ -147,7 +151,7 @@ let solution = ref {
 
 let goal = Facile_constraints.create_minimal_resource_count_goal my_variables solution !print_intermediate_solutions
 
-
+*)
 
 (* === Main program === *)
 
@@ -160,6 +164,7 @@ let () =
     Printf.printf "%s\n" (Yojson.Safe.prettify (Resource_types_j.string_of_resource_types my_resource_types));
   );
 
+(*
 
   if(!print_spec)
   then (
@@ -249,6 +254,6 @@ let () =
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
   Printf.printf "%s" (Resource_output_facade.Simple_resource_output.string_of_typed_system system);
 
-
+*)
   ()
 
