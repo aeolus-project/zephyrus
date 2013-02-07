@@ -4,7 +4,7 @@
   the gentle west wind.
 *)
 
-open Resource_types_t
+open Aeolus_types_t
 
 (*
 open Facile

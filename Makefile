@@ -1,12 +1,12 @@
 .PHONY: default
 default: opt
 
-ATDGEN_SOURCES = hello.atd
+ATDGEN_SOURCES = aeolus_types.atd
 ATDGEN_FLAGS = -j-std
 include Atdgen.mk
 
 SOURCES = \
-resource_types_t.mli resource_types_t.ml resource_types_j.mli resource_types_j.ml\
+aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
 #helpers.mli helpers.ml\
 #typing_context.mli typing_context.ml\
 #variable_keys.ml\
