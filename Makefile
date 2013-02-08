@@ -7,6 +7,11 @@ include Atdgen.mk
 
 SOURCES = \
 aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
+universe_input_facade.ml specification_input_facade.ml\
+helpers.mli helpers.ml\
+gentlewestwind.ml
+
+#aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
 #helpers.mli helpers.ml\
 #typing_context.mli typing_context.ml\
 #variable_keys.ml\
@@ -20,8 +25,8 @@ aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
 #resource_generation.ml\
 #facile_variables.mli facile_variables.ml\
 #facile_constraints.ml\
-#resource_types_input_facade.ml specification_input_facade.ml resource_output_facade.ml\
-gentlewestwind.ml
+#universe_input_facade.ml specification_input_facade.ml resource_output_facade.ml\
+#gentlewestwind.ml
 
 RESULT = gentlewestwind
 
