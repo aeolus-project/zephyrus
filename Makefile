@@ -7,8 +7,11 @@ include Atdgen.mk
 
 SOURCES = \
 aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
-universe_input_facade.ml specification_input_facade.ml\
 helpers.mli helpers.ml\
+variable_keys.ml\
+generic_constraints.mli generic_constraints.ml\
+aeolus_types_output_facade.ml\
+universe_input_facade.ml specification_input_facade.ml bare_architecture_input_facade.ml\
 gentlewestwind.ml
 
 #aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
