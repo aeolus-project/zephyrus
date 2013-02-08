@@ -1,0 +1,23 @@
+{
+	"component_types": [
+		{
+			"name": "service"
+		}
+	],
+	"implementation": [
+		[
+			"service",
+			["package"]
+		]
+	],
+	"repositories": [
+		{
+			"name": "repository",
+			"packages": [
+				{
+					"name": "package"
+				}
+			]
+		}
+	]
+}

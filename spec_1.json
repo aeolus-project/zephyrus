@@ -1,1 +1,8 @@
-[ [ [ "Port", "website" ], [ "GEq", 1 ] ] ]
+[
+	"SpecOp", 
+	[
+		[ "SpecExprArity", ["SpecElementComponentType", "service"] ],
+		"GEq",
+		[ "SpecExprConst", 1 ]
+	]
+]
