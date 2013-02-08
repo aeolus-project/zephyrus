@@ -106,7 +106,7 @@ type configuration = {
 
 
 
-<doc text="Type definitions for Specification.">
+<doc text="Type definitions for Bare Architecture.">
 
 type bare_architecture_location = {
 	name : location_name;
@@ -120,40 +120,69 @@ type bare_architecture = bare_architecture_location list
 
 <doc text="Type definitions for Specification.">
 
-type specification_jp =
-  [ Jp_null
-  | Jp_resources_provided of resources_provided
+type spec_variable_name = string
+type spec_const = int
+
+type specification = 
+  [ SpecTrue
+  | SpecOp     of (spec_expr * spec_op * spec_expr)
+  | SpecAnd    of (specification * specification)
+  | SpecOr     of (specification * specification)
+  | SpecImpl   of (specification * specification)
+  | SpecNot    of specification
   ]
 
-type specification_jd =
-  [ Jd_null
-  | Jd_repository of repository_name
-  | Jd_or of (specification_jd * specification_jd)
+type spec_expr =
+  [ SpecExprVar   of spec_variable_name
+  | SpecExprConst of spec_const
+  | SpecExprArity of spec_element
+  | SpecExprAdd   of (spec_expr  * spec_expr)
+  | SpecExprSub   of (spec_expr  * spec_expr)
+  | SpecExprMul   of (spec_const * spec_expr)
   ]
 
-type specification_E = {
-	jp : specification_jp;
-	jd : specification_jd;
-	cm : specification_machines (* wrong! *)
-}
-
-type specification_machine_constraint = (specification_operator * specification_element)
-
-type specification_machines = specification_machine_constraint list
-
-type specification_element =
-  [ Package   of package_name
-  | Component of component_type_name
-  | Port      of port_name
+type spec_element =
+  [ SpecElementPackage       of package_name
+  | SpecElementComponentType of component_type_name
+  | SpecElementPort          of port_name
+  | SpecElementLocalisation  of (spec_resource_constraints * spec_repository_constraints * local_specification)
   ]
 
-type specification_constraint = (specification_operator * specification_E)
+type local_specification = 
+  [ SpecLocalTrue
+  | SpecLocalOp     of (spec_local_expr * spec_op * spec_local_expr)
+  | SpecLocalAnd    of (local_specification * local_specification)
+  | SpecLocalOr     of (local_specification * local_specification)
+  | SpecLocalImpl   of (local_specification * local_specification)
+  | SpecLocalNot    of local_specification
+  ]
 
-type specification = specification_constraint list
+type spec_local_expr =
+  [ SpecLocalExprVar   of spec_variable_name
+  | SpecLocalExprConst of spec_const
+  | SpecLocalExprArity of spec_local_element
+  | SpecLocalExprAdd   of (spec_local_expr * spec_local_expr)
+  | SpecLocalExprSub   of (spec_local_expr * spec_local_expr)
+  | SpecLocalExprMul   of (spec_const      * spec_local_expr)
+  ]
 
-type specification_operator = 
-  [ Lt  of int
-  | LEq of int
-  | Eq  of int
-  | GEq of int 
-  | Gt  of int ]
+type spec_local_element =
+  [ SpecLocalElementPackage       of package_name
+  | SpecLocalElementComponentType of component_type_name
+  | SpecLocalElementPort          of port_name
+  ]
+
+type spec_resource_constraint = (resource_name * spec_op * spec_const)
+type spec_resource_constraints = spec_resource_constraint list
+
+type spec_repository_constraint = repository_name
+type spec_repository_constraints = spec_repository_constraint list
+
+type spec_op =
+  [ Lt
+  | LEq
+  | Eq
+  | GEq
+  | Gt
+  | NEq
+  ]
