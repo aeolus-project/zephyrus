@@ -111,7 +111,7 @@ type configuration = {
 type bare_architecture_location = {
 	name : location_name;
 	~provide_resources  <ocaml default="[]"> : resources_provided
-}
+} <ocaml field_prefix="bare_architecture_location_">
 
 type bare_architecture = bare_architecture_location list
 

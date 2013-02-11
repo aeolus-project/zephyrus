@@ -168,5 +168,4 @@ let create_component_type_global_constraints universe : cstr list =
 
           ) create_component_type_global_constraints_functions )
     
-    ) (get_ports universe) )
-
+    ) (get_port_names universe) )
