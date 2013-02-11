@@ -1,13 +1,24 @@
 
-open Resource_types_t
+open Aeolus_types_j
 
 open Helpers
 open Typing_context
 open Variable_keys
 
-
 open Generic_constraints
 
+
+(* Translating the universe *)
+
+let translate_universe universe = []
+
+
+(* Translating the specification *)
+
+let translate_specification universe = []
+
+
+(*
 (* Translating the typing context *)
 
 type typing_context_constraints = (string * (cstr list)) list
@@ -58,3 +69,4 @@ let string_of_generated_constraints translation_constraints specification_constr
   Printf.sprintf
     "\n%s\n"
     (lines_of_strings strings)
+*)

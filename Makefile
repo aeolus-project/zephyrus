@@ -11,6 +11,8 @@ helpers.mli helpers.ml\
 typing_context.mli typing_context.ml\
 variable_keys.ml\
 generic_constraints.mli generic_constraints.ml\
+matching_algorithm.ml\
+constraints.ml\
 aeolus_types_output_facade.ml\
 universe_input_facade.ml specification_input_facade.ml bare_architecture_input_facade.ml\
 gentlewestwind.ml
@@ -20,10 +22,12 @@ gentlewestwind.ml
 #typing_context.mli typing_context.ml\
 #variable_keys.ml\
 #generic_constraints.mli generic_constraints.ml\
+
 #capacity_constraints.mli capacity_constraints.ml\
 #binding_constraints.mli binding_constraints.ml\
 #max_rest_constraints.mli max_rest_constraints.ml\
 #specification_constraints.mli specification_constraints.ml\
+
 #matching_algorithm.ml\
 #constraints.ml\
 #resource_generation.ml\
