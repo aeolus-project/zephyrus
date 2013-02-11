@@ -65,10 +65,22 @@ let get_ports universe =
     ) 
   )
 
+let get_provide_arity component_type port_name =
+  try
+    List.assoc port_name component_type.component_type_provide
+  with
+  | Not_found -> 0
+
+let get_require_arity component_type port_name =
+  try
+    List.assoc port_name component_type.component_type_require
+  with
+  | Not_found -> 0
+
 let requirers universe port_name =
   BatList.filter_map (fun component_type ->
     if List.exists (fun (required_port_name, require_arity) ->
-         required_port_name = port_name
+         (required_port_name = port_name) && (require_arity > 0)
        ) component_type.component_type_require
     then Some (component_type.component_type_name)
     else None
@@ -77,7 +89,7 @@ let requirers universe port_name =
 let providers universe port_name =
   BatList.filter_map (fun component_type ->
     if List.exists (fun (provided_port_name, provide_arity) ->
-         provided_port_name = port_name
+         (provided_port_name = port_name) && (provide_arity > 0)
        ) component_type.component_type_provide
     then Some (component_type.component_type_name)
     else None

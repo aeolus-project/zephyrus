@@ -10,7 +10,16 @@ open Generic_constraints
 
 (* Translating the universe *)
 
-let translate_universe universe = []
+let translate_universe universe =
+  let create_constraints_functions = [
+    ("component types",  Component_type_global_constraints.create_component_type_global_constraints)
+  ]
+  in
+  List.map (fun (constraints_group_name, create_constraints_function) ->
+    let constraints = create_constraints_function universe
+    in
+    (constraints_group_name, constraints)
+  ) create_constraints_functions
 
 
 (* Translating the specification *)

@@ -11,6 +11,7 @@ helpers.mli helpers.ml\
 typing_context.mli typing_context.ml\
 variable_keys.ml\
 generic_constraints.mli generic_constraints.ml\
+component_type_global_constraints.mli component_type_global_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
 aeolus_types_output_facade.ml\
