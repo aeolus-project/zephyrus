@@ -98,7 +98,7 @@ let create_binding_unicity_constraints universe port_name : cstr list  =
     List.map (fun providing_component_type_name ->
       List.map (fun requiring_component_type_name ->
   
-        let binding_var                       = var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
+        let binding_var                  = var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
         and providing_component_type_var = var (GlobalElementVariable (ComponentType providing_component_type_name))  
         and requiring_component_type_var = var (GlobalElementVariable (ComponentType requiring_component_type_name))
         in
@@ -127,19 +127,18 @@ let create_conflict_constraints universe port_name : cstr list  =
   (* For all the component types which are in conflict with the port *)
   List.map (fun conflicting_component_type_name ->
       
-      let conflicting_component_type_var = var (GlobalElementVariable (ComponentType conflicting_component_type_name))
+      let conflicting_component_type_var      = var (GlobalElementVariable (ComponentType conflicting_component_type_name))
+      and conflicting_component_provide_arity = get_provide_arity (get_component_type universe conflicting_component_type_name) port_name
       in
   
-      (* The constraint : [for each component type t which conflicts with port p]  ( N(p) >= 1 )  implies  N(t) = 0 *)
-      ( ( (var2expr port_var) >=~ (const2expr 1) ) =>~~ ( (var2expr conflicting_component_type_var) =~ (const2expr 0) ) )
+      (* The constraint : [for each component type t which conflicts with port p]  ( N(t) >= 1 )  implies  ( N(p) = provides(t,p) ) *)
+      ( (var2expr conflicting_component_type_var) >=~ (const2expr 1) ) =>~~ ( (var2expr port_var) =~ (const2expr conflicting_component_provide_arity) )
 
       (* Name           : Conflict of t on port p. *)
-      (* Description    : If a port p is present in the configuration, then there can be no component providing port p present in the configuration. *)
-      (* Explanation    : If N(p) is greater than zero, then N(t) must be equal zero. *)
+      (* Description    : If a component t which is in conflict with the port p is present in the configuration, then the total number of port p provided in the configuration must be equal to the number of port p which t provides. *)
+      (* Explanation    : If N(t) is greater than zero, then N(p) must be equal to the number of port p which t provides. *)
 
   ) conflicter_names
-
-  (* TODO: Should I join it in one big AND ? It's a performance question... *)
 
 
 

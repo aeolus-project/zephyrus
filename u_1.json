@@ -7,6 +7,10 @@
 		{
 			"name": "requirer",
 			"require": [["port", 2]]
+		},
+		{
+			"name": "conflicter",
+			"conflict": ["port"]
 		}
 	],
 	"implementation": [

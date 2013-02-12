@@ -26,10 +26,10 @@ val create_provide_binding_constraints : universe -> port_name -> cstr list
 val create_binding_unicity_constraints : universe -> port_name -> cstr list
 
 
-(* The constraint : [for each component type t which conflicts with port p]  ( N(p) >= 1 )  implies  N(t) = 0 *)
+(* The constraint : [for each component type t which conflicts with port p]  ( N(t) >= 1 )  implies  ( N(p) = provides(t,p) ) *)
 (* Name           : Conflict of t on port p. *)
-(* Description    : If a port p is present in the configuration, then there can be no component providing port p present in the configuration. *)
-(* Explanation    : If N(p) is greater than zero, then N(t) must be equal zero. *)
+(* Description    : If a component t which is in conflict with the port p is present in the configuration, then the total number of port p provided in the configuration must be equal to the number of port p which t provides. *)
+(* Explanation    : If N(t) is greater than zero, then N(p) must be equal to the number of port p which t provides. *)
 val create_conflict_constraints : universe -> port_name -> cstr list
 
 
