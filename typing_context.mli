@@ -9,6 +9,7 @@ val get_package                       : repository -> package_name -> package
 val get_component_type_names : universe -> component_type_name list
 val get_port_names           : universe -> port_name list
 val get_package_names        : universe -> package_name list
+val get_repository_names     : universe -> repository_name list
 val get_locations            : bare_architecture -> location_name list
 
 val get_provide_arity : component_type -> port_name -> provide_arity

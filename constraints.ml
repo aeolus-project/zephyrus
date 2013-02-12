@@ -13,7 +13,8 @@ open Generic_constraints
 let translate_universe universe bare_architecture =
   let create_constraints_functions = [
     ("component types",  Component_type_global_constraints.create_component_type_global_constraints);
-    ("location",         Location_constraints.create_location_constraints bare_architecture)
+    ("location",         Location_constraints.create_location_constraints bare_architecture);
+    ("repository",       Repository_constraints.create_repository_constraints bare_architecture)
   ]
   in
   List.map (fun (constraints_group_name, create_constraints_function) ->

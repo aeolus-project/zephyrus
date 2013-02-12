@@ -48,6 +48,11 @@ let get_package repository package_name =
         "the package %s does not exist in this repository" 
         (string_of_package_name package_name))
 
+let get_component_type_names universe =
+  List.map ( fun component_type -> 
+      component_type.component_type_name
+  ) universe.universe_component_types
+
 let get_port_names universe =
   BatList.unique ( 
     List.flatten ( 
@@ -65,6 +70,11 @@ let get_port_names universe =
     ) 
   )
 
+let get_repository_names universe =
+  List.map ( fun repository -> 
+      repository.repository_name
+  ) universe.universe_repositories
+
 let get_package_names universe =
   BatList.unique ( 
     List.flatten ( 
@@ -77,11 +87,6 @@ let get_package_names universe =
       ) universe.universe_repositories
     ) 
   )
-
-let get_component_type_names universe =
-  List.map ( fun component_type -> 
-      component_type.component_type_name
-  ) universe.universe_component_types
 
 let get_locations bare_architecture =
   BatList.unique (

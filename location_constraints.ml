@@ -24,6 +24,7 @@ let create_element_location_constraints
     (* The right side expression: *)
     let exprs_to_sum = 
       List.map ( fun location_name ->
+
         let local_element_var = 
           var (local_var_key_function location_name element_name)
         in
@@ -118,7 +119,7 @@ let create_port_provided_at_location_constraints bare_architecture universe : cs
 
 let create_location_constraints bare_architecture universe : cstr list =
 
-  (* A list of constraint generating functions to use with each port. *)
+  (* A list of constraint generating functions to use: *)
   let create_location_constraints_functions =
     [create_component_type_location_constraints;
      create_port_location_constraints;

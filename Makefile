@@ -14,6 +14,7 @@ variable_keys.ml\
 generic_constraints.mli generic_constraints.ml\
 component_type_global_constraints.mli component_type_global_constraints.ml\
 location_constraints.mli location_constraints.ml\
+repository_constraints.mli repository_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
 universe_input_facade.ml specification_input_facade.ml bare_architecture_input_facade.ml\
