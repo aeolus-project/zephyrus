@@ -48,6 +48,14 @@ let get_package repository package_name =
         "the package %s does not exist in this repository" 
         (string_of_package_name package_name))
 
+let get_repository_package_names universe repository_name =
+  let repository = get_repository universe repository_name
+  in
+  List.map ( fun package ->
+    package.package_name
+  ) repository.repository_packages
+
+
 let get_component_type_names universe =
   List.map ( fun component_type -> 
       component_type.component_type_name

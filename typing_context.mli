@@ -6,6 +6,8 @@ val get_component_type_implementation : universe -> component_type_name -> packa
 val get_repository                    : universe -> repository_name -> repository
 val get_package                       : repository -> package_name -> package
 
+val get_repository_package_names : universe -> repository_name -> package_name list
+
 val get_component_type_names : universe -> component_type_name list
 val get_port_names           : universe -> port_name list
 val get_package_names        : universe -> package_name list
