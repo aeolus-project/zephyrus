@@ -118,7 +118,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints bare_ar
 let create_repository_constraints bare_architecture universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
-  let create_location_constraints_functions =
+  let create_constraints_functions =
     [create_one_repository_per_location_constraints;
      create_packages_in_location_must_come_from_its_repository_contraints]
   in
@@ -132,4 +132,4 @@ let create_repository_constraints bare_architecture universe : cstr list =
     (* Create the constraint *)
     create_constraints_function bare_architecture universe 
 
-  ) create_location_constraints_functions )
+  ) create_constraints_functions )

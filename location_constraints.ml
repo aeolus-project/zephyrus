@@ -120,7 +120,7 @@ let create_port_provided_at_location_constraints bare_architecture universe : cs
 let create_location_constraints bare_architecture universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
-  let create_location_constraints_functions =
+  let create_constraints_functions =
     [create_component_type_location_constraints;
      create_port_location_constraints;
      create_package_location_constraints;
@@ -136,4 +136,4 @@ let create_location_constraints bare_architecture universe : cstr list =
     (* Create the constraint *)
     create_constraints_function bare_architecture universe 
 
-  ) create_location_constraints_functions )
+  ) create_constraints_functions )
