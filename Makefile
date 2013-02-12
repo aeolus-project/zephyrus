@@ -15,6 +15,7 @@ generic_constraints.mli generic_constraints.ml\
 component_type_global_constraints.mli component_type_global_constraints.ml\
 location_constraints.mli location_constraints.ml\
 repository_constraints.mli repository_constraints.ml\
+package_constraints.mli package_constraints.ml\
 resource_constraints.mli resource_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
