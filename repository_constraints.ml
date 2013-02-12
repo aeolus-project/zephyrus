@@ -101,7 +101,11 @@ let create_packages_in_location_must_come_from_its_repository_contraints bare_ar
 
         ) right_side_exprs
 
-        (* TODO: We can easily transform this list of constraints into a single constraint with a logic sum, but which one has a better performance? *)
+        (* TODO: 
+           We can easily transform this list of constraints into a single constraint 
+           with a big logic sum, question is: which one has a better performance? 
+           For now we stick with this version, because it's more lisible.
+        *)
   
       ) repository_names
     ) location_names
