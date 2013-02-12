@@ -1,13 +1,22 @@
 {
 	"component_types": [
 		{
-			"name": "service"
+			"name": "provider",
+			"provide": [["port", 3]]
+		},
+		{
+			"name": "requirer",
+			"require": [["port", 2]]
 		}
 	],
 	"implementation": [
 		[
-			"service",
-			["package"]
+			"provider",
+			["provider_package"]
+		],
+		[
+			"requirer",
+			["requirer_package"]
 		]
 	],
 	"repositories": [
@@ -15,7 +24,15 @@
 			"name": "repository",
 			"packages": [
 				{
-					"name": "package"
+					"name": "provider_package",
+					"depend": [["common_package"]]
+				},
+				{
+					"name": "requirer_package",
+					"depend": [["common_package"]]
+				},
+				{
+					"name": "common_package"
 				}
 			]
 		}

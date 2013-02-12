@@ -1,5 +1,6 @@
 
 open Helpers
+open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 
 (* Operator types definitions *)
@@ -67,6 +68,10 @@ and string_of_nary_arith_op op =
   match op with
   | Sum -> "+"
 
+and unit_of_nary_arith_op op =
+  match op with
+  | Sum -> "0"
+
 and string_of_binary_arith_cmp_op op =
   match op with
   | Lt  -> "<"
@@ -107,10 +112,13 @@ and string_of_expr expr =
       (string_of_expr rexpr)
 
   | NaryArithExpr (op, exprs) ->
-      Printf.sprintf "(%s)" 
-      (String.concat
-        (Printf.sprintf " %s " (string_of_nary_arith_op op))
-        (List.map string_of_expr exprs) )
+      Printf.sprintf "(%s)"
+      (if exprs = [] 
+       then unit_of_nary_arith_op op
+       else
+         (String.concat
+           (Printf.sprintf " %s " (string_of_nary_arith_op op))
+           (List.map string_of_expr exprs) ) )
 
   | BinaryArithCmpExpr (op, lexpr, rexpr) ->
       Printf.sprintf "[[%s %s %s]]" 

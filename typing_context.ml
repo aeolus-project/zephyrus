@@ -51,19 +51,6 @@ let get_package repository package_name =
 let get_port_names universe =
   BatList.unique ( 
     List.flatten ( 
-      List.map ( fun repository -> 
-        
-        List.map (fun package -> 
-          package.package_name
-        ) repository.repository_packages
-    
-      ) universe.universe_repositories
-    ) 
-  )
-
-let get_package_names universe =
-  BatList.unique ( 
-    List.flatten ( 
       List.map ( fun component_type -> 
         
         (
@@ -75,6 +62,19 @@ let get_package_names universe =
         component_type.component_type_conflict
     
       ) universe.universe_component_types
+    ) 
+  )
+
+let get_package_names universe =
+  BatList.unique ( 
+    List.flatten ( 
+      List.map ( fun repository -> 
+        
+        List.map (fun package -> 
+          package.package_name
+        ) repository.repository_packages
+    
+      ) universe.universe_repositories
     ) 
   )
 

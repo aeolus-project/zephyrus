@@ -13,9 +13,7 @@ let create_element_location_constraints
   : cstr list =
 
   let location_names = get_locations bare_architecture
-  in
-
-  let element_names = get_element_names_function universe
+  and element_names  = get_element_names_function universe
   in
   List.map (fun element_name ->
 
@@ -39,44 +37,83 @@ let create_element_location_constraints
     
     in
 
-    (* The constraint : *)
+    (* The constraint :  *)
     ( (var2expr global_element_var) =~ sum_of_local_element_vars )
+
+    (* Name        : Elements location. *)
+    (* Description : Global number of components of type t is equal to sum of local numbers of components of this type in all locations. *)
+    (* Constraint  : *)
 
   ) element_names
 
 
 let create_component_type_location_constraints :  bare_architecture -> universe -> cstr list =
-
-  let get_element_names_function = get_component_type_names
-  and global_var_key_function component_type_name = (GlobalElementVariable (ComponentType component_type_name))
-  and local_var_key_function location_name component_type_name = (LocalElementVariable (location_name, (ComponentType component_type_name)))
-  in
   create_element_location_constraints
-    get_element_names_function
-    global_var_key_function
-    local_var_key_function
+    get_component_type_names
+    ( fun component_type_name -> (GlobalElementVariable (ComponentType component_type_name)) )
+    ( fun location_name component_type_name -> (LocalElementVariable (location_name, (ComponentType component_type_name))) )
 
 let create_port_location_constraints :  bare_architecture -> universe -> cstr list =
-
-  let get_element_names_function = get_port_names
-  and global_var_key_function port_name = (GlobalElementVariable (Port port_name))
-  and local_var_key_function location_name port_name = (LocalElementVariable (location_name, (Port port_name)))
-  in
   create_element_location_constraints
-    get_element_names_function
-    global_var_key_function
-    local_var_key_function
+    get_port_names
+    ( fun port_name -> (GlobalElementVariable (Port port_name)) )
+    ( fun location_name port_name -> (LocalElementVariable (location_name, (Port port_name))) )
 
 let create_package_location_constraints :  bare_architecture -> universe -> cstr list =
-
-  let get_element_names_function = get_package_names
-  and global_var_key_function package_name = (GlobalElementVariable (Package package_name))
-  and local_var_key_function location_name package_name = (LocalElementVariable (location_name, (Package package_name)))
-  in
   create_element_location_constraints
-    get_element_names_function
-    global_var_key_function
-    local_var_key_function
+    get_package_names
+    ( fun package_name -> (GlobalElementVariable (Package package_name)) )
+    ( fun location_name package_name -> (LocalElementVariable (location_name, (Package package_name))) )
+
+
+
+let create_port_provided_at_location_constraints bare_architecture universe : cstr list =
+
+  let location_names = get_locations bare_architecture
+  and port_names     = get_port_names universe
+  in
+
+  List.flatten (
+    List.map (fun location_name ->
+      List.map (fun port_name ->
+  
+        (* The left side expression: *)
+        let local_port_var = var (LocalElementVariable (location_name, (Port port_name)))
+        in
+    
+        (* The right side expression: *)
+  
+        (* Get all component types which: *)
+        let provider_names = providers universe port_name (* provide some quantity of the port *)
+        in
+  
+        let exprs_to_sum = 
+          List.map ( fun component_type_name ->
+            
+            let provide_arity            = get_provide_arity (get_component_type universe component_type_name) port_name
+            and local_component_type_var = var (LocalElementVariable (location_name, (ComponentType component_type_name)))
+            in
+  
+            (* Part of the sum: provide_arity(location_name, component_type_name) * N(location_name, component_type_name) *)
+            ( (const2expr provide_arity) *~ (var2expr local_component_type_var) )
+              
+          ) provider_names
+        in
+        let sum_of_local_provides = (sum exprs_to_sum)
+        
+        in
+    
+        (* The constraint :  *)
+        ( (var2expr local_port_var) =~ sum_of_local_provides )
+    
+        (* Name        : Ports provided at location. *)
+        (* Description : Number of ports provided at location is a sum of all ports provided by components which are present at this location. *)
+        (* Constraint  : *)
+  
+      ) port_names
+    ) location_names
+  )
+
 
 
 let create_location_constraints bare_architecture universe : cstr list =
@@ -85,7 +122,8 @@ let create_location_constraints bare_architecture universe : cstr list =
   let create_location_constraints_functions =
     [create_component_type_location_constraints;
      create_port_location_constraints;
-     create_package_location_constraints]
+     create_package_location_constraints;
+     create_port_provided_at_location_constraints]
   in
 
   (* Generate the constraints! *)

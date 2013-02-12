@@ -56,7 +56,7 @@ type specification_constraints = cstr list
 
 let translate_specification : specification -> specification_constraints =
   Specification_constraints.create_specification_constraints
-
+*)
 
 let string_of_generated_constraint = string_of_cstr
 
@@ -79,4 +79,3 @@ let string_of_generated_constraints translation_constraints specification_constr
   Printf.sprintf
     "\n%s\n"
     (lines_of_strings strings)
-*)

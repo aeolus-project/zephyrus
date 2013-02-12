@@ -12,12 +12,12 @@ open Easy
 *)
 
 open Helpers
-(*
+
 open Typing_context
-open Facile_variables
+(* open Facile_variables *)
 open Constraints
-open Resource_generation
-*)
+(* open Resource_generation *)
+
 
 
 (* === Handling the arguments === *)
@@ -128,12 +128,13 @@ let my_specification =
 let my_typing_context =
   create_typing_context my_universe
 
+*)
 
 (* Generate the constraints from the resource types and the specification *)
 let my_translation_constraints = 
-  translate_typing_context my_typing_context
+  translate_universe my_universe my_bare_architecture
 
-let my_specification_constraints =
+let my_specification_constraints = [] (*
   translate_specification my_specification
 
 
@@ -200,7 +201,7 @@ let () =
     Printf.printf "%s\n" (string_of_delta  my_typing_context Requires);
     Printf.printf "%s\n" (string_of_gamma  my_typing_context);
   );
-
+*)
 
   if(!print_cstrs)
   then (
@@ -209,7 +210,7 @@ let () =
   );
 
 
-
+(*
   Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
   Facile_constraints.post_translation_constraints   my_facile_translation_constraints;
   Facile_constraints.post_specification_constraints my_facile_specification_constraints;
