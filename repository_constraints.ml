@@ -9,7 +9,7 @@ open Generic_constraints
 
 let create_one_repository_per_location_constraints bare_architecture universe : cstr list =
 
-  let location_names   = get_locations bare_architecture
+  let location_names   = get_location_names bare_architecture
   and repository_names = get_repository_names universe
   in
 
@@ -48,7 +48,7 @@ let create_one_repository_per_location_constraints bare_architecture universe : 
 
 let create_packages_in_location_must_come_from_its_repository_contraints bare_architecture universe : cstr list =
 
-  let location_names    = get_locations bare_architecture
+  let location_names    = get_location_names bare_architecture
   and repository_names  = get_repository_names universe
   and all_package_names = get_package_names universe
   in

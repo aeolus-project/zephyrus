@@ -12,7 +12,7 @@ let create_element_location_constraints
   universe 
   : cstr list =
 
-  let location_names = get_locations bare_architecture
+  let location_names = get_location_names bare_architecture
   and element_names  = get_element_names_function universe
   in
   List.map (fun element_name ->
@@ -70,7 +70,7 @@ let create_package_location_constraints :  bare_architecture -> universe -> cstr
 
 let create_port_provided_at_location_constraints bare_architecture universe : cstr list =
 
-  let location_names = get_locations bare_architecture
+  let location_names = get_location_names bare_architecture
   and port_names     = get_port_names universe
   in
 

@@ -96,7 +96,7 @@ let get_package_names universe =
     ) 
   )
 
-let get_locations bare_architecture =
+let get_location_names bare_architecture =
   BatList.unique (
     List.map (fun bare_architecture_location -> 
       bare_architecture_location.bare_architecture_location_name
@@ -141,3 +141,24 @@ let conflicters universe port_name =
     then Some (component_type.component_type_name)
     else None
   ) universe.universe_component_types
+
+(*
+let consumers universe resource_name =
+  let component_types =
+    BatList.filter_map (fun component_type ->
+      if List.exists (fun (consumed_resource_name, resource_consumption) ->
+           (consumed_resource_name = resource_name) && (resource_consumption > 0)
+         ) component_type.component_type_consume
+      then Some (component_type.component_type_name)
+      else None
+    ) universe.universe_component_types
+
+  and packages =
+    BatList.filter_map (fun component_type ->
+      if List.exists (fun (consumed_resource_name, resource_consumption) ->
+           (consumed_resource_name = resource_name) && (resource_consumption > 0)
+         ) component_type.component_type_consume
+      then Some (component_type.component_type_name)
+      else None
+    ) universe.universe_component_types
+*)
