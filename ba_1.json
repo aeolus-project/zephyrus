@@ -1,5 +1,6 @@
 [
 	{
-		"name" : "location"
+		"name" : "location",
+		"provide_resources" : [["resource", 100]]
 	}
 ]

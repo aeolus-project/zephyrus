@@ -48,6 +48,8 @@ let get_package repository package_name =
         "the package %s does not exist in this repository" 
         (string_of_package_name package_name))
 
+let get_component_types universe = universe.universe_component_types
+
 let get_packages universe =
   List.flatten ( 
     List.map ( fun repository -> 
@@ -110,6 +112,46 @@ let get_location_names bare_architecture =
     ) bare_architecture
   )
 
+let get_resource_names universe =
+  
+  let consumed_resources_of_resource_consumption_list 
+    (resource_consumption_list : (resource_name * resource_consumption) list)
+    : resource_name list =
+
+    BatList.filter_map (fun (resource_name, resource_consumption) ->
+      if resource_consumption > 0
+      then Some(resource_name)
+      else None
+    ) resource_consumption_list
+
+  in
+
+  BatList.unique (
+
+    (* Resource names mentioned in all component types. *)
+    List.flatten ( 
+      List.map (fun component_type -> 
+        consumed_resources_of_resource_consumption_list 
+          component_type.component_type_consume
+      ) universe.universe_component_types
+    )
+    
+    @
+
+    (* Resource names mentioned in all packages. *)
+    List.flatten ( 
+      List.map ( fun repository -> 
+        List.flatten (
+          List.map (fun package -> 
+            consumed_resources_of_resource_consumption_list 
+              package.package_consume
+          ) repository.repository_packages
+        )
+      ) universe.universe_repositories
+    )
+
+  )
+
 let get_provide_arity component_type port_name =
   try
     List.assoc port_name component_type.component_type_provide
@@ -119,6 +161,18 @@ let get_provide_arity component_type port_name =
 let get_require_arity component_type port_name =
   try
     List.assoc port_name component_type.component_type_require
+  with
+  | Not_found -> 0
+
+let get_component_type_resource_consumption component_type resource_name =
+  try
+    List.assoc resource_name component_type.component_type_consume
+  with
+  | Not_found -> 0
+
+let get_package_resource_consumption package resource_name =
+  try
+    List.assoc resource_name package.package_consume
   with
   | Not_found -> 0
 

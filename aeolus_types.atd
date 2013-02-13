@@ -61,9 +61,24 @@ type universe = {
 
 
 
-<doc text="Type definitions for Configuration.">
+
+
+
+<doc text="Type definitions for Bare Architecture.">
 
 type resources_provided = (resource_name * resource_provide_arity) list
+
+type bare_architecture_location = {
+  name : location_name;
+  ~provide_resources  <ocaml default="[]"> : resources_provided
+} <ocaml field_prefix="bare_architecture_location_">
+
+type bare_architecture = bare_architecture_location list
+
+
+
+
+<doc text="Type definitions for Configuration.">
 
 type location = {
   name                                     : location_name;
@@ -102,18 +117,6 @@ type configuration = {
  * 4. the validity of resource consumption (all consumed resources are provided)
  *
  *)
-
-
-
-
-<doc text="Type definitions for Bare Architecture.">
-
-type bare_architecture_location = {
-	name : location_name;
-	~provide_resources  <ocaml default="[]"> : resources_provided
-} <ocaml field_prefix="bare_architecture_location_">
-
-type bare_architecture = bare_architecture_location list
 
 
 

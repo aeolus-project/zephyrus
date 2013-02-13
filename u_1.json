@@ -2,15 +2,18 @@
 	"component_types": [
 		{
 			"name": "provider",
-			"provide": [["port", 3]]
+			"provide": [["port", 3]],
+			"consume": [["resource", 5]]
 		},
 		{
 			"name": "requirer",
-			"require": [["port", 2]]
+			"require": [["port", 2]],
+			"consume": [["resource", 3]]
 		},
 		{
 			"name": "conflicter",
-			"conflict": ["port"]
+			"conflict": ["port"],
+			"consume": [["resource", 7]]
 		}
 	],
 	"implementation": [
@@ -29,11 +32,13 @@
 			"packages": [
 				{
 					"name": "provider_package",
-					"depend": [["common_package"]]
+					"depend": [["common_package"]],
+					"consume": [["resource", 1]]
 				},
 				{
 					"name": "requirer_package",
-					"depend": [["common_package"]]
+					"depend": [["common_package"]],
+					"consume": [["resource", 1]]
 				},
 				{
 					"name": "common_package"
