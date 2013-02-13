@@ -30,17 +30,7 @@ let translate_universe_and_initial_configuration universe initial_configuration 
 
 let translate_specification specification initial_configuration =
   [("specification", Specification_constraints.create_specification_constraints initial_configuration specification)]
-
-(*
-
-(* Translating the specification *)
-
-type specification_constraints = cstr list
-
-let translate_specification : specification -> specification_constraints =
-  Specification_constraints.create_specification_constraints
-
-*)
+  
 
 let string_of_generated_constraint = string_of_cstr
 

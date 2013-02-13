@@ -137,12 +137,13 @@ let my_translation_constraints =
 let my_specification_constraints =
   translate_specification my_specification my_initial_configuration
 
-(*
+
 (* Prepare the problem: FaCiLe variables, constraints and the goal. *)
 
 let my_variables =
-  create_typing_context_variables my_typing_context
+  Facile_variables.create_variables my_universe my_initial_configuration
 
+(*
 let my_facile_translation_constraints : Facile_constraints.typing_context_constraints = 
   List.map (fun (constraints_group_name, constraints) ->
     let facile_constraints = List.map (Facile_constraints.Facile_constraints.translate_cstr my_variables) constraints
@@ -213,21 +214,18 @@ let () =
   Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
   Facile_constraints.post_translation_constraints   my_facile_translation_constraints;
   Facile_constraints.post_specification_constraints my_facile_specification_constraints;
-
+*)
 
 
   if(!print_facile_vars)
   then (
     Printf.printf "\n===> THE FACILE VARIABLES <===\n";
 
-    Printf.printf "\n> Domain variables:%s"  (string_of_domain_variables  my_variables);
-    Printf.printf "\n> Port variables:%s"    (string_of_port_variables    my_variables);
-    Printf.printf "\n> Binding variables:%s" (string_of_binding_variables my_variables);
-    (* Printf.printf "\n> Max-Rest variables:%s" (string_of_max_rest_variables my_variables); *)
+    Printf.printf "%s" (Facile_variables.string_of_variables my_variables)
   );
 
 
-
+(*
   if(!print_facile_cstrs)
   then (
     Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";

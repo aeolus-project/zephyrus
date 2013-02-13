@@ -20,6 +20,7 @@ resource_constraints.mli resource_constraints.ml\
 specification_constraints.mli specification_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
+facile_variables.ml\
 universe_input_facade.ml specification_input_facade.ml configuration_input_facade.ml\
 gentlewestwind.ml
 
