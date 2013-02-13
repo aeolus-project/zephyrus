@@ -37,6 +37,10 @@
 				},
 				{
 					"name": "common_package"
+				},
+				{
+					"name": "conflicting_package",
+					"conflict": ["common_package"]
 				}
 			]
 		},

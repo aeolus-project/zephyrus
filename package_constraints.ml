@@ -9,7 +9,7 @@ let create_package_implementation_constraints bare_architecture universe =
   let location_names       = get_location_names bare_architecture
   and component_type_names = get_component_type_names universe
   in
-  
+
   List.flatten (
     List.map (fun location_name ->
       List.map (fun component_type_name ->
@@ -66,9 +66,9 @@ let create_package_dependency_constraints bare_architecture universe =
   List.flatten (
     List.map (fun location_name ->
       List.flatten (
-        List.map (fun depending_package ->
+        List.map (fun package ->
   
-          let depending_package_name = depending_package.package_name
+          let depending_package_name = package.package_name
           in
   
           List.map (fun depended_on_package_names_group ->
@@ -103,13 +103,51 @@ let create_package_dependency_constraints bare_architecture universe =
             (* Description : *)
             (* Constraint  : *)
   
-          ) depending_package.package_depend
+          ) package.package_depend
         ) packages
       )
     ) location_names
   )
 
-let create_package_conflict_constraints bare_architecture universe = []
+let create_package_conflict_constraints bare_architecture universe =
+
+  let location_names = get_location_names bare_architecture
+  and packages       = get_packages       universe
+  in
+
+  List.flatten (
+    List.map (fun location_name ->
+      List.flatten (
+        List.map (fun package ->
+  
+          let conflicting_package_name_1 = package.package_name
+          in
+  
+          List.map (fun conflicting_package_name_2 ->
+            
+            (* The left side expression: *)
+            let local_conflicting_package_var_1 = 
+                var (LocalElementVariable (location_name, (Package conflicting_package_name_1)))
+              
+            and local_conflicting_package_var_2 =
+                var (LocalElementVariable (location_name, (Package conflicting_package_name_2)))
+
+            in
+
+            (* The right side expression is a constant equal 1. *)
+  
+            (* The constraint :  *)
+            ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) <=~ (const2expr 1) )
+            
+            (* Name        : *)
+            (* Description : *)
+            (* Constraint  : *)
+  
+          ) package.package_conflict
+        ) packages
+      )
+    ) location_names
+  )
 
 
 
