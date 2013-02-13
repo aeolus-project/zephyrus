@@ -94,8 +94,12 @@ module Facile_constraints (* :
 
     (* Building constraints *)
 
-    let trueexpr  = Cstr.one
-    let falseexpr = Cstr.zero
+    let trueexpr  : cstr = Cstr.one
+    let falseexpr : cstr = Cstr.zero
+
+    (* Reification *)
+    
+    let reify (cstr : cstr) = (var2expr (Reify.boolean cstr))
 
     (* Arith *)
 
@@ -155,6 +159,8 @@ module Facile_constraints (* :
 
       | C.Var (var) -> var2expr (translate_var variables var)
       
+      | C.Reified (cstr) -> reify cstr
+
       | C.BinaryArithExpr (op, lexpr, rexpr) ->
           (match op with
           | C.Add -> (translate_expr variables lexpr) +~ (translate_expr variables rexpr)

@@ -43,6 +43,7 @@ type var =
 and expr =
   | Const               of int                                (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
+  | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
@@ -106,6 +107,9 @@ and string_of_expr expr =
 
   | Var (var) ->
       Printf.sprintf "%s" (string_of_var var)
+
+  | Reified (cstr) ->
+      Printf.sprintf "||%s||" (string_of_cstr cstr)
   
   | BinaryArithExpr (op, lexpr, rexpr) ->
       Printf.sprintf "(%s %s %s)" 
@@ -165,13 +169,22 @@ let const2expr (const : int)  : expr = Const const
 let trueexpr  = TrueCstr
 let falseexpr = FalseCstr
 
-(* Arith *)
+(* Reification *)
+
+let reify cstr = Reified cstr
+
+(* Arithmetic operators *)
 
 let ( +~ )    x y  = BinaryArithExpr (Add, x, y)
 let ( -~ )    x y  = BinaryArithExpr (Sub, x, y)
 let ( *~ )    x y  = BinaryArithExpr (Mul, x, y)
 let ( /~ )    x y  = BinaryArithExpr (Div, x, y)
 let ( %~ )    x y  = BinaryArithExpr (Mod, x, y)
+
+let sum exprs_to_sum = NaryArithExpr (Sum, exprs_to_sum)
+
+
+(* Reified arithmetic comparisons *)
 
 let (  <~~ )  x y  = BinaryArithCmpExpr (Lt,  x, y)
 let ( <=~~ )  x y  = BinaryArithCmpExpr (LEq, x, y)
@@ -180,9 +193,8 @@ let ( >=~~ )  x y  = BinaryArithCmpExpr (GEq, x, y)
 let (  >~~ )  x y  = BinaryArithCmpExpr (Gt,  x, y)
 let ( <>~~ )  x y  = BinaryArithCmpExpr (NEq, x, y)
 
-let sum exprs_to_sum = NaryArithExpr (Sum, exprs_to_sum)
 
-(* Cstr *)
+(* Arithmetic comparisons *)
 
 let (  <~ )   x y  = BinaryArithCmpCstr (Lt,  x, y)
 let ( <=~ )   x y  = BinaryArithCmpCstr (LEq, x, y)
@@ -192,7 +204,7 @@ let (  >~ )   x y  = BinaryArithCmpCstr (Gt,  x, y)
 let ( <>~ )   x y  = BinaryArithCmpCstr (NEq, x, y)
 
 
-(* Reify *)
+(* Constraint operators *)
 
 let (  &&~~ ) x y  = BinaryCstrOpCstr (And,         x, y)
 let (  ||~~ ) x y  = BinaryCstrOpCstr (Or,          x, y)

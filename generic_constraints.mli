@@ -40,6 +40,7 @@ type var =
 and expr =
   | Const               of int                                (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
+  | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
@@ -74,6 +75,10 @@ val trueexpr  : cstr
 val falseexpr : cstr
 
 
+(* Reification *)
+
+val reify : cstr -> expr
+
 (* Arithmetic operators *)
 
 val ( +~ ) : expr -> expr -> expr
@@ -83,6 +88,7 @@ val ( /~ ) : expr -> expr -> expr
 val ( %~ ) : expr -> expr -> expr
 
 val sum : expr list -> expr
+
 
 (* Reified arithmetic comparisons *)
 
