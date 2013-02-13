@@ -45,6 +45,8 @@ and expr =
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
 
 and cstr =
+  | TrueCstr
+  | FalseCstr
   | BinaryArithCmpCstr  of binary_arith_cmp_op * expr * expr  (* cstr : lexpr OP rexpr *)
   | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  (* cstr : lcstr OP rcstr *)
   | UnaryCstrOpCstr     of unary_cstr_op       * cstr         (* cstr : OP cstr' *)
@@ -65,6 +67,11 @@ val var        : Variable_keys.variable_key -> var
 
 val var2expr   : var  -> expr
 val const2expr : int  -> expr
+
+(* Building constraints *)
+
+val trueexpr  : cstr
+val falseexpr : cstr
 
 
 (* Arithmetic operators *)

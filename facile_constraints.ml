@@ -92,6 +92,10 @@ module Facile_constraints (* :
     
     let expr2var   (expr  : expr) : var  = Arith.e2fd expr
 
+    (* Building constraints *)
+
+    let trueexpr  = Cstr.one
+    let falseexpr = Cstr.zero
 
     (* Arith *)
 
@@ -174,6 +178,9 @@ module Facile_constraints (* :
 
     and translate_cstr (variables : typing_context_variables) (cstr : C.cstr) : cstr =
       match cstr with
+      | C.TrueCstr  -> trueexpr
+      | C.FalseCstr -> falseexpr
+
       | C.BinaryArithCmpCstr (op, lexpr, rexpr) ->
           (match op with
           | C.Lt  -> (translate_expr variables lexpr)  <~ (translate_expr variables rexpr)

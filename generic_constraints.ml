@@ -48,6 +48,8 @@ and expr =
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
 
 and cstr =
+  | TrueCstr
+  | FalseCstr
   | BinaryArithCmpCstr  of binary_arith_cmp_op * expr * expr  (* cstr : lexpr OP rexpr *)
   | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  (* cstr : lcstr OP rcstr *)
   | UnaryCstrOpCstr     of unary_cstr_op       * cstr         (* cstr : OP cstr' *)
@@ -129,6 +131,9 @@ and string_of_expr expr =
 
 and string_of_cstr cstr = 
   match cstr with
+  | TrueCstr  -> "true"
+  | FalseCstr -> "false"
+
   | BinaryArithCmpCstr (op, lexpr, rexpr) ->
       Printf.sprintf "(%s %s %s)" 
       (string_of_expr lexpr)
@@ -155,6 +160,10 @@ let var (variable_key : Variable_keys.variable_key) = NamedVar variable_key
 let var2expr   (var   : var)  : expr = Var var
 let const2expr (const : int)  : expr = Const const
 
+(* Building constraints *)
+
+let trueexpr  = TrueCstr
+let falseexpr = FalseCstr
 
 (* Arith *)
 
