@@ -132,7 +132,7 @@ let my_typing_context =
 
 (* Generate the constraints from the resource types and the specification *)
 let my_translation_constraints = 
-  translate_universe my_universe my_initial_configuration
+  translate_universe_and_initial_configuration my_universe my_initial_configuration
 
 let my_specification_constraints = [] (*
   translate_specification my_specification

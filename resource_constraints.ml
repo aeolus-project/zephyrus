@@ -23,7 +23,7 @@ let element_exprs_to_sum
 
 
 
-let create_local_resource_constraints configuration universe : cstr list =
+let create_local_resource_constraints configuration universe =
 
   let location_names       = get_location_names  configuration
   and resource_names       = get_resource_names  universe
@@ -83,12 +83,51 @@ let create_local_resource_constraints configuration universe : cstr list =
   )
 
 
+let create_initial_configuration_resource_constraints configuration universe =
+
+  let locations       = get_locations      configuration
+  and resource_names       = get_resource_names universe
+  in
+
+  List.flatten (
+    List.map (fun location ->
+
+      let location_name = location.location_name
+      in
+
+      List.map (fun resource_name ->
+
+        (* The left side expression: *)
+        let local_resource_var =
+          var (LocalResourceVariable (location_name, resource_name))
+  
+        in
+
+        (* The rights side expression: *)
+        let resource_provide_arity =
+          get_resource_provide_arity location resource_name
+
+        in
+
+        (* The constraint :  *)
+        ( (var2expr local_resource_var) =~ (const2expr resource_provide_arity) )
+
+        (* Name        : *)
+        (* Description : *)
+        (* Constraint  : *)
+
+      ) resource_names
+    ) locations
+  )
+
+
 
 let create_resource_constraints configuration universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
   let create_constraints_functions =
-    [create_local_resource_constraints]
+    [create_local_resource_constraints;
+     create_initial_configuration_resource_constraints]
   in
 
   (* Generate the constraints! *)

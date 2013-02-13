@@ -105,26 +105,18 @@ let get_package_names universe =
     ) 
   )
 
-let get_location_names configuration =
-  BatList.unique (
-    List.map (fun location -> 
-      location.location_name
-    ) configuration.configuration_locations
-  )
+let consumed_resources_of_resource_consumption_list 
+  (resource_consumption_list : (resource_name * resource_consumption) list)
+  : resource_name list =
+
+  BatList.filter_map (fun (resource_name, resource_consumption) ->
+    if resource_consumption > 0
+    then Some(resource_name)
+    else None
+  ) resource_consumption_list
+
 
 let get_resource_names universe =
-  
-  let consumed_resources_of_resource_consumption_list 
-    (resource_consumption_list : (resource_name * resource_consumption) list)
-    : resource_name list =
-
-    BatList.filter_map (fun (resource_name, resource_consumption) ->
-      if resource_consumption > 0
-      then Some(resource_name)
-      else None
-    ) resource_consumption_list
-
-  in
 
   BatList.unique (
 
@@ -151,6 +143,22 @@ let get_resource_names universe =
     )
 
   )
+
+let get_location_names configuration =
+  BatList.unique (
+    List.map (fun location -> 
+      location.location_name
+    ) configuration.configuration_locations
+  )
+
+let get_locations configuration = configuration.configuration_locations
+
+let get_resource_provide_arity location resource_name =
+  try
+    List.assoc resource_name location.location_provide_resources
+  with
+  | Not_found -> 0
+
 
 let get_provide_arity component_type port_name =
   try
