@@ -71,8 +71,8 @@ val const2expr : int  -> expr
 
 (* Building constraints *)
 
-val trueexpr  : cstr
-val falseexpr : cstr
+val truecstr  : cstr
+val falsecstr : cstr
 
 
 (* Reification *)

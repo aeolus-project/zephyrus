@@ -94,8 +94,8 @@ module Facile_constraints (* :
 
     (* Building constraints *)
 
-    let trueexpr  : cstr = Cstr.one
-    let falseexpr : cstr = Cstr.zero
+    let truecstr  : cstr = Cstr.one
+    let falsecstr : cstr = Cstr.zero
 
     (* Reification *)
     
@@ -184,8 +184,8 @@ module Facile_constraints (* :
 
     and translate_cstr (variables : typing_context_variables) (cstr : C.cstr) : cstr =
       match cstr with
-      | C.TrueCstr  -> trueexpr
-      | C.FalseCstr -> falseexpr
+      | C.TrueCstr  -> truecstr
+      | C.FalseCstr -> falsecstr
 
       | C.BinaryArithCmpCstr (op, lexpr, rexpr) ->
           (match op with

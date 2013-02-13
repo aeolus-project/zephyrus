@@ -166,8 +166,8 @@ let const2expr (const : int)  : expr = Const const
 
 (* Building constraints *)
 
-let trueexpr  = TrueCstr
-let falseexpr = FalseCstr
+let truecstr  = TrueCstr
+let falsecstr = FalseCstr
 
 (* Reification *)
 
