@@ -105,11 +105,11 @@ let get_package_names universe =
     ) 
   )
 
-let get_location_names bare_architecture =
+let get_location_names configuration =
   BatList.unique (
-    List.map (fun bare_architecture_location -> 
-      bare_architecture_location.bare_architecture_location_name
-    ) bare_architecture
+    List.map (fun location -> 
+      location.location_name
+    ) configuration.configuration_locations
   )
 
 let get_resource_names universe =

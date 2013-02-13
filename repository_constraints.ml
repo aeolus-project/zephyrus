@@ -7,9 +7,9 @@ open Generic_constraints
 
 
 
-let create_one_repository_per_location_constraints bare_architecture universe : cstr list =
+let create_one_repository_per_location_constraints configuration universe : cstr list =
 
-  let location_names   = get_location_names bare_architecture
+  let location_names   = get_location_names configuration
   and repository_names = get_repository_names universe
   in
 
@@ -46,9 +46,9 @@ let create_one_repository_per_location_constraints bare_architecture universe : 
 
 
 
-let create_packages_in_location_must_come_from_its_repository_contraints bare_architecture universe : cstr list =
+let create_packages_in_location_must_come_from_its_repository_contraints configuration universe : cstr list =
 
-  let location_names    = get_location_names bare_architecture
+  let location_names    = get_location_names configuration
   and repository_names  = get_repository_names universe
   and all_package_names = get_package_names universe
   in
@@ -115,7 +115,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints bare_ar
 
 
 
-let create_repository_constraints bare_architecture universe : cstr list =
+let create_repository_constraints configuration universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
   let create_constraints_functions =
@@ -130,6 +130,6 @@ let create_repository_constraints bare_architecture universe : cstr list =
     List.map (fun create_constraints_function -> 
     
     (* Create the constraint *)
-    create_constraints_function bare_architecture universe 
+    create_constraints_function configuration universe 
 
   ) create_constraints_functions )

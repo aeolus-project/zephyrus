@@ -8,11 +8,11 @@ let create_element_location_constraints
   (get_element_names_function : universe -> 'a list)
   (global_var_key_function : 'a -> variable_key)
   (local_var_key_function : location_name -> 'a -> variable_key)
-  bare_architecture
+  configuration
   universe 
   : cstr list =
 
-  let location_names = get_location_names bare_architecture
+  let location_names = get_location_names configuration
   and element_names  = get_element_names_function universe
   in
   
@@ -49,19 +49,19 @@ let create_element_location_constraints
   ) element_names
 
 
-let create_component_type_location_constraints :  bare_architecture -> universe -> cstr list =
+let create_component_type_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_component_type_names
     ( fun component_type_name -> (GlobalElementVariable (ComponentType component_type_name)) )
     ( fun location_name component_type_name -> (LocalElementVariable (location_name, (ComponentType component_type_name))) )
 
-let create_port_location_constraints :  bare_architecture -> universe -> cstr list =
+let create_port_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_port_names
     ( fun port_name -> (GlobalElementVariable (Port port_name)) )
     ( fun location_name port_name -> (LocalElementVariable (location_name, (Port port_name))) )
 
-let create_package_location_constraints :  bare_architecture -> universe -> cstr list =
+let create_package_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_package_names
     ( fun package_name -> (GlobalElementVariable (Package package_name)) )
@@ -69,9 +69,9 @@ let create_package_location_constraints :  bare_architecture -> universe -> cstr
 
 
 
-let create_port_provided_at_location_constraints bare_architecture universe : cstr list =
+let create_port_provided_at_location_constraints configuration universe : cstr list =
 
-  let location_names = get_location_names bare_architecture
+  let location_names = get_location_names configuration
   and port_names     = get_port_names universe
   in
 
@@ -118,7 +118,7 @@ let create_port_provided_at_location_constraints bare_architecture universe : cs
 
 
 
-let create_location_constraints bare_architecture universe : cstr list =
+let create_location_constraints configuration universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
   let create_constraints_functions =
@@ -135,6 +135,6 @@ let create_location_constraints bare_architecture universe : cstr list =
     List.map (fun create_constraints_function -> 
     
     (* Create the constraint *)
-    create_constraints_function bare_architecture universe 
+    create_constraints_function configuration universe 
 
   ) create_constraints_functions )

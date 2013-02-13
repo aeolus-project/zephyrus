@@ -19,7 +19,7 @@ package_constraints.mli package_constraints.ml\
 resource_constraints.mli resource_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
-universe_input_facade.ml specification_input_facade.ml bare_architecture_input_facade.ml\
+universe_input_facade.ml specification_input_facade.ml configuration_input_facade.ml\
 gentlewestwind.ml
 
 #capacity_constraints.mli capacity_constraints.ml\

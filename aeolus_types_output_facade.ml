@@ -31,7 +31,5 @@ module Aeolus_types_plain_output =
     let string_of_component component = string_of_component
     let string_of_binding binding = string_of_binding
     let string_of_configuration configuration = string_of_configuration
-    let string_of_bare_architecture_location bare_architecture_location = string_of_bare_architecture_location
-    let string_of_bare_architecture bare_architecture = string_of_bare_architecture
 
   end

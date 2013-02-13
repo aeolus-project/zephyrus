@@ -21,9 +21,11 @@ let element_exprs_to_sum
       
   ) elements
 
-let create_local_resource_constraints bare_architecture universe : cstr list =
 
-  let location_names       = get_location_names  bare_architecture
+
+let create_local_resource_constraints configuration universe : cstr list =
+
+  let location_names       = get_location_names  configuration
   and resource_names       = get_resource_names  universe
   
   and component_types      = get_component_types universe
@@ -82,7 +84,7 @@ let create_local_resource_constraints bare_architecture universe : cstr list =
 
 
 
-let create_resource_constraints bare_architecture universe : cstr list =
+let create_resource_constraints configuration universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
   let create_constraints_functions =
@@ -96,6 +98,6 @@ let create_resource_constraints bare_architecture universe : cstr list =
     List.map (fun create_constraints_function -> 
     
     (* Create the constraint *)
-    create_constraints_function bare_architecture universe 
+    create_constraints_function configuration universe 
 
   ) create_constraints_functions )

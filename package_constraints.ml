@@ -4,9 +4,9 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
-let create_package_implementation_constraints bare_architecture universe =
+let create_package_implementation_constraints configuration universe =
 
-  let location_names       = get_location_names bare_architecture
+  let location_names       = get_location_names configuration
   and component_type_names = get_component_type_names universe
   in
 
@@ -57,9 +57,9 @@ let create_package_implementation_constraints bare_architecture universe =
     ) location_names
   )
 
-let create_package_dependency_constraints bare_architecture universe =
+let create_package_dependency_constraints configuration universe =
 
-  let location_names = get_location_names bare_architecture
+  let location_names = get_location_names configuration
   and packages       = get_packages       universe
   in
 
@@ -109,9 +109,9 @@ let create_package_dependency_constraints bare_architecture universe =
     ) location_names
   )
 
-let create_package_conflict_constraints bare_architecture universe =
+let create_package_conflict_constraints configuration universe =
 
-  let location_names = get_location_names bare_architecture
+  let location_names = get_location_names configuration
   and packages       = get_packages       universe
   in
 
@@ -152,7 +152,7 @@ let create_package_conflict_constraints bare_architecture universe =
 
 
 
-let create_package_constraints bare_architecture universe : cstr list =
+let create_package_constraints configuration universe : cstr list =
 
   (* A list of constraint generating functions to use: *)
   let create_constraints_functions =
@@ -168,6 +168,6 @@ let create_package_constraints bare_architecture universe : cstr list =
     List.map (fun create_constraints_function -> 
     
     (* Create the constraint *)
-    create_constraints_function bare_architecture universe 
+    create_constraints_function configuration universe 
 
   ) create_constraints_functions )

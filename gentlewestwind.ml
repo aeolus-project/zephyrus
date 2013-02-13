@@ -25,17 +25,17 @@ open Constraints
 (* Variables corresponding to arguments *)
 
 (* input / output *)
-let universe_channel          = ref stdin
-let specification_channel     = ref stdin
-let bare_architecture_channel = ref stdin
-let output_channel            = ref stdout
+let universe_channel              = ref stdin
+let specification_channel         = ref stdin
+let initial_configuration_channel = ref stdin
+let output_channel                = ref stdout
 
 let output_format_string = ref "plain"
 
 (* printing settings *)
 let print_tc                     = ref false
 let print_u                      = ref false
-let print_ba                     = ref false
+let print_ic                     = ref false
 let print_spec                   = ref false
 let print_cstrs                  = ref false
 let print_facile_vars            = ref false
@@ -46,20 +46,20 @@ let print_all                    = ref false
 
 (* Arg module settings *)
 
-let usage = "usage: " ^ Sys.argv.(0) ^ " [-u universe-file] [-spec specification-file] [-ba bare-architecture-file] [-out output-file] [-out-format {plain|json}]"
+let usage = "usage: " ^ Sys.argv.(0) ^ " [-u universe-file] [-spec specification-file] [-ic initial-configuration-file] [-out output-file] [-out-format {plain|json}]"
 
 let speclist = 
   Arg.align [
-  ("-u",          Arg.String (fun filename -> universe_channel          := (open_in  filename)), " The universe input file");
-  ("-ba",         Arg.String (fun filename -> bare_architecture_channel := (open_in  filename)), " The bare architecture input file");
-  ("-spec",       Arg.String (fun filename -> specification_channel     := (open_in  filename)), " The specification input file");
-  ("-out",        Arg.String (fun filename -> output_channel            := (open_out filename)), " The output file");
+  ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
+  ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
+  ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
+  ("-out",        Arg.String (fun filename -> output_channel                := (open_out filename)), " The output file");
   ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),     " The typed system output format (only for the output file)");
   ] @ 
   Arg.align [
   ("-print-tc",            Arg.Set (print_tc),                                                " Print the typing context");
   ("-print-u",             Arg.Set (print_u),                                                 " Print the raw universe");
-  ("-print-ba",            Arg.Set (print_ba),                                                " Print the raw bare architecture");
+  ("-print-ic",            Arg.Set (print_ic),                                                " Print the raw initial configuration");
   ("-print-spec",          Arg.Set (print_spec),                                              " Print the raw specification");
   ("-print-cstrs",         Arg.Set (print_cstrs),                                             " Print the constraints");
   ("-print-facile-vars",   Arg.Set (print_facile_cstrs),                                      " Print the FaCiLe variables");
@@ -82,7 +82,7 @@ let () =
   then (
     print_tc                     := true;
     print_u                      := true;
-    print_ba                     := true;
+    print_ic                     := true;
     print_spec                   := true;
     print_cstrs                  := true;
     print_facile_vars            := true;
@@ -108,15 +108,15 @@ let output_format =
 
 
 (* Read input *)
-module MyUniverseInput         = Universe_input_facade.JSON_universe_input
-module MyBareArchitectureInput = Bare_architecture_input_facade.JSON_bare_architecture_input
-module MySpecificationInput    = Specification_input_facade.JSON_specification_input
+module MyUniverseInput             = Universe_input_facade.JSON_universe_input
+module MyInitialConfigurationInput = Configuration_input_facade.JSON_configuration_input
+module MySpecificationInput        = Specification_input_facade.JSON_specification_input
 
 let my_universe =
   MyUniverseInput.universe_of_string (string_of_input_channel !universe_channel)
 
-let my_bare_architecture =
-  MyBareArchitectureInput.bare_architecture_of_string (string_of_input_channel !bare_architecture_channel)
+let my_initial_configuration =
+  MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
 let my_specification =
   MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
@@ -132,7 +132,7 @@ let my_typing_context =
 
 (* Generate the constraints from the resource types and the specification *)
 let my_translation_constraints = 
-  translate_universe my_universe my_bare_architecture
+  translate_universe my_universe my_initial_configuration
 
 let my_specification_constraints = [] (*
   translate_specification my_specification
@@ -175,17 +175,16 @@ let () =
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_universe my_universe));
   );
 
+  if(!print_ic)
+  then (
+    Printf.printf "\n===> THE INITIAL CONFIGURATION <===\n\n";
+    Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_configuration my_initial_configuration));
+  );
 
   if(!print_spec)
   then (
     Printf.printf "\n===> THE SPECIFICATION <===\n\n";
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
-  );
-
-  if(!print_ba)
-  then (
-    Printf.printf "\n===> THE BARE ARCHITECTURE <===\n\n";
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_bare_architecture my_bare_architecture));
   );
 
 (*
