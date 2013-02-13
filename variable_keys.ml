@@ -71,6 +71,11 @@ let string_of_local_resource_variable_key =
       (string_of_resource_name resource_name)
 
 
+type specification_variable_key = spec_variable_name
+
+let string_of_specification_variable_key specification_variable_key =
+  specification_variable_key
+
 
 
 type variable_key =
@@ -89,6 +94,9 @@ type variable_key =
   (* How many resources of the given type are provided by the given location. *)
   | LocalResourceVariable    of location_name * resource_name
 
+  (* Specifiaction variable *)
+  | SpecificationVariable    of spec_variable_name
+
 
 
 
@@ -99,6 +107,7 @@ let descr_of_variable_key variable_key =
   | BindingVariable         (port_name, providing_component_type_name, requiring_component_type_name) -> "binding variable"
   | LocalRepositoryVariable (location_name, repository_name)                                          -> "local repository variable"
   | LocalResourceVariable   (location_name, resource_name)                                            -> "local resource variable"
+  | SpecificationVariable   (spec_variable_name)                                                      -> "specification variable"
 
 
 let string_of_variable_key variable_key =
@@ -117,3 +126,6 @@ let string_of_variable_key variable_key =
 
   | LocalResourceVariable   (location_name, resource_name) ->
       string_of_local_resource_variable_key (location_name, resource_name)
+
+  | SpecificationVariable   (spec_variable_name) ->
+      string_of_specification_variable_key (spec_variable_name)

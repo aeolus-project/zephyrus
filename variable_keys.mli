@@ -23,6 +23,8 @@ val string_of_local_repository_variable_key : local_repository_variable_key -> s
 type local_resource_variable_key = location_name * resource_name
 val string_of_local_resource_variable_key : local_resource_variable_key -> string
 
+type specification_variable_key = spec_variable_name
+val string_of_specification_variable_key : specification_variable_key -> string
 
 type variable_key =
   (* Number of instances of a given component_type / port / package installed globally in the configuration. *)
@@ -39,6 +41,9 @@ type variable_key =
 
   (* How many resources of the given type are provided by the given location. *)
   | LocalResourceVariable    of location_name * resource_name
+
+  (* Specifiaction variable *)
+  | SpecificationVariable    of spec_variable_name
 
 
 val descr_of_variable_key  : variable_key -> string
