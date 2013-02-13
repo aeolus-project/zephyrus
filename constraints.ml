@@ -12,11 +12,11 @@ open Generic_constraints
 
 let translate_universe_and_initial_configuration universe initial_configuration =
   let create_constraints_functions = [
-    ("component types",  Component_type_global_constraints.create_component_type_global_constraints);
-    ("location",         Location_constraints.create_location_constraints           initial_configuration);
-    ("repository",       Repository_constraints.create_repository_constraints       initial_configuration);
-    ("package",          Package_constraints.create_package_constraints             initial_configuration);
-    ("resource",         Resource_constraints.create_resource_constraints           initial_configuration)
+    ("component types",  Component_type_global_constraints. create_component_type_global_constraints);
+    ("location",         Location_constraints.   create_location_constraints   initial_configuration);
+    ("repository",       Repository_constraints. create_repository_constraints initial_configuration);
+    ("package",          Package_constraints.    create_package_constraints    initial_configuration);
+    ("resource",         Resource_constraints.   create_resource_constraints   initial_configuration)
   ]
   in
   List.map (fun (constraints_group_name, create_constraints_function) ->
@@ -31,6 +31,7 @@ let translate_universe_and_initial_configuration universe initial_configuration 
 let translate_specification specification initial_configuration =
   [("specification", Specification_constraints.create_specification_constraints initial_configuration specification)]
   
+(* TODO: generate a specific message if specification is using non-existing names. *)
 
 let string_of_generated_constraint = string_of_cstr
 
@@ -43,7 +44,10 @@ let string_of_generated_constraints constraints =
   let strings =
     List.map (fun (constraints_group_name, constraints) ->
 
-      Printf.sprintf "+ %s constraints:\n%s\n" constraints_group_name (string_of_generated_constraint_list constraints)
+      Printf.sprintf
+        "+ %s constraints:\n%s\n"
+        constraints_group_name 
+        (string_of_generated_constraint_list constraints)
       
     ) constraints
   in

@@ -22,7 +22,6 @@ type variables = (variable_key * facile_variable) list
 (* Accessing *)
 
 let get_variable variables variable_key =
-  
   try
     List.assoc variable_key variables
   with
@@ -43,6 +42,7 @@ let get_global_element_variables variables =
     | _ -> None
   ) variables
 
+(* TODO: get a given kind of variables. *)
 
 (* Creating *)
 
@@ -140,6 +140,8 @@ let create_local_resource_variables universe configuration =
       ) (get_resource_names universe)
     ) (get_location_names configuration)
   )
+
+(* TODO: create_specification_variables *)
 
 let create_variables universe configuration = 
   List.flatten

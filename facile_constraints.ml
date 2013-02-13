@@ -172,7 +172,10 @@ let string_of_constraints constraints =
   let strings =
     List.map (fun (constraints_group_name, constraints) ->
 
-      Printf.sprintf "+ %s constraints:\n%s\n" constraints_group_name (string_of_constraint_list constraints)
+      Printf.sprintf
+        "+ %s constraints:\n%s\n"
+        constraints_group_name
+        (string_of_constraint_list constraints)
       
     ) constraints
   in
@@ -196,6 +199,8 @@ let create_minimal_resource_count_goal variables store_solution_here print_solut
     let cost_var =
       expr2var number_of_all_resources
     in
+
+    (* TODO: refine the cost_var - this is our optimisation function. *)
     
     (* Function called when a solution is found. *)
     let solution_found cost = 
