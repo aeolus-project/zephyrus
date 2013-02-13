@@ -15,6 +15,7 @@ let create_element_location_constraints
   let location_names = get_location_names bare_architecture
   and element_names  = get_element_names_function universe
   in
+  
   List.map (fun element_name ->
 
     (* The left side expression: *)

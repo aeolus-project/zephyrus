@@ -48,6 +48,13 @@ let get_package repository package_name =
         "the package %s does not exist in this repository" 
         (string_of_package_name package_name))
 
+let get_packages universe =
+  List.flatten ( 
+    List.map ( fun repository -> 
+      repository.repository_packages  
+    ) universe.universe_repositories
+  ) 
+
 let get_repository_package_names universe repository_name =
   let repository = get_repository universe repository_name
   in
