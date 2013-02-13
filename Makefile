@@ -17,6 +17,7 @@ location_constraints.mli location_constraints.ml\
 repository_constraints.mli repository_constraints.ml\
 package_constraints.mli package_constraints.ml\
 resource_constraints.mli resource_constraints.ml\
+specification_constraints.mli specification_constraints.ml\
 matching_algorithm.ml\
 constraints.ml\
 universe_input_facade.ml specification_input_facade.ml configuration_input_facade.ml\

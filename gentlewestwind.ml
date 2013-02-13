@@ -134,10 +134,10 @@ let my_typing_context =
 let my_translation_constraints = 
   translate_universe_and_initial_configuration my_universe my_initial_configuration
 
-let my_specification_constraints = [] (*
-  translate_specification my_specification
+let my_specification_constraints =
+  translate_specification my_specification my_initial_configuration
 
-
+(*
 (* Prepare the problem: FaCiLe variables, constraints and the goal. *)
 
 let my_variables =
@@ -205,7 +205,7 @@ let () =
   if(!print_cstrs)
   then (
     Printf.printf "\n===> THE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_generated_constraints my_translation_constraints my_specification_constraints);
+    Printf.printf "%s" (string_of_generated_constraints (my_translation_constraints @ my_specification_constraints));
   );
 
 
