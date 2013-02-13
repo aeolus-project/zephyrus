@@ -1,7 +1,7 @@
 [
 	"SpecOp", 
 	[
-		[ "SpecExprArity", ["SpecElementComponentType", "service"] ],
+		[ "SpecExprArity", ["SpecElementComponentType", "requirer"] ],
 		"GEq",
 		[ "SpecExprConst", 1 ]
 	]

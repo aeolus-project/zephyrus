@@ -32,10 +32,16 @@ let get_variable variables variable_key =
       (descr_of_variable_key  variable_key)
       (string_of_variable_key variable_key) )
 
-(*
-let domain_variables variables =
-  List.map (fun (key, variable) -> variable) variables.domain_variables
-*)
+
+let facile_variables variables =
+  List.map (fun (key, variable) -> variable) variables
+
+let get_global_element_variables variables =
+  BatList.filter_map ( fun (key, variable) ->
+    match key with
+    | GlobalElementVariable _ -> Some (variable)
+    | _ -> None
+  ) variables
 
 
 (* Creating *)
@@ -71,9 +77,9 @@ let elements universe =
   let component_type_elements =
     List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
   and port_elements =
-    List.map (fun port_name -> ComponentType port_name) (get_port_names universe)
+    List.map (fun port_name -> Port port_name) (get_port_names universe)
   and package_elements =
-    List.map (fun package_name -> ComponentType package_name) (get_package_names universe)
+    List.map (fun package_name -> Package package_name) (get_package_names universe)
   in
   (component_type_elements @ port_elements @ package_elements)
 
@@ -166,11 +172,8 @@ let string_of_variables variables =
 
 (* Extracting the solution from variables *)
 
-(*
-type solution = {
-  solution_domain_elements : (domain_variable_key  * int) list;
-  solution_bindings        : (binding_variable_key * int) list;
-}
+
+type solution = (variable_key * int) list 
 
 let get_solution variables = 
   let solution_of_key_variable_assoc_list key_variable_assoc_list =
@@ -178,10 +181,7 @@ let get_solution variables =
       (key, Facile.Var.Fd.elt_value variable)
     ) key_variable_assoc_list
   in
-  {
-    solution_domain_elements = solution_of_key_variable_assoc_list variables.domain_variables;
-    solution_bindings        = solution_of_key_variable_assoc_list variables.binding_variables;
-  }
+  solution_of_key_variable_assoc_list variables
 
 let string_of_solution solution =
   let strings_of_solution_assoc_list solution_assoc_list string_of_key =
@@ -195,12 +195,8 @@ let string_of_solution solution =
         ) solution_assoc_list
   in
   let strings = 
-    strings_of_solution_assoc_list solution.solution_domain_(elements string_of_domain_variable_key universe)
-    @
-    strings_of_solution_assoc_list solution.solution_bindings string_of_binding_variable_key
+    strings_of_solution_assoc_list solution string_of_variable_key
   in
   Printf.sprintf
     "\n%s\n"
     (lines_of_strings strings)
-
-*)

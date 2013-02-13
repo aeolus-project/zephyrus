@@ -6,15 +6,15 @@
 
 open Aeolus_types_t
 
-(*
+
 open Facile
 open Easy
-*)
+
 
 open Helpers
 
 open Typing_context
-(* open Facile_variables *)
+open Facile_variables
 open Constraints
 (* open Resource_generation *)
 
@@ -121,54 +121,7 @@ let my_initial_configuration =
 let my_specification =
   MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
 
-
-(*
-
-(* Prepare the typing context *)
-let my_typing_context =
-  create_typing_context my_universe
-
-*)
-
-(* Generate the constraints from the resource types and the specification *)
-let my_translation_constraints = 
-  translate_universe_and_initial_configuration my_universe my_initial_configuration
-
-let my_specification_constraints =
-  translate_specification my_specification my_initial_configuration
-
-
-(* Prepare the problem: FaCiLe variables, constraints and the goal. *)
-
-let my_variables =
-  Facile_variables.create_variables my_universe my_initial_configuration
-
-(*
-let my_facile_translation_constraints : Facile_constraints.typing_context_constraints = 
-  List.map (fun (constraints_group_name, constraints) ->
-    let facile_constraints = List.map (Facile_constraints.Facile_constraints.translate_cstr my_variables) constraints
-    in
-    (constraints_group_name, facile_constraints)
-  ) my_translation_constraints
-
-let my_facile_specification_constraints : Facile_constraints.specification_constraints = 
-  List.map (Facile_constraints.Facile_constraints.translate_cstr my_variables) my_specification_constraints
-
-
-let solution = ref { 
-  solution_domain_elements = [];
-  solution_bindings        = [];
-}
-
-
-let goal = Facile_constraints.create_minimal_resource_count_goal my_variables solution !print_intermediate_solutions
-
-*)
-
-(* === Main program === *)
-
 let () = 
-
 
   if(!print_u)
   then (
@@ -186,7 +139,53 @@ let () =
   then (
     Printf.printf "\n===> THE SPECIFICATION <===\n\n";
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
-  );
+  )
+
+(*
+
+(* Prepare the typing context *)
+let my_typing_context =
+  create_typing_context my_universe
+
+*)
+
+(* Generate the constraints from the resource types and the specification *)
+let my_translation_constraints = 
+  translate_universe_and_initial_configuration my_universe my_initial_configuration
+
+let my_specification_constraints =
+  translate_specification my_specification my_initial_configuration
+
+let () =
+  if(!print_cstrs)
+  then (
+    Printf.printf "\n===> THE CONSTRAINTS <===\n";
+    Printf.printf "%s" (string_of_generated_constraints (my_translation_constraints @ my_specification_constraints));
+  )
+
+
+(* Prepare the problem: FaCiLe variables, constraints and the goal. *)
+
+let my_variables =
+  Facile_variables.create_variables my_universe my_initial_configuration
+
+
+let my_facile_constraints : Facile_constraints.generated_constraints = 
+  List.map (fun (constraints_group_name, constraints) ->
+    let facile_constraints = List.map (Facile_constraints.Facile_constraints.translate_cstr my_variables) constraints
+    in
+    (constraints_group_name, facile_constraints)
+  ) (my_translation_constraints @ my_specification_constraints)
+
+
+let solution = ref []
+
+let goal = Facile_constraints.create_minimal_resource_count_goal my_variables solution !print_intermediate_solutions
+
+
+(* === Main program === *)
+
+let () =
 
 (*
 
@@ -203,19 +202,10 @@ let () =
   );
 *)
 
-  if(!print_cstrs)
-  then (
-    Printf.printf "\n===> THE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_generated_constraints (my_translation_constraints @ my_specification_constraints));
-  );
 
 
-(*
   Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
-  Facile_constraints.post_translation_constraints   my_facile_translation_constraints;
-  Facile_constraints.post_specification_constraints my_facile_specification_constraints;
-*)
-
+  Facile_constraints.post_translation_constraints   my_facile_constraints;
 
   if(!print_facile_vars)
   then (
@@ -224,12 +214,10 @@ let () =
     Printf.printf "%s" (Facile_variables.string_of_variables my_variables)
   );
 
-
-(*
   if(!print_facile_cstrs)
   then (
     Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
-    Printf.printf "%s" (Facile_constraints.string_of_constraints my_facile_translation_constraints my_facile_specification_constraints);
+    Printf.printf "%s" (Facile_constraints.string_of_constraints my_facile_constraints);
   );
 
 
@@ -237,14 +225,13 @@ let () =
   Printf.printf "\n===> SOLVING! <===\n"; 
   let _ = Goals.solve (goal ||~ Goals.success) in
 
-
-
   if(!print_solution)
   then (
     Printf.printf "\n===> THE SOLUTION <===\n";
     Printf.printf "%s" (string_of_solution !solution);
   );
 
+(*
 
   (* Convert the constraint problem solution to a typed system. *)
   let system = typed_system_of_solution my_typing_context !solution

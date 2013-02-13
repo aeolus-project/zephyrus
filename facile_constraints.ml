@@ -3,72 +3,8 @@ open Helpers
 
 open Facile_variables
 
-module Facile_constraints (* :
-  sig
-
-    type var   = Facile.Var.Fd.t
-    type cstr  = Facile.Cstr.t
-    type expr  = Facile.Arith.t
-
-
-    (* Printing *)
-
-    val string_of_var         : var -> string
-    val string_of_expr        : expr -> string
-    val string_of_cstr        : cstr -> string
-
-
-    (* Building expressions *)
-
-    val var2expr   : var  -> expr
-    val const2expr : int  -> expr
-
-    val expr2var   : expr -> var
-
-
-    (* Arith *)
-
-    val ( +~ ) : expr -> expr -> expr
-    val ( -~ ) : expr -> expr -> expr
-    val ( *~ ) : expr -> expr -> expr
-    val ( /~ ) : expr -> expr -> expr
-    val ( %~ ) : expr -> expr -> expr
-
-    val (  <~~ ) : expr -> expr -> expr
-    val ( <=~~ ) : expr -> expr -> expr
-    val (  =~~ ) : expr -> expr -> expr
-    val ( >=~~ ) : expr -> expr -> expr
-    val (  >~~ ) : expr -> expr -> expr
-    val ( <>~~ ) : expr -> expr -> expr
-
-    val sum : expr list -> expr
-
-
-    (* Cstr *)
-    
-    val (  <~ ) : expr -> expr -> cstr
-    val ( <=~ ) : expr -> expr -> cstr
-    val (  =~ ) : expr -> expr -> cstr
-    val ( >=~ ) : expr -> expr -> cstr
-    val (  >~ ) : expr -> expr -> cstr
-    val ( <>~ ) : expr -> expr -> cstr
-
-
-    (* Reify *)
-
-    val (  &&~~ ) : cstr -> cstr -> cstr    
-    val (  ||~~ ) : cstr -> cstr -> cstr    
-    val (  =>~~ ) : cstr -> cstr -> cstr    
-    val ( <=>~~ ) : cstr -> cstr -> cstr    
-    val xor       : cstr -> cstr -> cstr    
-    val not       : cstr -> cstr
-
-
-    (* Post constraints *)
-
-    val post : cstr -> unit
-
-  end *) = struct
+module Facile_constraints = 
+  struct
 
     open Facile
     open Easy
@@ -149,17 +85,17 @@ module Facile_constraints (* :
     module C = Generic_constraints
 
 
-    let rec translate_var (variables : typing_context_variables) (var : C.var) : var =
+    let rec translate_var (variables : variables) (var : C.var) : var =
       match var with
       | C.NamedVar  (var_key) -> get_variable variables var_key
 
-    and translate_expr (variables : typing_context_variables) (expr : C.expr) : expr =
+    and translate_expr (variables : variables) (expr : C.expr) : expr =
       match expr with
       | C.Const (const) -> const2expr const
 
       | C.Var (var) -> var2expr (translate_var variables var)
       
-      | C.Reified (cstr) -> reify cstr
+      | C.Reified (cstr) -> reify (translate_cstr variables cstr)
 
       | C.BinaryArithExpr (op, lexpr, rexpr) ->
           (match op with
@@ -182,7 +118,7 @@ module Facile_constraints (* :
           | C.Gt  -> (translate_expr variables lexpr)  >~~ (translate_expr variables rexpr)
           | C.NEq -> (translate_expr variables lexpr) <>~~ (translate_expr variables rexpr) )
 
-    and translate_cstr (variables : typing_context_variables) (cstr : C.cstr) : cstr =
+    and translate_cstr (variables : variables) (cstr : C.cstr) : cstr =
       match cstr with
       | C.TrueCstr  -> truecstr
       | C.FalseCstr -> falsecstr
@@ -213,8 +149,7 @@ module Facile_constraints (* :
 
 open Facile_constraints
 
-type typing_context_constraints = (string * (cstr list)) list
-type specification_constraints = cstr list
+type generated_constraints = (string * (cstr list)) list
 
 (* Posting *)
 
@@ -226,26 +161,20 @@ let post_translation_constraints translation_constraints =
     post_constraints constraints) 
   translation_constraints
 
-let post_specification_constraints specification_constraints =
-  post_constraints specification_constraints
-
 let string_of_constraint = Facile_constraints.string_of_cstr
 
 (* Printing *)
-let string_of_constraints translation_constraints specification_constraints =
+let string_of_constraints constraints =
   let string_of_constraint_list constraints =
     let strings = List.map string_of_constraint constraints in
     lines_of_strings strings
-  in
-  let all_constraints : (string * (cstr list)) list =
-    translation_constraints @ [("specification", specification_constraints)]
   in
   let strings =
     List.map (fun (constraints_group_name, constraints) ->
 
       Printf.sprintf "+ %s constraints:\n%s\n" constraints_group_name (string_of_constraint_list constraints)
       
-    ) all_constraints
+    ) constraints
   in
   Printf.sprintf
     "\n%s\n"
@@ -257,12 +186,12 @@ let create_minimal_resource_count_goal variables store_solution_here print_solut
 
     (* The goal is simple: all domain variables have to be set. *)
     let goal =
-      Facile.Goals.List.forall (Facile.Goals.indomain) ( (domain_variables variables) @ (binding_variables variables) )
+      Facile.Goals.List.forall (Facile.Goals.indomain) (facile_variables variables)
     in
 
     (* The cost variable to optimize (minimize): number of all resources. *)
     let number_of_all_resources =
-      sum (List.map (fun variable -> var2expr variable) (domain_variables variables))
+      sum (List.map (fun variable -> var2expr variable) (get_global_element_variables variables))
     in
     let cost_var =
       expr2var number_of_all_resources
