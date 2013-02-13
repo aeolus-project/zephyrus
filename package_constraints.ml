@@ -42,7 +42,7 @@ let create_package_implementation_constraints bare_architecture universe =
         let sum_of_local_package_vars = (sum exprs_to_sum)
         in
         let right_side_expr =
-          (sum_of_local_package_vars =~ (const2expr 1))
+          ( sum_of_local_package_vars >=~ (const2expr 1) )
   
         in
   

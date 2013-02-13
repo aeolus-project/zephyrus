@@ -32,26 +32,6 @@ let translate_specification universe = []
 
 
 (*
-(* Translating the typing context *)
-
-type typing_context_constraints = (string * (cstr list)) list
-
-let translate_typing_context (typing_context : Typing_context.t)  : typing_context_constraints = 
-  let create_constraints_functions = [
-    ("provide",  Capacity_constraints.create_provide_constraints);
-    (* ("require",  Capacity_constraints.create_require_constraints);  *)
-    ("conflict", Capacity_constraints.create_conflict_constraints);
-    ("binding",  Binding_constraints.create_binding_constraints);
-    (* ("max_rest", Max_rest_constraints.create_max_rest_constraints); *)
-  ]
-  in
-  List.map (fun (constraints_group_name, create_constraints_function) ->
-    let constraints = create_constraints_function typing_context
-    in
-    (constraints_group_name, constraints)
-  ) create_constraints_functions
-
-
 
 (* Translating the specification *)
 
@@ -59,6 +39,7 @@ type specification_constraints = cstr list
 
 let translate_specification : specification -> specification_constraints =
   Specification_constraints.create_specification_constraints
+
 *)
 
 let string_of_generated_constraint = string_of_cstr
