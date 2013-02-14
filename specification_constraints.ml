@@ -189,3 +189,163 @@ let create_specification_constraints initial_configuration specification : cstr 
   let location_names = get_location_names initial_configuration
   in
   [translate_specification location_names specification]
+
+
+
+
+
+
+let rec extract_spec_variable_name spec_variable_name = [ SpecificationVariable spec_variable_name ]
+
+and extract_spec_const (spec_const : spec_const) : variable_key list = []
+
+and extract_specification (location_names : location_name list) (specification : specification) : variable_key list =
+  match specification with
+  | `SpecTrue -> []
+
+  | `SpecOp (l_spec_expr, spec_op, r_spec_expr) ->
+      ( (extract_spec_expr location_names l_spec_expr) @ (extract_spec_expr location_names r_spec_expr) )
+
+  | `SpecAnd (l_specification, r_specification) ->
+      ( (extract_specification location_names l_specification) @ (extract_specification location_names r_specification) )
+
+  | `SpecOr (l_specification, r_specification) ->
+      ( (extract_specification location_names l_specification) @ (extract_specification location_names r_specification) )
+
+  | `SpecImpl (l_specification, r_specification) ->
+      ( (extract_specification location_names l_specification) @ (extract_specification location_names r_specification) )
+
+  | `SpecNot (specification) ->
+      (extract_specification location_names specification)
+
+and extract_spec_expr (location_names : location_name list) (spec_expr : spec_expr) : variable_key list =
+  match spec_expr with
+  | `SpecExprVar spec_variable_name ->
+      ( extract_spec_variable_name spec_variable_name )
+
+  | `SpecExprConst spec_const ->
+      ( extract_spec_const spec_const )
+
+  | `SpecExprArity spec_element ->
+      ( extract_spec_element location_names spec_element )
+
+  | `SpecExprAdd (l_spec_expr, r_spec_expr) ->
+      ( (extract_spec_expr location_names l_spec_expr) @ (extract_spec_expr location_names r_spec_expr) )
+
+  | `SpecExprSub (l_spec_expr, r_spec_expr) ->
+      ( (extract_spec_expr location_names l_spec_expr) @ (extract_spec_expr location_names r_spec_expr) )
+
+  | `SpecExprMul (spec_const, spec_expr) ->
+      ( (extract_spec_const spec_const) @ (extract_spec_expr location_names spec_expr) )
+
+and extract_spec_element  (location_names : location_name list) (spec_element : spec_element) : variable_key list =
+  match spec_element with
+  | `SpecElementPackage (package_name) ->
+      [ GlobalElementVariable (Package package_name) ]
+
+  | `SpecElementComponentType (component_type_name) ->
+      [ GlobalElementVariable (ComponentType component_type_name) ]
+
+  | `SpecElementPort (port_name) ->
+      [ GlobalElementVariable (Port port_name) ]
+
+  | `SpecElementLocalisation (spec_resource_constraints, spec_repository_constraints, local_specification) ->
+
+      let variable_keys_lists = 
+        List.map ( fun location_name ->
+            
+            let spec_resource_constraints_cstr =
+              (extract_spec_resource_constraints location_name spec_resource_constraints)
+
+            and spec_repository_constraints_cstr =
+              (extract_spec_repository_constraints location_name spec_repository_constraints)
+
+
+            and local_specification_cstr =
+              (extract_local_specification location_name local_specification)
+
+            in
+            (spec_resource_constraints_cstr @ spec_repository_constraints_cstr @ local_specification_cstr)
+
+        ) location_names
+
+      in
+      (List.flatten variable_keys_lists)
+
+
+and extract_local_specification (location_name : location_name) (local_specification : local_specification) : variable_key list =
+  match local_specification with
+  | `SpecLocalTrue -> []
+
+  | `SpecLocalOp (l_spec_local_expr, spec_op, r_spec_local_expr) ->
+      ( (extract_spec_local_expr location_name l_spec_local_expr) @ (extract_spec_local_expr location_name r_spec_local_expr) )
+
+  | `SpecLocalAnd (l_local_specification, r_local_specification) ->
+      ( (extract_local_specification location_name l_local_specification) @ (extract_local_specification location_name r_local_specification) )
+
+  | `SpecLocalOr (l_local_specification, r_local_specification) ->
+      ( (extract_local_specification location_name l_local_specification) @ (extract_local_specification location_name r_local_specification) )
+
+  | `SpecLocalImpl (l_local_specification, r_local_specification) ->
+      ( (extract_local_specification location_name l_local_specification) @ (extract_local_specification location_name r_local_specification) )
+
+  | `SpecLocalNot (local_specification) ->
+      (extract_local_specification location_name local_specification)
+
+and extract_spec_local_expr (location_name : location_name) (spec_local_expr : spec_local_expr) : variable_key list =
+  match spec_local_expr with
+  | `SpecLocalExprVar spec_variable_name ->
+      ( extract_spec_variable_name spec_variable_name )
+
+  | `SpecLocalExprConst spec_const ->
+      ( extract_spec_const spec_const )
+
+  | `SpecLocalExprArity spec_local_element ->
+      ( extract_spec_local_element location_name spec_local_element )
+
+  | `SpecLocalExprAdd (l_spec_local_expr, r_spec_local_expr) ->
+      ( (extract_spec_local_expr location_name l_spec_local_expr) @ (extract_spec_local_expr location_name r_spec_local_expr) )
+
+  | `SpecLocalExprSub (l_spec_local_expr, r_spec_local_expr) ->
+      ( (extract_spec_local_expr location_name l_spec_local_expr) @ (extract_spec_local_expr location_name r_spec_local_expr) )
+
+  | `SpecLocalExprMul (spec_const, spec_local_expr) ->
+      ( (extract_spec_const spec_const) @ (extract_spec_local_expr location_name spec_local_expr) )
+
+
+and extract_spec_local_element (location_name : location_name) (spec_local_element : spec_local_element) : variable_key list =
+  match spec_local_element with
+  | `SpecLocalElementPackage (package_name) ->
+      [ GlobalElementVariable (Package package_name) ]
+
+  | `SpecLocalElementComponentType (component_type_name) ->
+      [ GlobalElementVariable (ComponentType component_type_name) ]
+
+  | `SpecLocalElementPort (port_name) ->
+      [ GlobalElementVariable (Port port_name) ]
+
+and extract_spec_resource_constraints (location_name : location_name) (spec_resource_constraints : spec_resource_constraints) : variable_key list =
+  List.fold_left (fun a spec_resource_constraint -> 
+    (a @ (extract_spec_resource_constraint location_name spec_resource_constraint)) 
+  ) [] spec_resource_constraints
+
+and extract_spec_resource_constraint (location_name : location_name) : (spec_resource_constraint -> variable_key list) =
+  fun (resource_name, spec_op, spec_const) ->
+    let resource_var_expr = [ LocalResourceVariable (location_name, resource_name) ]
+    and spec_const_expr   = ( extract_spec_const spec_const )
+    in
+    ( resource_var_expr @ spec_const_expr )
+
+and extract_spec_repository_constraints (location_name : location_name) (spec_repository_constraints : spec_repository_constraints) : variable_key list =
+  let repository_names = spec_repository_constraints
+  in
+  List.map ( fun repository_name ->
+    LocalRepositoryVariable (location_name, repository_name)
+  ) repository_names
+
+
+
+let extract_variable_keys_from_specification initial_configuration specification =
+  let location_names = get_location_names initial_configuration
+  in
+  extract_specification location_names specification

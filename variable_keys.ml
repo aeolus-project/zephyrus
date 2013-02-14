@@ -73,8 +73,11 @@ let string_of_local_resource_variable_key =
 
 type specification_variable_key = spec_variable_name
 
-let string_of_specification_variable_key specification_variable_key =
-  specification_variable_key
+let string_of_specification_variable_key =
+  fun specification_variable_key ->
+    Printf.sprintf
+      "S(%s)"
+      (string_of_spec_variable_name specification_variable_key)
 
 
 
@@ -129,3 +132,34 @@ let string_of_variable_key variable_key =
 
   | SpecificationVariable   (spec_variable_name) ->
       string_of_specification_variable_key (spec_variable_name)
+
+
+let pred_global_element_variable variable_key =
+  match variable_key with
+  | GlobalElementVariable _   -> true
+  | _                         -> false
+
+let pred_local_element_variable variable_key =
+  match variable_key with
+  | LocalElementVariable _    -> true
+  | _                         -> false
+
+let pred_binding_variable variable_key =
+  match variable_key with
+  | BindingVariable _         -> true
+  | _                         -> false
+
+let pred_local_repository_variable variable_key =
+  match variable_key with
+  | LocalRepositoryVariable _ -> true
+  | _                         -> false
+
+let pred_local_resource_variable variable_key =
+  match variable_key with
+  | LocalResourceVariable _   -> true
+  | _                         -> false
+
+let pred_specification_variable variable_key =
+  match variable_key with
+  | SpecificationVariable _   -> true
+  | _                         -> false

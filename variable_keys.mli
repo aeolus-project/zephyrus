@@ -48,3 +48,12 @@ type variable_key =
 
 val descr_of_variable_key  : variable_key -> string
 val string_of_variable_key : variable_key -> string
+
+(* Predicates on variable types *)
+(* TODO: This is mostly boilerplate code, but I have no idea how to get rid of it... *)
+val pred_global_element_variable   : variable_key -> bool
+val pred_local_element_variable    : variable_key -> bool
+val pred_binding_variable          : variable_key -> bool
+val pred_local_repository_variable : variable_key -> bool
+val pred_local_resource_variable   : variable_key -> bool
+val pred_specification_variable    : variable_key -> bool

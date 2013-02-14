@@ -1,5 +1,6 @@
 
 open Aeolus_types_j
+open Variable_keys
 
 val get_component_type                : universe -> component_type_name -> component_type
 val get_component_type_implementation : universe -> component_type_name -> package_name list
@@ -17,6 +18,8 @@ val get_package_names                 : universe -> package_name list
 val get_repository_names              : universe -> repository_name list
 val get_resource_names                : universe -> resource_name list
 
+val get_elements                      : universe -> element list
+
 val get_location_names                : configuration -> location_name list
 val get_locations                     : configuration -> location list
 val get_resource_provide_arity        : location -> resource_name -> resource_provide_arity
@@ -30,4 +33,3 @@ val get_package_resource_consumption        : package        -> resource_name ->
 val requirers   : universe -> port_name -> component_type_name list
 val providers   : universe -> port_name -> component_type_name list
 val conflicters : universe -> port_name -> component_type_name list
-

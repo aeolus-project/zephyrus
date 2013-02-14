@@ -1,8 +1,21 @@
 [
-	"SpecOp", 
+	"SpecAnd",
 	[
-		[ "SpecExprArity", ["SpecElementComponentType", "requirer"] ],
-		"GEq",
-		[ "SpecExprConst", 1 ]
+		[
+			"SpecOp", 
+			[
+				[ "SpecExprArity", ["SpecElementComponentType", "requirer"] ],
+				"GEq",
+				[ "SpecExprConst", 1 ]
+			]
+		],
+		[
+			"SpecOp", 
+			[
+				[ "SpecExprVar", "specification variable" ],
+				"Eq",
+				[ "SpecExprConst", 5 ]
+			]
+		]
 	]
 ]

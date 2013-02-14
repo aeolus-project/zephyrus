@@ -35,14 +35,20 @@ let get_variable variables variable_key =
 let facile_variables variables =
   List.map (fun (key, variable) -> variable) variables
 
-let get_global_element_variables variables =
+
+let filter_variables_by_key (predicate : variable_key -> bool) (variables : variables) =
   BatList.filter_map ( fun (key, variable) ->
-    match key with
-    | GlobalElementVariable _ -> Some (variable)
-    | _ -> None
+    if predicate key
+    then Some (variable)
+    else None
   ) variables
 
-(* TODO: get a given kind of variables. *)
+let get_global_element_variables   = filter_variables_by_key pred_global_element_variable
+let get_local_element_variables    = filter_variables_by_key pred_local_element_variable
+let get_binding_variables          = filter_variables_by_key pred_binding_variable
+let get_local_repository_variables = filter_variables_by_key pred_local_repository_variable
+let get_local_resource_variables   = filter_variables_by_key pred_local_resource_variable
+let get_specification_variables    = filter_variables_by_key pred_specification_variable
 
 (* Creating *)
 
@@ -58,7 +64,7 @@ type var_kind =
   | BooleanVariable
   | NaturalVariable
 
-let create_new_variable var_kind var_name =
+let create_new_facile_variable var_kind var_name =
   (* Prepare the domain : *)
   let var_domain = 
     match var_kind with
@@ -73,33 +79,22 @@ let create_new_variable var_kind var_name =
   (* Create the variable. *)
   (Facile.Var.Fd.create ~name:var_name var_domain)
 
-let elements universe =
-  let component_type_elements =
-    List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
-  and port_elements =
-    List.map (fun port_name -> Port port_name) (get_port_names universe)
-  and package_elements =
-    List.map (fun package_name -> Package package_name) (get_package_names universe)
-  in
-  (component_type_elements @ port_elements @ package_elements)
+let create_new_variable (kind : var_kind) (key : variable_key) =
+  let var_name = string_of_variable_key key in
+  let new_var  = create_new_facile_variable kind var_name in
+  (key, new_var)
 
 let create_global_element_variables universe =
   List.map (fun element ->
-    let key = (GlobalElementVariable element) in
-    let var_name = string_of_variable_key key in
-    let new_var  = create_new_variable NaturalVariable var_name in
-    (key, new_var) 
-  ) (elements universe)
+    create_new_variable NaturalVariable (GlobalElementVariable element)
+  ) (get_elements universe)
 
 let create_local_element_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun element ->
-        let key = (LocalElementVariable (location_name, element)) in
-        let var_name = string_of_variable_key key in
-        let new_var  = create_new_variable NaturalVariable var_name in
-        (key, new_var) 
-      ) (elements universe)
+        create_new_variable NaturalVariable (LocalElementVariable (location_name, element))
+      ) (get_elements universe)
     ) (get_location_names configuration)
   )
 
@@ -108,10 +103,7 @@ let create_binding_variables universe =
     List.map (fun port_name ->
       List.map (fun providing_component_type_name ->
         List.map (fun requiring_component_type_name ->
-          let key = (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name)) in
-          let var_name = string_of_variable_key key in
-          let new_var  = create_new_variable NaturalVariable var_name in
-          (key, new_var) 
+          create_new_variable NaturalVariable (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
         ) (requirers universe port_name)
       ) (providers universe port_name)
     ) (get_port_names universe)
@@ -121,10 +113,7 @@ let create_local_repository_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun repository_name ->
-        let key = (LocalRepositoryVariable (location_name, repository_name)) in
-        let var_name = string_of_variable_key key in
-        let new_var  = create_new_variable BooleanVariable var_name in
-        (key, new_var) 
+        create_new_variable BooleanVariable (LocalRepositoryVariable (location_name, repository_name))
       ) (get_repository_names universe)
     ) (get_location_names configuration)
   )
@@ -133,23 +122,31 @@ let create_local_resource_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun resource_name ->
-        let key = (LocalResourceVariable (location_name, resource_name)) in
-        let var_name = string_of_variable_key key in
-        let new_var  = create_new_variable NaturalVariable var_name in
-        (key, new_var) 
+        create_new_variable NaturalVariable (LocalResourceVariable (location_name, resource_name))
       ) (get_resource_names universe)
     ) (get_location_names configuration)
   )
 
-(* TODO: create_specification_variables *)
+let create_specification_variables specification configuration =
+  let all_variable_keys_from_specification =
+    Specification_constraints.extract_variable_keys_from_specification configuration specification
+  in
+  let specification_variable_keys =
+    List.filter pred_specification_variable all_variable_keys_from_specification
+  in
+  List.map (fun variable_key ->
+    create_new_variable NaturalVariable variable_key
+  ) specification_variable_keys
 
-let create_variables universe configuration = 
+
+let create_variables universe configuration specification = 
   List.flatten
-    [create_global_element_variables   universe;
-     create_local_element_variables    universe configuration;
-     create_binding_variables          universe;
-     create_local_repository_variables universe configuration;
-     create_local_resource_variables   universe configuration]
+    [create_global_element_variables   universe                   ;
+     create_local_element_variables    universe      configuration;
+     create_binding_variables          universe                   ;
+     create_local_repository_variables universe      configuration;
+     create_local_resource_variables   universe      configuration;
+     create_specification_variables    specification configuration]
 
 
 (* Printing *)

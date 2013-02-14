@@ -17,6 +17,10 @@ module Aeolus_types_plain_output =
     let string_of_resource_consumption resource_consumption = Printf.sprintf "%d" resource_consumption
     let string_of_resource_provide_arity resource_provide_arity = Printf.sprintf "%d" resource_provide_arity
 
+    let string_of_spec_variable_name spec_variable_name = Printf.sprintf "%s" spec_variable_name
+    let string_of_spec_const spec_const = Printf.sprintf "%d" spec_const
+
+
     (* From this point on we use the ATDgen string_of_* functions *)
     let string_of_component_type component_type =  string_of_component_type
     let string_of_component_types component_types = string_of_component_types

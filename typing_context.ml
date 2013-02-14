@@ -1,5 +1,6 @@
 
 open Aeolus_types_j
+open Variable_keys
 
 open Helpers
 
@@ -143,6 +144,16 @@ let get_resource_names universe =
     )
 
   )
+
+let get_elements universe =
+  let component_type_elements =
+    List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
+  and port_elements =
+    List.map (fun port_name -> Port port_name) (get_port_names universe)
+  and package_elements =
+    List.map (fun package_name -> Package package_name) (get_package_names universe)
+  in
+  (component_type_elements @ port_elements @ package_elements)
 
 let get_location_names configuration =
   BatList.unique (

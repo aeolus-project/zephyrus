@@ -1,5 +1,4 @@
 
-
 (* Operator types definitions *)
 
 type binary_arith_op =
@@ -118,3 +117,7 @@ val (  =>~~ ) : cstr -> cstr -> cstr
 val ( <=>~~ ) : cstr -> cstr -> cstr    
 val xor       : cstr -> cstr -> cstr    
 val not       : cstr -> cstr
+
+
+
+val variable_keys_of_cstr : cstr -> Variable_keys.variable_key list

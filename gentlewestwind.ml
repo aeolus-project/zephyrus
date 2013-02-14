@@ -141,14 +141,6 @@ let () =
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
   )
 
-(*
-
-(* Prepare the typing context *)
-let my_typing_context =
-  create_typing_context my_universe
-
-*)
-
 (* Generate the constraints from the resource types and the specification *)
 let my_translation_constraints = 
   translate_universe_and_initial_configuration my_universe my_initial_configuration
@@ -167,7 +159,7 @@ let () =
 (* Prepare the problem: FaCiLe variables, constraints and the goal. *)
 
 let my_variables =
-  Facile_variables.create_variables my_universe my_initial_configuration
+  Facile_variables.create_variables my_universe my_initial_configuration my_specification
 
 
 let my_facile_constraints : Facile_constraints.generated_constraints = 
@@ -188,7 +180,6 @@ let goal = Facile_constraints.create_minimal_resource_count_goal my_variables so
 let () =
 
 (*
-
   if(!print_tc)
   then (
     Printf.printf "\n===> THE TYPING CONTEXT <===\n\n";
