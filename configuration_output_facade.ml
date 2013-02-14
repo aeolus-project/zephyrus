@@ -2,7 +2,7 @@
 open Helpers
 
 (*
-module type RESOURCE_TYPES =
+module type CONFIGURATION_TYPES =
   sig
     type resource_name
     type resource_type
@@ -12,26 +12,26 @@ module type RESOURCE_TYPES =
     type typed_system
   end
 
-module My_resource_types : RESOURCE_TYPES = Resource_generation
+module My_resource_types : CONFIGURATION_TYPES = Configuration_generation
 *)
 
-module T = Resource_generation
+module C = Configuration_generation
 
 module type RESOURCE_OUTPUT =
-  (* functor (T : RESOURCE_TYPES) -> *)
+  (* functor (T : CONFIGURATION_TYPES) -> *)
   sig
-    val string_of_resource_name : T.resource_name -> string
-    val string_of_resource_type : T.resource_type -> string
-    val string_of_resource      : T.resource      -> string
-    val string_of_binding       : T.binding       -> string
-    val string_of_typing_entry  : T.typing_entry  -> string
-    val string_of_typed_system  : T.typed_system  -> string
+    val string_of_resource_name : C.resource_name -> string
+    val string_of_resource_type : C.resource_type -> string
+    val string_of_resource      : C.resource      -> string
+    val string_of_binding       : C.binding       -> string
+    val string_of_typing_entry  : C.typing_entry  -> string
+    val string_of_typed_system  : C.typed_system  -> string
   end
 
 module Simple_resource_output : RESOURCE_OUTPUT =
   struct
 
-    open Resource_generation
+    open Configuration_generation
 
     let string_of_resource_name (resource_name : resource_name) : string =
       resource_name
@@ -82,7 +82,7 @@ module JSON_resource_output : RESOURCE_OUTPUT =
 
     module O = Resource_types_j
 
-    open Resource_generation
+    open Configuration_generation
 
     let string_of_resource_name (resource_name : resource_name) : string =
       O.string_of_resource_name resource_name

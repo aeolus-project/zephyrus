@@ -5,29 +5,6 @@ open Typing_context
 open Facile_variables
 open Helpers
 
-type resource_name = string
-type resource_type = domain_element
-
-type resource = {
-  resource_name     : resource_name;
-  resource_requires : (port_name * int) list;
-  resource_provides : (port_name * int) list;
-}
-
-type typing_entry = (resource_name * resource_type)
-
-type binding = {
-  binding_port : port_name;
-  binding_from : resource_name;
-  binding_to   : resource_name;
-}
-
-type typed_system = {
-  typing_environment : typing_entry list;
-  resources          : resource list;
-  bindings           : binding list;
-}
-
 let fresh_name domain_element number =
   Printf.sprintf 
   "%s #%d" (string_of_domain_element domain_element) number
@@ -36,9 +13,9 @@ let fresh_name domain_element number =
 open Matching_algorithm.List_match_requirers_with_providers
 open Matching_algorithm.String_list_requirer_provider_types
 
-let generate_bindings (typing_context : Typing_context.t) (resources : resource list) : binding list =
+let generate_bindings (universe : universe) (components : component list) : binding list =
 
-  let ports = ports typing_context
+  let ports = get_ports universe
   in
 
   let assoc_or_zero a l =
@@ -50,15 +27,19 @@ let generate_bindings (typing_context : Typing_context.t) (resources : resource 
   
   List.flatten (
     List.map (fun port_name ->
-      let requirers = (* the mapping from resource name to their require multiplicity on p *) 
-        List.map (fun resource ->
-          (resource.resource_name, assoc_or_zero port_name resource.resource_requires)
-        ) resources
+      let requirers = (* the mapping from component name to their require multiplicity on p *) 
+        List.map (fun component ->
+          let component_type = get_component_type universe component.component_type
+          in
+          (component.component_name, assoc_or_zero port_name component_type.component_type_require)
+        ) components
   
       and providers = 
-        List.map (fun resource ->
-          (resource.resource_name, assoc_or_zero port_name resource.resource_provides)
-        ) resources
+        List.map (fun component ->
+          let component_type = get_component_type universe component.component_type
+          in
+          (component.component_name, assoc_or_zero port_name component.resource_provides)
+        ) components
   
       in
   
@@ -72,8 +53,8 @@ let generate_bindings (typing_context : Typing_context.t) (resources : resource 
     
         List.map (fun result -> {
             binding_port = port_name;
-            binding_from = result.provides;
-            binding_to   = result.requires;
+            binding_provider = result.provides;
+            binding_requirer = result.requires;
         }) results
   
     ) ports )
@@ -82,7 +63,7 @@ let generate_bindings (typing_context : Typing_context.t) (resources : resource 
 
 open Facile_constraints
 
-let typed_system_of_solution (typing_context : Typing_context.t) (solution : solution) : typed_system = 
+let configuration_of_solution (universe : universe) (solution : solution) : configuration = 
 
   let resources_list =
 

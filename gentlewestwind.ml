@@ -16,7 +16,8 @@ open Helpers
 open Typing_context
 open Facile_variables
 open Constraints
-(* open Resource_generation *)
+
+(* open Configuration_generation *)
 
 
 
@@ -223,9 +224,8 @@ let () =
   );
 
 (*
-
   (* Convert the constraint problem solution to a typed system. *)
-  let system = typed_system_of_solution my_typing_context !solution
+  let final_configuration = configuration_of_solution my_typing_context !solution
   in
 
   (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)
@@ -233,8 +233,8 @@ let () =
   then (
     
     let output_string = (match output_format with
-     | Plain_output -> Resource_output_facade.Simple_resource_output.string_of_typed_system system
-     | JSON_output  -> Yojson.Safe.prettify (Resource_output_facade.JSON_resource_output.string_of_typed_system system) 
+     | Plain_output -> Configuration_output_facade.Simple_configuration_output.string_of_configuration final_configuration
+     | JSON_output  -> Yojson.Safe.prettify (Configuration_output_facade.JSON_configuration_output.string_of_configuration final_configuration) 
     )
     in
 
@@ -244,7 +244,7 @@ let () =
 
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
-  Printf.printf "%s" (Resource_output_facade.Simple_resource_output.string_of_typed_system system);
+  Printf.printf "%s" (Configuration_output_facade.Simple_configuration_output.string_of_configuration final_configuration);
 
 *)
   ()
