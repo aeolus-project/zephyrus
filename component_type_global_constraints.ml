@@ -4,6 +4,14 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
+let const_of_provide_arity (provide_arity : provide_arity) : const =
+  match provide_arity with
+  | `FiniteProvide   (const) -> Int const
+  | `InfiniteProvide         -> Inf true
+  
+let providearity2expr (provide_arity : provide_arity) : expr =
+  const2expr (const_of_provide_arity provide_arity)
+
 let create_require_binding_constraints universe port_name : cstr list =
 
   (* Get all component types which: *)
@@ -35,7 +43,7 @@ let create_require_binding_constraints universe port_name : cstr list =
     in
     
     (* The constraint : [for each component type t_r which requires port p]  require_arity(t_r,p) x N(t_r) = sum (over all t_p from the universe which provide port p) B(t_p,t_r,p) *)
-    ( (const2expr requiring_arity) *~ (var2expr requiring_component_type_var) ) =~ sum_of_provided_bindings
+    ( (int2expr requiring_arity) *~ (var2expr requiring_component_type_var) ) =~ sum_of_provided_bindings
 
     (* Name           : Components of type t requiring port p. *)
     (* Description    : All the require ports p of the components of type t must be bound. So the total number of ports p required by all the components of type t is equal to the total number of bindings providing these components with port p. *)
@@ -76,7 +84,7 @@ let create_provide_binding_constraints universe port_name : cstr list =
     in
 
     (* The constraint : [for each component type t_p which provides port p]  provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
-    ( (const2expr providing_arity)                   *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
+    ( (providearity2expr providing_arity) *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
 
     (* Name           : Components of type t providing port p. *)
     (* Description    : There cannot exist more bindings providing port p from the components of type t than the total number of ports p they provide together. The total number of ports p provided by all the components of type t is equal or greater to the total number of bindings providing port p from these components. *)
@@ -132,7 +140,7 @@ let create_conflict_constraints universe port_name : cstr list  =
       in
   
       (* The constraint : [for each component type t which conflicts with port p]  ( N(t) >= 1 )  implies  ( N(p) = provides(t,p) ) *)
-      ( (var2expr conflicting_component_type_var) >=~ (const2expr 1) ) =>~~ ( (var2expr port_var) =~ (const2expr conflicting_component_provide_arity) )
+      ( (var2expr conflicting_component_type_var) >=~ (int2expr 1) ) =>~~ ( (var2expr port_var) =~ (providearity2expr conflicting_component_provide_arity) )
 
       (* Name           : Conflict of t on port p. *)
       (* Description    : If a component t which is in conflict with the port p is present in the configuration, then the total number of port p provided in the configuration must be equal to the number of port p which t provides. *)

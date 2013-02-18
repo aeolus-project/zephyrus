@@ -14,13 +14,6 @@ let generate_bindings (universe : universe) (components : component list) : bind
 
   let ports = get_port_names universe
   in
-
-  let assoc_or_zero a l =
-    if List.mem_assoc a l
-    then List.assoc a l
-    else 0
-  
-  in
   
   List.flatten (
     List.map (fun port_name ->
@@ -28,14 +21,29 @@ let generate_bindings (universe : universe) (components : component list) : bind
         List.map (fun component ->
           let component_type = get_component_type universe component.component_type
           in
-          (component.component_name, assoc_or_zero port_name component_type.component_type_require)
+          let require_arity = 
+            if List.mem_assoc port_name component_type.component_type_require
+            then List.assoc port_name component_type.component_type_require
+            else 0
+          in
+          (component.component_name, require_arity)
         ) components
   
       and providers = 
         List.map (fun component ->
           let component_type = get_component_type universe component.component_type
           in
-          (component.component_name, assoc_or_zero port_name component_type.component_type_provide)
+          let provide_arity = 
+            if List.mem_assoc port_name component_type.component_type_provide
+            then List.assoc port_name component_type.component_type_provide
+            else (`FiniteProvide 0)
+          in
+          let provide_arity =
+            match provide_arity with
+            | `InfiniteProvide -> (Matching_algorithm.InfiniteProvide)
+            | `FiniteProvide i -> (Matching_algorithm.FiniteProvide i)
+          in
+          (component.component_name, provide_arity)
         ) components
   
       in

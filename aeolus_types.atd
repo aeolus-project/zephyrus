@@ -14,7 +14,7 @@ type resource_name       = string
 
 <doc text="Type definitions for Component Type.">
 
-type provide_arity = int (* To do: add infinite option. *)
+type provide_arity = [ InfiniteProvide | FiniteProvide of int ]
 type require_arity = int
 type resource_consumption   = int
 type resource_provide_arity = int (* Better name? *)

@@ -1,4 +1,8 @@
 
+(* TODO: This should be made into a module with compare and decrement functions. *)
+type provide_arity = FiniteProvide of int | InfiniteProvide
+type require_arity = int
+
 module type REQUIRER_PROVIDER_TYPES =
   sig
 
@@ -9,14 +13,14 @@ module type REQUIRER_PROVIDER_TYPES =
     module Requirers :
     sig
       type t
-      val iter : ( (requirer_key_t * int) -> unit) -> t -> unit
+      val iter : ( (requirer_key_t * require_arity) -> unit) -> t -> unit
     end
 
     module Providers :
     sig
       type t
       val is_empty  : t -> bool
-      val max_value : t -> (provider_key_t * int)
+      val max_value : t -> (provider_key_t * provide_arity)
       val remove    : provider_key_t -> t -> t
       val decrement : provider_key_t -> t -> t
     end
@@ -54,7 +58,7 @@ module List_requirer_provider_types =
     module Requirers =
       struct
 
-        type t = (requirer_key_t * int) list
+        type t = (requirer_key_t * require_arity) list
 
         let iter = List.iter
 
@@ -63,19 +67,28 @@ module List_requirer_provider_types =
     module Providers =
       struct
     
-        type t = (provider_key_t * int) list
+        type t = (provider_key_t * provide_arity) list
         
         let is_empty l = 
           ( (List.length l) = 0 )
         
         let max_value l =
           let rec max_value_helper l max =
-            match l with
-              [] -> max
-            | (key, value) :: t -> 
-                if (value > (snd max) ) 
-                then max_value_helper t (key, value)
-                else max_value_helper t max
+            match max with
+            | (_, InfiniteProvide) -> max
+            | (_, FiniteProvide max_value) ->
+                (
+                  match l with
+                  | [] -> max
+                  
+                  | (key, InfiniteProvide)     :: t ->
+                      max_value_helper t (key, InfiniteProvide)
+                  
+                  | (key, FiniteProvide value) :: t -> 
+                      if (value > max_value ) 
+                      then max_value_helper t (key, FiniteProvide value)
+                      else max_value_helper t max
+                )
           in
           max_value_helper l (List.hd l)
     
@@ -85,8 +98,14 @@ module List_requirer_provider_types =
         let decrement key l =
           List.map (fun (kkey, value) ->
             if kkey = key
-            then (kkey, value - 1)
-            else (kkey, value)
+            then
+              (
+                match value with
+                | InfiniteProvide     -> (kkey, value)
+                | FiniteProvide value -> (kkey, FiniteProvide (value - 1))
+              )
+            else 
+              (kkey, value)
           ) l
     
       end
@@ -167,7 +186,7 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
               in
   
               (* If the best provider available has no more ports left unbound, then we have lost. *)
-              if provider_value = 0
+              if provider_value = (FiniteProvide 0)
               then raise Impossible
   
               (* Else we can bind the requirer to the provider and adjust the other variables accordingly. *)

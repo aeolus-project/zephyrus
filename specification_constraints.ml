@@ -8,7 +8,7 @@ let rec translate_spec_variable_name spec_variable_name =
   var (SpecificationVariable spec_variable_name)
 
 and translate_spec_const (spec_const : spec_const) : expr = 
-  ( const2expr spec_const )
+  ( int2expr spec_const )
 
 and translate_specification (location_names : location_name list) (specification : specification) : cstr =
   match specification with
@@ -174,7 +174,7 @@ and translate_spec_repository_constraints (location_name : location_name) (spec_
 
   in
   (* Constraint: *)
-  ( sum_of_local_repository_vars =~ (const2expr 1) )
+  ( sum_of_local_repository_vars =~ (int2expr 1) )
 
 and translate_spec_op (spec_op : spec_op) : (expr -> expr -> cstr) =
   match spec_op with

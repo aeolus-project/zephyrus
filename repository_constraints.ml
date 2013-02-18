@@ -36,7 +36,7 @@ let create_one_repository_per_location_constraints configuration universe : cstr
     in
 
     (* The constraint :  [for each location l] ( sum (over all r from the universe) R(l,r) ) = 1 *)
-    ( sum_of_repository_vars =~ (const2expr 1) )
+    ( sum_of_repository_vars =~ (int2expr 1) )
 
 	(* Name        : *)
 	(* Description : *)
@@ -62,7 +62,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
             var (LocalRepositoryVariable (location_name, repository_name))
         in
 
-        let left_side_expr = ( (var2expr local_repository_var) =~ (const2expr 1) )
+        let left_side_expr = ( (var2expr local_repository_var) =~ (int2expr 1) )
         in
 
         (* All the right side expressions: *)
@@ -79,11 +79,11 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
           	then 
           	  (* If the package k belongs to the repository r, then N(l,k) <= 1 *)
-              ( ( var2expr package_var ) <=~ ( const2expr 1 ) )
+              ( ( var2expr package_var ) <=~ ( int2expr 1 ) )
 
             else
               (* If the k package does not belong to the repository r, then N(l,k) = 0 *)
-              ( ( var2expr package_var ) =~ ( const2expr 0 ) )
+              ( ( var2expr package_var ) =~ ( int2expr 0 ) )
 
           ) all_package_names
     

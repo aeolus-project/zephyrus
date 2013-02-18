@@ -97,7 +97,13 @@ module Facile_constraints =
 
     and translate_expr (facile_variables : facile_variables) (expr : C.expr) : expr =
       match expr with
-      | C.Const (const) -> const2expr const
+      | C.Const (const) -> 
+        (
+          match const with
+          | C.Int i    -> const2expr i
+          | C.Inf sign -> const2expr 100000 
+          (* TODO: Either make a true infinity (is it possible in FaCiLe?) or transform the generic constraints. *)
+        )
 
       | C.Var (var) -> var2expr (translate_var facile_variables var)
       

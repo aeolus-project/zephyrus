@@ -37,9 +37,9 @@ let cost_expr_number_of_used_locations initial_configuration universe =
           ) package_names)
 
         )
-      in
-
-      reify ( local_components_and_packages >=~ (const2expr 1) )
+      
+      in 
+      reify ( local_components_and_packages >=~ (int2expr 1) )
 
     ) location_names
 
@@ -81,9 +81,9 @@ let cost_expr_difference_of_components initial_configuration universe =
 
           let local_difference_of_number_of_components = 
             abs ( 
-              (var2expr   number_of_components_in_final_configuration) 
+              (var2expr number_of_components_in_final_configuration) 
               -~
-              (const2expr number_of_components_in_initial_configuration) 
+              (int2expr number_of_components_in_initial_configuration) 
             )
           
           in

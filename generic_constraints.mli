@@ -1,4 +1,6 @@
 
+open Aeolus_types_t
+
 (* Operator types definitions *)
 
 type unary_arith_op =
@@ -36,11 +38,15 @@ and unary_cstr_op =
 
 (* Type definitions *)
 
+type const =
+  | Int of int
+  | Inf of bool (* Plus and minus infinity *)
+
 type var = 
   | NamedVar  of Variable_keys.variable_key
 
 and expr =
-  | Const               of int                                (* expr = integer constant *)
+  | Const               of const                              (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
   | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
   | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
@@ -69,8 +75,9 @@ val string_of_cstr : cstr -> string
 
 val var        : Variable_keys.variable_key -> var
 
-val var2expr   : var  -> expr
-val const2expr : int  -> expr
+val var2expr   : var   -> expr
+val const2expr : const -> expr
+val int2expr   : int   -> expr
 
 (* Building constraints *)
 

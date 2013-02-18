@@ -19,7 +19,7 @@ let create_package_implementation_constraints configuration universe =
           var (LocalElementVariable (location_name, (ComponentType component_type_name)))
         in
         let left_side_expr =
-          ( (var2expr local_component_type_var) >=~ (const2expr 1) )
+          ( (var2expr local_component_type_var) >=~ (int2expr 1) )
         in
   
         (* The right side expression: *)
@@ -42,7 +42,7 @@ let create_package_implementation_constraints configuration universe =
         let sum_of_local_package_vars = (sum exprs_to_sum)
         in
         let right_side_expr =
-          ( sum_of_local_package_vars >=~ (const2expr 1) )
+          ( sum_of_local_package_vars >=~ (int2expr 1) )
   
         in
   
@@ -137,7 +137,7 @@ let create_package_conflict_constraints configuration universe =
             (* The right side expression is a constant equal 1. *)
   
             (* The constraint :  *)
-            ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) <=~ (const2expr 1) )
+            ( ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) ) <=~ (int2expr 1) )
             
             (* Name        : *)
             (* Description : *)

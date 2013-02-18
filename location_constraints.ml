@@ -4,6 +4,14 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
+let const_of_provide_arity (provide_arity : provide_arity) : const =
+  match provide_arity with
+  | `FiniteProvide   (const) -> Int const
+  | `InfiniteProvide         -> Inf true
+  
+let providearity2expr (provide_arity : provide_arity) : expr =
+  const2expr (const_of_provide_arity provide_arity)
+
 let create_element_location_constraints
   (get_element_names_function : universe -> 'a list)
   (global_var_key_function : 'a -> variable_key)
@@ -97,7 +105,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
             in
   
             (* Part of the sum: provide_arity(location_name, component_type_name) * N(location_name, component_type_name) *)
-            ( (const2expr provide_arity) *~ (var2expr local_component_type_var) )
+            ( (providearity2expr provide_arity) *~ (var2expr local_component_type_var) )
               
           ) provider_names
         in

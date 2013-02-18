@@ -2,7 +2,7 @@
 	"component_types": [
 		{
 			"name": "provider",
-			"provide": [["port", 3]],
+			"provide": [["port", ["FiniteProvide", 3]]],
 			"consume": [["resource", 5]]
 		},
 		{

@@ -77,9 +77,15 @@ let get_port_names universe =
       List.map ( fun component_type -> 
         
         (
-          List.map (fun (port_name, port_arity) -> 
+          List.map (fun (port_name, _) -> 
             port_name
-          ) (component_type.component_type_provide @ component_type.component_type_require)
+          ) component_type.component_type_provide
+        )
+        @
+        (
+          List.map (fun (port_name, _) -> 
+            port_name
+          ) component_type.component_type_require
         )
         @
         component_type.component_type_conflict
@@ -175,7 +181,7 @@ let get_provide_arity component_type port_name =
   try
     List.assoc port_name component_type.component_type_provide
   with
-  | Not_found -> 0
+  | Not_found -> (`FiniteProvide 0)
 
 let get_require_arity component_type port_name =
   try
@@ -207,7 +213,11 @@ let requirers universe port_name =
 let providers universe port_name =
   BatList.filter_map (fun component_type ->
     if List.exists (fun (provided_port_name, provide_arity) ->
-         (provided_port_name = port_name) && (provide_arity > 0)
+         (provided_port_name = port_name) 
+         && 
+         (match provide_arity with
+          | `FiniteProvide i -> i > 0
+          | `InfiniteProvide -> true )
        ) component_type.component_type_provide
     then Some (component_type.component_type_name)
     else None

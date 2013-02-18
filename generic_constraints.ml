@@ -40,11 +40,15 @@ and unary_cstr_op =
 
 (* Type definitions *)
 
+type const =
+  | Int of int
+  | Inf of bool (* Plus and minus infinity *)
+
 type var = 
   | NamedVar  of Variable_keys.variable_key
 
 and expr =
-  | Const               of int                                (* expr = integer constant *)
+  | Const               of const                              (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
   | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
   | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
@@ -111,7 +115,11 @@ and string_of_var var =
 and string_of_expr expr = 
   match expr with
   | Const (const) -> 
-      Printf.sprintf "%d" const
+    (
+      match const with
+      | Int (const) -> Printf.sprintf "%d" const
+      | Inf (plus)  -> Printf.sprintf "%sINFINITY" (if plus then "" else "NEG_") 
+    )
 
   | Var (var) ->
       Printf.sprintf "%s" (string_of_var var)
@@ -175,8 +183,9 @@ and string_of_cstr cstr =
 
 let var (variable_key : Variable_keys.variable_key) = NamedVar variable_key
 
-let var2expr   (var   : var)  : expr = Var var
-let const2expr (const : int)  : expr = Const const
+let var2expr   (var   : var)   : expr = Var var
+let const2expr (const : const) : expr = Const const
+let int2expr   (const : int)   : expr = Const (Int const)
 
 (* Building constraints *)
 

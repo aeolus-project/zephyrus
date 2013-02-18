@@ -17,7 +17,7 @@ let element_exprs_to_sum
     in
 
     (* Part of the sum: consumes(element_name, resource_name) * N(location_name, element_name) *)
-    ( (const2expr consume_arity) *~ (var2expr local_element_var) )
+    ( (int2expr consume_arity) *~ (var2expr local_element_var) )
       
   ) elements
 
@@ -110,7 +110,7 @@ let create_initial_configuration_resource_constraints configuration universe =
         in
 
         (* The constraint :  *)
-        ( (var2expr local_resource_var) =~ (const2expr resource_provide_arity) )
+        ( (var2expr local_resource_var) =~ (int2expr resource_provide_arity) )
 
         (* Name        : *)
         (* Description : *)
