@@ -8,22 +8,19 @@ open Helpers
 open Typing_context
 
 open Variable_keys
-
+open Solution
 
 (* Types *)
 
 type facile_variable = Facile.Var.Fd.t
 
-let string_of_variable =
-  Helpers.string_of_printing_function (Facile.Var.Fd.fprint)
-
-type variables = (variable_key * facile_variable) list
+type facile_variables = (variable_key * facile_variable) list
 
 (* Accessing *)
 
-let get_variable variables variable_key =
+let get_facile_variable facile_variables variable_key =
   try
-    List.assoc variable_key variables
+    List.assoc variable_key facile_variables
   with
   | _ -> 
     failwith (Printf.sprintf 
@@ -32,16 +29,16 @@ let get_variable variables variable_key =
       (string_of_variable_key variable_key) )
 
 
-let facile_variables variables =
-  List.map (fun (key, variable) -> variable) variables
+let get_facile_variables facile_variables =
+  List.map (fun (key, variable) -> variable) facile_variables
 
 
-let filter_variables_by_key (predicate : variable_key -> bool) (variables : variables) =
+let filter_variables_by_key (predicate : variable_key -> bool) (facile_variables : facile_variables) =
   BatList.filter_map ( fun (key, variable) ->
     if predicate key
     then Some (variable)
     else None
-  ) variables
+  ) facile_variables
 
 let get_global_element_variables   = filter_variables_by_key pred_global_element_variable
 let get_local_element_variables    = filter_variables_by_key pred_local_element_variable
@@ -139,7 +136,7 @@ let create_specification_variables specification configuration =
   ) specification_variable_keys
 
 
-let create_variables universe configuration specification = 
+let create_facile_variables universe configuration specification = 
   List.flatten
     [create_global_element_variables   universe                   ;
      create_local_element_variables    universe      configuration;
@@ -151,6 +148,9 @@ let create_variables universe configuration specification =
 
 (* Printing *)
 
+let string_of_facile_variable =
+  Helpers.string_of_printing_function (Facile.Var.Fd.fprint)
+
 let string_of_variable_assoc_list key_variable_assoc_list string_of_key =
   let strings = 
     List.map (fun ( key, variable ) ->
@@ -158,7 +158,7 @@ let string_of_variable_assoc_list key_variable_assoc_list string_of_key =
       Printf.sprintf 
         "%s = %s" 
         (string_of_key key)
-        (string_of_variable variable)
+        (string_of_facile_variable variable)
   
     ) key_variable_assoc_list
   in
@@ -166,36 +166,15 @@ let string_of_variable_assoc_list key_variable_assoc_list string_of_key =
     "\n%s\n"
     (lines_of_strings strings)
 
-let string_of_variables variables =
-  string_of_variable_assoc_list variables string_of_variable_key
+let string_of_facile_variables facile_variables =
+  string_of_variable_assoc_list facile_variables string_of_variable_key
 
 (* Extracting the solution from variables *)
 
-
-type solution = (variable_key * int) list 
-
-let get_solution variables = 
+let solution_of_facile_variables (facile_variables : facile_variables) = 
   let solution_of_key_variable_assoc_list key_variable_assoc_list =
     List.map (fun (key, variable) ->
       (key, Facile.Var.Fd.elt_value variable)
     ) key_variable_assoc_list
   in
-  solution_of_key_variable_assoc_list variables
-
-let string_of_solution solution =
-  let strings_of_solution_assoc_list solution_assoc_list string_of_key =
-    List.map (fun ( key, i ) -> 
-          
-          Printf.sprintf 
-            "%s = %d" 
-            (string_of_key key)
-            i
-  
-        ) solution_assoc_list
-  in
-  let strings = 
-    strings_of_solution_assoc_list solution string_of_variable_key
-  in
-  Printf.sprintf
-    "\n%s\n"
-    (lines_of_strings strings)
+  solution_of_key_variable_assoc_list facile_variables

@@ -3,6 +3,7 @@ open Aeolus_types_j
 
 open Typing_context
 open Variable_keys
+open Solution
 open Facile_variables
 open Helpers
 

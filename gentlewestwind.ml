@@ -6,19 +6,16 @@
 
 open Aeolus_types_t
 
+open Helpers
 
 open Facile
 open Easy
 
-
-open Helpers
-
 open Typing_context
 open Facile_variables
 open Constraints
-
-(* open Configuration_generation *)
-
+open Solution
+open Configuration_generation
 
 
 (* === Handling the arguments === *)
@@ -34,7 +31,6 @@ let output_channel                = ref stdout
 let output_format_string = ref "plain"
 
 (* printing settings *)
-let print_tc                     = ref false
 let print_u                      = ref false
 let print_ic                     = ref false
 let print_spec                   = ref false
@@ -58,7 +54,6 @@ let speclist =
   ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),     " The typed system output format (only for the output file)");
   ] @ 
   Arg.align [
-  ("-print-tc",            Arg.Set (print_tc),                                                " Print the typing context");
   ("-print-u",             Arg.Set (print_u),                                                 " Print the raw universe");
   ("-print-ic",            Arg.Set (print_ic),                                                " Print the raw initial configuration");
   ("-print-spec",          Arg.Set (print_spec),                                              " Print the raw specification");
@@ -81,7 +76,6 @@ let () =
 let () =
   if !print_all
   then (
-    print_tc                     := true;
     print_u                      := true;
     print_ic                     := true;
     print_spec                   := true;
@@ -160,7 +154,7 @@ let () =
 (* Prepare the problem: FaCiLe variables, constraints and the goal. *)
 
 let my_variables =
-  Facile_variables.create_variables my_universe my_initial_configuration my_specification
+  Facile_variables.create_facile_variables my_universe my_initial_configuration my_specification
 
 
 let my_facile_constraints : Facile_constraints.generated_constraints = 
@@ -180,22 +174,6 @@ let goal = Facile_constraints.create_minimal_resource_count_goal my_variables so
 
 let () =
 
-(*
-  if(!print_tc)
-  then (
-    Printf.printf "\n===> THE TYPING CONTEXT <===\n\n";
-
-    (* Print: domain, ports, delta, gamma *)
-    Printf.printf "%s\n" (string_of_domain my_typing_context);
-    Printf.printf "%s\n" (string_of_ports  my_typing_context);
-    Printf.printf "%s\n" (string_of_delta  my_typing_context Provides);
-    Printf.printf "%s\n" (string_of_delta  my_typing_context Requires);
-    Printf.printf "%s\n" (string_of_gamma  my_typing_context);
-  );
-*)
-
-
-
   Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
   Facile_constraints.post_translation_constraints   my_facile_constraints;
 
@@ -203,7 +181,7 @@ let () =
   then (
     Printf.printf "\n===> THE FACILE VARIABLES <===\n";
 
-    Printf.printf "%s" (Facile_variables.string_of_variables my_variables)
+    Printf.printf "%s" (Facile_variables.string_of_facile_variables my_variables)
   );
 
   if(!print_facile_cstrs)
@@ -225,7 +203,7 @@ let () =
 
   
   (* Convert the constraint problem solution to a typed system. *)
-  let final_configuration = Configuration_generation.configuration_of_solution my_universe my_initial_configuration !solution
+  let final_configuration = configuration_of_solution my_universe my_initial_configuration !solution
   in
 
   (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)

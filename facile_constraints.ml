@@ -2,6 +2,7 @@
 open Helpers
 
 open Facile_variables
+open Solution
 
 module Facile_constraints = 
   struct
@@ -85,64 +86,64 @@ module Facile_constraints =
     module C = Generic_constraints
 
 
-    let rec translate_var (variables : variables) (var : C.var) : var =
+    let rec translate_var (facile_variables : facile_variables) (var : C.var) : var =
       match var with
-      | C.NamedVar  (var_key) -> get_variable variables var_key
+      | C.NamedVar  (var_key) -> get_facile_variable facile_variables var_key
 
-    and translate_expr (variables : variables) (expr : C.expr) : expr =
+    and translate_expr (facile_variables : facile_variables) (expr : C.expr) : expr =
       match expr with
       | C.Const (const) -> const2expr const
 
-      | C.Var (var) -> var2expr (translate_var variables var)
+      | C.Var (var) -> var2expr (translate_var facile_variables var)
       
-      | C.Reified (cstr) -> reify (translate_cstr variables cstr)
+      | C.Reified (cstr) -> reify (translate_cstr facile_variables cstr)
 
       | C.BinaryArithExpr (op, lexpr, rexpr) ->
           (match op with
-          | C.Add -> (translate_expr variables lexpr) +~ (translate_expr variables rexpr)
-          | C.Sub -> (translate_expr variables lexpr) -~ (translate_expr variables rexpr)
-          | C.Mul -> (translate_expr variables lexpr) *~ (translate_expr variables rexpr)
-          | C.Div -> (translate_expr variables lexpr) /~ (translate_expr variables rexpr)
-          | C.Mod -> (translate_expr variables lexpr) %~ (translate_expr variables rexpr) )
+          | C.Add -> (translate_expr facile_variables lexpr) +~ (translate_expr facile_variables rexpr)
+          | C.Sub -> (translate_expr facile_variables lexpr) -~ (translate_expr facile_variables rexpr)
+          | C.Mul -> (translate_expr facile_variables lexpr) *~ (translate_expr facile_variables rexpr)
+          | C.Div -> (translate_expr facile_variables lexpr) /~ (translate_expr facile_variables rexpr)
+          | C.Mod -> (translate_expr facile_variables lexpr) %~ (translate_expr facile_variables rexpr) )
 
       | C.NaryArithExpr (op, exprs) ->
           (match op with
-          | C.Sum -> sum (List.map (translate_expr variables) exprs) )
+          | C.Sum -> sum (List.map (translate_expr facile_variables) exprs) )
 
       | C.BinaryArithCmpExpr (op, lexpr, rexpr) ->    
           (match op with
-          | C.Lt  -> (translate_expr variables lexpr)  <~~ (translate_expr variables rexpr)
-          | C.LEq -> (translate_expr variables lexpr) <=~~ (translate_expr variables rexpr)
-          | C.Eq  -> (translate_expr variables lexpr)  =~~ (translate_expr variables rexpr)
-          | C.GEq -> (translate_expr variables lexpr) >=~~ (translate_expr variables rexpr)
-          | C.Gt  -> (translate_expr variables lexpr)  >~~ (translate_expr variables rexpr)
-          | C.NEq -> (translate_expr variables lexpr) <>~~ (translate_expr variables rexpr) )
+          | C.Lt  -> (translate_expr facile_variables lexpr)  <~~ (translate_expr facile_variables rexpr)
+          | C.LEq -> (translate_expr facile_variables lexpr) <=~~ (translate_expr facile_variables rexpr)
+          | C.Eq  -> (translate_expr facile_variables lexpr)  =~~ (translate_expr facile_variables rexpr)
+          | C.GEq -> (translate_expr facile_variables lexpr) >=~~ (translate_expr facile_variables rexpr)
+          | C.Gt  -> (translate_expr facile_variables lexpr)  >~~ (translate_expr facile_variables rexpr)
+          | C.NEq -> (translate_expr facile_variables lexpr) <>~~ (translate_expr facile_variables rexpr) )
 
-    and translate_cstr (variables : variables) (cstr : C.cstr) : cstr =
+    and translate_cstr (facile_variables : facile_variables) (cstr : C.cstr) : cstr =
       match cstr with
       | C.TrueCstr  -> truecstr
       | C.FalseCstr -> falsecstr
 
       | C.BinaryArithCmpCstr (op, lexpr, rexpr) ->
           (match op with
-          | C.Lt  -> (translate_expr variables lexpr)  <~ (translate_expr variables rexpr)
-          | C.LEq -> (translate_expr variables lexpr) <=~ (translate_expr variables rexpr)
-          | C.Eq  -> (translate_expr variables lexpr)  =~ (translate_expr variables rexpr)
-          | C.GEq -> (translate_expr variables lexpr) >=~ (translate_expr variables rexpr)
-          | C.Gt  -> (translate_expr variables lexpr)  >~ (translate_expr variables rexpr)
-          | C.NEq -> (translate_expr variables lexpr) <>~ (translate_expr variables rexpr) )
+          | C.Lt  -> (translate_expr facile_variables lexpr)  <~ (translate_expr facile_variables rexpr)
+          | C.LEq -> (translate_expr facile_variables lexpr) <=~ (translate_expr facile_variables rexpr)
+          | C.Eq  -> (translate_expr facile_variables lexpr)  =~ (translate_expr facile_variables rexpr)
+          | C.GEq -> (translate_expr facile_variables lexpr) >=~ (translate_expr facile_variables rexpr)
+          | C.Gt  -> (translate_expr facile_variables lexpr)  >~ (translate_expr facile_variables rexpr)
+          | C.NEq -> (translate_expr facile_variables lexpr) <>~ (translate_expr facile_variables rexpr) )
 
       | C.BinaryCstrOpCstr (op, lcstr, rcstr) ->
           (match op with
-          | C.And         -> (translate_cstr variables lcstr)  &&~~ (translate_cstr variables rcstr)
-          | C.Or          -> (translate_cstr variables lcstr)  ||~~ (translate_cstr variables rcstr)
-          | C.Impl        -> (translate_cstr variables lcstr)  =>~~ (translate_cstr variables rcstr)
-          | C.IfAndOnlyIf -> (translate_cstr variables lcstr) <=>~~ (translate_cstr variables rcstr)
-          | C.Xor         -> xor (translate_cstr variables lcstr) (translate_cstr variables rcstr) )
+          | C.And         -> (translate_cstr facile_variables lcstr)  &&~~ (translate_cstr facile_variables rcstr)
+          | C.Or          -> (translate_cstr facile_variables lcstr)  ||~~ (translate_cstr facile_variables rcstr)
+          | C.Impl        -> (translate_cstr facile_variables lcstr)  =>~~ (translate_cstr facile_variables rcstr)
+          | C.IfAndOnlyIf -> (translate_cstr facile_variables lcstr) <=>~~ (translate_cstr facile_variables rcstr)
+          | C.Xor         -> xor (translate_cstr facile_variables lcstr) (translate_cstr facile_variables rcstr) )
 
       | C.UnaryCstrOpCstr (op, cstr) ->
           (match op with
-          | C.Not -> not (translate_cstr variables cstr) )
+          | C.Not -> not (translate_cstr facile_variables cstr) )
 
 
   end
@@ -185,16 +186,16 @@ let string_of_constraints constraints =
 
 
 (* Goals *)
-let create_minimal_resource_count_goal variables store_solution_here print_solutions =
+let create_minimal_resource_count_goal facile_variables store_solution_here print_solutions =
 
-    (* The goal is simple: all domain variables have to be set. *)
+    (* The goal is simple: all domain facile_variables have to be set. *)
     let goal =
-      Facile.Goals.List.forall (Facile.Goals.indomain) (facile_variables variables)
+      Facile.Goals.List.forall (Facile.Goals.indomain) (get_facile_variables facile_variables)
     in
 
     (* The cost variable to optimize (minimize): number of all resources. *)
     let number_of_all_resources =
-      sum (List.map (fun variable -> var2expr variable) (get_global_element_variables variables))
+      sum (List.map (fun variable -> var2expr variable) (get_global_element_variables facile_variables))
     in
     let cost_var =
       expr2var number_of_all_resources
@@ -204,7 +205,7 @@ let create_minimal_resource_count_goal variables store_solution_here print_solut
     
     (* Function called when a solution is found. *)
     let solution_found cost = 
-      let solution = get_solution variables in
+      let solution = solution_of_facile_variables facile_variables in
       store_solution_here := solution;
       
       if print_solutions then (

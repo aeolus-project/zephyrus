@@ -26,6 +26,7 @@ let translate_universe_and_initial_configuration universe initial_configuration 
   ) create_constraints_functions
 
 
+
 (* Translating the specification *)
 
 let translate_specification specification initial_configuration =
@@ -33,9 +34,12 @@ let translate_specification specification initial_configuration =
   
 (* TODO: generate a specific message if specification is using non-existing names. *)
 
-let string_of_generated_constraint = string_of_cstr
+
 
 (* Printing *)
+
+let string_of_generated_constraint = string_of_cstr
+
 let string_of_generated_constraints constraints =
   let string_of_generated_constraint_list constraints =
     let strings = List.map string_of_generated_constraint constraints in
