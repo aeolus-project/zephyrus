@@ -20,6 +20,7 @@ repository_constraints.mli repository_constraints.ml\
 package_constraints.mli package_constraints.ml\
 resource_constraints.mli resource_constraints.ml\
 specification_constraints.mli specification_constraints.ml\
+optimization_functions.mli optimization_functions.ml\
 matching_algorithm.ml\
 constraints.ml\
 configuration_generation.ml\

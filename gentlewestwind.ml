@@ -182,11 +182,13 @@ let my_facile_constraints : Facile_constraints.generated_constraints =
 
 let solution = ref []
 
-let cost_expr =
+let generic_optimization_expr =
   match optimization_function with
-  | Simple_optimization_function       -> Facile_constraints.cost_expr_number_of_all_components my_variables
-  | Compact_optimization_function      -> Facile_constraints.cost_expr_compact my_initial_configuration my_variables
-  | Conservative_optimization_function -> Facile_constraints.cost_expr_difference_of_components my_initial_configuration my_variables
+  | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
+  | Compact_optimization_function      -> Optimization_functions.cost_expr_compact my_initial_configuration my_universe
+  | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
+
+let cost_expr = Facile_constraints.Facile_constraints.translate_expr my_variables generic_optimization_expr
 
 let goal = Facile_constraints.create_optimized_goal my_variables cost_expr solution !print_intermediate_solutions
 

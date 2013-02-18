@@ -8,12 +8,12 @@
 	],
 	"components" : [
 		{
-			"component_name" : "location-requirer-1",
+			"component_name" : "location-requirer-A",
 			"component_type" : "requirer",
 			"component_location" : "location"
 		},
 		{
-			"component_name" : "location-requirer-2",
+			"component_name" : "location-requirer-B",
 			"component_type" : "requirer",
 			"component_location" : "location"
 		}
