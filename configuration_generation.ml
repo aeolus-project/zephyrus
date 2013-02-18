@@ -143,16 +143,7 @@ let old_components_that_remain_for_location (initial_configuration : configurati
   let number_of_components =
     solution_number_of_components_for_location solution location_name component_type_name
   
-  and initial_configuration_components =
-    List.filter_map ( fun component ->
-      if (component.component_type = component_type_name) && (component.component_location = location_name)
-      then Some component.component
-      else None
-    ) initial_configuration.configuration_components
-
-  in
-
-  BatList.take number_of_components initial_configuration_component_names
+  and 
 
 let old_components_that_remain (universe : universe) (initial_configuration : configuration) (solution : solution) : component list =
   let location_names = get_location_names initial_configuration
@@ -191,7 +182,76 @@ let new_components_for_location (initial_configuration : configuration) (solutio
 
   (* HERE *)
 
-let configuration_of_solution (universe : universe) (solution : solution) (initial_configuration : configuration) : configuration = 
+
+let component_type_in_location_count 
+  (location_names : location_name list) 
+  (component_type_names : component_type_name list) 
+  (solution : solution)
+  : ((location_name * component_type_name) * int) list =
+  
+  let number_of_components_for_location_function =
+    solution_number_of_components_for_location solution
+  in
+  
+  List.flatten (
+    List.map (fun location_name ->
+      List.map (fun component_type_name ->
+        
+        let number = 
+          number_of_components_for_location_function location_name component_type_name
+        in
+        ( (location_name, component_type_name), number)
+
+      ) component_type_names
+    ) location_names
+  )
+
+let new_component = (component_name -> component)
+
+let aaa =
+  | OldComponent of component
+  | NewComponent of new_component
+
+let components_f 
+  (initial_components : component list)
+  (component_type_count_by_location : ((location_name * component_type_name) * int) list)
+  : component list =
+
+  List.map (fun ((location_name, component_type_name), number) ->
+
+    let initial_components =
+      List.filter_map ( fun component ->
+        if (component.component_type = component_type_name) && (component.component_location = location_name)
+        then Some component.component
+        else None
+      ) initial_configuration.configuration_components
+  
+    in
+  
+    let trimmed_components =
+      BatList.take number initial_components (* We take first components declared! *)
+
+    in
+
+    (List.map 
+      (fun component -> 
+        OldComponent component
+      ) trimmed_components)
+    @
+    (List.make 
+      (number - (List.length trimmed_components)) 
+      (NewComponent (fun component_name -> {
+        component_name     : component_name;
+        component_type     : component_type_name;
+        component_location : location_name;
+      }))
+
+  )
+
+
+
+
+let configuration_of_solution (universe : universe) (initial_configuration : configuration) (solution : solution) : configuration = 
 
   let configuration_locations =
     List.map (fun location -> {
@@ -202,6 +262,15 @@ let configuration_of_solution (universe : universe) (solution : solution) (initi
       }
     ) initial_configuration.configuration_locations
 
+  in
+
+  let location_names = get_location_names initial_configuration
+  and component_type_names = get_component_type_names universe
+  in
+
+  let configuration_components = 
+    components_f initial_configuration.configuration_components (component_type_in_location_count location_names component_type_names solution)
+  in
 
   let resources_list =
 
