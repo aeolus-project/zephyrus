@@ -1,21 +1,17 @@
 
-open Resource_types_t
+open Aeolus_types_j
 
 open Typing_context
+open Variable_keys
 open Facile_variables
 open Helpers
-
-let fresh_name domain_element number =
-  Printf.sprintf 
-  "%s #%d" (string_of_domain_element domain_element) number
-
 
 open Matching_algorithm.List_match_requirers_with_providers
 open Matching_algorithm.String_list_requirer_provider_types
 
 let generate_bindings (universe : universe) (components : component list) : binding list =
 
-  let ports = get_ports universe
+  let ports = get_port_names universe
   in
 
   let assoc_or_zero a l =
@@ -38,7 +34,7 @@ let generate_bindings (universe : universe) (components : component list) : bind
         List.map (fun component ->
           let component_type = get_component_type universe component.component_type
           in
-          (component.component_name, assoc_or_zero port_name component.resource_provides)
+          (component.component_name, assoc_or_zero port_name component_type.component_type_provide)
         ) components
   
       in
@@ -70,6 +66,7 @@ let solution_repository_for_location (solution : solution) (location_name : loca
       | LocalRepositoryVariable (var_location_name, var_repository_name) ->
           if (var_location_name = location_name) && (value = 1)
           then Some var_repository_name
+          else None
       | _ -> None
     ) solution
   in
@@ -85,6 +82,7 @@ let solution_packages_for_location (solution : solution) (location_name : locati
       | LocalElementVariable (var_location_name, (Package var_package_name)) ->
           if (var_location_name = location_name) && (value = 1)
           then Some var_package_name
+          else None
       | _ -> None
     ) solution
   in
@@ -97,6 +95,7 @@ let solution_number_of_components_for_location (solution : solution) (location_n
       | LocalElementVariable (var_location_name, (ComponentType var_component_type_name)) ->
           if (var_location_name = location_name) && (var_component_type_name = component_type_name)
           then Some value
+          else None
       | _ -> None
     ) solution
   in
@@ -105,85 +104,34 @@ let solution_number_of_components_for_location (solution : solution) (location_n
   | []                 -> failwith (Printf.sprintf "in the solution number of components of type %s in location %s is unknown"                location_name component_type_name)
   | _                  -> failwith (Printf.sprintf "in the solution number of components of type %s in location %s is defined more than once" location_name component_type_name)
 
+type used_names = component_name list
 
-(*
-module type FRESH_COMPONENT_NAMES =
-  sig
-    type t
-    val fresh_component_name : t -> location_name -> component_type_name -> (t, component_type_name)
-  end
-*)
-
-module Fresh_component_names : FRESH_COMPONENT_NAMES =
-  struct
-    
-    type t = component_type_name list
-
-    let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : t) =
-      let fresh_name = Printf.sprintf "%s %s" location_name component_type_name
-      in
-      ( (fresh_name :: used_names), fresh_name )
-
-    let fresh_component_names (n : int) (location_name : location_name) (component_type_name : component_type_name) (used_names : t) =
-
-      let f (n : int) (used_names : t) (a : component_type_name list) =
-        match n with
-        | 0 -> (used_names, a)
-        | i -> let (new_used_names, fresh_name) = fresh_component_name location_name component_type_name used_names
-               in
-               f (n - 1) new_used_names (fresh_name :: a)
-
-      in 
-      f n used_names []
-
-  end
-
-let old_components_that_remain_for_location (initial_configuration : configuration) (solution : solution) (location_name : location_name) (component_type_name : component_type_name) : component list =
+let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names ref) : component_name =
   
-  let number_of_components =
-    solution_number_of_components_for_location solution location_name component_type_name
-  
-  and 
-
-let old_components_that_remain (universe : universe) (initial_configuration : configuration) (solution : solution) : component list =
-  let location_names = get_location_names initial_configuration
-  and component_type_names = get_component_type_names universe
-  in
-  List.flatten ( List.flatten (
-    List.map (fun location_name ->
-      List.map (fun component_type_name ->
-        old_components_that_remain_for_location initial_configuration solution location_name component_type_name
-      ) component_type_names
-    ) location_names
-  ) )
-
-let new_components_for_location (initial_configuration : configuration) (solution : solution) (location_name : location_name) (component_type_name : component_type_name) (used_names : Fresh_component_names.t) : component list =
-  
-  let right_number_of_components =
-    solution_number_of_components_for_location solution location_name component_type_name
-  
-  and initial_configuration_components =
-    List.filter_map ( fun component ->
-      if (component.component_type = component_type_name) && (component.component_location = location_name)
-      then Some component.component
-      else None
-    ) initial_configuration.configuration_components
+  let 
+    open Configuration_output_facade.Simple_configuration_output
   in
 
-  let number_of_initial_components = List.length initial_configuration_components
+  let build_component_name = 
+    Printf.sprintf
+    "%s-%s-%d" 
+    (string_of_location_name location_name)
+    (string_of_component_type_name component_type_name)
+
   in
 
-  let fresh_component_names =
-    Fresh_component_names.fresh_component_names
-      (right_number_of_components - number_of_initial_components)
-      location_name
-      component_type_name
-      used_names
+  let i = ref 1 in
+  let component_name = ref (build_component_name !i) in
+  while List.mem !component_name !used_names do
+    i := !i + 1;
+    component_name := build_component_name !i;
+  done;
 
-  (* HERE *)
+  used_names := !component_name :: !used_names;
+  !component_name
 
 
-let component_type_in_location_count 
+let component_type_count_by_location 
   (location_names : location_name list) 
   (component_type_names : component_type_name list) 
   (solution : solution)
@@ -206,106 +154,124 @@ let component_type_in_location_count
     ) location_names
   )
 
-let new_component = (component_name -> component)
-
-let aaa =
-  | OldComponent of component
-  | NewComponent of new_component
+type almost_done_component =
+  | ReusedComponent of component
+  | NewComponent    of (used_names ref -> component)
 
 let components_f 
   (initial_components : component list)
-  (component_type_count_by_location : ((location_name * component_type_name) * int) list)
+  (location_names : location_name list)
+  (component_type_names : component_type_name list)
+  (solution : solution)
   : component list =
 
-  List.map (fun ((location_name, component_type_name), number) ->
+  let component_type_count_by_location =
+    component_type_count_by_location location_names component_type_names solution
 
-    let initial_components =
-      List.filter_map ( fun component ->
-        if (component.component_type = component_type_name) && (component.component_location = location_name)
-        then Some component.component
-        else None
-      ) initial_configuration.configuration_components
-  
-    in
-  
-    let trimmed_components =
-      BatList.take number initial_components (* We take first components declared! *)
+  in
 
-    in
+  let (almost_done_components : almost_done_component list) =
+    List.flatten (
+      List.map (fun ((location_name, component_type_name), required_number_of_components) ->
 
-    (List.map 
-      (fun component -> 
-        OldComponent component
-      ) trimmed_components)
-    @
-    (List.make 
-      (number - (List.length trimmed_components)) 
-      (NewComponent (fun component_name -> {
-        component_name     : component_name;
-        component_type     : component_type_name;
-        component_location : location_name;
-      }))
+        let initial_components =
+          BatList.filter_map ( fun component ->
+            if (component.component_type = component_type_name) && (component.component_location = location_name)
+            then Some component
+            else None
+          ) initial_components
+      
+        in
+      
+        let reused_components =
+          BatList.take required_number_of_components initial_components (* We take first components declared! *)
 
-  )
+        in
+
+        let number_of_new_components =
+          (required_number_of_components - (List.length reused_components))
+
+        in
+        assert (number_of_new_components >= 0);
+
+
+        (* Reused components *)
+
+        (List.map 
+          (fun component -> 
+            ReusedComponent component
+          ) reused_components
+        )
+
+        @
+
+        (* New components *)
+
+        (BatList.make 
+          number_of_new_components
+          (NewComponent (fun used_names -> 
+            let component_name = fresh_component_name location_name component_type_name used_names
+            in 
+            ({
+              component_name     = component_name;
+              component_type     = component_type_name;
+              component_location = location_name;
+            })
+        )))
+    ) component_type_count_by_location )
+
+  in
+
+  let used_names = ref (BatList.filter_map (fun almost_done_component ->
+    match almost_done_component with
+    | ReusedComponent component -> Some component.component_name
+    | NewComponent    _         -> None
+  ) almost_done_components)
+
+  in
+
+  List.map (fun almost_done_component ->
+      match almost_done_component with
+    | ReusedComponent component   -> component
+    | NewComponent    component_f -> component_f used_names
+  ) almost_done_components
+
+
+
 
 
 
 
 let configuration_of_solution (universe : universe) (initial_configuration : configuration) (solution : solution) : configuration = 
 
+  (* Locations *)
   let configuration_locations =
     List.map (fun location -> {
-        location_name               : location.location_name;
-        location_provide_resources  : location.location_provide_resources;
-        location_repository         : solution_repository_for_location solution location.location_name;
-        location_packages_installed : solution_packages_for_location   solution location.location_name;
+        location_name               = location.location_name;
+        location_provide_resources  = location.location_provide_resources;
+        location_repository         = solution_repository_for_location solution location.location_name;
+        location_packages_installed = solution_packages_for_location   solution location.location_name;
       }
     ) initial_configuration.configuration_locations
 
   in
 
-  let location_names = get_location_names initial_configuration
-  and component_type_names = get_component_type_names universe
-  in
-
+  (* Components *)
   let configuration_components = 
-    components_f initial_configuration.configuration_components (component_type_in_location_count location_names component_type_names solution)
+    let location_names = get_location_names initial_configuration
+    and component_type_names = get_component_type_names universe
+    in
+    components_f initial_configuration.configuration_components location_names component_type_names solution
+  
   in
 
-  let resources_list =
-
-    List.flatten (
-      
-      List.map (function (domain_element, number) ->
-        
-        let numbers = BatList.init number (fun x -> x + 1)
-        in
-        List.map (function number ->
-          let name     = fresh_name domain_element number
-          and requires = requires typing_context domain_element
-          and provides = provides typing_context domain_element
-          in
-          ( 
-            (name, domain_element),
-            {
-              resource_name     = name;
-              resource_requires = requires;
-              resource_provides = provides;
-            }
-          )
-        ) numbers
-      
-      ) solution.solution_domain_elements )
-
-  in
-  let typing_environment = List.map fst resources_list
-  and resources          = List.map snd resources_list
-  in
-  let bindings           = generate_bindings typing_context resources
+  (* Bindings *)
+  let configuration_bindings = 
+    generate_bindings universe configuration_components
 
   in
   {
-    typing_environment = typing_environment;
-    resources          = resources;
-    bindings           = bindings;
+    configuration_locations  = configuration_locations;
+    configuration_components = configuration_components;
+    configuration_bindings   = configuration_bindings;
   }

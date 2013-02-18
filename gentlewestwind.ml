@@ -223,9 +223,9 @@ let () =
     Printf.printf "%s" (string_of_solution !solution);
   );
 
-(*
+  
   (* Convert the constraint problem solution to a typed system. *)
-  let final_configuration = configuration_of_solution my_typing_context !solution
+  let final_configuration = Configuration_generation.configuration_of_solution my_universe my_initial_configuration !solution
   in
 
   (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)
@@ -244,8 +244,8 @@ let () =
 
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
-  Printf.printf "%s" (Configuration_output_facade.Simple_configuration_output.string_of_configuration final_configuration);
+  Printf.printf "\n%s\n\n" (Configuration_output_facade.Simple_configuration_output.string_of_configuration final_configuration);
 
-*)
+
   ()
 
