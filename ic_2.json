@@ -1,0 +1,21 @@
+{
+	"locations" : [
+		{
+			"name" : "location",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 100]]
+		}
+	],
+	"components" : [
+		{
+			"component_name" : "location-requirer-1",
+			"component_type" : "requirer",
+			"component_location" : "location"
+		},
+		{
+			"component_name" : "location-requirer-2",
+			"component_type" : "requirer",
+			"component_location" : "location"
+		}
+	]
+}

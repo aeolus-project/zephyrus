@@ -5,6 +5,9 @@ open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 (* Operator types definitions *)
 
+type unary_arith_op =
+  | Abs
+
 type binary_arith_op =
   | Add
   | Sub
@@ -44,6 +47,7 @@ and expr =
   | Const               of int                                (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
   | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
+  | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
@@ -59,7 +63,11 @@ and cstr =
 
 (* Printing *)
 
-let rec string_of_binary_arith_op op =
+let rec string_of_unary_arith_op op =
+  match op with
+  | Abs -> "|"
+
+and string_of_binary_arith_op op =
   match op with
   | Add -> "+"
   | Sub -> "-"
@@ -111,6 +119,12 @@ and string_of_expr expr =
   | Reified (cstr) ->
       Printf.sprintf "||%s||" (string_of_cstr cstr)
   
+  | UnaryArithExpr (op, expr) ->
+      Printf.sprintf "%s %s %s"
+      (string_of_unary_arith_op op)
+      (string_of_expr expr)
+      (string_of_unary_arith_op op)
+
   | BinaryArithExpr (op, lexpr, rexpr) ->
       Printf.sprintf "(%s %s %s)" 
       (string_of_expr lexpr)
@@ -180,6 +194,8 @@ let ( -~ )    x y  = BinaryArithExpr (Sub, x, y)
 let ( *~ )    x y  = BinaryArithExpr (Mul, x, y)
 let ( /~ )    x y  = BinaryArithExpr (Div, x, y)
 let ( %~ )    x y  = BinaryArithExpr (Mod, x, y)
+let abs       x    = UnaryArithExpr  (Abs, x)
+
 
 let sum exprs_to_sum = NaryArithExpr (Sum, exprs_to_sum)
 
@@ -228,6 +244,7 @@ and variable_keys_of_expr expr =
   | Const              (const)                 -> []
   | Var                (NamedVar variable_key) -> [variable_key]
   | Reified            (cstr)                  -> variable_keys_of_cstr cstr
+  | UnaryArithExpr     (op, expr)              -> (variable_keys_of_expr expr)
   | BinaryArithExpr    (op, lexpr, rexpr)      -> (variable_keys_of_expr lexpr) @ (variable_keys_of_expr rexpr)
   | NaryArithExpr      (op, exprs)             -> List.flatten (List.map (fun expr -> (variable_keys_of_expr expr)) exprs)
   | BinaryArithCmpExpr (op, lexpr, rexpr)      -> (variable_keys_of_expr lexpr) @ (variable_keys_of_expr rexpr)

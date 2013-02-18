@@ -1,6 +1,10 @@
 
 open Helpers
 
+open Aeolus_types_j
+
+open Typing_context
+open Variable_keys
 open Facile_variables
 open Solution
 
@@ -45,6 +49,7 @@ module Facile_constraints =
     let ( *~ ) = Arith.( *~ )
     let ( /~ ) = Arith.( /~ )
     let ( %~ ) = Arith.( %~ )
+    let abs    = Arith.abs
 
     let (  <~~ ) = Arith.(  <~~ ) 
     let ( <=~~ ) = Arith.( <=~~ ) 
@@ -97,7 +102,11 @@ module Facile_constraints =
       | C.Var (var) -> var2expr (translate_var facile_variables var)
       
       | C.Reified (cstr) -> reify (translate_cstr facile_variables cstr)
-
+      
+      | C.UnaryArithExpr (op, expr) ->
+          (match op with
+          | C.Abs -> abs (translate_expr facile_variables expr) )
+      
       | C.BinaryArithExpr (op, lexpr, rexpr) ->
           (match op with
           | C.Add -> (translate_expr facile_variables lexpr) +~ (translate_expr facile_variables rexpr)
@@ -185,20 +194,89 @@ let string_of_constraints constraints =
     (lines_of_strings strings)
 
 
+let cost_expr_number_of_all_components facile_variables : expr = 
+  sum (List.map (fun variable -> var2expr variable) (get_global_element_variables facile_variables))
+
+let cost_expr_number_of_used_locations (initial_configuration : configuration) facile_variables : expr =
+  let used_locations =
+    List.map (fun location_name ->
+      
+      let exprs_to_sum =
+        BatList.filter_map (fun (variable_key, facile_variable) ->
+          match variable_key with
+            
+            | LocalElementVariable (location_name, (ComponentType _))
+            | LocalElementVariable (location_name, (Package _)) ->
+                Some ( (var2expr facile_variable) )
+
+            | _ -> None
+          
+        ) facile_variables
+
+      in
+
+      let local_components_and_packages = (sum exprs_to_sum)
+      in
+
+      reify ( local_components_and_packages >=~ (const2expr 1) )
+
+    ) (get_location_names initial_configuration)
+
+    in
+    let total_number_of_used_locations = (sum used_locations)
+    in
+    total_number_of_used_locations
+
+let cost_expr_compact (initial_configuration : configuration) facile_variables =
+  (
+    (cost_expr_number_of_all_components facile_variables) 
+    +~
+    (cost_expr_number_of_used_locations initial_configuration facile_variables)
+  )
+
+let cost_expr_difference_of_components (initial_configuration : configuration) facile_variables : expr =
+  let local_differences_of_number_of_components = 
+    
+    BatList.filter_map (fun (variable_key, facile_variable) ->
+      match variable_key with
+        
+        | LocalElementVariable (location_name, (ComponentType component_type_name)) ->
+            let number_of_components_in_initial_configuration =
+              List.length (
+                List.filter (fun component -> 
+                  (component.component_type = component_type_name) && (component.component_location = location_name)
+                ) initial_configuration.configuration_components
+              )
+
+            in
+
+            let local_difference_of_number_of_components = 
+              abs ( (var2expr facile_variable) -~ (const2expr number_of_components_in_initial_configuration) )
+            
+            in
+            Some local_difference_of_number_of_components
+
+        | _ -> None
+      
+    ) facile_variables
+
+  in
+  let total_difference_of_number_of_components = (sum local_differences_of_number_of_components)
+  in
+  total_difference_of_number_of_components
+
+
 (* Goals *)
-let create_minimal_resource_count_goal facile_variables store_solution_here print_solutions =
+let create_optimized_goal facile_variables cost_expr store_solution_here print_solutions =
 
     (* The goal is simple: all domain facile_variables have to be set. *)
     let goal =
       Facile.Goals.List.forall (Facile.Goals.indomain) (get_facile_variables facile_variables)
     in
 
-    (* The cost variable to optimize (minimize): number of all resources. *)
-    let number_of_all_resources =
-      sum (List.map (fun variable -> var2expr variable) (get_global_element_variables facile_variables))
-    in
+    (* The cost variable to optimize (minimize): *)
     let cost_var =
-      expr2var number_of_all_resources
+      expr2var cost_expr
     in
 
     (* TODO: refine the cost_var - this is our optimisation function. *)

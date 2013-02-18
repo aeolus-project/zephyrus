@@ -28,7 +28,8 @@ let specification_channel         = ref stdin
 let initial_configuration_channel = ref stdin
 let output_channel                = ref stdout
 
-let output_format_string = ref "plain"
+let output_format_string         = ref "plain"
+let optimization_function_string = ref "simple"
 
 (* printing settings *)
 let print_u                      = ref false
@@ -43,15 +44,16 @@ let print_all                    = ref false
 
 (* Arg module settings *)
 
-let usage = "usage: " ^ Sys.argv.(0) ^ " [-u universe-file] [-spec specification-file] [-ic initial-configuration-file] [-out output-file] [-out-format {plain|json}]"
+let usage = "usage: " ^ Sys.argv.(0) ^ " [-u universe-file] [-ic initial-configuration-file] [-spec specification-file] [-opt optimization-function] [-out output-file] [-out-format {plain|json}]"
 
 let speclist = 
   Arg.align [
   ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
   ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
   ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
-  ("-out",        Arg.String (fun filename -> output_channel                := (open_out filename)), " The output file");
-  ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),     " The typed system output format (only for the output file)");
+  ("-out",        Arg.String (fun filename -> output_channel                := (open_out filename)), " The output file");  
+  ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),            " The typed system output format (only for the output file)");
+  ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
   ] @ 
   Arg.align [
   ("-print-u",             Arg.Set (print_u),                                                 " Print the raw universe");
@@ -95,6 +97,19 @@ let output_format =
   | "plain" -> Plain_output
   | "json"  -> JSON_output
   | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
+
+(* Handle the optimization-function argument. *)
+type optimization_function = 
+  | Simple_optimization_function
+  | Compact_optimization_function
+  | Conservative_optimization_function
+
+let optimization_function =
+  match !optimization_function_string with
+  | "simple"       -> Simple_optimization_function
+  | "compact"      -> Compact_optimization_function
+  | "conservative" -> Conservative_optimization_function
+  | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
 
 
 
@@ -167,7 +182,13 @@ let my_facile_constraints : Facile_constraints.generated_constraints =
 
 let solution = ref []
 
-let goal = Facile_constraints.create_minimal_resource_count_goal my_variables solution !print_intermediate_solutions
+let cost_expr =
+  match optimization_function with
+  | Simple_optimization_function       -> Facile_constraints.cost_expr_number_of_all_components my_variables
+  | Compact_optimization_function      -> Facile_constraints.cost_expr_compact my_initial_configuration my_variables
+  | Conservative_optimization_function -> Facile_constraints.cost_expr_difference_of_components my_initial_configuration my_variables
+
+let goal = Facile_constraints.create_optimized_goal my_variables cost_expr solution !print_intermediate_solutions
 
 
 (* === Main program === *)

@@ -1,6 +1,9 @@
 
 (* Operator types definitions *)
 
+type unary_arith_op =
+  | Abs
+
 type binary_arith_op =
   | Add
   | Sub
@@ -40,6 +43,7 @@ and expr =
   | Const               of int                                (* expr = integer constant *)
   | Var                 of var                                (* expr = value of a variable *)
   | Reified             of cstr                               (* expr = if the constraint is satisfied then 1 else 0 *)
+  | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
   | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
@@ -85,6 +89,7 @@ val ( -~ ) : expr -> expr -> expr
 val ( *~ ) : expr -> expr -> expr
 val ( /~ ) : expr -> expr -> expr
 val ( %~ ) : expr -> expr -> expr
+val abs    : expr -> expr
 
 val sum : expr list -> expr
 
