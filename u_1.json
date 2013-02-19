@@ -48,9 +48,6 @@
 					"conflict": ["common_package"]
 				}
 			]
-		},
-		{
-			"name": "empty_repository"
 		}
 	]
 }

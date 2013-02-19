@@ -31,6 +31,8 @@ let output_channel                = ref stdout
 let output_format_string         = ref "plain"
 let optimization_function_string = ref "simple"
 
+let import_repo = ref ""
+
 (* printing settings *)
 let print_u                      = ref false
 let print_ic                     = ref false
@@ -50,10 +52,11 @@ let speclist =
   Arg.align [
   ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
   ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
-  ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
+  ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");  
   ("-out",        Arg.String (fun filename -> output_channel                := (open_out filename)), " The output file");  
   ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),            " The typed system output format (only for the output file)");
   ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
+  ("-repo",       Arg.Set_string (import_repo),                                                         " The repository input file")
   ] @ 
   Arg.align [
   ("-print-u",             Arg.Set (print_u),                                                 " Print the raw universe");
@@ -112,8 +115,6 @@ let optimization_function =
   | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
 
 
-
-
 (* === Set up everything === *)
 
 
@@ -122,14 +123,41 @@ module MyUniverseInput             = Universe_input_facade.JSON_universe_input
 module MyInitialConfigurationInput = Configuration_input_facade.JSON_configuration_input
 module MySpecificationInput        = Specification_input_facade.JSON_specification_input
 
+(* Handle the import-repo argument. *)
+
+let imported_repo =
+  if ( String.length (!import_repo) > 0 ) 
+  then 
+    let filename = !import_repo ^ ".json" in
+    let repo_in = (open_in filename) in
+    let packages = MyUniverseInput.packages_of_string (string_of_input_channel repo_in) in
+    {
+      repository_name = !import_repo;
+      repository_packages = packages;
+    }
+  else
+    {
+      repository_name = "empty_repository";
+      repository_packages = [];
+    }
+
+
 let my_universe =
-  MyUniverseInput.universe_of_string (string_of_input_channel !universe_channel)
+  let universe =
+    MyUniverseInput.universe_of_string (string_of_input_channel !universe_channel)
+  in
+  {
+    universe_component_types = universe.universe_component_types;
+    universe_implementation = universe.universe_implementation;
+    universe_repositories = imported_repo :: universe.universe_repositories;
+  }
 
 let my_initial_configuration =
   MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
 let my_specification =
   MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
+
 
 let () = 
 
