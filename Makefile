@@ -21,6 +21,7 @@ resource_constraints.mli              resource_constraints.ml\
 specification_constraints.mli         specification_constraints.ml\
 optimization_functions.mli            optimization_functions.ml\
 matching_algorithm.ml\
+better_matching_algorithm.ml\
 constraints.ml\
 configuration_generation.ml\
 facile_variables.mli   facile_variables.ml\

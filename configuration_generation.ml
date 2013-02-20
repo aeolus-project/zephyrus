@@ -7,8 +7,27 @@ open Solution
 open Facile_variables
 open Helpers
 
-open Matching_algorithm.List_match_requirers_with_providers
-open Matching_algorithm.String_list_requirer_provider_types
+
+module My_matching_algorithm = Better_matching_algorithm
+
+(*
+module My_matching_algorithm = Matching_algorithm
+*)
+open My_matching_algorithm.List_match_requirers_with_providers
+open My_matching_algorithm.String_list_requirer_provider_types
+
+
+let make_require_arity (i : int)        = i
+
+let make_finite_provide_arity (i : int) = My_matching_algorithm.DecrementableIntegerWithInfinity.FiniteInteger i
+let make_infinite_provide_arity         = My_matching_algorithm.DecrementableIntegerWithInfinity.InfiniteInteger
+
+(*
+let make_require_arity (i : int)        = i
+
+let make_finite_provide_arity (i : int) = My_matching_algorithm.FiniteProvide i
+let make_infinite_provide_arity         = My_matching_algorithm.InfiniteProvide
+*)
 
 let generate_bindings (universe : universe) (components : component list) : binding list =
 
@@ -40,8 +59,8 @@ let generate_bindings (universe : universe) (components : component list) : bind
           in
           let provide_arity =
             match provide_arity with
-            | `InfiniteProvide -> (Matching_algorithm.InfiniteProvide)
-            | `FiniteProvide i -> (Matching_algorithm.FiniteProvide i)
+            | `InfiniteProvide -> (make_infinite_provide_arity)
+            | `FiniteProvide i -> (make_finite_provide_arity i)
           in
           (component.component_name, provide_arity)
         ) components

@@ -1,1 +1,21 @@
-[ [ [ "Component", [ "requirer",  "installed" ] ], [ "GEq", 12 ] ] ]
+[
+	"SpecAnd",
+	[
+		[
+			"SpecOp", 
+			[
+				[ "SpecExprArity", ["SpecElementComponentType", "requirer"] ],
+				"GEq",
+				[ "SpecExprConst", 15 ]
+			]
+		],
+		[
+			"SpecOp", 
+			[
+				[ "SpecExprVar", "specification variable" ],
+				"Eq",
+				[ "SpecExprConst", 5 ]
+			]
+		]
+	]
+]
