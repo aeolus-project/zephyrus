@@ -1,13 +1,82 @@
 
-(* TODO: This should be made into a module with compare and decrement functions. *)
-type provide_arity = FiniteProvide of int | InfiniteProvide
-type require_arity = int
+
+(* Ordered types for require_arity and provide_arity. *)
+
+type comparison = Lt | Eq | Gt
+
+module type ORDERED_DECREMENTABLE_TYPE =
+  sig
+    type t
+    val compare : t -> t -> comparison
+    val is_zero : t -> bool
+    val decrement : t -> t
+  end
+
+module DecrementableNatural (* : ORDERED_DECREMENTABLE_TYPE *) =
+  struct
+    type t = int
+    
+    let compare x y =
+      if x = y 
+      then Eq
+      else ( 
+        if x > y
+        then Gt
+        else Lt
+      )
+
+    let is_zero x = (x = 0)
+
+    let decrement x = (x - 1)
+
+  end
+
+module DecrementableIntegerWithInfinity (* : ORDERED_DECREMENTABLE_TYPE *) =
+  struct
+    type t = 
+      | FiniteInteger of int 
+      | InfiniteInteger
+    
+    let compare x y =
+      if x = y
+      then Eq
+      else (
+        match x with
+        | FiniteInteger x -> 
+          (
+            match y with
+            | FiniteInteger y -> 
+                if x > y
+                then Gt
+                else Lt
+
+            | InfiniteInteger -> Lt
+          )
+        | InfiniteInteger -> Gt
+      )
+
+    let is_zero x = (x = (FiniteInteger 0))
+
+    let decrement x =
+      match x with
+      | FiniteInteger x -> FiniteInteger (x - 1)
+      | InfiniteInteger -> InfiniteInteger
+
+  end
+
+
+(* Generic requirer and provider types. *)
 
 module type REQUIRER_PROVIDER_TYPES =
   sig
 
+    module Require_arity : ORDERED_DECREMENTABLE_TYPE
+    module Provide_arity : ORDERED_DECREMENTABLE_TYPE
+
     type requirer_key_t
+    type require_arity = Require_arity.t
     type provider_key_t
+    type provide_arity = Provide_arity.t
     type result_t
 
     module Requirers :
@@ -41,14 +110,25 @@ module type REQUIRER_PROVIDER_TYPE_PARAMETER =
     type provider_key_t 
   end
 
+
+
+
+(* Simple implementation of requirer and provider modules based on lists. *)
+
 module List_requirer_provider_types =
   functor (Requirer_provider_type_parameter : REQUIRER_PROVIDER_TYPE_PARAMETER) ->
+  functor (Require_arity : ORDERED_DECREMENTABLE_TYPE) ->
+  functor (Provide_arity : ORDERED_DECREMENTABLE_TYPE) ->
   struct
 
     module Type_Parameter = Requirer_provider_type_parameter
+    module Require_arity = Require_arity
+    module Provide_arity = Provide_arity
 
-    type requirer_key_t = Type_Parameter.requirer_key_t
+    type requirer_key_t = Type_Parameter.requirer_key_t    
+    type require_arity  = Require_arity.t
     type provider_key_t = Type_Parameter.provider_key_t
+    type provide_arity  = Provide_arity.t
 
     type result_t = {
       requires : requirer_key_t;
@@ -74,21 +154,14 @@ module List_requirer_provider_types =
         
         let max_value l =
           let rec max_value_helper l max =
-            match max with
-            | (_, InfiniteProvide) -> max
-            | (_, FiniteProvide max_value) ->
-                (
-                  match l with
-                  | [] -> max
-                  
-                  | (key, InfiniteProvide)     :: t ->
-                      max_value_helper t (key, InfiniteProvide)
-                  
-                  | (key, FiniteProvide value) :: t -> 
-                      if (value > max_value ) 
-                      then max_value_helper t (key, FiniteProvide value)
-                      else max_value_helper t max
-                )
+            match l with
+            | [] -> max
+            | (key, value) :: t ->
+                let max_value = snd max
+                in
+                if (Provide_arity.compare value max_value) = Gt
+                then max_value_helper t (key, value)
+                else max_value_helper t max
           in
           max_value_helper l (List.hd l)
     
@@ -98,14 +171,8 @@ module List_requirer_provider_types =
         let decrement key l =
           List.map (fun (kkey, value) ->
             if kkey = key
-            then
-              (
-                match value with
-                | InfiniteProvide     -> (kkey, value)
-                | FiniteProvide value -> (kkey, FiniteProvide (value - 1))
-              )
-            else 
-              (kkey, value)
+            then (kkey, Provide_arity.decrement value)
+            else (kkey, value)
           ) l
     
       end
@@ -129,6 +196,11 @@ module List_requirer_provider_types =
 
 end
 
+
+
+
+(* Generic matching algorithm implementation. *)
+
 module type MATCH_REQUIRERS_WITH_PROVIDERS =
   functor (Requirer_provider_types : REQUIRER_PROVIDER_TYPES) ->
   sig
@@ -148,6 +220,9 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
        + Requirers
        + Providers
        + Results 
+
+       + Require_arity
+       + Provide_arity
     *)
 
     (* Exception raised when finding a correct matching is impossible. *)
@@ -172,8 +247,11 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
           let providers_left = ref !providers in
   
           (* We repeat the process of binding our requirer to a different provider as many times as it requires.  *)
-          for k = 1 to requirer_value do
+          let k = ref requirer_value in
+          while not (Require_arity.is_zero !k) do
   
+            k := Require_arity.decrement !k;
+
             (* If there are no more providers not bound to our requirer left, we have lost. *)
             if Providers.is_empty !providers_left
             then raise Impossible
@@ -186,7 +264,7 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
               in
   
               (* If the best provider available has no more ports left unbound, then we have lost. *)
-              if provider_value = (FiniteProvide 0)
+              if Provide_arity.is_zero provider_value
               then raise Impossible
   
               (* Else we can bind the requirer to the provider and adjust the other variables accordingly. *)
@@ -215,6 +293,10 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
   end
 
 
+
+
+(* Putting it all together into usable modules. *)
+
 module Requirer_provider_type_param_string =
   struct 
       type key_t = string
@@ -223,7 +305,7 @@ module Requirer_provider_type_param_string =
   end
 
 module String_list_requirer_provider_types =
-  List_requirer_provider_types(Requirer_provider_type_param_string)
+  List_requirer_provider_types(Requirer_provider_type_param_string)(DecrementableNatural)(DecrementableIntegerWithInfinity)
 
 module List_match_requirers_with_providers =
   Match_requirers_with_providers(String_list_requirer_provider_types)
