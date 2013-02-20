@@ -194,6 +194,8 @@ let create_specification_constraints initial_configuration specification : cstr 
 
 
 
+(* Extract all variable keys that appear in the specification. *)
+(* TODO: Should it be in this module? *)
 
 let rec extract_spec_variable_name spec_variable_name = [ SpecificationVariable spec_variable_name ]
 

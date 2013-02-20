@@ -131,5 +131,6 @@ val xor       : cstr -> cstr -> cstr
 val not       : cstr -> cstr
 
 
+(* Extract all variable keys that appear in a constraint / expression. *)
 
-val variable_keys_of_cstr : cstr -> Variable_keys.variable_key list
+val extract_variable_keys_of_cstr : cstr -> Variable_keys.variable_key list

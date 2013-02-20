@@ -14,6 +14,7 @@ module Facile_constraints =
     open Facile
     open Easy
 
+    type const = int
     type var   = Facile.Var.Fd.t
     type cstr  = Facile.Cstr.t
     type expr  = Facile.Arith.t
@@ -83,7 +84,7 @@ module Facile_constraints =
 
     (* Post constraints *)
 
-    let post (cstr : cstr) = Cstr.post cstr
+    let post (cstr : cstr) : unit = Cstr.post cstr
 
 
     (* Translation from the generic constraints *)
@@ -212,8 +213,6 @@ let create_optimized_goal facile_variables cost_expr store_solution_here print_s
     let cost_var =
       expr2var cost_expr
     in
-
-    (* TODO: refine the cost_var - this is our optimisation function. *)
     
     (* Function called when a solution is found. *)
     let solution_found cost = 
