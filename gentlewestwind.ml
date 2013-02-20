@@ -57,47 +57,48 @@ let usage =
     "[-u universe-file]"
     "[-ic initial-configuration-file]"
     "[-spec specification-file]"
-    "([-repo repository-name packages-file])*" 
+    "[-repo repository-name packages-file]*" 
     "[-opt optimization-function]"
     "[-out output-file]"
     "[-out-format {plain|json}]"
 
 let speclist = 
   Arg.align [
+    (* Input arguments *)
+    ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
+    ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
+    ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
+    
+    ("-repo",       Arg.Tuple 
+                    (
+                      [Arg.String (fun repository_name     -> import_repository_names     := repository_name     :: !import_repository_names);
+                       Arg.String (fun repository_filename -> import_repository_filenames := repository_filename :: !import_repository_filenames)]
+                    ),
+                    " The additional repository import: repository name and packages input file (you can include multiple repositories)");
+  ] @
 
-  (* Input arguments *)
-  ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
-  ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
-  ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
-  
-  ("-repo",       Arg.Tuple 
-                  (
-                    [Arg.String (fun repository_name     -> import_repository_names     := repository_name     :: !import_repository_names);
-                     Arg.String (fun repository_filename -> import_repository_filenames := repository_filename :: !import_repository_filenames)]
-                  ),
-                  " The additional repository import: repository name and packages input file");
-
-  (* Output arguments *)
-  ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The output file");  
-  ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The typed system output format (only for the output file)");
-
-  (* Optimization function argument *)
-  ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
-  
-  ] @ 
   Arg.align [
+    (* Output arguments *)
+    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The output file");  
+    ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The typed system output format (only for the output file)");
+  ] @
 
-  (* Printing options arguments *)
-  ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
-  ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
-  ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
-  ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
-  ("-print-facile-vars",   Arg.Set (print_facile_cstrs),           " Print the FaCiLe variables");
-  ("-print-facile-cstrs",  Arg.Set (print_facile_cstrs),           " Print the FaCiLe constraints");
-  ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
-  ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
-  ("-print-all",           Arg.Set (print_all),                    " Print everything");
+  Arg.align [
+    (* Optimization function argument *)
+    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
+  ] @ 
 
+  Arg.align [
+    (* Printing options arguments *)
+    ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
+    ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
+    ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
+    ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
+    ("-print-facile-vars",   Arg.Set (print_facile_cstrs),           " Print the FaCiLe variables");
+    ("-print-facile-cstrs",  Arg.Set (print_facile_cstrs),           " Print the FaCiLe constraints");
+    ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
+    ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
+    ("-print-all",           Arg.Set (print_all),                    " Print everything");
   ]
 
 (* Read the arguments *)
