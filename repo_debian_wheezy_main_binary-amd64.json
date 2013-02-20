@@ -1,0 +1,4746 @@
+[
+{
+"name": "0ad (x 2)",
+"depend": [["libasound2 (x 2329)"], ["gamin (x 10)", "rpcbind (x 11)"]],
+"conflict": []
+},
+{
+"name": "0ad-data (x 30466)",
+"depend": [],
+"conflict": []
+},
+{
+"name": "libace-foxreactor-dev (x 2)",
+"depend": [["libgl1-mesa-glx (x 108)"], ["libtiff4-dev (x 29)"], ["libkrb5-dev (x 88)"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "aide",
+"depend": [["aide"]],
+"conflict": ["aide-dynamic", "aide-xen"]
+},
+{
+"name": "aide-dynamic",
+"depend": [["aide-dynamic"]],
+"conflict": ["aide", "aide-xen"]
+},
+{
+"name": "aide-xen",
+"depend": [["aide-xen"]],
+"conflict": ["aide", "aide-dynamic"]
+},
+{
+"name": "akonadi-kde-resource-googledata (x 428)",
+"depend": [["oxygen-icon-theme"], ["libphonon4 (x 29)"], ["libiodbc2 (x 109)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "alevt",
+"depend": [["alevt"]],
+"conflict": ["dvb-apps (x 2)"]
+},
+{
+"name": "libasound2 (x 2329)",
+"depend": [["libasound2 (x 2329)"]],
+"conflict": ["liboss4-salsa-asound2"]
+},
+{
+"name": "amavisd-new (x 3)",
+"depend": [["amavisd-new (x 3)"]],
+"conflict": ["phamm-ldap-amavis"]
+},
+{
+"name": "plasma-widget-amule (x 112)",
+"depend": [["libiodbc2 (x 109)"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "apache2-mpm-event",
+"depend": [["apache2-mpm-event"]],
+"conflict": ["apache2-mpm-itk", "apache2-mpm-prefork (x 3)", "apache2-mpm-worker", "torrus-apache2"]
+},
+{
+"name": "apache2-mpm-itk",
+"depend": [["apache2-mpm-itk"]],
+"conflict": ["apache2-mpm-event", "apache2-mpm-prefork (x 3)", "apache2-mpm-worker"]
+},
+{
+"name": "apache2-mpm-prefork (x 3)",
+"depend": [["apache2-mpm-prefork (x 3)"]],
+"conflict": ["apache2-mpm-event", "apache2-mpm-itk", "apache2-mpm-worker"]
+},
+{
+"name": "apache2-mpm-worker",
+"depend": [["apache2-mpm-worker"]],
+"conflict": ["apache2-mpm-event", "apache2-mpm-itk", "apache2-mpm-prefork (x 3)", "torrus-apache2"]
+},
+{
+"name": "apache2-prefork-dev",
+"depend": [["apache2-prefork-dev"], ["libkrb5-dev (x 88)"]],
+"conflict": ["apache2-threaded-dev"]
+},
+{
+"name": "apache2-suexec",
+"depend": [["apache2-suexec"]],
+"conflict": ["apache2-suexec-custom"]
+},
+{
+"name": "apache2-suexec-custom",
+"depend": [["apache2-suexec-custom"]],
+"conflict": ["apache2-suexec"]
+},
+{
+"name": "apache2-threaded-dev",
+"depend": [["apache2-threaded-dev"], ["libkrb5-dev (x 88)"]],
+"conflict": ["apache2-prefork-dev"]
+},
+{
+"name": "apcupsd (x 2)",
+"depend": [["apcupsd (x 2)"]],
+"conflict": ["nut-client (x 6)", "powstatd"]
+},
+{
+"name": "apper (x 3)",
+"depend": [["oxygen-icon-theme"], ["packagekit (x 7)"], ["libiodbc2 (x 109)"], ["libphonon4 (x 29)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "apsfilter",
+"depend": [["apsfilter"]],
+"conflict": ["magicfilter", "printfilters-ppd"]
+},
+{
+"name": "python-aptdaemon.pkcompat",
+"depend": [["python-aptdaemon.pkcompat"]],
+"conflict": ["packagekit (x 7)"]
+},
+{
+"name": "arping",
+"depend": [["arping"]],
+"conflict": ["iputils-arping (x 2)"]
+},
+{
+"name": "asterisk-voicemail",
+"depend": [["asterisk-voicemail"], ["libasound2 (x 2329)"]],
+"conflict": ["asterisk-voicemail-imapstorage", "asterisk-voicemail-odbcstorage"]
+},
+{
+"name": "asterisk-voicemail-imapstorage",
+"depend": [["asterisk-voicemail-imapstorage"], ["libasound2 (x 2329)"]],
+"conflict": ["asterisk-voicemail", "asterisk-voicemail-odbcstorage"]
+},
+{
+"name": "asterisk-voicemail-odbcstorage",
+"depend": [["asterisk-voicemail-odbcstorage"], ["libasound2 (x 2329)"]],
+"conflict": ["asterisk-voicemail", "asterisk-voicemail-imapstorage"]
+},
+{
+"name": "asterisk-core-sounds-es",
+"depend": [["asterisk-core-sounds-es"]],
+"conflict": ["asterisk-prompt-es-co"]
+},
+{
+"name": "asterisk-core-sounds-fr",
+"depend": [["asterisk-core-sounds-fr"]],
+"conflict": ["asterisk-prompt-fr-armelle", "asterisk-prompt-fr-proformatique"]
+},
+{
+"name": "asterisk-prompt-es-co",
+"depend": [["asterisk-prompt-es-co"], ["libasound2 (x 2329)"]],
+"conflict": ["asterisk-core-sounds-es"]
+},
+{
+"name": "asterisk-prompt-fr-armelle",
+"depend": [["asterisk-prompt-fr-armelle"]],
+"conflict": ["asterisk-core-sounds-fr", "asterisk-prompt-fr-proformatique"]
+},
+{
+"name": "asterisk-prompt-fr-proformatique",
+"depend": [["asterisk-prompt-fr-proformatique"]],
+"conflict": ["asterisk-core-sounds-fr", "asterisk-prompt-fr-armelle"]
+},
+{
+"name": "at-spi",
+"depend": [["at-spi"]],
+"conflict": ["libatk-adaptor (x 11)"]
+},
+{
+"name": "libatk-adaptor (x 11)",
+"depend": [["libatk-adaptor (x 11)"]],
+"conflict": ["at-spi"]
+},
+{
+"name": "atftpd",
+"depend": [["atftpd"]],
+"conflict": ["tftpd", "tftpd-hpa"]
+},
+{
+"name": "aumix",
+"depend": [["aumix"]],
+"conflict": ["aumix-gtk", "oss-preserve"]
+},
+{
+"name": "aumix-gtk",
+"depend": [["aumix-gtk"]],
+"conflict": ["aumix", "oss-preserve"]
+},
+{
+"name": "auralquiz",
+"depend": [["phonon-backend-gstreamer (x 2)", "phonon-backend-vlc (x 3)"]],
+"conflict": []
+},
+{
+"name": "auth2db-frontend (x 3)",
+"depend": [["libgd2-xpm (x 108)"], ["libapache2-mod-php5 (x 5)"], ["php5-mysql (x 16)"]],
+"conflict": []
+},
+{
+"name": "libavahi-ui-dev",
+"depend": [["libavahi-ui-dev"]],
+"conflict": ["libavahi-ui-gtk3-dev"]
+},
+{
+"name": "libavahi-ui-gtk3-dev",
+"depend": [["libavahi-ui-gtk3-dev"]],
+"conflict": ["libavahi-ui-dev"]
+},
+{
+"name": "babel-1.4.0",
+"depend": [["babel-1.4.0"], ["libasound2 (x 2329)"]],
+"conflict": ["openbabel (x 3)"]
+},
+{
+"name": "bacula-common-mysql (x 6)",
+"depend": [["bacula-common-mysql (x 6)"]],
+"conflict": ["bacula-common-pgsql (x 6)", "bacula-common-sqlite3 (x 6)"]
+},
+{
+"name": "bacula-common-pgsql (x 6)",
+"depend": [["bacula-common-pgsql (x 6)"]],
+"conflict": ["bacula-common-mysql (x 6)", "bacula-common-sqlite3 (x 6)"]
+},
+{
+"name": "bacula-common-sqlite3 (x 6)",
+"depend": [["bacula-common-sqlite3 (x 6)"]],
+"conflict": ["bacula-common-mysql (x 6)", "bacula-common-pgsql (x 6)"]
+},
+{
+"name": "bandwidthd",
+"depend": [["bandwidthd"]],
+"conflict": ["bandwidthd-pgsql"]
+},
+{
+"name": "bandwidthd-pgsql",
+"depend": [["bandwidthd-pgsql"], ["libgd2-xpm (x 108)"]],
+"conflict": ["bandwidthd"]
+},
+{
+"name": "banshee-extension-lirc (x 5)",
+"depend": [["libgpod4 (x 44)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "banshee-extension-telepathy",
+"depend": [["libasound2 (x 2329)"], ["libgl1-mesa-glx (x 108)"], ["libgpod4 (x 44)"]],
+"conflict": []
+},
+{
+"name": "bcron-run",
+"depend": [["ucspi-unix"], ["bcron-run"], ["runit (x 3)"]],
+"conflict": ["cron (x 5)"]
+},
+{
+"name": "bidentd",
+"depend": [["bidentd"]],
+"conflict": ["harden-servers (x 2)", "ident2", "nullidentd", "oidentd", "pidentd"]
+},
+{
+"name": "biff",
+"depend": [["biff"]],
+"conflict": ["mailutils-comsatd"]
+},
+{
+"name": "binutils-gold",
+"depend": [["binutils-gold"]],
+"conflict": ["fp-compiler-2.6.0 (x 14)"]
+},
+{
+"name": "bison (x 2)",
+"depend": [["bison (x 2)"]],
+"conflict": ["bison++"]
+},
+{
+"name": "bison++",
+"depend": [["bison++"]],
+"conflict": ["bison (x 2)"]
+},
+{
+"name": "bitlbee (x 2)",
+"depend": [["bitlbee (x 2)"]],
+"conflict": ["bitlbee-libpurple"]
+},
+{
+"name": "bitlbee-libpurple",
+"depend": [["bitlbee-libpurple"], ["libasound2 (x 2329)"]],
+"conflict": ["bitlbee (x 2)"]
+},
+{
+"name": "bluedevil",
+"depend": [["libphonon4 (x 29)"], ["libasound2 (x 2329)"], ["obex-data-server (x 3)"], ["libiodbc2 (x 109)"], ["oxygen-icon-theme"]],
+"conflict": []
+},
+{
+"name": "bootchart",
+"depend": [["bootchart"]],
+"conflict": ["bootchart2"]
+},
+{
+"name": "bootchart2",
+"depend": [["bootchart2"]],
+"conflict": ["bootchart"]
+},
+{
+"name": "fingerd",
+"depend": [["fingerd"]],
+"conflict": ["efingerd", "harden-servers (x 2)", "xfingerd"]
+},
+{
+"name": "busybox",
+"depend": [["busybox"]],
+"conflict": ["busybox-static"]
+},
+{
+"name": "busybox-static",
+"depend": [["busybox-static"]],
+"conflict": ["busybox"]
+},
+{
+"name": "busybox-syslogd",
+"depend": [["busybox-syslogd"]],
+"conflict": ["dsyslog (x 5)", "inetutils-syslogd", "rsyslog (x 6)", "socklog-run", "syslog-ng-core (x 6)", "systemd (x 3)"]
+},
+{
+"name": "udhcpd",
+"depend": [["udhcpd"]],
+"conflict": ["dhcp-helper"]
+},
+{
+"name": "camera.app (x 4)",
+"depend": [["libgd2-xpm (x 108)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "cantor-backend-maxima",
+"depend": [["libphonon4 (x 29)"], ["libasound2 (x 2329)"], ["gnuplot-qt", "gnuplot-x11"], ["libiodbc2 (x 109)"], ["oxygen-icon-theme"]],
+"conflict": []
+},
+{
+"name": "caribou (x 2)",
+"depend": [["libgl1-mesa-glx (x 108)"], ["libatk-adaptor (x 11)"]],
+"conflict": []
+},
+{
+"name": "cc1111",
+"depend": [["cc1111"]],
+"conflict": ["sdcc-doc", "sdcc-libraries (x 2)", "sdcc-ucsim"]
+},
+{
+"name": "libcegui-mk2-dev",
+"depend": [["libtiff4-dev (x 29)"], ["libreadline6-dev (x 23)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "pawserv (x 2)",
+"depend": [["pawserv (x 2)"]],
+"conflict": ["harden-servers (x 2)"]
+},
+{
+"name": "xul-ext-certificatepatrol",
+"depend": [["xul-ext-certificatepatrol"]],
+"conflict": ["iceape (x 28)"]
+},
+{
+"name": "ceve",
+"depend": [["ceve"]],
+"conflict": ["dose-extra"]
+},
+{
+"name": "cfingerd",
+"depend": [["cfingerd"]],
+"conflict": ["efingerd", "harden-servers (x 2)", "xfingerd", "xmail"]
+},
+{
+"name": "charybdis",
+"depend": [["charybdis"]],
+"conflict": ["ircd-hybrid", "ircd-irc2", "ircd-ratbox (x 2)"]
+},
+{
+"name": "check-mk-config-icinga",
+"depend": [["check-mk-config-icinga"]],
+"conflict": ["check-mk-config-nagios3"]
+},
+{
+"name": "check-mk-config-nagios3",
+"depend": [["check-mk-config-nagios3"]],
+"conflict": ["check-mk-config-icinga"]
+},
+{
+"name": "check-mk-livestatus",
+"depend": [["check-mk-livestatus"]],
+"conflict": ["ucspi-unix"]
+},
+{
+"name": "cheese (x 47)",
+"depend": [["libasound2 (x 2329)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "chemical-structures",
+"depend": [["openbabel (x 3)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "python-cherrypy3 (x 5)",
+"depend": [["python-cherrypy3 (x 5)"]],
+"conflict": ["python-cherrypy"]
+},
+{
+"name": "chrony",
+"depend": [["chrony"]],
+"conflict": ["ntp (x 2)", "openntpd"]
+},
+{
+"name": "citadel-mta (x 2)",
+"depend": [["citadel-mta (x 2)"], ["citadel-server (x 2)"]],
+"conflict": ["courier-mta (x 4)", "esmtp-run", "exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "ssmtp"]
+},
+{
+"name": "citadel-server (x 2)",
+"depend": [["citadel-server (x 2)"]],
+"conflict": ["courier-imap (x 2)", "courier-pop (x 2)", "cyrus-imapd-2.4 (x 4)", "cyrus-pop3d-2.4 (x 3)", "dovecot-imapd (x 2)", "dovecot-pop3d", "heimdal-servers (x 2)", "mailutils-imap4d", "mailutils-pop3d", "popa3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "cl-sql-odbc (x 2)",
+"depend": [["libkrb5-dev (x 88)"], ["unixodbc-dev (x 12)"]],
+"conflict": []
+},
+{
+"name": "libcloog-isl-dev",
+"depend": [["libcloog-isl-dev"]],
+"conflict": ["libcloog-ppl-dev"]
+},
+{
+"name": "libcloog-ppl-dev",
+"depend": [["libcloog-ppl-dev"]],
+"conflict": ["libcloog-isl-dev"]
+},
+{
+"name": "cluster-agents",
+"depend": [["cluster-agents"]],
+"conflict": ["resource-agents (x 5)"]
+},
+{
+"name": "ecm",
+"depend": [["ecm"]],
+"conflict": ["gmp-ecm"]
+},
+{
+"name": "code-saturne (x 17)",
+"depend": [["libopenmpi-dev (x 31)"], ["libjpeg8-dev (x 9)"], ["libhdf5-openmpi-7 (x 25)"]],
+"conflict": []
+},
+{
+"name": "libcoin60-dev",
+"depend": [["libcoin60-dev"]],
+"conflict": ["inventor-dev"]
+},
+{
+"name": "libcoin60-doc",
+"depend": [["libcoin60-doc"]],
+"conflict": ["inventor-dev"]
+},
+{
+"name": "conky-cli",
+"depend": [["conky-cli"]],
+"conflict": ["conky-std"]
+},
+{
+"name": "conky-std",
+"depend": [["conky-std"]],
+"conflict": ["conky-cli"]
+},
+{
+"name": "console-setup",
+"depend": [["console-setup"]],
+"conflict": ["console-setup-mini"]
+},
+{
+"name": "console-setup-freebsd (x 8)",
+"depend": [[]],
+"conflict": []
+},
+{
+"name": "console-setup-mini",
+"depend": [["console-setup-mini"]],
+"conflict": ["console-setup"]
+},
+{
+"name": "console-tools (x 3)",
+"depend": [["console-tools (x 3)"]],
+"conflict": ["kbd", "plymouth (x 12)"]
+},
+{
+"name": "controlaula",
+"depend": [["controlaula"], ["libasound2 (x 2329)"]],
+"conflict": ["ltsp-controlaula"]
+},
+{
+"name": "ltsp-controlaula",
+"depend": [["ltsp-controlaula"], ["libasound2 (x 2329)"]],
+"conflict": ["controlaula"]
+},
+{
+"name": "courier-faxmail",
+"depend": [["courier-mta (x 4)"], ["mgetty-fax"]],
+"conflict": []
+},
+{
+"name": "courier-imap (x 2)",
+"depend": [["courier-imap (x 2)"]],
+"conflict": ["citadel-server (x 2)", "cyrus-imapd-2.4 (x 4)", "dovecot-imapd (x 2)", "mailutils-imap4d"]
+},
+{
+"name": "courier-maildrop (x 5)",
+"depend": [["courier-maildrop (x 5)"]],
+"conflict": ["maildrop"]
+},
+{
+"name": "courier-mta (x 4)",
+"depend": [["courier-mta (x 4)"]],
+"conflict": ["citadel-mta (x 2)", "esmtp-run", "exim4-config (x 4)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "rmail", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "courier-pop (x 2)",
+"depend": [["courier-pop (x 2)"]],
+"conflict": ["citadel-server (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "heimdal-servers (x 2)", "mailutils-pop3d", "popa3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "crack",
+"depend": [["crack"]],
+"conflict": ["crack-md5"]
+},
+{
+"name": "crack-md5",
+"depend": [["crack-md5"]],
+"conflict": ["crack"]
+},
+{
+"name": "cron (x 5)",
+"depend": [["cron (x 5)"]],
+"conflict": ["bcron-run"]
+},
+{
+"name": "crossfire-maps",
+"depend": [["crossfire-maps"]],
+"conflict": ["crossfire-maps-small"]
+},
+{
+"name": "crossfire-maps-small",
+"depend": [["crossfire-maps-small"]],
+"conflict": ["crossfire-maps"]
+},
+{
+"name": "libcunit1 (x 2)",
+"depend": [["libcunit1 (x 2)"]],
+"conflict": ["libcunit1-ncurses (x 2)"]
+},
+{
+"name": "libcunit1-ncurses (x 2)",
+"depend": [["libcunit1-ncurses (x 2)"]],
+"conflict": ["libcunit1 (x 2)"]
+},
+{
+"name": "cups-bsd (x 2)",
+"depend": [["cups-bsd (x 2)"], ["cups-client (x 11)"]],
+"conflict": ["lpr"]
+},
+{
+"name": "cups-client (x 11)",
+"depend": [["cups-client (x 11)"]],
+"conflict": ["lprng"]
+},
+{
+"name": "libcups2-dev (x 14)",
+"depend": [["libkrb5-dev (x 88)"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "libcupsdriver1-dev (x 3)",
+"depend": [["libtiff4-dev (x 29)"], ["libgnutls-dev (x 41)"], ["libkrb5-dev (x 88)"]],
+"conflict": []
+},
+{
+"name": "libcurl4-gnutls-dev (x 27)",
+"depend": [["libgnutls-dev (x 41)"], ["libcurl4-gnutls-dev (x 27)"], ["libkrb5-dev (x 88)"]],
+"conflict": ["libcurl4-nss-dev", "libcurl4-openssl-dev"]
+},
+{
+"name": "libcurl4-nss-dev",
+"depend": [["libgnutls-dev (x 41)"], ["libcurl4-nss-dev"], ["libkrb5-dev (x 88)"]],
+"conflict": ["libcurl4-gnutls-dev (x 27)", "libcurl4-openssl-dev"]
+},
+{
+"name": "libcurl4-openssl-dev",
+"depend": [["libkrb5-dev (x 88)"], ["libcurl4-openssl-dev"], ["libgnutls-dev (x 41)"]],
+"conflict": ["libcurl4-gnutls-dev (x 27)", "libcurl4-nss-dev"]
+},
+{
+"name": "cyrus-imapd-2.4 (x 4)",
+"depend": [["cyrus-imapd-2.4 (x 4)"]],
+"conflict": ["citadel-server (x 2)", "courier-imap (x 2)", "dovecot-imapd (x 2)", "harden-servers (x 2)", "mailutils-imap4d"]
+},
+{
+"name": "cyrus-nntpd-2.4 (x 3)",
+"depend": [["cyrus-nntpd-2.4 (x 3)"]],
+"conflict": ["inn (x 2)", "inn2", "leafnode", "sn"]
+},
+{
+"name": "cyrus-pop3d-2.4 (x 3)",
+"depend": [["cyrus-pop3d-2.4 (x 3)"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "dovecot-pop3d", "heimdal-servers (x 2)", "mailutils-pop3d", "popa3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "cyrus-replication (x 2)",
+"depend": [["cyrus-imapd-2.4 (x 4)", "cyrus-pop3d-2.4 (x 3)"]],
+"conflict": []
+},
+{
+"name": "libsasl2-modules-gssapi-heimdal (x 2)",
+"depend": [["libsasl2-modules-gssapi-heimdal (x 2)"]],
+"conflict": ["libsasl2-modules-gssapi-mit (x 2)"]
+},
+{
+"name": "libsasl2-modules-gssapi-mit (x 2)",
+"depend": [["libsasl2-modules-gssapi-mit (x 2)"]],
+"conflict": ["libsasl2-modules-gssapi-heimdal (x 2)"]
+},
+{
+"name": "daemontools-run",
+"depend": [["daemontools-run"]],
+"conflict": ["runit (x 3)"]
+},
+{
+"name": "dancer-ircd",
+"depend": [["dancer-ircd"]],
+"conflict": ["ircd-hybrid", "ircd-irc2", "ngircd"]
+},
+{
+"name": "dasher (x 2)",
+"depend": [["libasound2 (x 2329)"], ["libatk-adaptor (x 11)"]],
+"conflict": []
+},
+{
+"name": "dbskkd-cdb",
+"depend": [["dbskkd-cdb"]],
+"conflict": ["skksearch", "yaskkserv"]
+},
+{
+"name": "debget",
+"depend": [["debget"]],
+"conflict": ["debian-goodies"]
+},
+{
+"name": "debian-goodies",
+"depend": [["debian-goodies"]],
+"conflict": ["debget"]
+},
+{
+"name": "devede",
+"depend": [["libavcodec-extra-53"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "libdevil-dev (x 10)",
+"depend": [["libtiff4-dev (x 29)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "dhcp-helper",
+"depend": [["dhcp-helper"]],
+"conflict": ["udhcpd", "isc-dhcp-relay", "isc-dhcp-server (x 3)"]
+},
+{
+"name": "dhcpcd",
+"depend": [["dhcpcd"]],
+"conflict": ["pump (x 2)"]
+},
+{
+"name": "dico",
+"depend": [["dico"]],
+"conflict": ["le-dico-de-rene-cougnenc"]
+},
+{
+"name": "dicod (x 4)",
+"depend": [["dicod (x 4)"]],
+"conflict": ["dictd"]
+},
+{
+"name": "dictd",
+"depend": [["dictd"]],
+"conflict": ["dicod (x 4)"]
+},
+{
+"name": "digikam (x 9)",
+"depend": [["libgd2-xpm (x 108)"], ["libphonon4 (x 29)"], ["libasound2 (x 2329)"], ["oxygen-icon-theme"], ["libiodbc2 (x 109)"]],
+"conflict": []
+},
+{
+"name": "discount",
+"depend": [["discount"]],
+"conflict": ["libtext-markdown-perl (x 2)", "markdown"]
+},
+{
+"name": "libdnet-dev (x 3)",
+"depend": [["libdnet-dev (x 3)"]],
+"conflict": ["libdap-dev"]
+},
+{
+"name": "python-dnspython (x 6)",
+"depend": [["python-dnspython (x 6)"]],
+"conflict": ["linkchecker (x 3)"]
+},
+{
+"name": "docvert-libreoffice (x 2)",
+"depend": [["python-uno (x 5)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "doodle-dbg (x 2)",
+"depend": [["gamin (x 10)"], ["rpcbind (x 11)"]],
+"conflict": []
+},
+{
+"name": "dose-extra",
+"depend": [["dose-extra"]],
+"conflict": ["ceve"]
+},
+{
+"name": "dovecot-imapd (x 2)",
+"depend": [["dovecot-imapd (x 2)"]],
+"conflict": ["citadel-server (x 2)", "courier-imap (x 2)", "cyrus-imapd-2.4 (x 4)", "mailutils-imap4d"]
+},
+{
+"name": "dovecot-pop3d",
+"depend": [["dovecot-pop3d"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "heimdal-servers (x 2)", "mailutils-pop3d", "popa3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "dracut",
+"depend": [["dracut"]],
+"conflict": ["initramfs-tools (x 9)"]
+},
+{
+"name": "dracut-network",
+"depend": [["dracut"], ["iputils-arping (x 2)"]],
+"conflict": []
+},
+{
+"name": "drizzle-plugin-dev",
+"depend": [["libreadline6-dev (x 23)"], ["libcurl4-gnutls-dev (x 27)"], ["libevent-dev (x 2)"]],
+"conflict": []
+},
+{
+"name": "myspell-da",
+"depend": [["myspell-da"]],
+"conflict": ["hunspell-da", "hunspell-fr", "hunspell-hu", "hunspell-sh", "hunspell-sr", "hunspell-vi"]
+},
+{
+"name": "dsyslog (x 5)",
+"depend": [["dsyslog (x 5)"]],
+"conflict": ["busybox-syslogd", "inetutils-syslogd", "rsyslog (x 6)", "socklog-run", "syslog-ng-core (x 6)"]
+},
+{
+"name": "dvi2ps-fontdata-ptexfake",
+"depend": [["dvi2ps-fontdata-ptexfake"]],
+"conflict": ["ptex-base"]
+},
+{
+"name": "libdwarf-dev",
+"depend": [["libdwarf-dev"]],
+"conflict": ["libdw-dev"]
+},
+{
+"name": "eclipse (x 31)",
+"depend": [["libasound2 (x 2329)"], ["libtomcat7-java (x 9)"]],
+"conflict": []
+},
+{
+"name": "libecore-dev (x 3)",
+"depend": [["libcurl4-gnutls-dev (x 27)"], ["libjpeg8-dev (x 9)"]],
+"conflict": []
+},
+{
+"name": "libedje-dev (x 2)",
+"depend": [["libjpeg8-dev (x 9)"], ["libreadline6-dev (x 23)"], ["libcurl4-gnutls-dev (x 27)"]],
+"conflict": []
+},
+{
+"name": "libeet-dev (x 3)",
+"depend": [["libjpeg8-dev (x 9)"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "efingerd",
+"depend": [["efingerd"]],
+"conflict": ["fingerd", "cfingerd", "harden-servers (x 2)", "xfingerd"]
+},
+{
+"name": "nscd",
+"depend": [["nscd"]],
+"conflict": ["unscd"]
+},
+{
+"name": "libelektra-dev (x 3)",
+"depend": [["libelektra-dev (x 3)"]],
+"conflict": ["libkrb5-dev (x 88)"]
+},
+{
+"name": "libdw-dev",
+"depend": [["libdw-dev"], ["libelf-dev (x 2)"]],
+"conflict": ["libdwarf-dev"]
+},
+{
+"name": "libelf-dev (x 2)",
+"depend": [["libelf-dev (x 2)"]],
+"conflict": ["libelfg0-dev (x 2)"]
+},
+{
+"name": "elinks-data (x 2)",
+"depend": [["elinks-data (x 2)"]],
+"conflict": ["elinks-lite"]
+},
+{
+"name": "elinks-lite",
+"depend": [["elinks-lite"]],
+"conflict": ["elinks-data (x 2)"]
+},
+{
+"name": "elvis",
+"depend": [["elvis"]],
+"conflict": ["elvis-console"]
+},
+{
+"name": "elvis-console",
+"depend": [["elvis-console"]],
+"conflict": ["elvis"]
+},
+{
+"name": "emacs23 (x 2)",
+"depend": [["emacs23 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["emacs23-lucid", "emacs23-nox"]
+},
+{
+"name": "emacs23-lucid",
+"depend": [["emacs23-lucid"], ["libasound2 (x 2329)"]],
+"conflict": ["emacs23 (x 2)", "emacs23-nox"]
+},
+{
+"name": "emacs23-nox",
+"depend": [["emacs23-nox"], ["libasound2 (x 2329)"]],
+"conflict": ["emacs23 (x 2)", "emacs23-lucid"]
+},
+{
+"name": "epiphany-browser (x 5)",
+"depend": [["epiphany-browser (x 5)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": ["swfdec-mozilla"]
+},
+{
+"name": "erlang-base",
+"depend": [["erlang-base"]],
+"conflict": ["erlang-base-hipe"]
+},
+{
+"name": "erlang-base-hipe",
+"depend": [["erlang-base-hipe"]],
+"conflict": ["erlang-base"]
+},
+{
+"name": "esmtp-run",
+"depend": [["esmtp-run"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "exim4-config (x 4)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "evince (x 2)",
+"depend": [["evince (x 2)"]],
+"conflict": ["evince-gtk"]
+},
+{
+"name": "evince-gtk",
+"depend": [["evince-gtk"]],
+"conflict": ["evince (x 2)"]
+},
+{
+"name": "exim4 (x 3)",
+"depend": [["exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)"]],
+"conflict": []
+},
+{
+"name": "exim4-config (x 4)",
+"depend": [["exim4-config (x 4)"]],
+"conflict": ["courier-mta (x 4)", "esmtp-run", "masqmail", "nullmailer", "postfix (x 13)", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "exim4-daemon-heavy (x 2)",
+"depend": [["exim4-daemon-heavy (x 2)"], ["exim4-config (x 4)"]],
+"conflict": ["citadel-mta (x 2)", "exim4-daemon-light (x 2)", "lsb-invalid-mta", "msmtp-mta", "qmail-run", "rmail"]
+},
+{
+"name": "exim4-daemon-light (x 2)",
+"depend": [["exim4-daemon-light (x 2)"], ["exim4-config (x 4)"]],
+"conflict": ["citadel-mta (x 2)", "exim4-daemon-heavy (x 2)", "lsb-invalid-mta", "msmtp-mta", "qmail-run", "rmail"]
+},
+{
+"name": "fai-quickstart",
+"depend": [["atftpd", "tftpd-hpa"], ["isc-dhcp-server (x 3)"], ["rpcbind (x 11)"]],
+"conflict": []
+},
+{
+"name": "fam",
+"depend": [["fam"], ["rpcbind (x 11)"]],
+"conflict": ["gamin (x 10)"]
+},
+{
+"name": "libfam0 (x 3)",
+"depend": [["libfam0 (x 3)"]],
+"conflict": ["gamin (x 10)"]
+},
+{
+"name": "fdpowermon-icons",
+"depend": [["fdpowermon-icons"]],
+"conflict": ["oxygen-icon-theme"]
+},
+{
+"name": "fence-agents",
+"depend": [["fence-agents"]],
+"conflict": ["cman (x 3)"]
+},
+{
+"name": "fenix-dev (x 30)",
+"depend": [["libjpeg8-dev (x 9)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "ferm",
+"depend": [["ferm"]],
+"conflict": ["shorewall-lite", "shorewall6-lite"]
+},
+{
+"name": "festvox-kallpc16k",
+"depend": [["festvox-kallpc16k"], ["libasound2 (x 2329)"]],
+"conflict": ["festvox-kallpc8k"]
+},
+{
+"name": "festvox-kallpc8k",
+"depend": [["festvox-kallpc8k"], ["libasound2 (x 2329)"]],
+"conflict": ["festvox-kallpc16k"]
+},
+{
+"name": "festvox-kdlpc16k",
+"depend": [["festvox-kdlpc16k"], ["libasound2 (x 2329)"]],
+"conflict": ["festvox-kdlpc8k"]
+},
+{
+"name": "festvox-kdlpc8k",
+"depend": [["festvox-kdlpc8k"], ["libasound2 (x 2329)"]],
+"conflict": ["festvox-kdlpc16k"]
+},
+{
+"name": "fiaif",
+"depend": [["fiaif"]],
+"conflict": ["shorewall (x 2)", "uif"]
+},
+{
+"name": "file-rc",
+"depend": [["file-rc"]],
+"conflict": ["sysv-rc (x 4)"]
+},
+{
+"name": "fileschanged",
+"depend": [["gamin (x 10)", "rpcbind (x 11)"]],
+"conflict": []
+},
+{
+"name": "filtergen",
+"depend": [["filtergen"]],
+"conflict": ["shorewall-lite", "shorewall6-lite"]
+},
+{
+"name": "firebird2.1-classic",
+"depend": [["firebird2.1-classic"], ["firebird2.1-server-common (x 2)"]],
+"conflict": ["firebird2.1-super"]
+},
+{
+"name": "firebird2.1-server-common (x 2)",
+"depend": [["firebird2.1-server-common (x 2)"]],
+"conflict": ["firebird2.5-server-common (x 3)"]
+},
+{
+"name": "firebird2.1-super",
+"depend": [["firebird2.1-super"], ["firebird2.1-server-common (x 2)"]],
+"conflict": ["firebird2.1-classic"]
+},
+{
+"name": "firebird2.5-classic",
+"depend": [["firebird2.5-classic-common (x 2)"], ["firebird2.5-classic"]],
+"conflict": ["firebird2.5-superclassic"]
+},
+{
+"name": "firebird2.5-classic-common (x 2)",
+"depend": [["firebird2.5-classic-common (x 2)"], ["firebird2.5-server-common (x 3)"]],
+"conflict": ["firebird2.5-super (x 2)"]
+},
+{
+"name": "firebird2.5-server-common (x 3)",
+"depend": [["firebird2.5-server-common (x 3)"]],
+"conflict": ["firebird2.1-server-common (x 2)"]
+},
+{
+"name": "firebird2.5-super (x 2)",
+"depend": [["firebird2.5-super (x 2)"], ["firebird2.5-server-common (x 3)"]],
+"conflict": ["firebird2.5-classic-common (x 2)"]
+},
+{
+"name": "firebird2.5-superclassic",
+"depend": [["firebird2.5-classic-common (x 2)"], ["firebird2.5-superclassic"]],
+"conflict": ["firebird2.5-classic"]
+},
+{
+"name": "flex",
+"depend": [["flex"]],
+"conflict": ["flex-old"]
+},
+{
+"name": "flex-old",
+"depend": [["flex-old"]],
+"conflict": ["flex"]
+},
+{
+"name": "fltk1.1-games",
+"depend": [["fltk1.1-games"], ["libasound2 (x 2329)"]],
+"conflict": ["fltk1.3-games"]
+},
+{
+"name": "libfltk1.1-dev (x 2)",
+"depend": [["libfltk1.1-dev (x 2)"]],
+"conflict": ["libfltk1.3-dev (x 2)"]
+},
+{
+"name": "fltk1.3-games",
+"depend": [["fltk1.3-games"], ["libasound2 (x 2329)"]],
+"conflict": ["fltk1.1-games"]
+},
+{
+"name": "libfltk1.3-dev (x 2)",
+"depend": [["libfltk1.3-dev (x 2)"]],
+"conflict": ["libfltk1.1-dev (x 2)"]
+},
+{
+"name": "libfluidsynth-dev (x 2)",
+"depend": [["libasound2 (x 2329)"], ["libreadline6-dev (x 23)"]],
+"conflict": []
+},
+{
+"name": "fontforge (x 2)",
+"depend": [["fontforge (x 2)"]],
+"conflict": ["fontforge-nox"]
+},
+{
+"name": "fontforge-nox",
+"depend": [["fontforge-nox"]],
+"conflict": ["fontforge (x 2)"]
+},
+{
+"name": "fookb-plainx",
+"depend": [["fookb-plainx"]],
+"conflict": ["fookb-wmaker"]
+},
+{
+"name": "fookb-wmaker",
+"depend": [["fookb-wmaker"]],
+"conflict": ["fookb-plainx"]
+},
+{
+"name": "foomatic-db",
+"depend": [["foomatic-db"]],
+"conflict": ["foomatic-db-compressed-ppds"]
+},
+{
+"name": "foomatic-db-compressed-ppds",
+"depend": [["foomatic-db-compressed-ppds"]],
+"conflict": ["foomatic-db"]
+},
+{
+"name": "fp-compiler-2.6.0 (x 14)",
+"depend": [["fp-compiler-2.6.0 (x 14)"]],
+"conflict": ["binutils-gold"]
+},
+{
+"name": "fpc (x 2)",
+"depend": [["fp-compiler-2.6.0 (x 14)"], ["libjpeg8-dev (x 9)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "freebsd-buildutils (x 2)",
+"depend": [["freebsd-buildutils (x 2)"]],
+"conflict": ["pmake"]
+},
+{
+"name": "freebsd-sendpr",
+"depend": [["freebsd-sendpr"]],
+"conflict": ["gnats-user (x 2)"]
+},
+{
+"name": "freeradius-common (x 8)",
+"depend": [["freeradius-common (x 8)"]],
+"conflict": ["radiusd-livingston", "yardradius"]
+},
+{
+"name": "freeradius-iodbc",
+"depend": [["freeradius-common (x 8)"], ["libiodbc2 (x 109)"]],
+"conflict": []
+},
+{
+"name": "tdsodbc",
+"depend": [["tdsodbc"]],
+"conflict": ["libiodbc2 (x 109)"]
+},
+{
+"name": "freevo (x 4)",
+"depend": [["libasound2 (x 2329)"], ["python-sqlite (x 13)"]],
+"conflict": []
+},
+{
+"name": "libwnn-dev",
+"depend": [["libwnn-dev"]],
+"conflict": ["libwnn6-dev"]
+},
+{
+"name": "frescobaldi (x 4)",
+"depend": [["texlive-binaries (x 180)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "fso-gpsd",
+"depend": [["fso-gpsd"]],
+"conflict": ["libgps20 (x 14)"]
+},
+{
+"name": "fso-gsm0710muxd",
+"depend": [["fso-gsm0710muxd"]],
+"conflict": ["gsm0710muxd"]
+},
+{
+"name": "ftp-upload",
+"depend": [["ftp-upload"]],
+"conflict": ["harden-clients"]
+},
+{
+"name": "python-gamera-dev (x 2)",
+"depend": [["libtiff4-dev (x 29)"], ["libhdf5-7 (x 9)", "libhdf5-mpich2-7 (x 8)", "libopenmpi-dev (x 31)"]],
+"conflict": []
+},
+{
+"name": "gamin (x 10)",
+"depend": [["gamin (x 10)"]],
+"conflict": ["fam", "libfam0 (x 3)"]
+},
+{
+"name": "lib32stdc++6-4.4-dbg",
+"depend": [["lib32stdc++6-4.4-dbg"]],
+"conflict": ["lib32stdc++6-4.6-dbg", "lib32stdc++6-4.7-dbg"]
+},
+{
+"name": "libstdc++6-4.4-dbg",
+"depend": [["libstdc++6-4.4-dbg"]],
+"conflict": ["libstdc++6-4.6-dbg", "libstdc++6-4.7-dbg"]
+},
+{
+"name": "libstdc++6-4.4-doc",
+"depend": [["libstdc++6-4.4-doc"]],
+"conflict": ["libstdc++6-4.6-doc", "libstdc++6-4.7-doc"]
+},
+{
+"name": "lib32stdc++6-4.6-dbg",
+"depend": [["lib32stdc++6-4.6-dbg"]],
+"conflict": ["lib32stdc++6-4.4-dbg", "lib32stdc++6-4.7-dbg"]
+},
+{
+"name": "libstdc++6-4.6-dbg",
+"depend": [["libstdc++6-4.6-dbg"]],
+"conflict": ["libstdc++6-4.4-dbg", "libstdc++6-4.7-dbg"]
+},
+{
+"name": "libstdc++6-4.6-doc",
+"depend": [["libstdc++6-4.6-doc"]],
+"conflict": ["libstdc++6-4.4-doc", "libstdc++6-4.7-doc"]
+},
+{
+"name": "lib32stdc++6-4.7-dbg",
+"depend": [["lib32stdc++6-4.7-dbg"]],
+"conflict": ["lib32stdc++6-4.4-dbg", "lib32stdc++6-4.6-dbg"]
+},
+{
+"name": "libstdc++6-4.7-dbg",
+"depend": [["libstdc++6-4.7-dbg"]],
+"conflict": ["libstdc++6-4.4-dbg", "libstdc++6-4.6-dbg"]
+},
+{
+"name": "libstdc++6-4.7-doc",
+"depend": [["libstdc++6-4.7-doc"]],
+"conflict": ["libstdc++6-4.4-doc", "libstdc++6-4.6-doc"]
+},
+{
+"name": "gcc-mingw32",
+"depend": [["gcc-mingw32"]],
+"conflict": ["mingw32-binutils (x 2)"]
+},
+{
+"name": "libgd-gd2-noxpm-ocaml-dev (x 2)",
+"depend": [["libgd2-noxpm"], ["libjpeg8-dev (x 9)"]],
+"conflict": []
+},
+{
+"name": "libgdal-dev (x 4)",
+"depend": [["libdap-dev"], ["libxerces-c2-dev (x 2)"], ["libhdf4-alt-dev"], ["unixodbc-dev (x 12)"], ["libhdf5-7 (x 9)"]],
+"conflict": []
+},
+{
+"name": "gdb (x 14)",
+"depend": [["gdb (x 14)"]],
+"conflict": ["gdb-minimal"]
+},
+{
+"name": "gdb-minimal",
+"depend": [["gdb-minimal"]],
+"conflict": ["gdb (x 14)"]
+},
+{
+"name": "libgdb-dev",
+"depend": [["gdb (x 14)"], ["libreadline6-dev (x 23)"]],
+"conflict": []
+},
+{
+"name": "gdm3 (x 2)",
+"depend": [["gdm3 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "libgeda-dev",
+"depend": [["libjpeg8-dev (x 9)"], ["guile-1.8-dev (x 4)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "gedit-latex-plugin",
+"depend": [["texlive-binaries (x 180)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "geogebra-kde",
+"depend": [["libiodbc2 (x 109)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "gimp-dcraw",
+"depend": [["gimp-dcraw"], ["libasound2 (x 2329)"]],
+"conflict": ["gimp-ufraw"]
+},
+{
+"name": "git-daemon-run",
+"depend": [["git-daemon-run"], ["runit (x 3)"]],
+"conflict": ["git-daemon-sysvinit"]
+},
+{
+"name": "git-daemon-sysvinit",
+"depend": [["git-daemon-sysvinit"]],
+"conflict": ["git-daemon-run"]
+},
+{
+"name": "glance (x 21)",
+"depend": [["python-kombu (x 6)"], ["python-xattr (x 9)"]],
+"conflict": []
+},
+{
+"name": "gmp-ecm",
+"depend": [["gmp-ecm"]],
+"conflict": ["ecm"]
+},
+{
+"name": "gmt (x 3)",
+"depend": [["gmt (x 3)"]],
+"conflict": ["gmt-manpages"]
+},
+{
+"name": "gmt-coast-low",
+"depend": [["gmt-coast-low"], ["gmt (x 3)"]],
+"conflict": ["gmt-gshhs-low"]
+},
+{
+"name": "gmt-gshhs-low",
+"depend": [["gmt-gshhs-low"], ["gmt (x 3)"]],
+"conflict": ["gmt-coast-low"]
+},
+{
+"name": "gmt-manpages",
+"depend": [["gmt-manpages"]],
+"conflict": ["gmt (x 3)"]
+},
+{
+"name": "swfdec-mozilla",
+"depend": [["swfdec-mozilla"], ["libasound2 (x 2329)"]],
+"conflict": ["epiphany-browser (x 5)"]
+},
+{
+"name": "gnats-user (x 2)",
+"depend": [["gnats-user (x 2)"]],
+"conflict": ["freebsd-sendpr"]
+},
+{
+"name": "gnokii-smsd (x 3)",
+"depend": [["gnokii-smsd (x 3)"]],
+"conflict": ["smstools"]
+},
+{
+"name": "gnome-control-center (x 3)",
+"depend": [["libgl1-mesa-glx (x 108)"], ["gnome-control-center (x 3)"], ["libasound2 (x 2329)"]],
+"conflict": ["gpe-conf (x 3)"]
+},
+{
+"name": "gnome-osd",
+"depend": [["libasound2 (x 2329)"], ["python-pyorbit-omg"]],
+"conflict": []
+},
+{
+"name": "gnome-packagekit",
+"depend": [["libasound2 (x 2329)"], ["packagekit (x 7)"]],
+"conflict": []
+},
+{
+"name": "gnome-ppp",
+"depend": [["gnome-ppp"]],
+"conflict": ["openresolv", "resolvconf"]
+},
+{
+"name": "gnome-session (x 5)",
+"depend": [["libasound2 (x 2329)"], ["libgl1-mesa-glx (x 108)"], ["obex-data-server (x 3)"]],
+"conflict": []
+},
+{
+"name": "gnome-user-share",
+"depend": [["obex-data-server (x 3)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "gnuplot-nox",
+"depend": [["gnuplot-nox"]],
+"conflict": ["gnuplot-qt", "gnuplot-x11"]
+},
+{
+"name": "gnuplot-qt",
+"depend": [["gnuplot-qt"]],
+"conflict": ["gnuplot-nox", "gnuplot-x11"]
+},
+{
+"name": "gnuplot-x11",
+"depend": [["gnuplot-x11"]],
+"conflict": ["gnuplot-nox", "gnuplot-qt"]
+},
+{
+"name": "libgnustep-dl2-dev",
+"depend": [["libgnustep-dl2-dev"], ["libasound2 (x 2329)"]],
+"conflict": ["libsope-dev"]
+},
+{
+"name": "libgnutls-dev (x 41)",
+"depend": [["libgnutls-dev (x 41)"]],
+"conflict": ["libgnutls28-dev"]
+},
+{
+"name": "libgnutls26-dbg",
+"depend": [["libgnutls26-dbg"]],
+"conflict": ["libgnutls28-dbg"]
+},
+{
+"name": "libgnutls28-dbg",
+"depend": [["libgnutls28-dbg"]],
+"conflict": ["libgnutls26-dbg"]
+},
+{
+"name": "libgnutls28-dev",
+"depend": [["libgnutls28-dev"]],
+"conflict": ["libgnutls-dev (x 41)"]
+},
+{
+"name": "god",
+"depend": [["god"]],
+"conflict": ["ruby-god"]
+},
+{
+"name": "gosa (x 43)",
+"depend": [["php5-mysql (x 16)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "gosa-dev",
+"depend": [["texlive-binaries (x 180)"], ["php5-mysql (x 16)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "goto-fai-backend",
+"depend": [["atftpd", "tftpd"], ["console-tools (x 3)"]],
+"conflict": []
+},
+{
+"name": "gpe",
+"depend": [["rxvt"], ["gpe-login"], ["gpe-conf (x 3)"]],
+"conflict": []
+},
+{
+"name": "gpe-conf (x 3)",
+"depend": [["gpe-conf (x 3)"], ["libasound2 (x 2329)"]],
+"conflict": ["gnome-control-center (x 3)"]
+},
+{
+"name": "gpe-login",
+"depend": [["gpe-login"]],
+"conflict": ["gdm3 (x 2)", "kdm (x 2)", "lightdm (x 2)", "slim", "wdm", "xdm"]
+},
+{
+"name": "gpiv",
+"depend": [["gpiv"], ["libasound2 (x 2329)"]],
+"conflict": ["gpiv-mpi"]
+},
+{
+"name": "gpiv-mpi",
+"depend": [["gpivtools-mpi"], ["gpiv-mpi"], ["libasound2 (x 2329)"]],
+"conflict": ["gpiv"]
+},
+{
+"name": "gpivtools",
+"depend": [["gpivtools"]],
+"conflict": ["gpivtools-mpi"]
+},
+{
+"name": "gpivtools-mpi",
+"depend": [["gpivtools-mpi"]],
+"conflict": ["gpivtools"]
+},
+{
+"name": "libgps20 (x 14)",
+"depend": [["libgps20 (x 14)"]],
+"conflict": ["fso-gpsd"]
+},
+{
+"name": "graphicsmagick-imagemagick-compat",
+"depend": [["graphicsmagick-imagemagick-compat"]],
+"conflict": ["imagemagick (x 2)"]
+},
+{
+"name": "graphicsmagick-libmagick-dev-compat",
+"depend": [["libtiff4-dev (x 29)"], ["graphicsmagick-libmagick-dev-compat"]],
+"conflict": ["libmagickcore-dev (x 5)", "perlmagick"]
+},
+{
+"name": "gridengine-client",
+"depend": [["gridengine-client"]],
+"conflict": ["slurm-llnl-torque", "torque-client", "torque-client-x11"]
+},
+{
+"name": "gross",
+"depend": [["exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "postfix (x 13)", "sendmail-bin (x 3)"]],
+"conflict": []
+},
+{
+"name": "grub-legacy (x 2)",
+"depend": [["grub-legacy (x 2)"]],
+"conflict": ["grub2-common"]
+},
+{
+"name": "grub-imageboot",
+"depend": [["grub-efi-amd64 (x 2)", "grub-efi-ia32", "grub-pc (x 3)"]],
+"conflict": []
+},
+{
+"name": "grub-coreboot (x 2)",
+"depend": [["grub-coreboot (x 2)"], ["grub2-common"]],
+"conflict": ["grub-efi-amd64 (x 2)", "grub-efi-ia32", "grub-ieee1275", "grub-pc (x 3)"]
+},
+{
+"name": "grub-efi-amd64 (x 2)",
+"depend": [["grub-efi-amd64 (x 2)"], ["grub2-common"]],
+"conflict": ["grub-coreboot (x 2)", "grub-efi-ia32", "grub-ieee1275", "grub-pc (x 3)"]
+},
+{
+"name": "grub-efi-ia32",
+"depend": [["grub-efi-ia32"], ["grub2-common"]],
+"conflict": ["grub-coreboot (x 2)", "grub-efi-amd64 (x 2)", "grub-ieee1275", "grub-pc (x 3)"]
+},
+{
+"name": "grub-ieee1275",
+"depend": [["grub-ieee1275"], ["grub2-common"]],
+"conflict": ["grub-coreboot (x 2)", "grub-efi-amd64 (x 2)", "grub-efi-ia32", "grub-pc (x 3)"]
+},
+{
+"name": "grub-pc (x 3)",
+"depend": [["grub-pc (x 3)"], ["grub2-common"]],
+"conflict": ["grub-coreboot (x 2)", "grub-efi-amd64 (x 2)", "grub-efi-ia32", "grub-ieee1275"]
+},
+{
+"name": "grub2-common",
+"depend": [["grub2-common"]],
+"conflict": ["grub-legacy (x 2)"]
+},
+{
+"name": "gsm0710muxd",
+"depend": [["gsm0710muxd"]],
+"conflict": ["fso-gsm0710muxd"]
+},
+{
+"name": "gss-man",
+"depend": [["gss-man"]],
+"conflict": ["heimdal-dev"]
+},
+{
+"name": "libgtkhtml3.14-dev (x 9)",
+"depend": [["libasound2 (x 2329)"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "libguichan-dev (x 2)",
+"depend": [["libasound2 (x 2329)"], ["libtiff4-dev (x 29)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "guile-1.6-dev",
+"depend": [["guile-1.6-dev"], ["libreadline6-dev (x 23)"]],
+"conflict": ["guile-1.8-dev (x 4)", "guile-2.0-dev"]
+},
+{
+"name": "guile-1.8-dev (x 4)",
+"depend": [["guile-1.8-dev (x 4)"], ["libreadline6-dev (x 23)"]],
+"conflict": ["guile-1.6-dev", "guile-2.0-dev"]
+},
+{
+"name": "guile-2.0-dev",
+"depend": [["guile-2.0-dev"], ["libreadline6-dev (x 23)"]],
+"conflict": ["guile-1.6-dev", "guile-1.8-dev (x 4)"]
+},
+{
+"name": "libh323plus-dev (x 2)",
+"depend": [["libjpeg8-dev (x 9)"], ["libasound2 (x 2329)"], ["unixodbc-dev (x 12)"]],
+"conflict": []
+},
+{
+"name": "hapm (x 3)",
+"depend": [["iputils-ping (x 22)"], ["resource-agents (x 5)"]],
+"conflict": []
+},
+{
+"name": "harden-clients",
+"depend": [["harden-clients"]],
+"conflict": ["ftp-upload", "telnet", "x2vnc"]
+},
+{
+"name": "harden-servers (x 2)",
+"depend": [["harden-servers (x 2)"]],
+"conflict": ["bidentd", "fingerd", "pawserv (x 2)", "cfingerd", "cyrus-imapd-2.4 (x 4)", "efingerd", "heimdal-servers (x 2)", "ident2", "inetutils-talkd", "krb5-rsh-server", "ftpd", "muddleftpd", "talkd", "rsh-server", "telnetd", "oidentd", "pidentd", "pyftpd", "rpcbind (x 11)", "rsh-redone-server", "sendmail-bin (x 3)", "vsftpd", "xfingerd"]
+},
+{
+"name": "libghc-gd-dev (x 3)",
+"depend": [["libgd2-xpm (x 108)"], ["libjpeg8-dev (x 9)"]],
+"conflict": []
+},
+{
+"name": "libhdf5-7 (x 9)",
+"depend": [["libhdf5-7 (x 9)"]],
+"conflict": ["libhdf5-mpich2-7 (x 8)", "libhdf5-openmpi-7 (x 25)"]
+},
+{
+"name": "libhdf5-dev (x 2)",
+"depend": [["libjpeg8-dev (x 9)"], ["libhdf5-7 (x 9)"]],
+"conflict": []
+},
+{
+"name": "libhdf5-mpich2-7 (x 8)",
+"depend": [["libhdf5-mpich2-7 (x 8)"]],
+"conflict": ["libhdf5-7 (x 9)", "libhdf5-openmpi-7 (x 25)"]
+},
+{
+"name": "libhdf5-mpich2-dev",
+"depend": [["libhdf5-mpich2-7 (x 8)"], ["libjpeg8-dev (x 9)"]],
+"conflict": []
+},
+{
+"name": "libhdf5-openmpi-7 (x 25)",
+"depend": [["libhdf5-openmpi-7 (x 25)"]],
+"conflict": ["libhdf5-7 (x 9)", "libhdf5-mpich2-7 (x 8)"]
+},
+{
+"name": "heimdal-clients (x 3)",
+"depend": [["heimdal-clients (x 3)"]],
+"conflict": ["krb5-user (x 4)", "krb5-clients", "openafs-kpasswd", "otp"]
+},
+{
+"name": "heimdal-dev",
+"depend": [["heimdal-dev"]],
+"conflict": ["gss-man", "libkrb5-dev (x 88)"]
+},
+{
+"name": "heimdal-docs",
+"depend": [["heimdal-docs"]],
+"conflict": ["krb5-doc"]
+},
+{
+"name": "heimdal-servers (x 2)",
+"depend": [["heimdal-servers (x 2)"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "harden-servers (x 2)", "inetutils-ftpd", "inetutils-telnetd", "krb5-ftpd", "krb5-rsh-server", "ftpd", "ftpd-ssl", "mailutils-pop3d", "muddleftpd", "rsh-server", "telnetd", "telnetd-ssl", "popa3d", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "rsh-redone-server", "solid-pop3d", "twoftpd-run", "vsftpd", "wzdftpd (x 7)", "xmail"]
+},
+{
+"name": "hello",
+"depend": [["hello"]],
+"conflict": ["hello-debhelper"]
+},
+{
+"name": "hello-debhelper",
+"depend": [["hello-debhelper"]],
+"conflict": ["hello"]
+},
+{
+"name": "myspell-de-de-oldspell",
+"depend": [["myspell-de-de-oldspell"]],
+"conflict": ["hunspell-de-de", "myspell-de-de", "hunspell-de-de-frami"]
+},
+{
+"name": "openstack-dashboard (x 2)",
+"depend": [["python-xattr (x 9)"], ["libapache2-mod-wsgi"], ["python-kombu (x 6)"]],
+"conflict": []
+},
+{
+"name": "hplip (x 4)",
+"depend": [["libgd2-xpm (x 108)"], ["cups-client (x 11)"]],
+"conflict": []
+},
+{
+"name": "hunspell-tools",
+"depend": [["hunspell-tools"]],
+"conflict": ["myspell-tools"]
+},
+{
+"name": "hunspell-en-us",
+"depend": [["hunspell-en-us"]],
+"conflict": ["myspell-en-us"]
+},
+{
+"name": "hunspell-ru",
+"depend": [["hunspell-ru"]],
+"conflict": ["myspell-ru"]
+},
+{
+"name": "hwloc",
+"depend": [["hwloc"]],
+"conflict": ["hwloc-nox"]
+},
+{
+"name": "hwloc-nox",
+"depend": [["hwloc-nox"]],
+"conflict": ["hwloc"]
+},
+{
+"name": "hylafax-client (x 4)",
+"depend": [["hylafax-client (x 4)"]],
+"conflict": ["mgetty-fax"]
+},
+{
+"name": "iceape (x 28)",
+"depend": [["iceape (x 28)"], ["libasound2 (x 2329)"]],
+"conflict": ["xul-ext-certificatepatrol", "xul-ext-webdeveloper", "xul-ext-wot"]
+},
+{
+"name": "icheck",
+"depend": [["icheck"]],
+"conflict": ["qtmobility-dev"]
+},
+{
+"name": "icinga-web (x 2)",
+"depend": [["libgd2-xpm (x 108)"], ["iputils-ping (x 22)"]],
+"conflict": []
+},
+{
+"name": "ident2",
+"depend": [["ident2"]],
+"conflict": ["bidentd", "harden-servers (x 2)", "nullidentd", "oidentd", "pidentd"]
+},
+{
+"name": "ifrench",
+"depend": [["ifrench"]],
+"conflict": ["ifrench-gut"]
+},
+{
+"name": "myspell-fr",
+"depend": [["myspell-fr"]],
+"conflict": ["myspell-fr-gut", "hunspell-fr"]
+},
+{
+"name": "ifrench-gut",
+"depend": [["ifrench-gut"]],
+"conflict": ["ifrench"]
+},
+{
+"name": "myspell-fr-gut",
+"depend": [["myspell-fr-gut"]],
+"conflict": ["myspell-fr", "hunspell-fr"]
+},
+{
+"name": "ifupdown (x 3)",
+"depend": [["ifupdown (x 3)"]],
+"conflict": ["netscript-2.4"]
+},
+{
+"name": "hunspell-de-at",
+"depend": [["hunspell-de-at"]],
+"conflict": ["myspell-de-at", "hunspell-de-at-frami"]
+},
+{
+"name": "hunspell-de-ch",
+"depend": [["hunspell-de-ch"]],
+"conflict": ["myspell-de-ch", "hunspell-de-ch-frami"]
+},
+{
+"name": "hunspell-de-de",
+"depend": [["hunspell-de-de"]],
+"conflict": ["myspell-de-de-oldspell", "myspell-de-de", "hunspell-de-de-frami"]
+},
+{
+"name": "myspell-de-at",
+"depend": [["myspell-de-at"]],
+"conflict": ["hunspell-de-at", "hunspell-de-at-frami"]
+},
+{
+"name": "myspell-de-ch",
+"depend": [["myspell-de-ch"]],
+"conflict": ["hunspell-de-ch", "hunspell-de-ch-frami"]
+},
+{
+"name": "myspell-de-de",
+"depend": [["myspell-de-de"]],
+"conflict": ["myspell-de-de-oldspell", "hunspell-de-de", "hunspell-de-de-frami"]
+},
+{
+"name": "libigstk4-dev (x 3)",
+"depend": [["libkrb5-dev (x 88)"], ["libtiff4-dev (x 29)"], ["libopenmpi-dev (x 31)"]],
+"conflict": []
+},
+{
+"name": "ikiwiki-hosting-web",
+"depend": [["ikiwiki-hosting-web"], ["libtext-markdown-perl (x 2)"]],
+"conflict": ["parallel"]
+},
+{
+"name": "im-config",
+"depend": [["im-config"]],
+"conflict": ["im-switch"]
+},
+{
+"name": "im-switch",
+"depend": [["im-switch"]],
+"conflict": ["im-config"]
+},
+{
+"name": "imagemagick (x 2)",
+"depend": [["imagemagick (x 2)"]],
+"conflict": ["graphicsmagick-imagemagick-compat"]
+},
+{
+"name": "imagemagick-dbg",
+"depend": [["perlmagick"], ["imagemagick (x 2)"]],
+"conflict": []
+},
+{
+"name": "libmagickcore-dev (x 5)",
+"depend": [["libtiff4-dev (x 29)"], ["libmagickcore-dev (x 5)"]],
+"conflict": ["graphicsmagick-libmagick-dev-compat"]
+},
+{
+"name": "perlmagick",
+"depend": [["perlmagick"]],
+"conflict": ["graphicsmagick-libmagick-dev-compat"]
+},
+{
+"name": "inetutils-ftpd",
+"depend": [["inetutils-ftpd"]],
+"conflict": ["heimdal-servers (x 2)", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "inetutils-inetd",
+"depend": [["inetutils-inetd"]],
+"conflict": ["openbsd-inetd (x 2)", "rlinetd", "xinetd"]
+},
+{
+"name": "inetutils-ping",
+"depend": [["inetutils-ping"]],
+"conflict": ["iputils-ping (x 22)"]
+},
+{
+"name": "inetutils-syslogd",
+"depend": [["inetutils-syslogd"]],
+"conflict": ["busybox-syslogd", "dsyslog (x 5)", "rsyslog (x 6)", "socklog-run", "syslog-ng-core (x 6)"]
+},
+{
+"name": "inetutils-talkd",
+"depend": [["inetutils-talkd"]],
+"conflict": ["harden-servers (x 2)", "talkd"]
+},
+{
+"name": "inetutils-telnetd",
+"depend": [["inetutils-telnetd"]],
+"conflict": ["heimdal-servers (x 2)", "krb5-telnetd", "telnetd", "telnetd-ssl"]
+},
+{
+"name": "initramfs-tools (x 9)",
+"depend": [["initramfs-tools (x 9)"]],
+"conflict": ["dracut"]
+},
+{
+"name": "inn (x 2)",
+"depend": [["inn (x 2)"]],
+"conflict": ["cyrus-nntpd-2.4 (x 3)", "inn2-dev", "inn2-inews", "leafnode", "sn"]
+},
+{
+"name": "inn2",
+"depend": [["inn2"], ["inn2-inews"]],
+"conflict": ["cyrus-nntpd-2.4 (x 3)", "leafnode", "sn"]
+},
+{
+"name": "inn2-dev",
+"depend": [["inn2-dev"]],
+"conflict": ["inn (x 2)"]
+},
+{
+"name": "inn2-inews",
+"depend": [["inn2-inews"]],
+"conflict": ["inn (x 2)"]
+},
+{
+"name": "inspircd (x 2)",
+"depend": [["inspircd (x 2)"]],
+"conflict": ["ircd-hybrid", "ircd-irc2"]
+},
+{
+"name": "inventor-dev",
+"depend": [["inventor-dev"]],
+"conflict": ["libcoin60-dev", "libcoin60-doc"]
+},
+{
+"name": "racoon (x 3)",
+"depend": [["racoon (x 3)"]],
+"conflict": ["isakmpd", "openswan (x 5)", "strongswan-ikev1", "strongswan-ikev2 (x 2)"]
+},
+{
+"name": "iputils-arping (x 2)",
+"depend": [["iputils-arping (x 2)"]],
+"conflict": ["arping"]
+},
+{
+"name": "iputils-ping (x 22)",
+"depend": [["iputils-ping (x 22)"]],
+"conflict": ["inetutils-ping"]
+},
+{
+"name": "ircd-hybrid",
+"depend": [["ircd-hybrid"]],
+"conflict": ["charybdis", "dancer-ircd", "inspircd (x 2)", "ircd-irc2", "ircd-ircu", "ircd-ratbox (x 2)", "ngircd"]
+},
+{
+"name": "ircd-irc2",
+"depend": [["ircd-irc2"]],
+"conflict": ["charybdis", "dancer-ircd", "inspircd (x 2)", "ircd-hybrid", "ircd-ircu", "ircd-ratbox (x 2)", "ngircd"]
+},
+{
+"name": "ircd-ircu",
+"depend": [["ircd-ircu"]],
+"conflict": ["ircd-hybrid", "ircd-irc2", "ngircd"]
+},
+{
+"name": "ircd-ratbox (x 2)",
+"depend": [["ircd-ratbox (x 2)"]],
+"conflict": ["charybdis", "ircd-hybrid", "ircd-irc2"]
+},
+{
+"name": "isakmpd",
+"depend": [["isakmpd"]],
+"conflict": ["racoon (x 3)", "openswan (x 5)"]
+},
+{
+"name": "isc-dhcp-relay",
+"depend": [["isc-dhcp-relay"]],
+"conflict": ["dhcp-helper"]
+},
+{
+"name": "isc-dhcp-server (x 3)",
+"depend": [["isc-dhcp-server (x 3)"]],
+"conflict": ["dhcp-helper"]
+},
+{
+"name": "libivykis-dev",
+"depend": [["libivykis-dev"]],
+"conflict": ["libsyslog-ng-dev"]
+},
+{
+"name": "jackd1 (x 2)",
+"depend": [["libasound2 (x 2329)"], ["libjack0 (x 2)"]],
+"conflict": []
+},
+{
+"name": "libjack0 (x 2)",
+"depend": [["libjack0 (x 2)"]],
+"conflict": ["libjack-jackd2-0 (x 2)"]
+},
+{
+"name": "jackd2 (x 4)",
+"depend": [["libasound2 (x 2329)"], ["libjack-jackd2-0 (x 2)"]],
+"conflict": []
+},
+{
+"name": "libjack-jackd2-0 (x 2)",
+"depend": [["libjack-jackd2-0 (x 2)"]],
+"conflict": ["libjack0 (x 2)"]
+},
+{
+"name": "jenkins",
+"depend": [["jenkins"], ["libasound2 (x 2329)"]],
+"conflict": ["tomcat6 (x 2)"]
+},
+{
+"name": "jenkins-tomcat",
+"depend": [["tomcat6 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "joe",
+"depend": [["joe"]],
+"conflict": ["joe-jupp"]
+},
+{
+"name": "joe-jupp",
+"depend": [["joe-jupp"]],
+"conflict": ["joe"]
+},
+{
+"name": "libk3b-dev (x 7)",
+"depend": [["libiodbc2 (x 109)"], ["libphonon4 (x 29)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "kamera (x 3)",
+"depend": [["libgd2-xpm (x 108)"], ["libiodbc2 (x 109)"]],
+"conflict": []
+},
+{
+"name": "libkaya-gd-dev",
+"depend": [["libgnutls-dev (x 41)"], ["libjpeg8-dev (x 9)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "libkaya-sdl-dev",
+"depend": [["libgnutls-dev (x 41)"], ["libasound2 (x 2329)"], ["libjpeg8-dev (x 9)"]],
+"conflict": []
+},
+{
+"name": "kbd",
+"depend": [["kbd"]],
+"conflict": ["console-tools (x 3)"]
+},
+{
+"name": "kde-workspace (x 21)",
+"depend": [["libiodbc2 (x 109)"], ["libphonon4 (x 29)"], ["libasound2 (x 2329)"], ["oxygen-icon-theme"], ["libgps20 (x 14)"]],
+"conflict": []
+},
+{
+"name": "kdebase-workspace-dev",
+"depend": [["libiodbc2 (x 109)"], ["kdebase-workspace-dev"], ["libphonon4 (x 29)"]],
+"conflict": ["kde-sc-dev-latest"]
+},
+{
+"name": "kdm (x 2)",
+"depend": [["libasound2 (x 2329)"], ["libphonon4 (x 29)"], ["kdm (x 2)"], ["libiodbc2 (x 109)"], ["oxygen-icon-theme"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "kdesdk-kio-plugins",
+"depend": [["libphonon4 (x 29)"], ["libiodbc2 (x 109)"], ["kdesdk-kio-plugins"], ["libasound2 (x 2329)"], ["oxygen-icon-theme"]],
+"conflict": ["kdesvn-kio-plugins"]
+},
+{
+"name": "kdesvn (x 2)",
+"depend": [["kdesvn-kio-plugins"], ["libasound2 (x 2329)"], ["oxygen-icon-theme"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "kdesvn-kio-plugins",
+"depend": [["kdesvn-kio-plugins"], ["libiodbc2 (x 109)"]],
+"conflict": ["kdesdk-kio-plugins"]
+},
+{
+"name": "kdiff3",
+"depend": [["libasound2 (x 2329)"], ["libiodbc2 (x 109)"], ["kdiff3"], ["libphonon4 (x 29)"], ["oxygen-icon-theme"]],
+"conflict": ["kdiff3-qt"]
+},
+{
+"name": "kdiff3-qt",
+"depend": [["kdiff3-qt"]],
+"conflict": ["kdiff3"]
+},
+{
+"name": "keystone (x 2)",
+"depend": [["python-sqlite (x 13)"], ["python-kombu (x 6)"], ["python-xattr (x 9)"]],
+"conflict": []
+},
+{
+"name": "kile (x 3)",
+"depend": [["texlive-binaries (x 180)"], ["oxygen-icon-theme"], ["libphonon4 (x 29)"], ["libiodbc2 (x 109)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "python-kombu (x 6)",
+"depend": [["python-kombu (x 6)"]],
+"conflict": ["python-cjson (x 2)"]
+},
+{
+"name": "krb5-doc",
+"depend": [["krb5-doc"]],
+"conflict": ["heimdal-docs"]
+},
+{
+"name": "krb5-user (x 4)",
+"depend": [["krb5-user (x 4)"]],
+"conflict": ["heimdal-clients (x 3)", "openafs-kpasswd"]
+},
+{
+"name": "libkrb5-dev (x 88)",
+"depend": [["libkrb5-dev (x 88)"]],
+"conflict": ["libelektra-dev (x 3)", "heimdal-dev"]
+},
+{
+"name": "krb5-clients",
+"depend": [["krb5-clients"]],
+"conflict": ["heimdal-clients (x 3)"]
+},
+{
+"name": "krb5-ftpd",
+"depend": [["krb5-ftpd"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "krb5-rsh-server",
+"depend": [["krb5-rsh-server"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "rsh-redone-server"]
+},
+{
+"name": "krb5-telnetd",
+"depend": [["krb5-telnetd"], ["krb5-rsh-server"]],
+"conflict": ["inetutils-telnetd", "telnetd", "telnetd-ssl"]
+},
+{
+"name": "lam-mpidoc",
+"depend": [["lam-mpidoc"]],
+"conflict": ["mpich2-doc", "openmpi-doc"]
+},
+{
+"name": "lam4-dev",
+"depend": [["lam4-dev"]],
+"conflict": ["mpich2-doc", "openmpi-doc"]
+},
+{
+"name": "lcdf-typetools",
+"depend": [["lcdf-typetools"]],
+"conflict": ["otf-trace"]
+},
+{
+"name": "ldap2dns",
+"depend": [["ldap2dns"]],
+"conflict": ["ldap2zone"]
+},
+{
+"name": "ldap2zone",
+"depend": [["ldap2zone"]],
+"conflict": ["ldap2dns"]
+},
+{
+"name": "le-dico-de-rene-cougnenc",
+"depend": [["le-dico-de-rene-cougnenc"]],
+"conflict": ["dico"]
+},
+{
+"name": "leafnode",
+"depend": [["leafnode"]],
+"conflict": ["cyrus-nntpd-2.4 (x 3)", "inn (x 2)", "inn2", "sn"]
+},
+{
+"name": "libalog0.4.1-base (x 3)",
+"depend": [["libalog0.4.1-base (x 3)"]],
+"conflict": ["libalog0.4.1-full"]
+},
+{
+"name": "libalog0.4.1-full",
+"depend": [["libalog0.4.1-full"]],
+"conflict": ["libalog0.4.1-base (x 3)"]
+},
+{
+"name": "libalog0.4.1-full-dbg (x 2)",
+"depend": [["libalog0.4.1-full"], ["libkrb5-dev (x 88)"]],
+"conflict": []
+},
+{
+"name": "libantlr3c-3.2-0",
+"depend": [["libantlr3c-3.2-0"]],
+"conflict": ["libantlr3c-antlrdbg-3.2-0"]
+},
+{
+"name": "libantlr3c-antlrdbg-3.2-0",
+"depend": [["libantlr3c-antlrdbg-3.2-0"]],
+"conflict": ["libantlr3c-3.2-0"]
+},
+{
+"name": "libapache2-mod-log-sql (x 6)",
+"depend": [["apache2-mpm-itk", "apache2-mpm-prefork (x 3)"]],
+"conflict": []
+},
+{
+"name": "libapache2-authenntlm-perl",
+"depend": [["libapache2-authenntlm-perl"]],
+"conflict": ["libauthen-smb-perl (x 2)"]
+},
+{
+"name": "libapache2-mod-auth-pubtkt",
+"depend": [["libapache2-mod-auth-pubtkt"]],
+"conflict": ["libapache2-mod-auth-tkt"]
+},
+{
+"name": "libapache2-mod-auth-tkt",
+"depend": [["libapache2-mod-auth-tkt"]],
+"conflict": ["libapache2-mod-auth-pubtkt"]
+},
+{
+"name": "libapache2-mod-ruid2",
+"depend": [["libapache2-mod-ruid2"]],
+"conflict": ["libapache2-mod-suphp"]
+},
+{
+"name": "libauthen-smb-perl (x 2)",
+"depend": [["libauthen-smb-perl (x 2)"]],
+"conflict": ["libapache2-authenntlm-perl"]
+},
+{
+"name": "libavcodec-extra-53",
+"depend": [["libavcodec-extra-53"]],
+"conflict": ["libavcodec53"]
+},
+{
+"name": "libavcodec53",
+"depend": [["libavcodec53"]],
+"conflict": ["libavcodec-extra-53"]
+},
+{
+"name": "cgroup-bin",
+"depend": [["cgroup-bin"]],
+"conflict": ["lxc (x 4)"]
+},
+{
+"name": "libdap-dev",
+"depend": [["libdap-dev"], ["libcurl4-gnutls-dev (x 27)"]],
+"conflict": ["libdnet-dev (x 3)"]
+},
+{
+"name": "libelfg0-dev (x 2)",
+"depend": [["libelfg0-dev (x 2)"]],
+"conflict": ["libelf-dev (x 2)"]
+},
+{
+"name": "libev-libevent-dev",
+"depend": [["libev-libevent-dev"]],
+"conflict": ["libevent-dev (x 2)"]
+},
+{
+"name": "libevent-dev (x 2)",
+"depend": [["libevent-dev (x 2)"]],
+"conflict": ["libev-libevent-dev"]
+},
+{
+"name": "libfsoframework-dev (x 3)",
+"depend": [["libnl-3-dev (x 8)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "libgd-gd2-noxpm-perl",
+"depend": [["libgd-gd2-noxpm-perl"]],
+"conflict": ["libgd-gd2-perl (x 34)"]
+},
+{
+"name": "libgd-gd2-perl (x 34)",
+"depend": [["libgd-gd2-perl (x 34)"], ["libgd2-xpm (x 108)"]],
+"conflict": ["libgd-gd2-noxpm-perl"]
+},
+{
+"name": "libgd2-noxpm",
+"depend": [["libgd2-noxpm"]],
+"conflict": ["libgd2-xpm (x 108)"]
+},
+{
+"name": "libgd2-xpm (x 108)",
+"depend": [["libgd2-xpm (x 108)"]],
+"conflict": ["libgd2-noxpm"]
+},
+{
+"name": "libgdchart-gd2-noxpm",
+"depend": [["libgdchart-gd2-noxpm"]],
+"conflict": ["libgdchart-gd2-xpm"]
+},
+{
+"name": "libgdchart-gd2-noxpm-dev",
+"depend": [["libjpeg8-dev (x 9)"], ["libgdchart-gd2-noxpm"]],
+"conflict": []
+},
+{
+"name": "libgdchart-gd2-xpm",
+"depend": [["libgdchart-gd2-xpm"]],
+"conflict": ["libgdchart-gd2-noxpm"]
+},
+{
+"name": "libgdchart-gd2-xpm-dev",
+"depend": [["libjpeg8-dev (x 9)"], ["libgdchart-gd2-xpm"]],
+"conflict": []
+},
+{
+"name": "libgpod-dev",
+"depend": [["libgpod4 (x 44)"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "libgpod-nogtk-dev",
+"depend": [["libgpod4-nogtk"], ["libgnutls-dev (x 41)"]],
+"conflict": []
+},
+{
+"name": "libgpod4 (x 44)",
+"depend": [["libgpod4 (x 44)"]],
+"conflict": ["libgpod4-nogtk"]
+},
+{
+"name": "libgpod4-nogtk",
+"depend": [["libgpod4-nogtk"]],
+"conflict": ["libgpod4 (x 44)"]
+},
+{
+"name": "libhdf4-alt-dev",
+"depend": [["libhdf4-alt-dev"], ["libjpeg8-dev (x 9)"]],
+"conflict": ["libhdf4-dev (x 2)"]
+},
+{
+"name": "libhdf4-dev (x 2)",
+"depend": [["libhdf4-dev (x 2)"], ["libjpeg8-dev (x 9)"]],
+"conflict": ["libhdf4-alt-dev"]
+},
+{
+"name": "libiodbc2 (x 109)",
+"depend": [["libiodbc2 (x 109)"]],
+"conflict": ["tdsodbc", "libmdbodbc1 (x 2)", "libmyodbc", "odbc-postgresql (x 2)"]
+},
+{
+"name": "libiodbc2-dev",
+"depend": [["libiodbc2-dev"], ["libiodbc2 (x 109)"]],
+"conflict": ["unixodbc-dev (x 12)"]
+},
+{
+"name": "libjpeg62-dev",
+"depend": [["libjpeg62-dev"]],
+"conflict": ["libjpeg8-dev (x 9)"]
+},
+{
+"name": "libjpeg8-dev (x 9)",
+"depend": [["libjpeg8-dev (x 9)"]],
+"conflict": ["libjpeg62-dev"]
+},
+{
+"name": "libksane-dev",
+"depend": [["libgd2-xpm (x 108)"], ["libiodbc2 (x 109)"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "liblas-dev",
+"depend": [["libhdf5-7 (x 9)"], ["libhdf4-alt-dev"], ["libxerces-c2-dev (x 2)"], ["libtiff5-dev (x 3)"], ["libdap-dev"], ["libgnutls-dev (x 41)"], ["unixodbc-dev (x 12)"]],
+"conflict": []
+},
+{
+"name": "libmimedir-dev",
+"depend": [["libmimedir-dev"]],
+"conflict": ["libmimedir-gnome-dev (x 2)"]
+},
+{
+"name": "libmimedir-gnome-dev (x 2)",
+"depend": [["libmimedir-gnome-dev (x 2)"]],
+"conflict": ["libmimedir-dev"]
+},
+{
+"name": "libmojomojo-perl",
+"depend": [["libgd-gd2-perl (x 34)"], ["libtext-markdown-perl (x 2)"]],
+"conflict": []
+},
+{
+"name": "libnet-irc-ruby",
+"depend": [["libnet-irc-ruby"]],
+"conflict": ["ruby-net-irc (x 2)"]
+},
+{
+"name": "libnet-proxy-perl",
+"depend": [["libnet-proxy-perl"]],
+"conflict": ["sslh"]
+},
+{
+"name": "libnl-dev",
+"depend": [["libnl-dev"]],
+"conflict": ["libnl-3-dev (x 8)"]
+},
+{
+"name": "libnl-3-dev (x 8)",
+"depend": [["libnl-3-dev (x 8)"]],
+"conflict": ["libnl-dev"]
+},
+{
+"name": "libnss-ldap",
+"depend": [["libnss-ldap"]],
+"conflict": ["libnss-ldapd"]
+},
+{
+"name": "libotf-bin",
+"depend": [["libotf-bin"]],
+"conflict": ["otf-trace"]
+},
+{
+"name": "libotf-dev",
+"depend": [["libotf-dev"]],
+"conflict": ["libotf-trace-dev"]
+},
+{
+"name": "libowfat-dev",
+"depend": [["libowfat-dev"]],
+"conflict": ["libcdb-dev", "libudt-dev"]
+},
+{
+"name": "libpam-heimdal",
+"depend": [["libpam-heimdal"]],
+"conflict": ["libpam-krb5"]
+},
+{
+"name": "libpam-krb5",
+"depend": [["libpam-krb5"]],
+"conflict": ["libpam-heimdal"]
+},
+{
+"name": "libpam-ldap",
+"depend": [["libpam-ldap"]],
+"conflict": ["libpam-ldapd"]
+},
+{
+"name": "libpgm-dev",
+"depend": [["libpgm-dev"]],
+"conflict": ["libnetpbm9-dev"]
+},
+{
+"name": "libplayer-dev",
+"depend": [["libxine-dev"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "python-uno (x 5)",
+"depend": [["python-uno (x 5)"]],
+"conflict": ["python3-uno"]
+},
+{
+"name": "python3-uno",
+"depend": [["python3-uno"]],
+"conflict": ["python-uno (x 5)"]
+},
+{
+"name": "libsendmail-milter-perl",
+"depend": [["libsendmail-milter-perl"]],
+"conflict": ["libsendmail-pmilter-perl"]
+},
+{
+"name": "libsendmail-pmilter-perl",
+"depend": [["libsendmail-pmilter-perl"]],
+"conflict": ["libsendmail-milter-perl"]
+},
+{
+"name": "libsieve2-dev",
+"depend": [["libsieve2-dev"]],
+"conflict": ["libmailutils-dev (x 2)"]
+},
+{
+"name": "libtext-markdown-perl (x 2)",
+"depend": [["libtext-markdown-perl (x 2)"]],
+"conflict": ["discount", "markdown"]
+},
+{
+"name": "libtuxcap-dev",
+"depend": [["libasound2 (x 2329)"], ["libjpeg8-dev (x 9)"], ["libgl1-mesa-glx (x 108)"], ["libmagickcore-dev (x 5)"]],
+"conflict": []
+},
+{
+"name": "libunique-doc",
+"depend": [["libunique-doc"]],
+"conflict": ["libunique-3.0-doc"]
+},
+{
+"name": "libunique-3.0-doc",
+"depend": [["libunique-3.0-doc"]],
+"conflict": ["libunique-doc"]
+},
+{
+"name": "libupnp6-dev (x 2)",
+"depend": [["libupnp6-dev (x 2)"]],
+"conflict": ["libupnp4-dev"]
+},
+{
+"name": "libupnp4-dev",
+"depend": [["libupnp4-dev"]],
+"conflict": ["libupnp6-dev (x 2)"]
+},
+{
+"name": "libxbase2.0-bin",
+"depend": [["libxbase2.0-bin"]],
+"conflict": ["dvb-apps (x 2)", "libxdb-dev"]
+},
+{
+"name": "lightdm (x 2)",
+"depend": [["lightdm (x 2)"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "linkchecker (x 3)",
+"depend": [["linkchecker (x 3)"]],
+"conflict": ["python-dnspython (x 6)"]
+},
+{
+"name": "ftpd",
+"depend": [["ftpd"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "ftpd-ssl",
+"depend": [["ftpd-ssl"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "dvb-apps (x 2)",
+"depend": [["dvb-apps (x 2)"]],
+"conflict": ["alevt", "libxbase2.0-bin", "nmh (x 3)", "libxdb-dev"]
+},
+{
+"name": "live-boot (x 2)",
+"depend": [["initramfs-tools (x 9)"], ["busybox"]],
+"conflict": []
+},
+{
+"name": "live-config-systemd",
+"depend": [["live-config-systemd"], ["systemd (x 3)"]],
+"conflict": ["live-config-sysvinit", "live-config-upstart"]
+},
+{
+"name": "live-config-sysvinit",
+"depend": [["live-config-sysvinit"], ["sysvinit"]],
+"conflict": ["live-config-systemd"]
+},
+{
+"name": "live-config-upstart",
+"depend": [["upstart"], ["live-config-upstart"]],
+"conflict": ["live-config-systemd"]
+},
+{
+"name": "lpr",
+"depend": [["lpr"]],
+"conflict": ["cups-bsd (x 2)", "lprng"]
+},
+{
+"name": "lprng",
+"depend": [["lprng"]],
+"conflict": ["cups-client (x 11)", "lpr"]
+},
+{
+"name": "lsb",
+"depend": [["lsb"], ["lsb-core (x 7)"]],
+"conflict": ["xmail"]
+},
+{
+"name": "lsb-core (x 7)",
+"depend": [["lsb-core (x 7)"]],
+"conflict": ["qmail-run"]
+},
+{
+"name": "lsb-invalid-mta",
+"depend": [["lsb-invalid-mta"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "ltsp-client",
+"depend": [["libgd2-xpm (x 108)"], ["libasound2 (x 2329)"], ["console-setup"], ["cups-bsd (x 2)"], ["initramfs-tools (x 9)"]],
+"conflict": []
+},
+{
+"name": "ltsp-client-core",
+"depend": [["initramfs-tools (x 9)"], ["console-setup"]],
+"conflict": []
+},
+{
+"name": "ltsp-server-standalone",
+"depend": [["libasound2 (x 2329)"], ["rpcbind (x 11)"]],
+"conflict": []
+},
+{
+"name": "solr-jetty (x 4)",
+"depend": [["libasound2 (x 2329)"], ["solr-jetty (x 4)"], ["libtomcat6-java (x 10)"]],
+"conflict": ["solr-tomcat"]
+},
+{
+"name": "solr-tomcat",
+"depend": [["tomcat6 (x 2)"], ["solr-tomcat"], ["libasound2 (x 2329)"]],
+"conflict": ["solr-jetty (x 4)"]
+},
+{
+"name": "lxc (x 4)",
+"depend": [["lxc (x 4)"]],
+"conflict": ["cgroup-bin"]
+},
+{
+"name": "magicfilter",
+"depend": [["magicfilter"]],
+"conflict": ["apsfilter", "printfilters-ppd"]
+},
+{
+"name": "myspell-hu",
+"depend": [["myspell-hu"]],
+"conflict": ["hunspell-hu"]
+},
+{
+"name": "mahara-apache2",
+"depend": [["libgd2-xpm (x 108)"], ["libapache2-mod-php5 (x 5)"]],
+"conflict": []
+},
+{
+"name": "maildrop",
+"depend": [["maildrop"]],
+"conflict": ["courier-maildrop (x 5)"]
+},
+{
+"name": "libmailutils-dev (x 2)",
+"depend": [["libkrb5-dev (x 88)"], ["libmailutils-dev (x 2)"], ["libgnutls-dev (x 41)"]],
+"conflict": ["libsieve2-dev"]
+},
+{
+"name": "mailutils-comsatd",
+"depend": [["mailutils-comsatd"]],
+"conflict": ["biff"]
+},
+{
+"name": "mailutils-imap4d",
+"depend": [["mailutils-imap4d"]],
+"conflict": ["citadel-server (x 2)", "courier-imap (x 2)", "cyrus-imapd-2.4 (x 4)", "dovecot-imapd (x 2)"]
+},
+{
+"name": "mailutils-pop3d",
+"depend": [["mailutils-pop3d"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "heimdal-servers (x 2)", "popa3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "makejvf",
+"depend": [["makejvf"]],
+"conflict": ["texlive-binaries (x 180)"]
+},
+{
+"name": "libmapnik-dev (x 2)",
+"depend": [["libhdf5-7 (x 9)"], ["libhdf4-alt-dev"], ["libxerces-c2-dev (x 2)"], ["libtiff4-dev (x 29)"], ["libdap-dev"], ["libgnutls-dev (x 41)"], ["unixodbc-dev (x 12)"]],
+"conflict": []
+},
+{
+"name": "marble-plugins",
+"depend": [["libgps20 (x 14)"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "markdown",
+"depend": [["markdown"]],
+"conflict": ["discount", "libtext-markdown-perl (x 2)"]
+},
+{
+"name": "masqmail",
+"depend": [["masqmail"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-config (x 4)", "lsb-invalid-mta", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "rmail", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "maxima (x 6)",
+"depend": [["gnuplot-qt", "gnuplot-x11"]],
+"conflict": []
+},
+{
+"name": "maxima-emacs",
+"depend": [["texlive-binaries (x 180)"], ["gnuplot-qt", "gnuplot-x11"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "libmdbodbc1 (x 2)",
+"depend": [["libmdbodbc1 (x 2)"]],
+"conflict": ["libiodbc2 (x 109)"]
+},
+{
+"name": "mdbtools-dbg",
+"depend": [["libmdbodbc1 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "hunspell-de-med",
+"depend": [["hunspell-de-at", "hunspell-de-ch", "hunspell-de-de"]],
+"conflict": []
+},
+{
+"name": "libmeep-dev",
+"depend": [["libmeep-dev"]],
+"conflict": ["libmeep-lam4-dev", "libmeep-mpi-default-dev", "libmeep-mpich2-dev", "libmeep-openmpi-dev"]
+},
+{
+"name": "libmeep-lam4-dev",
+"depend": [["libmeep-lam4-dev"], ["libhdf5-mpich2-7 (x 8)"]],
+"conflict": ["libmeep-dev", "libmeep-mpi-default-dev", "libmeep-mpich2-dev"]
+},
+{
+"name": "libmeep-mpi-default-dev",
+"depend": [["libmeep-mpi-default-dev"], ["libhdf5-mpich2-7 (x 8)"]],
+"conflict": ["libmeep-dev", "libmeep-lam4-dev", "libmeep-mpich2-dev"]
+},
+{
+"name": "libmeep-mpich2-dev",
+"depend": [["libmeep-mpich2-dev"], ["libhdf5-mpich2-7 (x 8)"]],
+"conflict": ["libmeep-dev", "libmeep-lam4-dev", "libmeep-mpi-default-dev"]
+},
+{
+"name": "libmeep-openmpi-dev",
+"depend": [["libmeep-openmpi-dev"], ["libhdf5-openmpi-7 (x 25)"]],
+"conflict": ["libmeep-dev"]
+},
+{
+"name": "mendexk",
+"depend": [["mendexk"]],
+"conflict": ["texlive-binaries (x 180)"]
+},
+{
+"name": "libgl1-mesa-glx (x 108)",
+"depend": [["libgl1-mesa-glx (x 108)"]],
+"conflict": ["libgl1-mesa-swx11 (x 3)"]
+},
+{
+"name": "libgl1-mesa-swx11 (x 3)",
+"depend": [["libgl1-mesa-swx11 (x 3)"]],
+"conflict": ["libgl1-mesa-glx (x 108)"]
+},
+{
+"name": "gnome (x 2)",
+"depend": [["evince (x 2)"], ["packagekit (x 7)"], ["gdm3 (x 2)"], ["libgpod4 (x 44)"], ["obex-data-server (x 3)"], ["libgd2-xpm (x 108)"], ["gnome-control-center (x 3)"], ["libatk-adaptor (x 11)"]],
+"conflict": []
+},
+{
+"name": "gnome-core (x 2)",
+"depend": [["gdm3 (x 2)"], ["packagekit (x 7)"], ["libatk-adaptor (x 11)"], ["obex-data-server (x 3)"], ["evince (x 2)"], ["gnome-control-center (x 3)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "kde-full",
+"depend": [["libiodbc2 (x 109)"], ["oxygen-icon-theme"], ["libphonon4 (x 29)"], ["libasound2 (x 2329)"], ["libgd2-xpm (x 108)"], ["libgps20 (x 14)"]],
+"conflict": []
+},
+{
+"name": "kde-sc-dev-latest",
+"depend": [["kde-sc-dev-latest"]],
+"conflict": ["kdebase-workspace-dev"]
+},
+{
+"name": "mew",
+"depend": [["libasound2 (x 2329)"], ["mew-bin"]],
+"conflict": []
+},
+{
+"name": "mew-bin",
+"depend": [["mew-bin"]],
+"conflict": ["mew-beta-bin"]
+},
+{
+"name": "mew-beta",
+"depend": [["libasound2 (x 2329)"], ["mew-beta-bin"]],
+"conflict": []
+},
+{
+"name": "mew-beta-bin",
+"depend": [["mew-beta-bin"]],
+"conflict": ["mew-bin"]
+},
+{
+"name": "mgetty-fax",
+"depend": [["mgetty-fax"]],
+"conflict": ["hylafax-client (x 4)"]
+},
+{
+"name": "libminc-dev",
+"depend": [["libjpeg8-dev (x 9)"], ["libhdf5-7 (x 9)", "libhdf5-mpich2-7 (x 8)", "libopenmpi-dev (x 31)"]],
+"conflict": []
+},
+{
+"name": "mingw32-binutils (x 2)",
+"depend": [["mingw32-binutils (x 2)"]],
+"conflict": ["gcc-mingw32"]
+},
+{
+"name": "mlterm",
+"depend": [["mlterm"]],
+"conflict": ["mlterm-tiny"]
+},
+{
+"name": "mlterm-tiny",
+"depend": [["mlterm-tiny"]],
+"conflict": ["mlterm"]
+},
+{
+"name": "libapache2-mod-wsgi",
+"depend": [["libapache2-mod-wsgi"]],
+"conflict": ["libapache2-mod-wsgi-py3"]
+},
+{
+"name": "libapache2-mod-wsgi-py3",
+"depend": [["libapache2-mod-wsgi-py3"]],
+"conflict": ["libapache2-mod-wsgi"]
+},
+{
+"name": "modemmanager (x 2)",
+"depend": [["modemmanager (x 2)"]],
+"conflict": ["wader-core"]
+},
+{
+"name": "monodevelop-debugger-gdb",
+"depend": [["libasound2 (x 2329)"], ["gdb (x 14)"]],
+"conflict": []
+},
+{
+"name": "moon-buggy",
+"depend": [["moon-buggy"]],
+"conflict": ["moon-buggy-esd"]
+},
+{
+"name": "moon-buggy-esd",
+"depend": [["moon-buggy-esd"], ["libasound2 (x 2329)"]],
+"conflict": ["moon-buggy"]
+},
+{
+"name": "morse",
+"depend": [["morse"], ["libasound2 (x 2329)"]],
+"conflict": ["morse-simulator"]
+},
+{
+"name": "morse-simulator",
+"depend": [["morse-simulator"], ["libasound2 (x 2329)"]],
+"conflict": ["morse"]
+},
+{
+"name": "mpg123-el",
+"depend": [["aumix", "aumix-gtk"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "mpich2-doc",
+"depend": [["mpich2-doc"]],
+"conflict": ["lam-mpidoc", "lam4-dev", "openmpi-doc"]
+},
+{
+"name": "mplayer (x 2)",
+"depend": [["mplayer (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["mplayer2 (x 2)"]
+},
+{
+"name": "mplayer2 (x 2)",
+"depend": [["mplayer2 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["mplayer (x 2)"]
+},
+{
+"name": "msmtp-mta",
+"depend": [["msmtp-mta"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "lsb-invalid-mta", "masqmail", "nullmailer", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "mtr",
+"depend": [["mtr"]],
+"conflict": ["mtr-tiny"]
+},
+{
+"name": "mtr-tiny",
+"depend": [["mtr-tiny"]],
+"conflict": ["mtr"]
+},
+{
+"name": "muddleftpd",
+"depend": [["muddleftpd"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "mscore (x 2)",
+"depend": [["libphonon4 (x 29)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "libmyodbc",
+"depend": [["libmyodbc"]],
+"conflict": ["libiodbc2 (x 109)"]
+},
+{
+"name": "myspell-tools",
+"depend": [["myspell-tools"]],
+"conflict": ["hunspell-tools"]
+},
+{
+"name": "mysqmail-courier-logger",
+"depend": [["courier-imap (x 2)", "courier-pop (x 2)"]],
+"conflict": []
+},
+{
+"name": "mysqmail-dovecot-logger",
+"depend": [["dovecot-pop3d"], ["dovecot-imapd (x 2)"]],
+"conflict": []
+},
+{
+"name": "mysqmail-pure-ftpd-logger",
+"depend": [["pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql"]],
+"conflict": []
+},
+{
+"name": "nagiosgrapher",
+"depend": [["iputils-ping (x 22)"], ["libgd-gd2-perl (x 34)"], ["perlmagick"]],
+"conflict": []
+},
+{
+"name": "nagvis (x 2)",
+"depend": [["libgd2-xpm (x 108)"], ["libapache2-mod-php5 (x 5)"], ["check-mk-livestatus"]],
+"conflict": []
+},
+{
+"name": "libneon27-dev",
+"depend": [["libneon27-dev"], ["libkrb5-dev (x 88)"]],
+"conflict": ["libneon27-gnutls-dev"]
+},
+{
+"name": "libneon27-gnutls-dev",
+"depend": [["libgnutls-dev (x 41)"], ["libneon27-gnutls-dev"], ["libkrb5-dev (x 88)"]],
+"conflict": ["libneon27-dev"]
+},
+{
+"name": "ftp",
+"depend": [["ftp"]],
+"conflict": ["ftp-ssl"]
+},
+{
+"name": "ftp-ssl",
+"depend": [["ftp-ssl"]],
+"conflict": ["ftp"]
+},
+{
+"name": "talkd",
+"depend": [["talkd"], ["openbsd-inetd (x 2)", "xinetd"]],
+"conflict": ["harden-servers (x 2)", "inetutils-talkd"]
+},
+{
+"name": "rsh-server",
+"depend": [["rsh-server"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "rsh-redone-server"]
+},
+{
+"name": "telnet",
+"depend": [["telnet"]],
+"conflict": ["harden-clients", "telnet-ssl"]
+},
+{
+"name": "telnetd",
+"depend": [["telnetd"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "inetutils-telnetd", "krb5-telnetd", "telnetd-ssl", "nyancat-server"]
+},
+{
+"name": "telnet-ssl",
+"depend": [["telnet-ssl"]],
+"conflict": ["telnet"]
+},
+{
+"name": "telnetd-ssl",
+"depend": [["telnetd-ssl"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-telnetd", "krb5-telnetd", "telnetd"]
+},
+{
+"name": "tftp",
+"depend": [["tftp"]],
+"conflict": ["tftp-hpa"]
+},
+{
+"name": "tftpd",
+"depend": [["tftpd"]],
+"conflict": ["atftpd", "tftpd-hpa"]
+},
+{
+"name": "libnetpbm10-dev",
+"depend": [["libnetpbm10-dev"]],
+"conflict": ["libnetpbm9-dev"]
+},
+{
+"name": "libnetpbm9-dev",
+"depend": [["libnetpbm9-dev"]],
+"conflict": ["libpgm-dev", "libnetpbm10-dev"]
+},
+{
+"name": "netscript-2.4",
+"depend": [["netscript-2.4"]],
+"conflict": ["ifupdown (x 3)"]
+},
+{
+"name": "network-manager-strongswan",
+"depend": [["strongswan-ikev2 (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "nginx",
+"depend": [["nginx-full (x 2)", "nginx-light (x 2)"]],
+"conflict": []
+},
+{
+"name": "nginx-extras (x 2)",
+"depend": [["nginx-extras (x 2)"]],
+"conflict": ["nginx-full (x 2)", "nginx-light (x 2)", "nginx-naxsi (x 3)"]
+},
+{
+"name": "nginx-full (x 2)",
+"depend": [["nginx-full (x 2)"]],
+"conflict": ["nginx-extras (x 2)", "nginx-light (x 2)", "nginx-naxsi (x 3)"]
+},
+{
+"name": "nginx-light (x 2)",
+"depend": [["nginx-light (x 2)"]],
+"conflict": ["nginx-extras (x 2)", "nginx-full (x 2)", "nginx-naxsi (x 3)"]
+},
+{
+"name": "nginx-naxsi (x 3)",
+"depend": [["nginx-naxsi (x 3)"]],
+"conflict": ["nginx-extras (x 2)", "nginx-full (x 2)", "nginx-light (x 2)"]
+},
+{
+"name": "ngircd",
+"depend": [["ngircd"]],
+"conflict": ["dancer-ircd", "ircd-hybrid", "ircd-irc2", "ircd-ircu"]
+},
+{
+"name": "nmh (x 3)",
+"depend": [["nmh (x 3)"]],
+"conflict": ["dvb-apps (x 2)"]
+},
+{
+"name": "nova-compute-kvm",
+"depend": [["python-kombu (x 6)"], ["nova-compute-kvm"], ["libasound2 (x 2329)"], ["python-xattr (x 9)"]],
+"conflict": ["nova-compute-lxc", "nova-compute-qemu", "nova-compute-uml", "nova-compute-xen"]
+},
+{
+"name": "nova-compute-lxc",
+"depend": [["python-kombu (x 6)"], ["nova-compute-lxc"], ["python-xattr (x 9)"]],
+"conflict": ["nova-compute-kvm", "nova-compute-qemu", "nova-compute-uml", "nova-compute-xen"]
+},
+{
+"name": "nova-compute-qemu",
+"depend": [["python-kombu (x 6)"], ["nova-compute-qemu"], ["libasound2 (x 2329)"], ["python-xattr (x 9)"]],
+"conflict": ["nova-compute-kvm", "nova-compute-lxc", "nova-compute-uml", "nova-compute-xen"]
+},
+{
+"name": "nova-compute-uml",
+"depend": [["python-kombu (x 6)"], ["nova-compute-uml"], ["python-xattr (x 9)"]],
+"conflict": ["nova-compute-kvm", "nova-compute-lxc", "nova-compute-qemu", "nova-compute-xen"]
+},
+{
+"name": "nova-compute-xen",
+"depend": [["python-kombu (x 6)"], ["nova-compute-xen"], ["python-xattr (x 9)"]],
+"conflict": ["nova-compute-kvm", "nova-compute-lxc", "nova-compute-qemu", "nova-compute-uml"]
+},
+{
+"name": "nova-network",
+"depend": [["python-kombu (x 6)"], ["python-xattr (x 9)"], ["iputils-arping (x 2)"]],
+"conflict": []
+},
+{
+"name": "libnss-ldapd",
+"depend": [["libnss-ldapd"]],
+"conflict": ["libnss-ldap"]
+},
+{
+"name": "libpam-ldapd",
+"depend": [["libpam-ldapd"]],
+"conflict": ["libpam-ldap"]
+},
+{
+"name": "ntp (x 2)",
+"depend": [["ntp (x 2)"]],
+"conflict": ["chrony", "openntpd"]
+},
+{
+"name": "nullidentd",
+"depend": [["nullidentd"]],
+"conflict": ["bidentd", "ident2", "oidentd", "pidentd"]
+},
+{
+"name": "nullmailer",
+"depend": [["nullmailer"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-config (x 4)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "nut-client (x 6)",
+"depend": [["nut-client (x 6)"]],
+"conflict": ["apcupsd (x 2)", "powstatd"]
+},
+{
+"name": "nyancat-server",
+"depend": [["nyancat-server"]],
+"conflict": ["telnetd"]
+},
+{
+"name": "obex-data-server (x 3)",
+"depend": [["obex-data-server (x 3)"]],
+"conflict": ["obexd-server"]
+},
+{
+"name": "obexd-server",
+"depend": [["obexd-server"]],
+"conflict": ["obex-data-server (x 3)"]
+},
+{
+"name": "liboctave-dev (x 2)",
+"depend": [["libjpeg8-dev (x 9)"], ["libreadline6-dev (x 23)"], ["libhdf5-7 (x 9)", "libhdf5-mpich2-7 (x 8)", "libopenmpi-dev (x 31)"]],
+"conflict": []
+},
+{
+"name": "libode-dev",
+"depend": [["libode-dev"]],
+"conflict": ["libode-sp-dev"]
+},
+{
+"name": "libode-sp-dev",
+"depend": [["libode-sp-dev"]],
+"conflict": ["libode-dev"]
+},
+{
+"name": "blender-ogrexml",
+"depend": [["blender-ogrexml"], ["libasound2 (x 2329)"]],
+"conflict": ["blender-ogrexml-1.8"]
+},
+{
+"name": "libogre-dev",
+"depend": [["libogre-dev"]],
+"conflict": ["libogre-1.8-dev"]
+},
+{
+"name": "ogre-doc",
+"depend": [["ogre-doc"]],
+"conflict": ["ogre-1.8-doc"]
+},
+{
+"name": "ogre-tools",
+"depend": [["ogre-tools"]],
+"conflict": ["ogre-1.8-tools"]
+},
+{
+"name": "blender-ogrexml-1.8",
+"depend": [["blender-ogrexml-1.8"], ["libasound2 (x 2329)"]],
+"conflict": ["blender-ogrexml"]
+},
+{
+"name": "libogre-1.8-dev",
+"depend": [["libogre-1.8-dev"]],
+"conflict": ["libogre-dev"]
+},
+{
+"name": "ogre-1.8-doc",
+"depend": [["ogre-1.8-doc"]],
+"conflict": ["ogre-doc"]
+},
+{
+"name": "ogre-1.8-tools",
+"depend": [["ogre-1.8-tools"]],
+"conflict": ["ogre-tools"]
+},
+{
+"name": "oidentd",
+"depend": [["oidentd"]],
+"conflict": ["bidentd", "harden-servers (x 2)", "ident2", "nullidentd", "pidentd"]
+},
+{
+"name": "libopal-dev",
+"depend": [["libjpeg8-dev (x 9)"], ["libopal-dev"], ["unixodbc-dev (x 12)"], ["libasound2 (x 2329)"]],
+"conflict": ["libopenmpi-dev (x 31)"]
+},
+{
+"name": "open-font-design-toolkit",
+"depend": [["libasound2 (x 2329)"], ["fontforge (x 2)"], ["lcdf-typetools"]],
+"conflict": []
+},
+{
+"name": "openafs-kpasswd",
+"depend": [["openafs-kpasswd"]],
+"conflict": ["heimdal-clients (x 3)", "krb5-user (x 4)"]
+},
+{
+"name": "openbabel (x 3)",
+"depend": [["openbabel (x 3)"]],
+"conflict": ["babel-1.4.0"]
+},
+{
+"name": "openbsd-inetd (x 2)",
+"depend": [["openbsd-inetd (x 2)"]],
+"conflict": ["inetutils-inetd", "rlinetd", "xinetd"]
+},
+{
+"name": "opendnssec-enforcer-mysql (x 2)",
+"depend": [["opendnssec-enforcer-mysql (x 2)"]],
+"conflict": ["opendnssec-enforcer-sqlite3 (x 2)"]
+},
+{
+"name": "opendnssec-enforcer-sqlite3 (x 2)",
+"depend": [["opendnssec-enforcer-sqlite3 (x 2)"]],
+"conflict": ["opendnssec-enforcer-mysql (x 2)"]
+},
+{
+"name": "openlp",
+"depend": [["python-sqlite (x 13)"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "libopenmpi-dev (x 31)",
+"depend": [["libopenmpi-dev (x 31)"]],
+"conflict": ["libopal-dev"]
+},
+{
+"name": "openmpi-doc",
+"depend": [["openmpi-doc"]],
+"conflict": ["lam-mpidoc", "lam4-dev", "mpich2-doc"]
+},
+{
+"name": "openntpd",
+"depend": [["openntpd"]],
+"conflict": ["chrony", "ntp (x 2)"]
+},
+{
+"name": "hunspell-da",
+"depend": [["hunspell-da"]],
+"conflict": ["myspell-da"]
+},
+{
+"name": "hunspell-de-at-frami",
+"depend": [["hunspell-de-at-frami"]],
+"conflict": ["hunspell-de-at", "myspell-de-at"]
+},
+{
+"name": "hunspell-de-ch-frami",
+"depend": [["hunspell-de-ch-frami"]],
+"conflict": ["hunspell-de-ch", "myspell-de-ch"]
+},
+{
+"name": "hunspell-de-de-frami",
+"depend": [["hunspell-de-de-frami"]],
+"conflict": ["myspell-de-de-oldspell", "hunspell-de-de", "myspell-de-de"]
+},
+{
+"name": "hunspell-fr",
+"depend": [["hunspell-fr"]],
+"conflict": ["myspell-da", "myspell-fr", "myspell-fr-gut"]
+},
+{
+"name": "hunspell-hu",
+"depend": [["hunspell-hu"]],
+"conflict": ["myspell-da", "myspell-hu"]
+},
+{
+"name": "hunspell-sh",
+"depend": [["hunspell-sh"]],
+"conflict": ["myspell-da"]
+},
+{
+"name": "hunspell-sr",
+"depend": [["hunspell-sr"]],
+"conflict": ["myspell-da"]
+},
+{
+"name": "hunspell-vi",
+"depend": [["hunspell-vi"]],
+"conflict": ["myspell-da"]
+},
+{
+"name": "myspell-en-us",
+"depend": [["myspell-en-us"]],
+"conflict": ["hunspell-en-us"]
+},
+{
+"name": "openresolv",
+"depend": [["openresolv"]],
+"conflict": ["gnome-ppp", "resolvconf"]
+},
+{
+"name": "libsaml2-dev (x 3)",
+"depend": [["libcurl4-openssl-dev"], ["libxerces-c-dev (x 3)"]],
+"conflict": []
+},
+{
+"name": "openswan (x 5)",
+"depend": [["openswan (x 5)"]],
+"conflict": ["racoon (x 3)", "isakmpd", "strongswan-ikev1", "strongswan-ikev2 (x 2)"]
+},
+{
+"name": "openwince-jtag",
+"depend": [["openwince-jtag"]],
+"conflict": ["urjtag"]
+},
+{
+"name": "orville-write",
+"depend": [["orville-write"]],
+"conflict": ["xtell"]
+},
+{
+"name": "oss-preserve",
+"depend": [["oss-preserve"]],
+"conflict": ["aumix", "aumix-gtk"]
+},
+{
+"name": "liboss4-salsa-asound2",
+"depend": [["liboss4-salsa-asound2"]],
+"conflict": ["libasound2 (x 2329)"]
+},
+{
+"name": "libotf-trace-dev",
+"depend": [["libotf-trace-dev"]],
+"conflict": ["libotf-dev"]
+},
+{
+"name": "otf-trace",
+"depend": [["otf-trace"]],
+"conflict": ["lcdf-typetools", "libotf-bin"]
+},
+{
+"name": "otp",
+"depend": [["otp"]],
+"conflict": ["heimdal-clients (x 3)"]
+},
+{
+"name": "oxygen-icon-theme",
+"depend": [["oxygen-icon-theme"]],
+"conflict": ["fdpowermon-icons"]
+},
+{
+"name": "packagekit (x 7)",
+"depend": [["packagekit (x 7)"]],
+"conflict": ["python-aptdaemon.pkcompat"]
+},
+{
+"name": "parallel",
+"depend": [["parallel"]],
+"conflict": ["ikiwiki-hosting-web"]
+},
+{
+"name": "pennmush",
+"depend": [["pennmush"]],
+"conflict": ["pennmush-mysql"]
+},
+{
+"name": "pennmush-mysql",
+"depend": [["pennmush-mysql"]],
+"conflict": ["pennmush"]
+},
+{
+"name": "pfqueue (x 2)",
+"depend": [["exim4-config (x 4)", "postfix (x 13)"]],
+"conflict": []
+},
+{
+"name": "phamm-ldap-amavis",
+"depend": [["phamm-ldap-amavis"]],
+"conflict": ["amavisd-new (x 3)"]
+},
+{
+"name": "libphonon4 (x 29)",
+"depend": [["libphonon4 (x 29)"]],
+"conflict": ["libqt4-phonon"]
+},
+{
+"name": "phonon-backend-null",
+"depend": [["phonon-backend-null"], ["libphonon4 (x 29)"]],
+"conflict": ["phonon-backend-gstreamer (x 2)", "phonon-backend-vlc (x 3)"]
+},
+{
+"name": "phonon-backend-gstreamer (x 2)",
+"depend": [["libasound2 (x 2329)"], ["phonon-backend-gstreamer (x 2)"], ["libphonon4 (x 29)"]],
+"conflict": ["phonon-backend-null"]
+},
+{
+"name": "phonon-backend-vlc (x 3)",
+"depend": [["libasound2 (x 2329)"], ["phonon-backend-vlc (x 3)"], ["libphonon4 (x 29)"]],
+"conflict": ["phonon-backend-null"]
+},
+{
+"name": "php-apc",
+"depend": [["php-apc"]],
+"conflict": ["php5-xcache"]
+},
+{
+"name": "libapache2-mod-php5 (x 5)",
+"depend": [["libapache2-mod-php5 (x 5)"], ["apache2-mpm-itk", "apache2-mpm-prefork (x 3)"]],
+"conflict": ["libapache2-mod-php5filter"]
+},
+{
+"name": "libapache2-mod-php5filter",
+"depend": [["libapache2-mod-php5filter"], ["apache2-mpm-itk", "apache2-mpm-prefork (x 3)"]],
+"conflict": ["libapache2-mod-php5 (x 5)"]
+},
+{
+"name": "php5-mysql (x 16)",
+"depend": [["php5-mysql (x 16)"]],
+"conflict": ["php5-mysqlnd"]
+},
+{
+"name": "php5-mysqlnd",
+"depend": [["php5-mysqlnd"]],
+"conflict": ["php5-mysql (x 16)"]
+},
+{
+"name": "pidentd",
+"depend": [["pidentd"]],
+"conflict": ["bidentd", "harden-servers (x 2)", "ident2", "nullidentd", "oidentd"]
+},
+{
+"name": "pike7.8-full",
+"depend": [["libiodbc2 (x 109)"], ["libasound2 (x 2329)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "pimd",
+"depend": [["pimd"]],
+"conflict": ["smcroute"]
+},
+{
+"name": "planet-venus",
+"depend": [["planet-venus"]],
+"conflict": ["racket (x 2)"]
+},
+{
+"name": "plymouth (x 12)",
+"depend": [["plymouth (x 12)"], ["initramfs-tools (x 9)"]],
+"conflict": ["console-tools (x 3)"]
+},
+{
+"name": "pmake",
+"depend": [["pmake"]],
+"conflict": ["freebsd-buildutils (x 2)"]
+},
+{
+"name": "popa3d",
+"depend": [["popa3d"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "heimdal-servers (x 2)", "mailutils-pop3d", "solid-pop3d", "xmail"]
+},
+{
+"name": "libportaudio-dev",
+"depend": [["libportaudio-dev"]],
+"conflict": ["portaudio19-dev (x 4)"]
+},
+{
+"name": "portaudio19-dev (x 4)",
+"depend": [["portaudio19-dev (x 4)"], ["libasound2 (x 2329)"]],
+"conflict": ["libportaudio-dev"]
+},
+{
+"name": "postfix (x 13)",
+"depend": [["postfix (x 13)"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-config (x 4)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "qmail-run", "rmail", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "powstatd",
+"depend": [["powstatd"]],
+"conflict": ["apcupsd (x 2)", "nut-client (x 6)"]
+},
+{
+"name": "pretzel (x 2)",
+"depend": [["bison (x 2)"], ["flex"]],
+"conflict": []
+},
+{
+"name": "printfilters-ppd",
+"depend": [["printfilters-ppd"]],
+"conflict": ["apsfilter", "magicfilter"]
+},
+{
+"name": "proftpd-basic (x 20)",
+"depend": [["proftpd-basic (x 20)"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "psi3",
+"depend": [["psi3"]],
+"conflict": ["yagiuda"]
+},
+{
+"name": "odbc-postgresql (x 2)",
+"depend": [["odbc-postgresql (x 2)"]],
+"conflict": ["libiodbc2 (x 109)"]
+},
+{
+"name": "ptex-base",
+"depend": [["ptex-base"], ["texlive-binaries (x 180)"]],
+"conflict": ["dvi2ps-fontdata-ptexfake", "texlive-lang-cjk (x 4)"]
+},
+{
+"name": "pump (x 2)",
+"depend": [["pump (x 2)"]],
+"conflict": ["dhcpcd"]
+},
+{
+"name": "puppet-testsuite",
+"depend": [["ruby-activesupport-2.3 (x 44)"], ["ruby-rspec-core (x 6)"]],
+"conflict": []
+},
+{
+"name": "pure-ftpd",
+"depend": [["pure-ftpd"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "pure-ftpd-ldap",
+"depend": [["pure-ftpd-ldap"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "pure-ftpd-mysql",
+"depend": [["pure-ftpd-mysql"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "pure-ftpd-postgresql",
+"depend": [["pure-ftpd-postgresql"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "twoftpd-run", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "pyftpd",
+"depend": [["pyftpd"]],
+"conflict": ["harden-servers (x 2)"]
+},
+{
+"name": "python-pyorbit-omg",
+"depend": [["python-pyorbit-omg"]],
+"conflict": ["python-omniorb-omg"]
+},
+{
+"name": "python-cherrypy",
+"depend": [["python-cherrypy"]],
+"conflict": ["python-cherrypy3 (x 5)"]
+},
+{
+"name": "python-cjson (x 2)",
+"depend": [["python-cjson (x 2)"]],
+"conflict": ["python-kombu (x 6)"]
+},
+{
+"name": "python-envisage (x 4)",
+"depend": [["python-envisage (x 4)"], ["python-pyface (x 7)"]],
+"conflict": ["python-envisagecore", "python-envisageplugins"]
+},
+{
+"name": "python-envisagecore",
+"depend": [["python-envisagecore"], ["python-pyface (x 7)"]],
+"conflict": ["python-envisage (x 4)"]
+},
+{
+"name": "python-envisageplugins",
+"depend": [["python-envisageplugins"], ["python-pyface (x 7)"]],
+"conflict": ["python-envisage (x 4)"]
+},
+{
+"name": "python-libpcap",
+"depend": [["python-libpcap"]],
+"conflict": ["python-pypcap (x 2)"]
+},
+{
+"name": "python-omniorb-omg",
+"depend": [["python-omniorb-omg"]],
+"conflict": ["python-pyorbit-omg"]
+},
+{
+"name": "python-pyface (x 7)",
+"depend": [["python-pyface (x 7)"]],
+"conflict": ["python-traitsbackendqt", "python-traitsbackendwx"]
+},
+{
+"name": "python-pypcap (x 2)",
+"depend": [["python-pypcap (x 2)"]],
+"conflict": ["python-libpcap"]
+},
+{
+"name": "python-pysqlite1.1 (x 2)",
+"depend": [["python-pysqlite1.1 (x 2)"]],
+"conflict": ["python-sqlite (x 13)"]
+},
+{
+"name": "python-pyxattr (x 2)",
+"depend": [["python-pyxattr (x 2)"]],
+"conflict": ["python-xattr (x 9)"]
+},
+{
+"name": "python-sqlite (x 13)",
+"depend": [["python-sqlite (x 13)"]],
+"conflict": ["python-pysqlite1.1 (x 2)"]
+},
+{
+"name": "python-traitsbackendqt",
+"depend": [["python-traitsbackendqt"]],
+"conflict": ["python-pyface (x 7)"]
+},
+{
+"name": "python-traitsbackendwx",
+"depend": [["python-traitsbackendwx"]],
+"conflict": ["python-pyface (x 7)"]
+},
+{
+"name": "python-traitsgui",
+"depend": [["python-traitsbackendqt", "python-traitsbackendwx"]],
+"conflict": []
+},
+{
+"name": "python-xattr (x 9)",
+"depend": [["python-xattr (x 9)"]],
+"conflict": ["python-pyxattr (x 2)"]
+},
+{
+"name": "qalculate (x 2)",
+"depend": [["gnuplot-qt", "gnuplot-x11"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "qgis (x 2)",
+"depend": [["qgis (x 2)"]],
+"conflict": ["uim-qt3"]
+},
+{
+"name": "qmail-run",
+"depend": [["qmail-run"], ["ucspi-tcp"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "lsb-core (x 7)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "sendmail-bin (x 3)", "ssmtp", "xmail"]
+},
+{
+"name": "qt-sdk",
+"depend": [["gdb (x 14)"], ["libphonon4 (x 29)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "libqt4-phonon",
+"depend": [["libqt4-phonon"]],
+"conflict": ["libphonon4 (x 29)"]
+},
+{
+"name": "qterm",
+"depend": [["qterm"]],
+"conflict": ["torque-client", "torque-client-x11"]
+},
+{
+"name": "qtmobility-dev",
+"depend": [["qtmobility-dev"], ["libasound2 (x 2329)"]],
+"conflict": ["icheck"]
+},
+{
+"name": "quantum-plugin-cisco",
+"depend": [["quantum-plugin-cisco"]],
+"conflict": ["quantum-plugin-linuxbridge", "quantum-plugin-nicira", "quantum-plugin-openvswitch (x 2)", "quantum-plugin-sample"]
+},
+{
+"name": "quantum-plugin-linuxbridge",
+"depend": [["quantum-plugin-linuxbridge"]],
+"conflict": ["quantum-plugin-cisco", "quantum-plugin-nicira", "quantum-plugin-openvswitch (x 2)", "quantum-plugin-sample"]
+},
+{
+"name": "quantum-plugin-nicira",
+"depend": [["quantum-plugin-nicira"]],
+"conflict": ["quantum-plugin-cisco", "quantum-plugin-linuxbridge", "quantum-plugin-openvswitch (x 2)", "quantum-plugin-sample"]
+},
+{
+"name": "quantum-plugin-openvswitch (x 2)",
+"depend": [["quantum-plugin-openvswitch (x 2)"]],
+"conflict": ["quantum-plugin-cisco", "quantum-plugin-linuxbridge", "quantum-plugin-nicira", "quantum-plugin-sample"]
+},
+{
+"name": "quantum-plugin-sample",
+"depend": [["quantum-plugin-sample"]],
+"conflict": ["quantum-plugin-cisco", "quantum-plugin-linuxbridge", "quantum-plugin-nicira", "quantum-plugin-openvswitch (x 2)"]
+},
+{
+"name": "quassel (x 2)",
+"depend": [["libphonon4 (x 29)"], ["quassel-data"]],
+"conflict": []
+},
+{
+"name": "quassel-client-kde4 (x 2)",
+"depend": [["oxygen-icon-theme"], ["libasound2 (x 2329)"], ["libiodbc2 (x 109)"], ["quassel-data-kde4"], ["libphonon4 (x 29)"]],
+"conflict": []
+},
+{
+"name": "quassel-data",
+"depend": [["quassel-data"]],
+"conflict": ["quassel-data-kde4"]
+},
+{
+"name": "quassel-data-kde4",
+"depend": [["quassel-data-kde4"]],
+"conflict": ["quassel-data"]
+},
+{
+"name": "python-quixote (x 2)",
+"depend": [["python-quixote (x 2)"]],
+"conflict": ["python-quixote1 (x 2)"]
+},
+{
+"name": "python-quixote1 (x 2)",
+"depend": [["python-quixote1 (x 2)"]],
+"conflict": ["python-quixote (x 2)"]
+},
+{
+"name": "libqwt-dev",
+"depend": [["libqwt-dev"]],
+"conflict": ["libqwt5-qt4-dev"]
+},
+{
+"name": "libqwt-doc",
+"depend": [["libqwt-doc"]],
+"conflict": ["libqwt5-doc"]
+},
+{
+"name": "libqwt5-doc",
+"depend": [["libqwt5-doc"]],
+"conflict": ["libqwt-doc"]
+},
+{
+"name": "libqwt5-qt4-dev",
+"depend": [["libqwt5-qt4-dev"]],
+"conflict": ["libqwt-dev"]
+},
+{
+"name": "r-base-core-dbg (x 2)",
+"depend": [["libjpeg8-dev (x 9)"], ["libreadline6-dev (x 23)"]],
+"conflict": []
+},
+{
+"name": "rabbit-mode",
+"depend": [["libasound2 (x 2329)"], ["ruby-net-irc (x 2)"]],
+"conflict": []
+},
+{
+"name": "racket (x 2)",
+"depend": [["racket (x 2)"]],
+"conflict": ["planet-venus"]
+},
+{
+"name": "libradius1-dev",
+"depend": [["libradius1-dev"]],
+"conflict": ["libradiusclient-ng-dev"]
+},
+{
+"name": "radiusclient1 (x 2)",
+"depend": [["radiusclient1 (x 2)"]],
+"conflict": ["libradiusclient-ng-dev"]
+},
+{
+"name": "libradiusclient-ng-dev",
+"depend": [["libradiusclient-ng-dev"]],
+"conflict": ["libradius1-dev", "radiusclient1 (x 2)"]
+},
+{
+"name": "radiusd-livingston",
+"depend": [["radiusd-livingston"]],
+"conflict": ["freeradius-common (x 8)", "radsecproxy", "yardradius"]
+},
+{
+"name": "radsecproxy",
+"depend": [["radsecproxy"]],
+"conflict": ["radiusd-livingston", "yardradius"]
+},
+{
+"name": "raptor-utils",
+"depend": [["raptor-utils"]],
+"conflict": ["raptor2-utils"]
+},
+{
+"name": "raptor2-utils",
+"depend": [["raptor2-utils"]],
+"conflict": ["raptor-utils"]
+},
+{
+"name": "ratbox-services-mysql",
+"depend": [["ratbox-services-mysql"]],
+"conflict": ["ratbox-services-pgsql", "ratbox-services-sqlite"]
+},
+{
+"name": "ratbox-services-pgsql",
+"depend": [["ratbox-services-pgsql"]],
+"conflict": ["ratbox-services-mysql", "ratbox-services-sqlite"]
+},
+{
+"name": "ratbox-services-sqlite",
+"depend": [["ratbox-services-sqlite"]],
+"conflict": ["ratbox-services-mysql", "ratbox-services-pgsql"]
+},
+{
+"name": "lib32readline-gplv2-dev",
+"depend": [["lib32readline-gplv2-dev"]],
+"conflict": ["lib32readline6-dev"]
+},
+{
+"name": "libreadline-gplv2-dev (x 2)",
+"depend": [["libreadline-gplv2-dev (x 2)"]],
+"conflict": ["libreadline6-dev (x 23)"]
+},
+{
+"name": "libreadline5-dbg",
+"depend": [["libreadline5-dbg"]],
+"conflict": ["libreadline6-dbg"]
+},
+{
+"name": "lib32readline6-dev",
+"depend": [["lib32readline6-dev"]],
+"conflict": ["lib32readline-gplv2-dev"]
+},
+{
+"name": "libreadline6-dbg",
+"depend": [["libreadline6-dbg"]],
+"conflict": ["libreadline5-dbg"]
+},
+{
+"name": "libreadline6-dev (x 23)",
+"depend": [["libreadline6-dev (x 23)"]],
+"conflict": ["libreadline-gplv2-dev (x 2)"]
+},
+{
+"name": "red5-server",
+"depend": [["libtomcat6-java (x 10)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "cman (x 3)",
+"depend": [["cman (x 3)"]],
+"conflict": ["fence-agents"]
+},
+{
+"name": "redhat-cluster-suite (x 2)",
+"depend": [["cman (x 3)"], ["iputils-arping (x 2)"], ["rpcbind (x 11)"], ["iputils-ping (x 22)"]],
+"conflict": []
+},
+{
+"name": "resolvconf",
+"depend": [["resolvconf"]],
+"conflict": ["gnome-ppp", "openresolv"]
+},
+{
+"name": "resource-agents (x 5)",
+"depend": [["resource-agents (x 5)"]],
+"conflict": ["cluster-agents"]
+},
+{
+"name": "rhythmbox-plugins",
+"depend": [["libgpod4 (x 44)"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "rlinetd",
+"depend": [["rlinetd"]],
+"conflict": ["inetutils-inetd", "openbsd-inetd (x 2)", "xinetd"]
+},
+{
+"name": "root-plugin-net-krb5",
+"depend": [["heimdal-clients (x 3)", "krb5-user (x 4)"]],
+"conflict": []
+},
+{
+"name": "roxterm-gtk2",
+"depend": [["roxterm-gtk2"]],
+"conflict": ["roxterm-gtk3 (x 2)"]
+},
+{
+"name": "roxterm-gtk3 (x 2)",
+"depend": [["roxterm-gtk3 (x 2)"]],
+"conflict": ["roxterm-gtk2"]
+},
+{
+"name": "rpcbind (x 11)",
+"depend": [["rpcbind (x 11)"]],
+"conflict": ["harden-servers (x 2)"]
+},
+{
+"name": "rsh-redone-server",
+"depend": [["rsh-redone-server"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "krb5-rsh-server", "rsh-server"]
+},
+{
+"name": "rsyslog (x 6)",
+"depend": [["rsyslog (x 6)"]],
+"conflict": ["busybox-syslogd", "dsyslog (x 5)", "inetutils-syslogd", "socklog-run", "syslog-ng-core (x 6)"]
+},
+{
+"name": "rt-tests",
+"depend": [["rt-tests"]],
+"conflict": ["xenomai-runtime"]
+},
+{
+"name": "ruby-activesupport-2.3 (x 44)",
+"depend": [["ruby-activesupport-2.3 (x 44)"]],
+"conflict": ["ruby-activesupport-3.2 (x 11)"]
+},
+{
+"name": "ruby-activesupport-3.2 (x 11)",
+"depend": [["ruby-activesupport-3.2 (x 11)"]],
+"conflict": ["ruby-activesupport-2.3 (x 44)"]
+},
+{
+"name": "libamrita-ruby1.8 (x 2)",
+"depend": [["libamrita-ruby1.8 (x 2)"]],
+"conflict": ["ruby-amrita2 (x 4)"]
+},
+{
+"name": "ruby-amrita2 (x 4)",
+"depend": [["ruby-amrita2 (x 4)"]],
+"conflict": ["libamrita-ruby1.8 (x 2)"]
+},
+{
+"name": "ruby-bacon",
+"depend": [["ruby-bacon"]],
+"conflict": ["ruby-rspec-core (x 6)"]
+},
+{
+"name": "ruby-god",
+"depend": [["ruby-god"]],
+"conflict": ["god"]
+},
+{
+"name": "ruby-net-irc (x 2)",
+"depend": [["ruby-net-irc (x 2)"]],
+"conflict": ["libnet-irc-ruby"]
+},
+{
+"name": "ruby-rspec-core (x 6)",
+"depend": [["ruby-rspec-core (x 6)"]],
+"conflict": ["ruby-bacon"]
+},
+{
+"name": "runit (x 3)",
+"depend": [["runit (x 3)"]],
+"conflict": ["daemontools-run"]
+},
+{
+"name": "myspell-ru",
+"depend": [["myspell-ru"]],
+"conflict": ["hunspell-ru"]
+},
+{
+"name": "rxvt",
+"depend": [["rxvt"]],
+"conflict": ["rxvt-beta"]
+},
+{
+"name": "rxvt-ml",
+"depend": [["rxvt-ml"]],
+"conflict": ["rxvt-beta"]
+},
+{
+"name": "rxvt-beta",
+"depend": [["rxvt-beta"]],
+"conflict": ["rxvt", "rxvt-ml"]
+},
+{
+"name": "rxvt-unicode (x 2)",
+"depend": [["rxvt-unicode (x 2)"]],
+"conflict": ["rxvt-unicode-256color", "rxvt-unicode-lite"]
+},
+{
+"name": "rxvt-unicode-256color",
+"depend": [["rxvt-unicode-256color"]],
+"conflict": ["rxvt-unicode (x 2)", "rxvt-unicode-lite"]
+},
+{
+"name": "rxvt-unicode-lite",
+"depend": [["rxvt-unicode-lite"]],
+"conflict": ["rxvt-unicode (x 2)", "rxvt-unicode-256color"]
+},
+{
+"name": "samba-tools",
+"depend": [["samba-tools"]],
+"conflict": ["samba4 (x 4)", "samba4-testsuite"]
+},
+{
+"name": "winbind (x 4)",
+"depend": [["winbind (x 4)"]],
+"conflict": ["winbind4"]
+},
+{
+"name": "samba4 (x 4)",
+"depend": [["samba4 (x 4)"], ["python-dnspython (x 6)"]],
+"conflict": ["samba-tools"]
+},
+{
+"name": "samba4-testsuite",
+"depend": [["samba4-testsuite"]],
+"conflict": ["samba-tools"]
+},
+{
+"name": "winbind4",
+"depend": [["samba4 (x 4)"], ["winbind4"]],
+"conflict": ["winbind (x 4)"]
+},
+{
+"name": "libsane-dev",
+"depend": [["libtiff4-dev (x 29)"], ["libgd2-xpm (x 108)"]],
+"conflict": []
+},
+{
+"name": "scalable-cyrfonts-tex",
+"depend": [["scalable-cyrfonts-tex"]],
+"conflict": ["texlive-fonts-extra (x 5)"]
+},
+{
+"name": "scid-rating-data",
+"depend": [["scid-rating-data"]],
+"conflict": ["scid-spell-data"]
+},
+{
+"name": "scid-spell-data",
+"depend": [["scid-spell-data"]],
+"conflict": ["scid-rating-data"]
+},
+{
+"name": "sdcc-doc",
+"depend": [["sdcc-doc"]],
+"conflict": ["cc1111"]
+},
+{
+"name": "sdcc-libraries (x 2)",
+"depend": [["sdcc-libraries (x 2)"]],
+"conflict": ["cc1111"]
+},
+{
+"name": "sdcc-ucsim",
+"depend": [["sdcc-ucsim"]],
+"conflict": ["cc1111"]
+},
+{
+"name": "semi",
+"depend": [["semi"], ["libasound2 (x 2329)"]],
+"conflict": ["vm (x 2)"]
+},
+{
+"name": "rmail",
+"depend": [["rmail"]],
+"conflict": ["courier-mta (x 4)", "exim4-daemon-heavy (x 2)", "exim4-daemon-light (x 2)", "masqmail", "postfix (x 13)"]
+},
+{
+"name": "sendmail-bin (x 3)",
+"depend": [["sendmail-bin (x 3)"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-config (x 4)", "harden-servers (x 2)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "ssmtp", "xmail"]
+},
+{
+"name": "shorewall (x 2)",
+"depend": [["shorewall (x 2)"]],
+"conflict": ["fiaif", "uif"]
+},
+{
+"name": "shorewall-init",
+"depend": [["shorewall (x 2)", "shorewall-lite", "shorewall6-lite"]],
+"conflict": []
+},
+{
+"name": "shorewall-lite",
+"depend": [["shorewall-lite"]],
+"conflict": ["ferm", "filtergen", "uif"]
+},
+{
+"name": "shorewall6-lite",
+"depend": [["shorewall6-lite"]],
+"conflict": ["ferm", "filtergen", "uif"]
+},
+{
+"name": "sinfo",
+"depend": [["sinfo"]],
+"conflict": ["slurm-llnl (x 2)"]
+},
+{
+"name": "skksearch",
+"depend": [["skksearch"]],
+"conflict": ["dbskkd-cdb", "yaskkserv"]
+},
+{
+"name": "slim",
+"depend": [["slim"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "slurm-llnl (x 2)",
+"depend": [["slurm-llnl (x 2)"]],
+"conflict": ["sinfo"]
+},
+{
+"name": "slurm-llnl-torque",
+"depend": [["slurm-llnl-torque"], ["slurm-llnl (x 2)"]],
+"conflict": ["gridengine-client", "torque-client", "torque-client-x11"]
+},
+{
+"name": "smcroute",
+"depend": [["smcroute"]],
+"conflict": ["pimd"]
+},
+{
+"name": "smstools",
+"depend": [["smstools"]],
+"conflict": ["gnokii-smsd (x 3)"]
+},
+{
+"name": "sn",
+"depend": [["sn"]],
+"conflict": ["cyrus-nntpd-2.4 (x 3)", "inn (x 2)", "inn2", "leafnode"]
+},
+{
+"name": "libsnack2 (x 2)",
+"depend": [["libsnack2 (x 2)"]],
+"conflict": ["libsnack2-alsa"]
+},
+{
+"name": "libsnack2-alsa",
+"depend": [["libsnack2-alsa"], ["libasound2 (x 2329)"]],
+"conflict": ["libsnack2 (x 2)"]
+},
+{
+"name": "snd-gtk",
+"depend": [["snd-gtk-jack", "snd-gtk-pulse"]],
+"conflict": []
+},
+{
+"name": "snd-gtk-jack",
+"depend": [["snd-gtk-jack"]],
+"conflict": ["snd-gtk-pulse", "snd-nox (x 2)"]
+},
+{
+"name": "snd-gtk-pulse",
+"depend": [["snd-gtk-pulse"]],
+"conflict": ["snd-gtk-jack", "snd-nox (x 2)"]
+},
+{
+"name": "snd-nox (x 2)",
+"depend": [["snd-nox (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["snd-gtk-jack", "snd-gtk-pulse"]
+},
+{
+"name": "snort",
+"depend": [["snort"]],
+"conflict": ["snort-mysql", "snort-pgsql"]
+},
+{
+"name": "snort-mysql",
+"depend": [["snort-mysql"]],
+"conflict": ["snort", "snort-pgsql"]
+},
+{
+"name": "snort-pgsql",
+"depend": [["snort-pgsql"]],
+"conflict": ["snort", "snort-mysql"]
+},
+{
+"name": "socklog-run",
+"depend": [["socklog-run"], ["runit (x 3)"]],
+"conflict": ["busybox-syslogd", "dsyslog (x 5)", "inetutils-syslogd", "rsyslog (x 6)", "syslog-ng-core (x 6)"]
+},
+{
+"name": "solid-pop3d",
+"depend": [["solid-pop3d"]],
+"conflict": ["citadel-server (x 2)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "heimdal-servers (x 2)", "mailutils-pop3d", "popa3d", "xmail"]
+},
+{
+"name": "libsope-dev",
+"depend": [["libsope-dev"]],
+"conflict": ["libgnustep-dl2-dev"]
+},
+{
+"name": "libsoqt4-dev",
+"depend": [["libcoin60-dev"], ["libgl1-mesa-glx (x 108)"]],
+"conflict": []
+},
+{
+"name": "sslh",
+"depend": [["sslh"]],
+"conflict": ["libnet-proxy-perl"]
+},
+{
+"name": "ssmtp",
+"depend": [["ssmtp"]],
+"conflict": ["citadel-mta (x 2)", "courier-mta (x 4)", "esmtp-run", "exim4-config (x 4)", "lsb-invalid-mta", "masqmail", "msmtp-mta", "nullmailer", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "xmail"]
+},
+{
+"name": "stardict-gnome",
+"depend": [["stardict-gnome"], ["libasound2 (x 2329)"]],
+"conflict": ["stardict-gtk"]
+},
+{
+"name": "stardict-gtk",
+"depend": [["stardict-gtk"]],
+"conflict": ["stardict-gnome"]
+},
+{
+"name": "startupmanager",
+"depend": [["libasound2 (x 2329)"], ["grub-legacy (x 2)", "grub-pc (x 3)"]],
+"conflict": []
+},
+{
+"name": "strongswan (x 2)",
+"depend": [["strongswan-ikev2 (x 2)"], ["strongswan-ikev1"]],
+"conflict": []
+},
+{
+"name": "strongswan-ikev1",
+"depend": [["strongswan-ikev1"]],
+"conflict": ["racoon (x 3)", "openswan (x 5)"]
+},
+{
+"name": "strongswan-ikev2 (x 2)",
+"depend": [["strongswan-ikev2 (x 2)"]],
+"conflict": ["racoon (x 3)", "openswan (x 5)"]
+},
+{
+"name": "strongswan-starter",
+"depend": [["strongswan-ikev1", "strongswan-ikev2 (x 2)"]],
+"conflict": []
+},
+{
+"name": "subversion-tools",
+"depend": [["subversion-tools"]],
+"conflict": ["svn2cl"]
+},
+{
+"name": "sudo",
+"depend": [["sudo"]],
+"conflict": ["sudo-ldap"]
+},
+{
+"name": "sudo-ldap",
+"depend": [["sudo-ldap"]],
+"conflict": ["sudo"]
+},
+{
+"name": "python-jarabe-0.96 (x 4)",
+"depend": [["libasound2 (x 2329)"], ["python-cjson (x 2)"], ["python-sugar-0.96 (x 2)"]],
+"conflict": []
+},
+{
+"name": "sucrose-0.96",
+"depend": [["python-sugar-0.96 (x 2)"], ["sugar-artwork-0.96"], ["libasound2 (x 2329)"], ["gdb (x 14)"], ["python-cjson (x 2)"]],
+"conflict": []
+},
+{
+"name": "sugar-emulator-0.96 (x 2)",
+"depend": [["libasound2 (x 2329)"], ["python-cjson (x 2)"], ["sugar-artwork-0.96"], ["python-sugar-0.96 (x 2)"]],
+"conflict": []
+},
+{
+"name": "sugar-artwork-0.84",
+"depend": [["sugar-artwork-0.84"]],
+"conflict": ["sugar-artwork-0.88", "sugar-artwork-0.96"]
+},
+{
+"name": "sugar-artwork-0.88",
+"depend": [["sugar-artwork-0.88"]],
+"conflict": ["sugar-artwork-0.84", "sugar-artwork-0.96"]
+},
+{
+"name": "sugar-artwork-0.96",
+"depend": [["sugar-artwork-0.96"]],
+"conflict": ["sugar-artwork-0.84", "sugar-artwork-0.88"]
+},
+{
+"name": "python-sugar-0.84 (x 2)",
+"depend": [["python-sugar-0.84 (x 2)"]],
+"conflict": ["python-sugar-0.88 (x 2)", "python-sugar-0.96 (x 2)"]
+},
+{
+"name": "python-sugar-0.88 (x 2)",
+"depend": [["python-sugar-0.88 (x 2)"]],
+"conflict": ["python-sugar-0.84 (x 2)", "python-sugar-0.96 (x 2)"]
+},
+{
+"name": "python-sugar-0.96 (x 2)",
+"depend": [["python-sugar-0.96 (x 2)"]],
+"conflict": ["python-sugar-0.84 (x 2)", "python-sugar-0.88 (x 2)"]
+},
+{
+"name": "sugar-calculate-activity (x 10)",
+"depend": [["libasound2 (x 2329)"], ["python-cjson (x 2)"]],
+"conflict": []
+},
+{
+"name": "sugar-presence-service-0.84 (x 2)",
+"depend": [["python-cjson (x 2)"], ["libasound2 (x 2329)"], ["python-sugar-0.84 (x 2)"]],
+"conflict": []
+},
+{
+"name": "sugar-presence-service-0.88 (x 2)",
+"depend": [["python-sugar-0.88 (x 2)"], ["libasound2 (x 2329)"], ["python-cjson (x 2)"]],
+"conflict": []
+},
+{
+"name": "sugar-write-activity-0.86",
+"depend": [["python-cjson (x 2)"], ["libasound2 (x 2329)"], ["python-sugar-0.88 (x 2)", "python-sugar-0.96 (x 2)"]],
+"conflict": []
+},
+{
+"name": "libapache2-mod-suphp",
+"depend": [["libapache2-mod-suphp"]],
+"conflict": ["libapache2-mod-ruid2"]
+},
+{
+"name": "svn2cl",
+"depend": [["svn2cl"]],
+"conflict": ["subversion-tools"]
+},
+{
+"name": "synce-hal (x 2)",
+"depend": [["synce-hal (x 2)"]],
+"conflict": ["synce-serial"]
+},
+{
+"name": "synce-serial",
+"depend": [["synce-serial"]],
+"conflict": ["synce-hal (x 2)"]
+},
+{
+"name": "libsyslog-ng-dev",
+"depend": [["bison (x 2)"], ["libsyslog-ng-dev"], ["flex"]],
+"conflict": ["libivykis-dev"]
+},
+{
+"name": "syslog-ng-core (x 6)",
+"depend": [["syslog-ng-core (x 6)"]],
+"conflict": ["busybox-syslogd", "dsyslog (x 5)", "inetutils-syslogd", "rsyslog (x 6)", "socklog-run"]
+},
+{
+"name": "systemd (x 3)",
+"depend": [["systemd (x 3)"]],
+"conflict": ["busybox-syslogd"]
+},
+{
+"name": "systemd-sysv",
+"depend": [["systemd-sysv"], ["systemd (x 3)"]],
+"conflict": ["sysvinit", "upstart"]
+},
+{
+"name": "sysv-rc (x 4)",
+"depend": [["sysv-rc (x 4)"]],
+"conflict": ["file-rc"]
+},
+{
+"name": "sysvinit",
+"depend": [["sysvinit"]],
+"conflict": ["systemd-sysv", "upstart"]
+},
+{
+"name": "libtag1-rusxmms",
+"depend": [["libtag1-rusxmms"]],
+"conflict": ["libtag1-vanilla"]
+},
+{
+"name": "libtag1-vanilla",
+"depend": [["libtag1-vanilla"]],
+"conflict": ["libtag1-rusxmms"]
+},
+{
+"name": "task-kde-desktop",
+"depend": [["kdm (x 2)"], ["libgps20 (x 14)"]],
+"conflict": []
+},
+{
+"name": "task-lxde-desktop",
+"depend": [["libasound2 (x 2329)"], ["lightdm (x 2)"]],
+"conflict": []
+},
+{
+"name": "tcl8.4-doc",
+"depend": [["tcl8.4-doc"]],
+"conflict": ["tcl8.5-doc"]
+},
+{
+"name": "tcl8.5-doc",
+"depend": [["tcl8.5-doc"]],
+"conflict": ["tcl8.4-doc"]
+},
+{
+"name": "initramfs-tools-tcos (x 4)",
+"depend": [["initramfs-tools (x 9)"], ["libasound2 (x 2329)"]],
+"conflict": []
+},
+{
+"name": "tcos-tftp-dhcp",
+"depend": [["isc-dhcp-server (x 3)"], ["atftpd"]],
+"conflict": []
+},
+{
+"name": "texlive-full",
+"depend": [["lcdf-typetools"], ["texlive-fonts-extra (x 5)"], ["texlive-lang-cjk (x 4)"]],
+"conflict": []
+},
+{
+"name": "texlive-binaries (x 180)",
+"depend": [["texlive-binaries (x 180)"]],
+"conflict": ["makejvf", "mendexk"]
+},
+{
+"name": "texlive-fonts-extra (x 5)",
+"depend": [["texlive-fonts-extra (x 5)"], ["texlive-binaries (x 180)"]],
+"conflict": ["scalable-cyrfonts-tex"]
+},
+{
+"name": "texlive-lang-cjk (x 4)",
+"depend": [["texlive-lang-cjk (x 4)"], ["texlive-binaries (x 180)"]],
+"conflict": ["ptex-base"]
+},
+{
+"name": "texmacs",
+"depend": [["texlive-binaries (x 180)"], ["texmacs-common"]],
+"conflict": []
+},
+{
+"name": "texmacs-common",
+"depend": [["texmacs-common"]],
+"conflict": ["texmacs-extra-fonts"]
+},
+{
+"name": "texmacs-extra-fonts",
+"depend": [["texmacs-extra-fonts"]],
+"conflict": ["texmacs-common"]
+},
+{
+"name": "tftp-hpa",
+"depend": [["tftp-hpa"]],
+"conflict": ["tftp"]
+},
+{
+"name": "tftpd-hpa",
+"depend": [["tftpd-hpa"]],
+"conflict": ["atftpd", "tftpd"]
+},
+{
+"name": "libtiff5-alt-dev",
+"depend": [["libtiff5-alt-dev"], ["libjpeg8-dev (x 9)"]],
+"conflict": ["libtiff5-dev (x 3)"]
+},
+{
+"name": "libtiff5-dev (x 3)",
+"depend": [["libtiff5-dev (x 3)"], ["libjpeg8-dev (x 9)"]],
+"conflict": ["libtiff5-alt-dev", "libtiff4-dev (x 29)"]
+},
+{
+"name": "libtiff4-dev (x 29)",
+"depend": [["libtiff4-dev (x 29)"], ["libjpeg8-dev (x 9)"]],
+"conflict": ["libtiff5-dev (x 3)"]
+},
+{
+"name": "libcdb-dev",
+"depend": [["libcdb-dev"]],
+"conflict": ["libowfat-dev"]
+},
+{
+"name": "tk8.4-doc",
+"depend": [["tk8.4-doc"]],
+"conflict": ["tk8.5-doc"]
+},
+{
+"name": "tk8.5-doc",
+"depend": [["tk8.5-doc"]],
+"conflict": ["tk8.4-doc"]
+},
+{
+"name": "libtcnative-1",
+"depend": [["libtcnative-1"]],
+"conflict": ["libtomcatjss-java"]
+},
+{
+"name": "libtomcat6-java (x 10)",
+"depend": [["libtomcat6-java (x 10)"]],
+"conflict": ["libtomcat7-java (x 9)"]
+},
+{
+"name": "tomcat6 (x 2)",
+"depend": [["tomcat6 (x 2)"], ["libtomcat6-java (x 10)"]],
+"conflict": ["jenkins"]
+},
+{
+"name": "libtomcat7-java (x 9)",
+"depend": [["libtomcat7-java (x 9)"]],
+"conflict": ["libtomcat6-java (x 10)"]
+},
+{
+"name": "libtomcatjss-java",
+"depend": [["libtomcatjss-java"], ["libtomcat6-java (x 10)"]],
+"conflict": ["libtcnative-1"]
+},
+{
+"name": "torque-client",
+"depend": [["torque-client"]],
+"conflict": ["gridengine-client", "qterm", "slurm-llnl-torque", "torque-client-x11"]
+},
+{
+"name": "torque-client-x11",
+"depend": [["torque-client-x11"]],
+"conflict": ["gridengine-client", "qterm", "slurm-llnl-torque", "torque-client"]
+},
+{
+"name": "torrus-apache2",
+"depend": [["torrus-apache2"]],
+"conflict": ["apache2-mpm-event", "apache2-mpm-worker"]
+},
+{
+"name": "twoftpd-run",
+"depend": [["twoftpd-run"], ["runit (x 3)"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "vsftpd", "wzdftpd (x 7)"]
+},
+{
+"name": "ucspi-tcp",
+"depend": [["ucspi-tcp"]],
+"conflict": ["ucspi-tcp-ipv6"]
+},
+{
+"name": "ucspi-tcp-ipv6",
+"depend": [["ucspi-tcp-ipv6"]],
+"conflict": ["ucspi-tcp"]
+},
+{
+"name": "ucspi-unix",
+"depend": [["ucspi-unix"]],
+"conflict": ["check-mk-livestatus"]
+},
+{
+"name": "libudt-dev",
+"depend": [["libudt-dev"]],
+"conflict": ["libowfat-dev"]
+},
+{
+"name": "gimp-ufraw",
+"depend": [["gimp-ufraw"], ["libasound2 (x 2329)"]],
+"conflict": ["gimp-dcraw"]
+},
+{
+"name": "uicilibris",
+"depend": [["evince (x 2)"], ["texlive-binaries (x 180)"]],
+"conflict": []
+},
+{
+"name": "uif",
+"depend": [["uif"]],
+"conflict": ["fiaif", "shorewall (x 2)", "shorewall-lite", "shorewall6-lite"]
+},
+{
+"name": "uim-qt3",
+"depend": [["uim-qt3"]],
+"conflict": ["qgis (x 2)"]
+},
+{
+"name": "unixodbc-dev (x 12)",
+"depend": [["unixodbc-dev (x 12)"]],
+"conflict": ["libiodbc2-dev"]
+},
+{
+"name": "unscd",
+"depend": [["unscd"]],
+"conflict": ["nscd"]
+},
+{
+"name": "upstart",
+"depend": [["upstart"], ["sysv-rc (x 4)"]],
+"conflict": ["systemd-sysv", "sysvinit"]
+},
+{
+"name": "urjtag",
+"depend": [["urjtag"]],
+"conflict": ["openwince-jtag"]
+},
+{
+"name": "uucpsend",
+"depend": [["inn (x 2)"], ["cron (x 5)"]],
+"conflict": []
+},
+{
+"name": "libapache2-mod-ruwsgi (x 2)",
+"depend": [["libapache2-mod-ruwsgi (x 2)"]],
+"conflict": ["libapache2-mod-uwsgi (x 2)"]
+},
+{
+"name": "libapache2-mod-uwsgi (x 2)",
+"depend": [["libapache2-mod-uwsgi (x 2)"]],
+"conflict": ["libapache2-mod-ruwsgi (x 2)"]
+},
+{
+"name": "libvips-dev",
+"depend": [["libmagickcore-dev (x 5)"], ["libtiff5-alt-dev"]],
+"conflict": []
+},
+{
+"name": "vm (x 2)",
+"depend": [["vm (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["semi"]
+},
+{
+"name": "vsftpd",
+"depend": [["vsftpd"]],
+"conflict": ["harden-servers (x 2)", "heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "wzdftpd (x 7)"]
+},
+{
+"name": "w3c-dtd-xhtml (x 2)",
+"depend": [["w3c-dtd-xhtml (x 2)"]],
+"conflict": ["w3c-sgml-lib (x 2)"]
+},
+{
+"name": "w3c-sgml-lib (x 2)",
+"depend": [["w3c-sgml-lib (x 2)"]],
+"conflict": ["w3c-dtd-xhtml (x 2)"]
+},
+{
+"name": "w3m-el",
+"depend": [["w3m-el"], ["libasound2 (x 2329)"]],
+"conflict": ["w3m-el-snapshot (x 2)"]
+},
+{
+"name": "w3m-el-snapshot (x 2)",
+"depend": [["w3m-el-snapshot (x 2)"], ["libasound2 (x 2329)"]],
+"conflict": ["w3m-el"]
+},
+{
+"name": "wader-core",
+"depend": [["wader-core"]],
+"conflict": ["modemmanager (x 2)"]
+},
+{
+"name": "wdm",
+"depend": [["wdm"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "xul-ext-webdeveloper",
+"depend": [["xul-ext-webdeveloper"], ["libasound2 (x 2329)"]],
+"conflict": ["iceape (x 28)"]
+},
+{
+"name": "wl",
+"depend": [["semi"], ["wl"]],
+"conflict": ["wl-beta"]
+},
+{
+"name": "wl-beta",
+"depend": [["semi"], ["wl-beta"]],
+"conflict": ["wl"]
+},
+{
+"name": "wmnd",
+"depend": [["wmnd"]],
+"conflict": ["wmnd-snmp"]
+},
+{
+"name": "wmnd-snmp",
+"depend": [["wmnd-snmp"]],
+"conflict": ["wmnd"]
+},
+{
+"name": "libwnn6-dev",
+"depend": [["libwnn6-dev"]],
+"conflict": ["libwnn-dev"]
+},
+{
+"name": "xul-ext-wot",
+"depend": [["xul-ext-wot"], ["libasound2 (x 2329)"]],
+"conflict": ["iceape (x 28)"]
+},
+{
+"name": "wzdftpd (x 7)",
+"depend": [["wzdftpd (x 7)"]],
+"conflict": ["heimdal-servers (x 2)", "inetutils-ftpd", "krb5-ftpd", "ftpd", "ftpd-ssl", "muddleftpd", "proftpd-basic (x 20)", "pure-ftpd", "pure-ftpd-ldap", "pure-ftpd-mysql", "pure-ftpd-postgresql", "twoftpd-run", "vsftpd"]
+},
+{
+"name": "x2vnc",
+"depend": [["x2vnc"]],
+"conflict": ["harden-clients"]
+},
+{
+"name": "xabacus",
+"depend": [["xabacus"], ["libasound2 (x 2329)"]],
+"conflict": ["xmabacus"]
+},
+{
+"name": "xmabacus",
+"depend": [["xmabacus"], ["libasound2 (x 2329)"]],
+"conflict": ["xabacus"]
+},
+{
+"name": "php5-xcache",
+"depend": [["php5-xcache"]],
+"conflict": ["php-apc"]
+},
+{
+"name": "libxdb-dev",
+"depend": [["libxdb-dev"]],
+"conflict": ["libxbase2.0-bin", "dvb-apps (x 2)"]
+},
+{
+"name": "xdm",
+"depend": [["xdm"]],
+"conflict": ["gpe-login"]
+},
+{
+"name": "xenomai-runtime",
+"depend": [["xenomai-runtime"]],
+"conflict": ["rt-tests"]
+},
+{
+"name": "libxerces-c-dev (x 3)",
+"depend": [["libxerces-c-dev (x 3)"]],
+"conflict": ["libxerces-c2-dev (x 2)"]
+},
+{
+"name": "libxerces-c2-dev (x 2)",
+"depend": [["libxerces-c2-dev (x 2)"]],
+"conflict": ["libxerces-c-dev (x 3)"]
+},
+{
+"name": "xserver-xorg-input-mtrack",
+"depend": [["xserver-xorg-input-mtrack"]],
+"conflict": ["xserver-xorg-input-multitouch"]
+},
+{
+"name": "xserver-xorg-input-multitouch",
+"depend": [["xserver-xorg-input-multitouch"]],
+"conflict": ["xserver-xorg-input-mtrack"]
+},
+{
+"name": "xfingerd",
+"depend": [["xfingerd"]],
+"conflict": ["fingerd", "cfingerd", "efingerd", "harden-servers (x 2)"]
+},
+{
+"name": "libxine-dev",
+"depend": [["libxine-dev"]],
+"conflict": ["libxine2-dev"]
+},
+{
+"name": "libxine1-doc",
+"depend": [["libxine1-doc"]],
+"conflict": ["libxine2-doc"]
+},
+{
+"name": "libxine2-dev",
+"depend": [["libxine2-dev"]],
+"conflict": ["libxine-dev"]
+},
+{
+"name": "libxine2-doc",
+"depend": [["libxine2-doc"]],
+"conflict": ["libxine1-doc"]
+},
+{
+"name": "xinetd",
+"depend": [["xinetd"]],
+"conflict": ["inetutils-inetd", "openbsd-inetd (x 2)", "rlinetd"]
+},
+{
+"name": "xmail",
+"depend": [["xmail"]],
+"conflict": ["cfingerd", "citadel-server (x 2)", "courier-mta (x 4)", "courier-pop (x 2)", "cyrus-pop3d-2.4 (x 3)", "dovecot-pop3d", "esmtp-run", "exim4-config (x 4)", "heimdal-servers (x 2)", "lsb", "lsb-invalid-mta", "mailutils-pop3d", "masqmail", "msmtp-mta", "nullmailer", "popa3d", "postfix (x 13)", "qmail-run", "sendmail-bin (x 3)", "solid-pop3d", "ssmtp"]
+},
+{
+"name": "xmakemol",
+"depend": [["xmakemol"]],
+"conflict": ["xmakemol-gl"]
+},
+{
+"name": "xmakemol-gl",
+"depend": [["xmakemol-gl"]],
+"conflict": ["xmakemol"]
+},
+{
+"name": "xmpuzzles",
+"depend": [["xmpuzzles"], ["libasound2 (x 2329)"]],
+"conflict": ["xpuzzles"]
+},
+{
+"name": "xpuzzles",
+"depend": [["xpuzzles"], ["libasound2 (x 2329)"]],
+"conflict": ["xmpuzzles"]
+},
+{
+"name": "xtell",
+"depend": [["xtell"]],
+"conflict": ["orville-write"]
+},
+{
+"name": "yagiuda",
+"depend": [["yagiuda"]],
+"conflict": ["psi3"]
+},
+{
+"name": "yardradius",
+"depend": [["yardradius"]],
+"conflict": ["freeradius-common (x 8)", "radiusd-livingston", "radsecproxy"]
+},
+{
+"name": "yaskkserv",
+"depend": [["yaskkserv"]],
+"conflict": ["dbskkd-cdb", "skksearch"]
+},
+{
+"name": "ytalk",
+"depend": [["inetutils-talkd", "talkd"]],
+"conflict": []
+},
+{
+"name": "libzephyr4",
+"depend": [["libzephyr4"]],
+"conflict": ["libzephyr4-krb5"]
+},
+{
+"name": "libzephyr4-krb5",
+"depend": [["libzephyr4-krb5"]],
+"conflict": ["libzephyr4"]
+},
+{
+"name": "zephyr-server",
+"depend": [["zephyr-server"]],
+"conflict": ["zephyr-server-krb5"]
+},
+{
+"name": "zephyr-server-krb5",
+"depend": [["zephyr-server-krb5"], ["libzephyr4-krb5"]],
+"conflict": ["zephyr-server"]
+},
+{
+"name": "zoneminder",
+"depend": [["libasound2 (x 2329)"], ["libapache2-mod-php5 (x 5)"], ["php5-mysql (x 16)"]],
+"conflict": []
+},
+{
+"name": "libzookeeper-mt-dev",
+"depend": [["libzookeeper-mt-dev"]],
+"conflict": ["libzookeeper-st-dev"]
+},
+{
+"name": "libzookeeper-st-dev",
+"depend": [["libzookeeper-st-dev"]],
+"conflict": ["libzookeeper-mt-dev"]
+}]
