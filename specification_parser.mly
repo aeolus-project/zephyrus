@@ -23,48 +23,57 @@
 
 %%
 main:
-    specification EOF       { $1 }
+  specification EOF { $1 }
 ;
 
 spec_const:
-  INT     { $1 }
+  | INT                      { $1 }
+  | LPAREN spec_const RPAREN { $2 }
 
 spec_variable_name:
-  VAR_NAME  { $1 }
+  | VAR_NAME                         { $1 }
+  | LPAREN spec_variable_name RPAREN { $2 }
 
 component_type_name:
-  COMPONENT_TYPE_NAME  { $1 }
+  | COMPONENT_TYPE_NAME               { $1 }
+  | LPAREN component_type_name RPAREN { $2 }
 
 port_name:
-  PORT_NAME  { $1 }
+  | PORT_NAME               { $1 }
+  | LPAREN port_name RPAREN { $2 }
 
 package_name:
-  PACKAGE_NAME  { $1 }
+  | PACKAGE_NAME               { $1 }
+  | LPAREN package_name RPAREN { $2 }
 
 repository_name:
-  REPOSITORY_NAME  { $1 }
+  | REPOSITORY_NAME               { $1 }
+  | LPAREN repository_name RPAREN { $2 }
 
 resource_name:
-  RESOURCE_NAME  { $1 }
+  | RESOURCE_NAME               { $1 }
+  | LPAREN resource_name RPAREN { $2 }
 
 
 specification:
-    TRUE                             { `SpecTrue              }
+  | TRUE                             { `SpecTrue              }
   | spec_expr spec_op spec_expr      { `SpecOp   ($1, $2, $3) }
   | specification AND  specification { `SpecAnd  ($1, $3)     }
   | specification OR   specification { `SpecOr   ($1, $3)     }
   | specification IMPL specification { `SpecImpl ($1, $3)     }
   | NOT specification                { `SpecNot  ($2)         }
+  | LPAREN specification RPAREN      { $2 }
 
 
 spec_expr:
-    spec_variable_name          { `SpecExprVar   ($1) }
+  | spec_variable_name          { `SpecExprVar   ($1) }
   | spec_const                  { `SpecExprConst ($1) }
   | HASH spec_element           { `SpecExprArity ($2) }
   | spec_const TIMES spec_expr  { `SpecExprMul ($1, $3) }
   | spec_expr  TIMES spec_const { `SpecExprMul ($3, $1) }
   | spec_expr  PLUS  spec_expr  { `SpecExprAdd ($1, $3) }
   | spec_expr  MINUS spec_expr  { `SpecExprSub ($1, $3) }
+  | LPAREN spec_expr RPAREN     { $2 }
 
 spec_element:
   | package_name        { `SpecElementPackage       ($1) }
@@ -73,47 +82,52 @@ spec_element:
   | LPAREN spec_resource_constraints RPAREN 
     LCURLY spec_repository_constraints COLON local_specification RCURLY
      { `SpecElementLocalisation ($2, $5, $7) }
+  | LPAREN spec_element RPAREN { $2 }
 
 local_specification:
-    TRUE                                         { `SpecLocalTrue              }
+  | TRUE                                         { `SpecLocalTrue              }
   | spec_local_expr spec_op spec_local_expr      { `SpecLocalOp   ($1, $2, $3) }
   | local_specification AND  local_specification { `SpecLocalAnd  ($1, $3)     }
   | local_specification OR   local_specification { `SpecLocalOr   ($1, $3)     }
   | local_specification IMPL local_specification { `SpecLocalImpl ($1, $3)     }
   | NOT local_specification                      { `SpecLocalNot  ($2)         }
+  | LPAREN local_specification RPAREN            { $2 }
 
 spec_local_expr:
-    spec_variable_name                      { `SpecLocalExprVar   ($1) }
+  | spec_variable_name                      { `SpecLocalExprVar   ($1) }
   | spec_const                              { `SpecLocalExprConst ($1) }
   | HASH spec_local_element                 { `SpecLocalExprArity ($2) }
   | spec_const      TIMES spec_local_expr   { `SpecLocalExprMul ($1, $3) }
   | spec_local_expr TIMES spec_const        { `SpecLocalExprMul ($3, $1) }
   | spec_local_expr PLUS  spec_local_expr   { `SpecLocalExprAdd ($1, $3) }
   | spec_local_expr MINUS spec_local_expr   { `SpecLocalExprSub ($1, $3) }
+  | LPAREN spec_local_expr RPAREN           { $2 }
 
 spec_local_element:
   | package_name        { `SpecLocalElementPackage       ($1) }
   | component_type_name { `SpecLocalElementComponentType ($1) }
   | port_name           { `SpecLocalElementPort          ($1) }
+  | LPAREN spec_local_element RPAREN { $2 }
 
 spec_resource_constraints:
-    UNDERSCORE                                                     { [] }
+  | UNDERSCORE                                                     { [] }
   | spec_resource_constraint SEMICOLON spec_resource_constraints   { ($1) :: ($3) }
 
 spec_resource_constraint:
-    resource_name spec_op spec_const   { ($1, $2, $3) }
+  | resource_name spec_op spec_const   { ($1, $2, $3) }
+  | LPAREN spec_resource_constraint RPAREN { $2 }
 
 spec_repository_constraints:
-    spec_repository_constraint                                 { [$1] }
+  | spec_repository_constraint                                 { [$1] }
   | spec_repository_constraint OR spec_repository_constraints  { $1 :: $3 }
 
 spec_repository_constraint:
     repository_name { $1 }
 
 spec_op:
-    LT     { `Lt  }
-  | LEQ    { `LEq }
-  | EQ     { `Eq  }
-  | GEQ    { `GEq }
-  | GT     { `Gt  }
-  | NEQ    { `NEq }
+  | LT  { `Lt  }
+  | LEQ { `LEq }
+  | EQ  { `Eq  }
+  | GEQ { `GEq }
+  | GT  { `Gt  }
+  | NEQ { `NEq }

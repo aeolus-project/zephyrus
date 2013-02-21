@@ -8,8 +8,8 @@ include Atdgen.mk
 SOURCES = \
 helpers.mli helpers.ml\
 aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
-specification_parser.mly specification_lexer.mll\
 aeolus_types_output_facade.ml configuration_output_facade.ml\
+universe_input_facade.ml specification_input_facade.ml configuration_input_facade.ml\
 typing_context.mli                    typing_context.ml\
 variable_keys.mli                     variable_keys.ml\
 solution.mli                          solution.ml\
@@ -26,7 +26,7 @@ constraints.ml\
 configuration_generation.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
-universe_input_facade.ml specification_input_facade.ml configuration_input_facade.ml\
+specification_parser.mly specification_lexer.mll\
 gentlewestwind.ml
 
 RESULT = gentlewestwind

@@ -1,0 +1,19 @@
+{
+	"component_types": [
+		{ "name": "apache" },
+		{ "name": "component_type_1" },
+		{ "name": "component_type_2" }
+	],
+	"implementation": [],
+	"repositories": [
+		{
+			"name": "redhat",
+			"packages": [
+				{ "name": "package_name_1" },
+				{ "name": "package_name_2" },
+				{ "name": "package_name_3" },
+				{ "name": "package_name_4" }
+			]
+		}
+	]
+}

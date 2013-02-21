@@ -38,6 +38,7 @@ let import_repository_names      = ref []
 let import_repository_filenames  = ref []
 
 let raw_specification            = ref false
+let only_check_spec              = ref false
 
 (* printing settings *)
 let print_u                      = ref false
@@ -71,6 +72,7 @@ let speclist =
     ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
     ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
     ("-raw-spec",   Arg.Set (raw_specification),                                                       " aaa");
+    ("-spec-check", Arg.Set (only_check_spec),                                                         " aaa");
     
     ("-repo",       Arg.Tuple 
                     (
@@ -196,24 +198,28 @@ let my_universe =
 let my_initial_configuration =
   MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
+
+let specification_string = string_of_input_channel !specification_channel
+
 let my_specification =
   if (!raw_specification)
   then 
-    MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
+    MySpecificationInput.specification_of_string specification_string
   else
     (
-      Specification_lexer.component_type_names := get_component_type_names my_universe;
-      Specification_lexer.port_names           := get_port_names my_universe;
-      Specification_lexer.package_names        := get_package_names my_universe;
-      Specification_lexer.repository_names     := get_repository_names my_universe;
-      Specification_lexer.resource_names       := get_resource_names my_universe;
-      Specification_lexer.initialize_names_table ();
-      let lexbuf = Lexing.from_channel !specification_channel in
-      Specification_parser.main Specification_lexer.token lexbuf
-      (*
-      Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification result));
-      exit 0;
-      *)
+      Specification_lexer.initialize_names_table my_universe;
+      let lexbuf = Lexing.from_string specification_string in
+      let specification = Specification_parser.main Specification_lexer.token lexbuf in
+      
+      if !only_check_spec 
+      then
+        begin
+          Printf.printf "%s\n\n" specification_string;
+          Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification specification));
+          exit 0;
+        end;
+      
+      specification
     )
     
 
@@ -239,7 +245,13 @@ let () =
   if(!print_spec)
   then (
     Printf.printf "\n===> THE SPECIFICATION <===\n\n";
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
+
+    if(not !raw_specification)
+    then begin 
+      Printf.printf "> Unparsed specification:\n\n%s\n\n" specification_string;
+    end;
+
+    Printf.printf "> Parsed specification:\n\n%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
   )
 
 
