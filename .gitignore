@@ -15,3 +15,6 @@
 *.di
 *.sublime-*
 gentlewestwind
+specification_lexer.ml
+specification_parser.ml
+specification_parser.mli

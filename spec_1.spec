@@ -1,1 +1,1 @@
- #t$requirer >= 1 and v$specification-variable = 5
+ #requirer >= 1 and specification-variable = 5

@@ -202,6 +202,12 @@ let my_specification =
     MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
   else
     (
+      Specification_lexer.component_type_names := get_component_type_names my_universe;
+      Specification_lexer.port_names           := get_port_names my_universe;
+      Specification_lexer.package_names        := get_package_names my_universe;
+      Specification_lexer.repository_names     := get_repository_names my_universe;
+      Specification_lexer.resource_names       := get_resource_names my_universe;
+      Specification_lexer.initialize_names_table ();
       let lexbuf = Lexing.from_channel !specification_channel in
       Specification_parser.main Specification_lexer.token lexbuf
       (*
