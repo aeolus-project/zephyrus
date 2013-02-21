@@ -12,7 +12,7 @@
 		[
 			"SpecOp", 
 			[
-				[ "SpecExprVar", "specification variable" ],
+				[ "SpecExprVar", "specification-variable" ],
 				"Eq",
 				[ "SpecExprConst", 5 ]
 			]

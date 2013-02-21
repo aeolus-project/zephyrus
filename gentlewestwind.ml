@@ -34,8 +34,10 @@ let output_channel                = ref stdout
 let output_format_string         = ref "plain"
 let optimization_function_string = ref "simple"
 
-let import_repository_names     = ref []
-let import_repository_filenames = ref []
+let import_repository_names      = ref []
+let import_repository_filenames  = ref []
+
+let raw_specification            = ref false
 
 (* printing settings *)
 let print_u                      = ref false
@@ -68,6 +70,7 @@ let speclist =
     ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
     ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
     ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
+    ("-raw-spec",   Arg.Set (raw_specification),                                                       " aaa");
     
     ("-repo",       Arg.Tuple 
                     (
@@ -121,7 +124,6 @@ let () =
     print_intermediate_solutions := true;
     print_solution               := true;
   )
-
 
 (* Handle the output-format argument. *)
 type output_format = Plain_output | JSON_output
@@ -195,7 +197,21 @@ let my_initial_configuration =
   MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
 let my_specification =
-  MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
+  if (!raw_specification)
+  then 
+    MySpecificationInput.specification_of_string (string_of_input_channel !specification_channel)
+  else
+    (
+      let lexbuf = Lexing.from_channel !specification_channel in
+      Specification_parser.main Specification_lexer.token lexbuf
+      (*
+      Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification result));
+      exit 0;
+      *)
+    )
+    
+
+  
 
 
 (* Print the input. *)
