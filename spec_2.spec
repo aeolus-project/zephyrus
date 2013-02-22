@@ -1,1 +1,1 @@
-#(ram > 2048; cpu >= 2;_){redhat or debian : #apache >= 1} = 1
+#(_){redhat or debian : #apache >= 1} = 1

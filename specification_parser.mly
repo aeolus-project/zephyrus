@@ -1,12 +1,9 @@
 
 %token <int> INT
 %token <string> NAME
-%token <string> VAR_NAME
 %token <string> COMPONENT_TYPE_NAME
 %token <string> PORT_NAME
 %token <string> PACKAGE_NAME
-%token <string> REPOSITORY_NAME
-%token <string> RESOURCE_NAME
 %token TRUE
 %token PLUS MINUS TIMES
 %token AND OR IMPL NOT
@@ -117,6 +114,7 @@ spec_local_element:
 
 spec_resource_constraints:
   | UNDERSCORE                                                     { [] }
+  | spec_resource_constraint                                       { [$1] }
   | spec_resource_constraint SEMICOLON spec_resource_constraints   { ($1) :: ($3) }
 
 spec_resource_constraint:
