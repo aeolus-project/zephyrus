@@ -21,3 +21,11 @@ http://www.recherche.enac.fr/opti/facile/
 
 Debian package:
 libfacile-ocaml-dev
+
+
+4. Menhir
+
+http://gallium.inria.fr/~fpottier/menhir/
+
+Debian packages:
+libmenhir-ocaml-dev menhir

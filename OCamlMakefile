@@ -263,7 +263,7 @@ endif
 export OCAMLLEX
 
 ifndef OCAMLYACC
-  OCAMLYACC := ocamlyacc
+  OCAMLYACC := menhir
 endif
 export OCAMLYACC
 

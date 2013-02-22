@@ -12,10 +12,11 @@
 %token COLON SEMICOLON UNDERSCORE
 %token LCURLY RCURLY
 %token LPAREN RPAREN
-%token EOL EOF
-%left PLUS MINUS AND OR IMPL /* lowest precedence */
+%token EOF
+%left AND OR IMPL            /* lowest precedence */
+%left PLUS MINUS
 %left TIMES                  /* medium precedence */
-%nonassoc UMINUS HASH NOT    /* highest precedence */
+%nonassoc NOT                /* highest precedence */
 %start main                  /* the entry point */
 %type <Aeolus_types_t.specification> main
 
