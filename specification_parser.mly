@@ -1,5 +1,6 @@
 
 %token <int> INT
+%token <string> NAME
 %token <string> VAR_NAME
 %token <string> COMPONENT_TYPE_NAME
 %token <string> PORT_NAME
@@ -30,10 +31,10 @@ spec_const:
   | INT                      { $1 }
   | LPAREN spec_const RPAREN { $2 }
 
-spec_variable_name:
-  | VAR_NAME                         { $1 }
-  | LPAREN spec_variable_name RPAREN { $2 }
-
+/* Three names which types have to be distinguished.
+   In the context where they are used we do not know a priori if
+   a given name denotes a component type, a port or a package.
+   We need to find out using a universe. */
 component_type_name:
   | COMPONENT_TYPE_NAME               { $1 }
   | LPAREN component_type_name RPAREN { $2 }
@@ -46,14 +47,19 @@ package_name:
   | PACKAGE_NAME               { $1 }
   | LPAREN package_name RPAREN { $2 }
 
+/* These names always appear in a context which clearly
+   decides which one of them we mean. */
 repository_name:
-  | REPOSITORY_NAME               { $1 }
+  | NAME                          { $1 }
   | LPAREN repository_name RPAREN { $2 }
 
 resource_name:
-  | RESOURCE_NAME               { $1 }
+  | NAME                        { $1 }
   | LPAREN resource_name RPAREN { $2 }
 
+spec_variable_name:
+  | NAME                             { $1 }
+  | LPAREN spec_variable_name RPAREN { $2 }
 
 specification:
   | TRUE                             { `SpecTrue              }

@@ -11,9 +11,9 @@ type element =
 
 let string_of_element element =
   match element with
-  | ComponentType (component_type_name) -> Printf.sprintf "t %s" (string_of_component_type_name component_type_name)
-  | Port          (port_name)           -> Printf.sprintf "p %s" (string_of_port_name           port_name)
-  | Package       (package_name)        -> Printf.sprintf "k %s" (string_of_package_name        package_name)
+  | ComponentType (component_type_name) -> Printf.sprintf "%s" (string_of_component_type_name component_type_name)
+  | Port          (port_name)           -> Printf.sprintf "%s" (string_of_port_name           port_name)
+  | Package       (package_name)        -> Printf.sprintf "%s" (string_of_package_name        package_name)
 
 
 

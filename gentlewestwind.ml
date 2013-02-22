@@ -40,6 +40,8 @@ let import_repository_filenames  = ref []
 let raw_specification            = ref false
 let only_check_spec              = ref false
 
+let do_not_solve                 = ref false
+
 (* printing settings *)
 let print_u                      = ref false
 let print_ic                     = ref false
@@ -71,8 +73,7 @@ let speclist =
     ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
     ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
     ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
-    ("-raw-spec",   Arg.Set (raw_specification),                                                       " aaa");
-    ("-spec-check", Arg.Set (only_check_spec),                                                         " aaa");
+    ("-raw-spec",   Arg.Set (raw_specification),                                                       " The specification is given directly in JSON, not using the nice syntax");
     
     ("-repo",       Arg.Tuple 
                     (
@@ -92,6 +93,11 @@ let speclist =
     (* Optimization function argument *)
     ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
   ] @ 
+
+  Arg.align [
+    ("-only-check-spec", Arg.Set (only_check_spec),  " Just parse specification and exit.");
+    ("-do-not-solve",    Arg.Set (do_not_solve),     " Do not create the problem nor solve it (i.e. exit after generating generic constraints)");
+  ] @
 
   Arg.align [
     (* Printing options arguments *)
@@ -273,6 +279,10 @@ let () =
 
 
 (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
+
+let () =
+  if !do_not_solve 
+  then (exit 0)
 
 let my_facile_variables =
   create_facile_variables my_universe my_initial_configuration my_specification

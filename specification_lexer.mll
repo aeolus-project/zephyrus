@@ -11,8 +11,10 @@
     List.iter (fun component_type_name -> Hashtbl.add names_table component_type_name (fun lxm -> COMPONENT_TYPE_NAME(lxm))) (get_component_type_names universe);
     List.iter (fun port_name           -> Hashtbl.add names_table port_name           (fun lxm -> PORT_NAME(lxm)))           (get_port_names universe);
     List.iter (fun package_name        -> Hashtbl.add names_table package_name        (fun lxm -> PACKAGE_NAME(lxm)))        (get_package_names universe);
+    (*
     List.iter (fun repository_name     -> Hashtbl.add names_table repository_name     (fun lxm -> REPOSITORY_NAME(lxm)))     (get_repository_names universe);
     List.iter (fun resource_name       -> Hashtbl.add names_table resource_name       (fun lxm -> RESOURCE_NAME(lxm)))       (get_resource_names universe);
+    *)
     ()
 
   let name_token lxm =
@@ -20,8 +22,8 @@
       (* Does a name used in the specification corresponds to a name present in the universe? *)
       (Hashtbl.find names_table lxm) lxm
     with Not_found ->
-      (* If not, then it must be a specification variable name. *)
-      VAR_NAME(lxm)
+      (* If not, then it must be a name of a resource or repository or a specification variable. *)
+      NAME(lxm)
 
 }
 
