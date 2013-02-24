@@ -44,6 +44,7 @@ let do_not_solve                 = ref false
 
 (* printing settings *)
 let print_u                      = ref false
+let print_tu                     = ref false
 let print_ic                     = ref false
 let print_spec                   = ref false
 let print_cstrs                  = ref false
@@ -102,6 +103,7 @@ let speclist =
   Arg.align [
     (* Printing options arguments *)
     ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
+    ("-print-tu",            Arg.Set (print_tu),                                                " Print the trimmed universe");
     ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
     ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
     ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
@@ -124,6 +126,7 @@ let () =
   if !print_all
   then (
     print_u                      := true;
+    print_tu                     := true;
     print_ic                     := true;
     print_spec                   := true;
     print_cstrs                  := true;
@@ -258,6 +261,19 @@ let () =
     end;
 
     Printf.printf "> Parsed specification:\n\n%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
+  )
+
+
+(* Trimming! *)
+
+let my_universe = 
+  Universe_trimming.trim my_universe my_specification
+
+let () = 
+  if(!print_tu)
+  then (
+    Printf.printf "\n===> THE TRIMMED UNIVERSE <===\n\n";    
+    Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_universe my_universe));
   )
 
 

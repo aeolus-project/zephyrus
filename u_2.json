@@ -4,7 +4,7 @@
 		{ "name": "component_type_1" },
 		{ "name": "component_type_2" }
 	],
-	"implementation": [],
+	"implementation": [ ["apache", ["apache2"]] ],
 	"repositories": [
 		{
 			"name": "redhat",

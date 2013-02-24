@@ -598,8 +598,7 @@
   "name"     : "xz-lzma",
   "depend"   : [["xz-lzma"]],
   "conflict" : ["lzma"]
-}
-][
+},
 { "name" : "abrowser", "depend" : [["abrowser (x 7384)"]] },
 { "name" : "abrowser-branding", "depend" : [["abrowser (x 7384)"]] },
 { "name" : "accountsservice", "depend" : [["abrowser (x 7384)"]] },
