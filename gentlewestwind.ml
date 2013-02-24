@@ -267,7 +267,7 @@ let () =
 (* Trimming! *)
 
 let my_universe = 
-  Universe_trimming.trim my_universe my_specification
+  Universe_trimming.trim my_universe my_initial_configuration my_specification
 
 let () = 
   if(!print_tu)
