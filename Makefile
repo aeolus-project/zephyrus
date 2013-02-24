@@ -27,6 +27,7 @@ configuration_generation.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
 specification_parser.mly specification_lexer.mll\
+universe_trimming.ml\
 gentlewestwind.ml
 
 RESULT = gentlewestwind

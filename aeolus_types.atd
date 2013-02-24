@@ -54,7 +54,7 @@ type package_names = package_name list (* This definition is useless, but ATD wo
 
 type universe = {
   ~component_types <ocaml default="[]"> : component_type list;
-  ~implementation  <ocaml default="[]"> : (component_name * package_names) list; (* mapping from component name to sets of package names *)
+  ~implementation  <ocaml default="[]"> : (component_type_name * package_names) list; (* mapping from component type name to sets of package names *)
   ~repositories    <ocaml default="[]"> : repository list
 } <ocaml field_prefix="universe_">
 
