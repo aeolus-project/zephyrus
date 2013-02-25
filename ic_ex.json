@@ -2,19 +2,23 @@
 	"locations" : [
 		{
 			"name" : "location1",
-			"repository" : "ubuntu"
+			"provide_resources" : [["ram", 2048]],
+			"repository" : "debian-squeeze"
 		},
 		{
 			"name" : "location2",
-			"repository" : "ubuntu"
+			"provide_resources" : [["ram", 2048]],
+			"repository" : "debian-squeeze"
 		},
 		{
 			"name" : "location3",
-			"repository" : "ubuntu"
+			"provide_resources" : [["ram", 2048]],
+			"repository" : "debian-squeeze"
 		},
 		{
 			"name" : "location4",
-			"repository" : "ubuntu"
+			"provide_resources" : [["ram", 2048]],
+			"repository" : "debian-squeeze"
 		}
 	]
 }

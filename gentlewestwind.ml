@@ -197,7 +197,11 @@ let prefix_repository repository =
 let imported_repositories =
   try
     List.rev_map2 (fun repository_name repository_filename -> 
-    
+      let open Aeolus_types_output_facade.Aeolus_types_plain_output 
+      in
+      Printf.printf "Importing repository %s from file %s...\n" (string_of_repository_name repository_name) repository_filename;
+      flush stdout;
+
       let repository_channel = (open_in repository_filename) 
       in
       let packages = 
@@ -221,6 +225,8 @@ let imported_repositories =
   with
   Invalid_argument s -> 
     failwith (Printf.sprintf "Number of imported repository names does not match the number of imported repository filenames! %s" s)
+
+
 
 
 (* Read the input. *)
@@ -261,9 +267,7 @@ let my_specification =
       
       specification
     )
-    
 
-  
 
 
 (* Print the input. *)
@@ -294,6 +298,7 @@ let () =
     Printf.printf "> Parsed specification:\n\n%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
   )
 
+let () = flush stdout
 
 (* Trimming! *)
 

@@ -1,1 +1,1 @@
-#Dns-load-balancer = 1
+(#serious-wordpress = 1)

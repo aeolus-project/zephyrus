@@ -5,23 +5,29 @@
   open Aeolus_types_t
   open Typing_context
 
-  let names_table = Hashtbl.create 53
+  type element = CT | Pkg | Prt
+
+  let names_table = Hashtbl.create 50000
 
   (* We only need to keep track of names of component types, ports and packages,
      because when one of these three appears in the specification we have no way
      to guess from the parsing context if it is a name of a component type,
      a port or a package. *)
   let initialize_names_table (universe : universe) =
-    List.iter (fun component_type_name -> Hashtbl.add names_table component_type_name (fun lxm -> COMPONENT_TYPE_NAME(lxm))) (get_component_type_names universe);
-    List.iter (fun port_name           -> Hashtbl.add names_table port_name           (fun lxm -> PORT_NAME(lxm)))           (get_port_names universe);
-    List.iter (fun package_name        -> Hashtbl.add names_table package_name        (fun lxm -> PACKAGE_NAME(lxm)))        (get_package_names universe);
+    List.iter (fun component_type_name -> Hashtbl.add names_table component_type_name CT  ) (get_component_type_names universe);
+    List.iter (fun port_name           -> Hashtbl.add names_table port_name           Prt )           (get_port_names universe);
+    List.iter (fun package_name        -> Hashtbl.add names_table package_name        Pkg )        (get_package_names universe);
     ()
 
   let name_token lxm =
     try
       (* Does a name used in the specification corresponds to a name
          of a component type, a port or a package present in the universe? *)
-      (Hashtbl.find names_table lxm) lxm
+      match Hashtbl.find names_table lxm with
+      | CT  -> COMPONENT_TYPE_NAME(lxm)
+      | Prt -> PORT_NAME(lxm)
+      | Pkg -> PACKAGE_NAME(lxm)
+      
     with Not_found ->
       (* If not, then it must be a name of a resource or a repository or 
          a specification variable. *)
@@ -101,9 +107,9 @@ rule token = parse
   | '\'' ('@'       ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\'' { PORT_NAME(lxm)           }
   *)
 
-  |      ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)         { name_token lxm }
-  | '"'  ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'     { name_token lxm }
-  | '\'' ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\''    { name_token lxm }
+  |      ('@')? (['a'-'z' 'A'-'Z' '-']+ ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '_' '-' '+' ':']+ ')')? as lxm)         { name_token lxm }
+  | '"'  ('@')? (['a'-'z' 'A'-'Z' '-']+ ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '_' '-' '+' ':']+ ')')? as lxm) '"'     { name_token lxm }
+  | '\'' ('@')? (['a'-'z' 'A'-'Z' '-']+ ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '_' '-' '+' ':']+ ')')? as lxm) '\''    { name_token lxm }
 
   (* End of file *)
   | eof                                  { EOF }
