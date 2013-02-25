@@ -86,9 +86,24 @@ rule token = parse
   | ')'                                  { RPAREN }
 
   (* Names *)
-  | '"'  (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'     { name_token lxm }
-  | '\'' (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\''    { name_token lxm }
-  |      (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)         { name_token lxm }
+
+  (*
+  |      (['A'-'Z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)      { COMPONENT_TYPE_NAME(lxm) }
+  | '"'  (['A'-'Z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'  { COMPONENT_TYPE_NAME(lxm) }
+  | '\'' (['A'-'Z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\'' { COMPONENT_TYPE_NAME(lxm) }
+
+  |      (['a'-'z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)      { PACKAGE_NAME(lxm)        }
+  | '"'  (['a'-'z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'  { PACKAGE_NAME(lxm)        }
+  | '\'' (['a'-'z'] ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\'' { PACKAGE_NAME(lxm)        }
+
+  |      ('@'       ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)      { PORT_NAME(lxm)           }
+  | '"'  ('@'       ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'  { PORT_NAME(lxm)           }
+  | '\'' ('@'       ['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\'' { PORT_NAME(lxm)           }
+  *)
+
+  |      ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)         { name_token lxm }
+  | '"'  ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'     { name_token lxm }
+  | '\'' ('@')? (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\''    { name_token lxm }
 
   (* End of file *)
   | eof                                  { EOF }
