@@ -1,0 +1,20 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "ubuntu"
+		},
+		{
+			"name" : "location2",
+			"repository" : "ubuntu"
+		},
+		{
+			"name" : "location3",
+			"repository" : "ubuntu"
+		},
+		{
+			"name" : "location4",
+			"repository" : "ubuntu"
+		}
+	]
+}

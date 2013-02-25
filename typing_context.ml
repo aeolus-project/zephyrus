@@ -103,11 +103,19 @@ let get_package_names universe =
   BatList.unique ( 
     List.flatten ( 
       List.map ( fun repository -> 
-        
-        List.map (fun package -> 
-          package.package_name
-        ) repository.repository_packages
-    
+        List.flatten ( 
+          List.map (fun package -> 
+            
+            (
+              [package.package_name]
+              @
+              (List.flatten package.package_depend)
+              @
+              (package.package_conflict)
+            )
+
+          ) repository.repository_packages
+        )
       ) universe.universe_repositories
     ) 
   )

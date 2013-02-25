@@ -1,0 +1,37 @@
+{
+	"component_types": [
+		{
+			"name"     : "Dns-load-balancer",
+			"provide"  : [["dns-load-balancer", ["FiniteProvide", 1]]],
+			"require"  : [["wordpress", 3]],
+			"conflict" : ["dns-load-balancer"],
+			"consume"  : []
+		},
+		{
+			"name"     : "Wordpress",
+			"provide"  : [["wordpress", "InfiniteProvide"]],
+			"require"  : [["mysql", 2]],
+			"consume"  : []
+		},
+		{
+			"name"     : "MySQL",
+			"provide"  : [["mysql", ["FiniteProvide", 3]]],
+			"consume"  : []
+		}
+	],
+	"implementation": [
+		[
+			"Dns-load-balancer",
+			["bind9"]
+		],
+		[
+			"Wordpress",
+			["openstack-dashboard"]
+		],
+		[
+			"MySQL",
+			["mysql-server"]
+		]
+
+	]
+}
