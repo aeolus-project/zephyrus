@@ -86,9 +86,9 @@ rule token = parse
   | ')'                                  { RPAREN }
 
   (* Names *)
-  | '"'  (['a'-'z' '-']+ as lxm) '"'     { name_token lxm }
-  | '\'' (['a'-'z' '-']+ as lxm) '\''    { name_token lxm }
-  |      (['a'-'z' '-']+ as lxm)         { name_token lxm }
+  | '"'  (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '"'     { name_token lxm }
+  | '\'' (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm) '\''    { name_token lxm }
+  |      (['a'-'z' 'A'-'Z' '-']+ ("(x " ['0'-'9']+ ')')? as lxm)         { name_token lxm }
 
   (* End of file *)
   | eof                                  { EOF }

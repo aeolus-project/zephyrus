@@ -36,6 +36,7 @@ let optimization_function_string = ref "simple"
 
 let import_repository_names      = ref []
 let import_repository_filenames  = ref []
+let prefix_repositories          = ref false
 
 let raw_specification            = ref false
 let only_check_spec              = ref false
@@ -82,6 +83,8 @@ let speclist =
                        Arg.String (fun repository_filename -> import_repository_filenames := repository_filename :: !import_repository_filenames)]
                     ),
                     " The additional repository import: repository name and packages input file (you can include multiple repositories)");
+
+    ("-prefix-repos", Arg.Set (prefix_repositories), " Prefix all package names in imported repositories by the repository name.");
   ] @
 
   Arg.align [
@@ -103,7 +106,7 @@ let speclist =
   Arg.align [
     (* Printing options arguments *)
     ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
-    ("-print-tu",            Arg.Set (print_tu),                                                " Print the trimmed universe");
+    ("-print-tu",            Arg.Set (print_tu),                     " Print the trimmed universe");
     ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
     ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
     ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
@@ -170,6 +173,27 @@ module MySpecificationInput        = Specification_input_facade.JSON_specificati
 
 (* Handle the imported repositories arguments. *)
 
+(* Prefix all package names in the repository with the repository name. *)
+let prefix_repository repository = 
+  let open Aeolus_types_output_facade.Aeolus_types_plain_output 
+  in
+  let prefix package_name = Printf.sprintf "%s-%s" (string_of_repository_name repository.repository_name) (string_of_package_name package_name)
+  in
+  {
+    repository_name     = repository.repository_name;
+    repository_packages = 
+      List.map (fun package ->
+        {
+          package_name     = prefix package.package_name;
+          package_depend   = List.map (fun disj -> List.map prefix disj) package.package_depend;
+          package_conflict = List.map prefix package.package_conflict;
+          package_consume  = package.package_consume;
+        }
+      )
+      repository.repository_packages;
+  }
+
+
 let imported_repositories =
   try
     List.rev_map2 (fun repository_name repository_filename -> 
@@ -181,10 +205,17 @@ let imported_repositories =
       in
 
       (* The imported repository : *)
+      let repository =
       {
         repository_name     = repository_name;
         repository_packages = packages;
       }
+
+      in
+
+      if !prefix_repositories 
+      then prefix_repository repository
+      else repository
 
     ) !import_repository_names !import_repository_filenames
   with
