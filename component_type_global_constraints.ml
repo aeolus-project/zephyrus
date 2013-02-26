@@ -23,7 +23,7 @@ let create_require_binding_constraints universe port_name : cstr list =
   List.map (fun requiring_component_type_name ->
 
     (* The left side expression: *)
-    let requiring_arity              = get_require_arity (get_component_type universe requiring_component_type_name) port_name
+    let require_arity                = get_require_arity (get_component_type universe requiring_component_type_name) port_name
     and requiring_component_type_var = var (GlobalElementVariable (ComponentType requiring_component_type_name))
     in
     
@@ -43,7 +43,7 @@ let create_require_binding_constraints universe port_name : cstr list =
     in
     
     (* The constraint : [for each component type t_r which requires port p]  require_arity(t_r,p) x N(t_r) = sum (over all t_p from the universe which provide port p) B(t_p,t_r,p) *)
-    ( (int2expr requiring_arity) *~ (var2expr requiring_component_type_var) ) =~ sum_of_provided_bindings
+    ( (int2expr require_arity) *~ (var2expr requiring_component_type_var) ) =~ sum_of_provided_bindings
 
     (* Name           : Components of type t requiring port p. *)
     (* Description    : All the require ports p of the components of type t must be bound. So the total number of ports p required by all the components of type t is equal to the total number of bindings providing these components with port p. *)
@@ -64,31 +64,38 @@ let create_provide_binding_constraints universe port_name : cstr list =
   List.map (fun providing_component_type_name ->
     
     (* The left side expression: *)
-    let providing_arity              = get_provide_arity (get_component_type universe providing_component_type_name) port_name
+    let provide_arity                = get_provide_arity (get_component_type universe providing_component_type_name) port_name
     and providing_component_type_var = var (GlobalElementVariable (ComponentType providing_component_type_name))
     in
 
-    (* The right side expression: *)
-    let exprs_to_sum =
-      List.map ( fun requiring_component_type_name ->
-        let binding_var = 
-          var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
-        in
+    match provide_arity with
+    | `InfiniteProvide -> 
+        (* If the provide arity is infinite, then this constraint will be always true. *)
+        truecstr
 
-        (* Part of the sum: B(port_name, providing_component_type_name, requiring_component_type_name) *)
-        (var2expr binding_var)
-        
-      ) requirer_names
-    in
-    let sum_of_required_bindings = (sum exprs_to_sum)
-    in
+    | `FiniteProvide provide_arity ->
 
-    (* The constraint : [for each component type t_p which provides port p]  provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
-    ( (providearity2expr providing_arity) *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
+      (* The right side expression: *)
+      let exprs_to_sum =
+        List.map ( fun requiring_component_type_name ->
+          let binding_var = 
+            var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
+          in
 
-    (* Name           : Components of type t providing port p. *)
-    (* Description    : There cannot exist more bindings providing port p from the components of type t than the total number of ports p they provide together. The total number of ports p provided by all the components of type t is equal or greater to the total number of bindings providing port p from these components. *)
-    (* Constraint     : N(t) multiplied by number of ports p that each component of type t provides is equal or greater to the sum of all bindings on port p where the component of type t is the providing one and any other component is the requiring one. *)
+          (* Part of the sum: B(port_name, providing_component_type_name, requiring_component_type_name) *)
+          (var2expr binding_var)
+          
+        ) requirer_names
+      in
+      let sum_of_required_bindings = (sum exprs_to_sum)
+      in
+
+      (* The constraint : [for each component type t_p which provides port p]  provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
+      ( (int2expr provide_arity) *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
+
+      (* Name           : Components of type t providing port p. *)
+      (* Description    : There cannot exist more bindings providing port p from the components of type t than the total number of ports p they provide together. The total number of ports p provided by all the components of type t is equal or greater to the total number of bindings providing port p from these components. *)
+      (* Constraint     : N(t) multiplied by number of ports p that each component of type t provides is equal or greater to the sum of all bindings on port p where the component of type t is the providing one and any other component is the requiring one. *)
 
   ) provider_names
 
