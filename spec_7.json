@@ -1,3 +1,3 @@
-[ [ [ "Component", [ "tic",  "installed" ] ], [ "GEq", 17 ] ],
-  [ [ "Component", [ "tac",  "installed" ] ], [ "GEq", 31 ] ],
-  [ [ "Component", [ "toe",  "installed" ] ], [ "GEq", 23 ] ] ]
+[ [ [ "Component", [ "Tic",  "installed" ] ], [ "GEq", 17 ] ],
+  [ [ "Component", [ "Tac",  "installed" ] ], [ "GEq", 31 ] ],
+  [ [ "Component", [ "Toe",  "installed" ] ], [ "GEq", 23 ] ] ]

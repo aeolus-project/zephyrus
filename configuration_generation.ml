@@ -83,7 +83,7 @@ open Facile_constraints
 let solution_repository_for_location (solution : solution) (location_name : location_name) : repository_name =
   let repository_names =
     BatList.filter_map (fun (var_key, value) -> 
-      match var_key with    
+      match var_key with
       | LocalRepositoryVariable (var_location_name, var_repository_name) ->
           if (var_location_name = location_name) && (value = 1)
           then Some var_repository_name

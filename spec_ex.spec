@@ -1,1 +1,1 @@
-(#serious-wordpress = 1)
+(#MySQL >= 2) and #(_){debian-squeeze : #MySQL > 1} = 0

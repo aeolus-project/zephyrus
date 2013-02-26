@@ -223,7 +223,8 @@ let create_optimized_goal facile_variables cost_expr store_solution_here print_s
         Printf.printf
           "\n> Found a solution! Cost = %d %s" 
           cost 
-          (string_of_solution solution) 
+          (string_of_solution solution);
+        flush stdout;
       );
 
     in

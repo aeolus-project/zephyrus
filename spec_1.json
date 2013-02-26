@@ -4,7 +4,7 @@
 		[
 			"SpecOp", 
 			[
-				[ "SpecExprArity", ["SpecElementComponentType", "requirer"] ],
+				[ "SpecExprArity", ["SpecElementComponentType", "Requirer"] ],
 				"GEq",
 				[ "SpecExprConst", 1 ]
 			]

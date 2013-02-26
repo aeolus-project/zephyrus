@@ -48,9 +48,19 @@ let dependency_transitive_closure (initial_package_names : package_name list) (p
     
   done;
 
-  List.filter (fun package ->
-    List.mem package.package_name !in_the_closure
+  BatList.filter_map (fun package ->
+    if List.mem package.package_name !in_the_closure
+    then Some (
+      {
+        package_name     = package.package_name; 
+        package_depend   = package.package_depend;
+        package_conflict = List.filter (fun package_name -> List.mem package_name !in_the_closure) package.package_conflict;
+        package_consume  = package.package_consume;
+      }
+    )
+    else None
   ) packages
+
 
 let trim universe initial_configuration specification =
   

@@ -1,28 +1,28 @@
 {
 	"component_types": [
 		{
-			"name": "provider",
-			"provide": [["port", ["FiniteProvide", 3]]],
+			"name": "Provider",
+			"provide": [["@port", ["FiniteProvide", 3]]],
 			"consume": [["resource", 5]]
 		},
 		{
-			"name": "requirer",
-			"require": [["port", 2]],
+			"name": "Requirer",
+			"require": [["@port", 2]],
 			"consume": [["resource", 3]]
 		},
 		{
-			"name": "conflicter",
-			"conflict": ["port"],
+			"name": "Conflicter",
+			"conflict": ["@port"],
 			"consume": [["resource", 7]]
 		}
 	],
 	"implementation": [
 		[
-			"provider",
+			"Provider",
 			["provider_package"]
 		],
 		[
-			"requirer",
+			"Requirer",
 			["requirer_package"]
 		]
 	],

@@ -1,37 +1,37 @@
 {
 	"component_types": [
 		{
-			"name"     : "Dns-load-balancer",
-			"provide"  : [["serious-wordpress", ["FiniteProvide", 1]], ["dns", ["FiniteProvide", 1]]],
-			"require"  : [["wordpress-backend", 7]],
-			"conflict" : ["dns"],
+			"name"     : "DNS-load-balancer",
+			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]], ["@dns", ["FiniteProvide", 1]]],
+			"require"  : [["@wordpress-backend", 7]],
+			"conflict" : ["@dns"],
 			"consume"  : [["ram", 2048]]
 		},
 		{
-			"name"     : "HTTP-Proxy-load-balancer",
-			"provide"  : [["serious-wordpress", ["FiniteProvide", 1]]],
-			"require"  : [["wordpress-backend", 3]],
+			"name"     : "HTTP-proxy-load-balancer",
+			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]]],
+			"require"  : [["@wordpress-backend", 3]],
 			"consume"  : [["ram", 2048]]
 		},
 		{
 			"name"     : "Wordpress",
-			"provide"  : [["wordpress-backend", "InfiniteProvide"]],
-			"require"  : [["mysql", 2]],
+			"provide"  : [["@wordpress-backend", "InfiniteProvide"]],
+			"require"  : [["@mysql", 2]],
 			"consume"  : [["ram", 512]]
 		},
 		{
 			"name"     : "MySQL",
-			"provide"  : [["mysql", ["FiniteProvide", 3]]],
+			"provide"  : [["@mysql", ["FiniteProvide", 3]]],
 			"consume"  : [["ram", 512]]
 		}
 	],
 	"implementation": [
 		[
-			"Dns-load-balancer",
+			"DNS-load-balancer",
 			["bind9 (= 1:9.7.3.dfsg-1~squeeze9)"]
 		],
 		[
-			"HTTP-Proxy-load-balancer",
+			"HTTP-proxy-load-balancer",
 			["varnish (= 2.1.3-8)"]
 		],
 		[

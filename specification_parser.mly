@@ -43,6 +43,7 @@ port_name:
 
 package_name:
   | PACKAGE_NAME               { $1 }
+  | NAME                       { $1 }
   | LPAREN package_name RPAREN { $2 }
 
 /* These names always appear in a context which clearly

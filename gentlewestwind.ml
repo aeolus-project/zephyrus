@@ -1,7 +1,9 @@
 (* 
-  Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
-  full of the captured winds so he could sail easily home to Ithaca on
-  the gentle west wind.
+  "Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
+   full of the captured winds so he could sail easily home to Ithaca on
+   the gentle west wind."
+
+   Zephyrus : one of the Anemoi and the Greek god of the west wind.
 *)
 
 open Aeolus_types_t
@@ -128,7 +130,7 @@ let () =
 let () =
   if !print_all
   then (
-    print_u                      := true;
+  (* print_u                      := true; *)
     print_tu                     := true;
     print_ic                     := true;
     print_spec                   := true;
@@ -253,7 +255,7 @@ let my_specification =
     MySpecificationInput.specification_of_string specification_string
   else
     (
-      Specification_lexer.initialize_names_table my_universe;
+      (* Specification_lexer.initialize_names_table my_universe; *)
       let lexbuf = Lexing.from_string specification_string in
       let specification = Specification_parser.main Specification_lexer.token lexbuf in
       
@@ -278,12 +280,14 @@ let () =
   then (
     Printf.printf "\n===> THE UNIVERSE <===\n\n";    
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_universe my_universe));
+    flush stdout;
   );
 
   if(!print_ic)
   then (
     Printf.printf "\n===> THE INITIAL CONFIGURATION <===\n\n";
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_configuration my_initial_configuration));
+    flush stdout;
   );
 
   if(!print_spec)
@@ -293,12 +297,12 @@ let () =
     if(not !raw_specification)
     then begin 
       Printf.printf "> Unparsed specification:\n\n%s\n\n" specification_string;
+      flush stdout;
     end;
 
     Printf.printf "> Parsed specification:\n\n%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
+    flush stdout;
   )
-
-let () = flush stdout
 
 (* Trimming! *)
 
@@ -310,6 +314,7 @@ let () =
   then (
     Printf.printf "\n===> THE TRIMMED UNIVERSE <===\n\n";    
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_universe my_universe));
+    flush stdout;
   )
 
 
@@ -327,6 +332,7 @@ let () =
   then (
     Printf.printf "\n===> THE CONSTRAINTS <===\n";
     Printf.printf "%s" (string_of_generated_constraints (my_translation_constraints @ my_specification_constraints));
+    flush stdout;
   )
 
 
@@ -378,25 +384,29 @@ let () =
   if(!print_facile_vars)
   then (
     Printf.printf "\n===> THE FACILE VARIABLES <===\n";
-
-    Printf.printf "%s" (string_of_facile_variables my_facile_variables)
+    Printf.printf "%s" (string_of_facile_variables my_facile_variables);
+    flush stdout;
   );
 
   if(!print_facile_cstrs)
   then (
     Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
     Printf.printf "%s" (string_of_constraints my_facile_constraints);
+    flush stdout;
   );
 
 
 
   Printf.printf "\n===> SOLVING! <===\n"; 
+  flush stdout;
+
   let _ = Goals.solve (goal ||~ Goals.success) in
 
   if(!print_solution)
   then (
     Printf.printf "\n===> THE SOLUTION <===\n";
     Printf.printf "%s" (string_of_solution !solution);
+    flush stdout;
   );
 
   
@@ -415,12 +425,13 @@ let () =
     in
 
     Printf.fprintf !output_channel "%s" output_string;
-
+    flush !output_channel;
   );
 
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
   Printf.printf "\n%s\n\n" (Simple_configuration_output.string_of_configuration final_configuration);
+  flush stdout;
 
   ()
 

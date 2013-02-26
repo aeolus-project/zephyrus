@@ -1,1 +1,1 @@
-[ [ [ "Component", [ "requirer",  "installed" ] ], [ "GEq", 42 ] ] ]
+[ [ [ "Component", [ "Requirer",  "installed" ] ], [ "GEq", 42 ] ] ]

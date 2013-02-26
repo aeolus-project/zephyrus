@@ -1,10 +1,10 @@
 {
 	"component_types": [
-		{ "name": "apache" },
-		{ "name": "component_type_1" },
-		{ "name": "component_type_2" }
+		{ "name": "Apache" },
+		{ "name": "Component_type_1" },
+		{ "name": "Component_type_2" }
 	],
-	"implementation": [ ["apache", ["apache2"]] ],
+	"implementation": [ ["Apache", ["apache2"]] ],
 	"repositories": [
 		{
 			"name": "redhat",
