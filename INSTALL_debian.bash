@@ -10,4 +10,4 @@ sudo apt-get install\
  ocaml-batteries-included\
  libatd-ocaml libatd-ocaml-dev libatdgen-ocaml libatdgen-ocaml-dev\
  libfacile-ocaml-dev\
- libmenhir-ocaml-dev menhir
+ menhir

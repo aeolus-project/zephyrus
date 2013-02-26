@@ -361,7 +361,7 @@ let my_facile_constraints : generated_constraints =
 let generic_optimization_expr =
   match optimization_function with
   | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
-  | Compact_optimization_function      -> Optimization_functions.cost_expr_compact my_initial_configuration my_universe
+  | Compact_optimization_function      -> Optimization_functions.(*cost_expr_compact*)cost_expr_number_of_used_locations my_initial_configuration my_universe
   | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
 
 let cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr

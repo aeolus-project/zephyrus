@@ -28,4 +28,4 @@ libfacile-ocaml-dev
 http://gallium.inria.fr/~fpottier/menhir/
 
 Debian packages:
-libmenhir-ocaml-dev menhir
+menhir

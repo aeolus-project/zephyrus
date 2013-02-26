@@ -1,9 +1,9 @@
 #!/bin/bash
 
-./gentlewestwind\
- -u u_ex.json\
- -spec spec_ex.spec\
- -ic ic_ex.json\
+./zephyr\
+ -u u-ex-2-3-with-ram.json\
+ -spec spec-ex.spec\
+ -ic ic-ex-4.json\
  -repo debian-squeeze repositories/repo-debian-squeeze.json\
- -opt simple\
+ -opt compact\
  -print-cstrs -print-facile-vars

@@ -1,0 +1,24 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "debian-squeeze",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location2",
+			"repository" : "debian-squeeze",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location3",
+			"repository" : "debian-squeeze",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location4",
+			"repository" : "debian-squeeze",
+			"provide_resources" : [["ram", 2048]]
+		}
+	]
+}

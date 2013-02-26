@@ -10,12 +10,12 @@
 		{
 			"name"     : "HTTP-proxy-load-balancer",
 			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]]],
-			"require"  : [["@wordpress-backend", 2]],
-			"consume"  : [["ram", 512]]
+			"require"  : [["@wordpress-backend", 3]],
+			"consume"  : [["ram", 2048]]
 		},
 		{
 			"name"     : "Wordpress",
-			"provide"  : [["@wordpress-backend", "InfiniteProvide"]],
+			"provide"  : [["@wordpress-backend", ["FiniteProvide", 1]]],
 			"require"  : [["@mysql", 2]],
 			"consume"  : [["ram", 512]]
 		},

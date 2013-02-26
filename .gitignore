@@ -14,7 +14,6 @@
 *.d
 *.di
 *.sublime-*
-gentlewestwind
 zephyr
 specification_lexer.ml
 specification_parser.ml
