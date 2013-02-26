@@ -1,6 +1,6 @@
 #!/bin/bash
 
-./gentlewestwind\
+./zephyr\
  -u u_3.json\
  -spec spec_2.spec\
  -ic ic_1.json\
