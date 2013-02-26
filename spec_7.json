@@ -1,3 +1,0 @@
-[ [ [ "Component", [ "Tic",  "installed" ] ], [ "GEq", 17 ] ],
-  [ [ "Component", [ "Tac",  "installed" ] ], [ "GEq", 31 ] ],
-  [ [ "Component", [ "Toe",  "installed" ] ], [ "GEq", 23 ] ] ]
