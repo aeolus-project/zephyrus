@@ -112,7 +112,7 @@ let speclist =
     ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
     ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
     ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
-    ("-print-facile-vars",   Arg.Set (print_facile_cstrs),           " Print the FaCiLe variables");
+    ("-print-facile-vars",   Arg.Set (print_facile_vars),            " Print the FaCiLe variables");
     ("-print-facile-cstrs",  Arg.Set (print_facile_cstrs),           " Print the FaCiLe constraints");
     ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
     ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");

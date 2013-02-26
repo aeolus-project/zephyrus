@@ -102,7 +102,7 @@ module Facile_constraints =
         (
           match const with
           | C.Int i    -> const2expr i
-          | C.Inf sign -> const2expr 100000 
+          | C.Inf sign -> const2expr 1000 
           (* TODO: Either make a true infinity (is it possible in FaCiLe?) or transform the generic constraints. *)
         )
 

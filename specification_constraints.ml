@@ -129,13 +129,13 @@ and translate_spec_local_expr (location_name : location_name) (spec_local_expr :
 and translate_spec_local_element (location_name : location_name) (spec_local_element : spec_local_element) : expr =
   match spec_local_element with
   | `SpecLocalElementPackage (package_name) ->
-      ( var2expr (var (GlobalElementVariable (Package package_name))) )
+      ( var2expr (var (LocalElementVariable (location_name, (Package package_name)))) )
 
   | `SpecLocalElementComponentType (component_type_name) ->
-      ( var2expr (var (GlobalElementVariable (ComponentType component_type_name))) )
+      ( var2expr (var (LocalElementVariable (location_name, (ComponentType component_type_name)))) )
 
   | `SpecLocalElementPort (port_name) ->
-      ( var2expr (var (GlobalElementVariable (Port port_name))) )
+      ( var2expr (var (LocalElementVariable (location_name, (Port port_name)))) )
 
 and translate_spec_resource_constraints (location_name : location_name) (spec_resource_constraints : spec_resource_constraints) : cstr =
   List.fold_left (fun a spec_resource_constraint -> 
