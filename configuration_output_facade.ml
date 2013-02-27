@@ -4,12 +4,18 @@ open Helpers
 (*
 module type CONFIGURATION_TYPES =
   sig
+    type component_type_name
+    type port_name
+    type component_name
+    type package_name
+    type repository_name
+    type location_name
     type resource_name
-    type resource_type
-    type resource
-    type typing_entry
+    type resource_provide_arity
+    type location
+    type component
     type binding
-    type typed_system
+    type configuration
   end
 
 module My_resource_types : CONFIGURATION_TYPES = Configuration_generation
@@ -63,18 +69,46 @@ module Simple_configuration_output : CONFIGURATION_OUTPUT =
     let string_of_resource_provide_arity (resource_provide_arity : resource_provide_arity) : string =
       Printf.sprintf "%d" resource_provide_arity
 
+    let string_of_location_repository (location_repository : repository_name) : string =
+      Printf.sprintf
+        " > Repository : %s"
+        (string_of_repository_name location_repository)
+
+    let string_of_location_packages (location_packages_installed : package_name list) : string =
+      Printf.sprintf
+        " > Packages installed : %s"
+        (String.concat ", " (List.map string_of_package_name location_packages_installed))
+
+    let string_of_location_provide_resources (location_provide_resources : (resource_name * resource_provide_arity) list) : string =
+      Printf.sprintf
+        " > Resources provided : %s"
+        (String.concat ""
+          (List.map (fun (resource_name, resource_provide_arity) -> 
+            Printf.sprintf
+            "\n   + %s : %s"
+            (string_of_resource_name          resource_name)
+            (string_of_resource_provide_arity resource_provide_arity)
+          ) location_provide_resources)
+        )
+
+    let string_of_location_components (components : component list) : string =
+      Printf.sprintf
+        " > Components installed : %s"
+        (String.concat ""
+          (List.map (fun component -> 
+            Printf.sprintf
+              "\n   + %s"
+              (string_of_component_name component.component_name)
+          ) components)
+        )
+
     let string_of_location (location : location) : string =
       Printf.sprintf
-        "=== Location [%s] ===\n > Repository : %s\n > Packages installed : %s\n > Resources provided : \n%s"
-        (string_of_location_name   location.location_name)
-        (string_of_repository_name location.location_repository)
-        (String.concat ", " (List.map string_of_package_name location.location_packages_installed))
-        (lines_of_strings (List.map (fun (resource_name, resource_provide_arity) -> 
-           Printf.sprintf
-           "   + %s : %s"
-           (string_of_resource_name          resource_name)
-           (string_of_resource_provide_arity resource_provide_arity)
-        ) location.location_provide_resources))
+        "=== Location [%s] ===\n%s\n%s\n%s"
+        (string_of_location_name              location.location_name)
+        (string_of_location_repository        location.location_repository)
+        (string_of_location_packages          location.location_packages_installed)
+        (string_of_location_provide_resources location.location_provide_resources)
 
     let string_of_component (component : component) : string =
       Printf.sprintf
@@ -93,7 +127,19 @@ module Simple_configuration_output : CONFIGURATION_OUTPUT =
     let string_of_configuration (configuration : configuration) : string =
       Printf.sprintf
         "%s\n\n=== Components ===\n%s\n\n=== Bindings ===\n%s"
-        (lines_of_strings (List.map string_of_location  configuration.configuration_locations))
+
+        (lines_of_strings 
+          (List.map (fun location -> 
+            Printf.sprintf
+              "%s\n%s\n\n"
+              (string_of_location location)
+              (string_of_location_components 
+                (List.filter (fun component -> 
+                  component.component_location = location.location_name
+                ) configuration.configuration_components))
+          ) configuration.configuration_locations)
+        )
+        
         (lines_of_strings (List.map string_of_component configuration.configuration_components))
         (lines_of_strings (List.map string_of_binding   configuration.configuration_bindings))
 
