@@ -9,7 +9,7 @@
 		{
 			"name"     : "HTTP-proxy-load-balancer",
 			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]]],
-			"require"  : [["@wordpress-backend", 2]]
+			"require"  : [["@wordpress-backend", 3]]
 		},
 		{
 			"name"     : "Wordpress",
