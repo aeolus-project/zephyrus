@@ -1,0 +1,66 @@
+Simple optimisation from empty initial configuration.
+Wordpress 3 - 3 MySQL
+No resources! (load balancer forced to be alone on a location using specification)
+6 locations available
+
+===> THE GENERATED CONFIGURATION <===
+
+=== Location [location1] ===
+ > Repository : debian-squeeze
+ > Packages installed : 
+ > Resources provided : 
+
+=== Location [location2] ===
+ > Repository : debian-squeeze
+ > Packages installed : 
+ > Resources provided : 
+
+=== Location [location3] ===
+ > Repository : debian-squeeze
+ > Packages installed : mysql-server (= 5.1.49-3), 2vcard (x 23886), wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+
+=== Location [location4] ===
+ > Repository : debian-squeeze
+ > Packages installed : mysql-server (= 5.1.49-3), 2vcard (x 23886), wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+
+=== Location [location5] ===
+ > Repository : debian-squeeze
+ > Packages installed : mysql-server (= 5.1.49-3), 2vcard (x 23886), wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+
+=== Location [location6] ===
+ > Repository : debian-squeeze
+ > Packages installed : varnish (= 2.1.3-8), 2vcard (x 23886)
+ > Resources provided : 
+
+
+=== Components ===
+ > Component [location3-Wordpress-1] : <type : Wordpress; location : location3>
+ > Component [location3-MySQL-1] : <type : MySQL; location : location3>
+ > Component [location4-Wordpress-1] : <type : Wordpress; location : location4>
+ > Component [location4-MySQL-1] : <type : MySQL; location : location4>
+ > Component [location5-Wordpress-1] : <type : Wordpress; location : location5>
+ > Component [location5-MySQL-1] : <type : MySQL; location : location5>
+ > Component [location6-HTTP-proxy-load-balancer-1] : <type : HTTP-proxy-load-balancer; location : location6>
+
+=== Bindings ===
+ > Binding over port [@wordpress-backend] :  ([location6-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location5-Wordpress-1])
+ > Binding over port [@wordpress-backend] :  ([location6-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location4-Wordpress-1])
+ > Binding over port [@wordpress-backend] :  ([location6-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location3-Wordpress-1])
+ > Binding over port [@mysql] :  ([location5-Wordpress-1])~~C o~~~~~C o~~([location5-MySQL-1])
+ > Binding over port [@mysql] :  ([location5-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location5-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+ > Binding over port [@mysql] :  ([location4-Wordpress-1])~~C o~~~~~C o~~([location5-MySQL-1])
+ > Binding over port [@mysql] :  ([location4-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location4-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+ > Binding over port [@mysql] :  ([location3-Wordpress-1])~~C o~~~~~C o~~([location5-MySQL-1])
+ > Binding over port [@mysql] :  ([location3-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location3-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+
+
+real	441m23.154s
+user	425m9.222s
+sys	0m13.985s
+
