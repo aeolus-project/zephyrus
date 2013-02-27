@@ -1,0 +1,132 @@
+{
+  "locations": [
+    {
+      "name": "location1",
+      "repository": "debian-squeeze",
+      "packages_installed": [
+        "mysql-server (= 5.1.49-3)", "2vcard (x 23886)",
+        "wordpress (= 3.3.2+dfsg-1~squeeze1)", "libgd2-xpm (x 125)"
+      ]
+    },
+    {
+      "name": "location2",
+      "repository": "debian-squeeze",
+      "packages_installed": [
+        "mysql-server (= 5.1.49-3)", "2vcard (x 23886)",
+        "wordpress (= 3.3.2+dfsg-1~squeeze1)", "libgd2-xpm (x 125)"
+      ]
+    },
+    {
+      "name": "location3",
+      "repository": "debian-squeeze",
+      "packages_installed": [
+        "mysql-server (= 5.1.49-3)", "2vcard (x 23886)",
+        "wordpress (= 3.3.2+dfsg-1~squeeze1)", "libgd2-xpm (x 125)"
+      ]
+    },
+    {
+      "name": "location4",
+      "repository": "debian-squeeze",
+      "packages_installed": [ "varnish (= 2.1.3-8)", "2vcard (x 23886)" ]
+    }
+  ],
+  "components": [
+    {
+      "component_name": "location1-Wordpress-1",
+      "component_type": "Wordpress",
+      "component_location": "location1"
+    },
+    {
+      "component_name": "location1-MySQL-1",
+      "component_type": "MySQL",
+      "component_location": "location1"
+    },
+    {
+      "component_name": "location2-Wordpress-1",
+      "component_type": "Wordpress",
+      "component_location": "location2"
+    },
+    {
+      "component_name": "location2-MySQL-1",
+      "component_type": "MySQL",
+      "component_location": "location2"
+    },
+    {
+      "component_name": "location3-Wordpress-1",
+      "component_type": "Wordpress",
+      "component_location": "location3"
+    },
+    {
+      "component_name": "location3-MySQL-1",
+      "component_type": "MySQL",
+      "component_location": "location3"
+    },
+    {
+      "component_name": "location4-HTTP-proxy-load-balancer-1",
+      "component_type": "HTTP-proxy-load-balancer",
+      "component_location": "location4"
+    }
+  ],
+  "bindings": [
+    {
+      "port": "@wordpress-backend",
+      "requirer": "location4-HTTP-proxy-load-balancer-1",
+      "provider": "location3-Wordpress-1"
+    },
+    {
+      "port": "@wordpress-backend",
+      "requirer": "location4-HTTP-proxy-load-balancer-1",
+      "provider": "location2-Wordpress-1"
+    },
+    {
+      "port": "@wordpress-backend",
+      "requirer": "location4-HTTP-proxy-load-balancer-1",
+      "provider": "location1-Wordpress-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location3-Wordpress-1",
+      "provider": "location3-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location3-Wordpress-1",
+      "provider": "location2-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location3-Wordpress-1",
+      "provider": "location1-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location2-Wordpress-1",
+      "provider": "location3-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location2-Wordpress-1",
+      "provider": "location2-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location2-Wordpress-1",
+      "provider": "location1-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location1-Wordpress-1",
+      "provider": "location3-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location1-Wordpress-1",
+      "provider": "location2-MySQL-1"
+    },
+    {
+      "port": "@mysql",
+      "requirer": "location1-Wordpress-1",
+      "provider": "location1-MySQL-1"
+    }
+  ]
+}

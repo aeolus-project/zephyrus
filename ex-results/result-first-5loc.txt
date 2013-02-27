@@ -1,0 +1,865 @@
+Importing repository debian-squeeze from file ../repositories/repo-debian-squeeze.json...
+
+===> THE INITIAL CONFIGURATION <===
+
+{
+  "locations": [
+    {
+      "name": "location1",
+      "provide_resources": [ [ "ram", 2048 ] ],
+      "repository": "debian-squeeze"
+    },
+    {
+      "name": "location2",
+      "provide_resources": [ [ "ram", 2048 ] ],
+      "repository": "debian-squeeze"
+    },
+    {
+      "name": "location3",
+      "provide_resources": [ [ "ram", 2048 ] ],
+      "repository": "debian-squeeze"
+    },
+    {
+      "name": "location4",
+      "provide_resources": [ [ "ram", 2048 ] ],
+      "repository": "debian-squeeze"
+    },
+    {
+      "name": "location5",
+      "provide_resources": [ [ "ram", 2048 ] ],
+      "repository": "debian-squeeze"
+    }
+  ]
+}
+
+===> THE SPECIFICATION <===
+
+> Unparsed specification:
+
+(#@serious-wordpress = 1)
+and #(_){debian-squeeze : #MySQL > 1} = 0
+and #(_){debian-squeeze : #Wordpress > 1} = 0
+
+> Parsed specification:
+
+[
+  "SpecAnd",
+  [
+    [
+      "SpecAnd",
+      [
+        [
+          "SpecOp",
+          [
+            [ "SpecExprArity", [ "SpecElementPort", "@serious-wordpress" ] ],
+            "Eq",
+            [ "SpecExprConst", 1 ]
+          ]
+        ],
+        [
+          "SpecOp",
+          [
+            [
+              "SpecExprArity",
+              [
+                "SpecElementLocalisation",
+                [
+                  [],
+                  [ "debian-squeeze" ],
+                  [
+                    "SpecLocalOp",
+                    [
+                      [
+                        "SpecLocalExprArity",
+                        [ "SpecLocalElementComponentType", "MySQL" ]
+                      ],
+                      "Gt",
+                      [ "SpecLocalExprConst", 1 ]
+                    ]
+                  ]
+                ]
+              ]
+            ],
+            "Eq",
+            [ "SpecExprConst", 0 ]
+          ]
+        ]
+      ]
+    ],
+    [
+      "SpecOp",
+      [
+        [
+          "SpecExprArity",
+          [
+            "SpecElementLocalisation",
+            [
+              [],
+              [ "debian-squeeze" ],
+              [
+                "SpecLocalOp",
+                [
+                  [
+                    "SpecLocalExprArity",
+                    [ "SpecLocalElementComponentType", "Wordpress" ]
+                  ],
+                  "Gt",
+                  [ "SpecLocalExprConst", 1 ]
+                ]
+              ]
+            ]
+          ]
+        ],
+        "Eq",
+        [ "SpecExprConst", 0 ]
+      ]
+    ]
+  ]
+]
+
+===> THE TRIMMED UNIVERSE <===
+
+{
+  "component_types": [
+    {
+      "name": "DNS-load-balancer",
+      "provide": [
+        [ "@serious-wordpress", [ "FiniteProvide", 1 ] ],
+        [ "@dns", [ "FiniteProvide", 1 ] ]
+      ],
+      "require": [ [ "@wordpress-backend", 7 ] ],
+      "conflict": [ "@dns" ],
+      "consume": [ [ "ram", 2048 ] ]
+    },
+    {
+      "name": "HTTP-proxy-load-balancer",
+      "provide": [ [ "@serious-wordpress", [ "FiniteProvide", 1 ] ] ],
+      "require": [ [ "@wordpress-backend", 3 ] ],
+      "consume": [ [ "ram", 2048 ] ]
+    },
+    {
+      "name": "Wordpress",
+      "provide": [ [ "@wordpress-backend", [ "FiniteProvide", 1 ] ] ],
+      "require": [ [ "@mysql", 2 ] ],
+      "consume": [ [ "ram", 512 ] ]
+    },
+    {
+      "name": "MySQL",
+      "provide": [ [ "@mysql", [ "FiniteProvide", 3 ] ] ],
+      "consume": [ [ "ram", 512 ] ]
+    }
+  ],
+  "implementation": [
+    [ "DNS-load-balancer", [ "bind9 (= 1:9.7.3.dfsg-1~squeeze9)" ] ],
+    [ "HTTP-proxy-load-balancer", [ "varnish (= 2.1.3-8)" ] ],
+    [ "Wordpress", [ "wordpress (= 3.3.2+dfsg-1~squeeze1)" ] ],
+    [ "MySQL", [ "mysql-server (= 5.1.49-3)" ] ]
+  ],
+  "repositories": [
+    {
+      "name": "debian-squeeze",
+      "packages": [
+        { "name": "2vcard (x 23886)" },
+        {
+          "name": "libgd2-xpm (x 125)",
+          "depend": [ [ "libgd2-xpm (x 125)" ] ]
+        },
+        {
+          "name": "bind9 (= 1:9.7.3.dfsg-1~squeeze9)",
+          "depend": [ [ "2vcard (x 23886)" ] ]
+        },
+        {
+          "name": "mysql-server (= 5.1.49-3)",
+          "depend": [ [ "2vcard (x 23886)" ] ]
+        },
+        {
+          "name": "varnish (= 2.1.3-8)",
+          "depend": [ [ "2vcard (x 23886)" ] ]
+        },
+        {
+          "name": "wordpress (= 3.3.2+dfsg-1~squeeze1)",
+          "depend": [ [ "libgd2-xpm (x 125)" ] ]
+        }
+      ]
+    }
+  ]
+}
+
+===> THE CONSTRAINTS <===
+
++ component types constraints:
+((1 * N(DNS-load-balancer)) >= (0))
+((N(DNS-load-balancer) >= 1) => (N(@dns) = 1))
+((1 * N(DNS-load-balancer)) >= (0))
+((1 * N(HTTP-proxy-load-balancer)) >= (0))
+((1 * N(Wordpress)) >= (B(@wordpress-backend,Wordpress,DNS-load-balancer) + B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)))
+((7 * N(DNS-load-balancer)) = (B(@wordpress-backend,Wordpress,DNS-load-balancer)))
+((3 * N(HTTP-proxy-load-balancer)) = (B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)))
+(B(@wordpress-backend,Wordpress,DNS-load-balancer) <= (N(Wordpress) * N(DNS-load-balancer)))
+(B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer) <= (N(Wordpress) * N(HTTP-proxy-load-balancer)))
+((3 * N(MySQL)) >= (B(@mysql,MySQL,Wordpress)))
+((2 * N(Wordpress)) = (B(@mysql,MySQL,Wordpress)))
+(B(@mysql,MySQL,Wordpress) <= (N(MySQL) * N(Wordpress)))
+
++ location constraints:
+(N(DNS-load-balancer) = (N(location1,DNS-load-balancer) + N(location2,DNS-load-balancer) + N(location3,DNS-load-balancer) + N(location4,DNS-load-balancer) + N(location5,DNS-load-balancer)))
+(N(HTTP-proxy-load-balancer) = (N(location1,HTTP-proxy-load-balancer) + N(location2,HTTP-proxy-load-balancer) + N(location3,HTTP-proxy-load-balancer) + N(location4,HTTP-proxy-load-balancer) + N(location5,HTTP-proxy-load-balancer)))
+(N(Wordpress) = (N(location1,Wordpress) + N(location2,Wordpress) + N(location3,Wordpress) + N(location4,Wordpress) + N(location5,Wordpress)))
+(N(MySQL) = (N(location1,MySQL) + N(location2,MySQL) + N(location3,MySQL) + N(location4,MySQL) + N(location5,MySQL)))
+(N(@dns) = (N(location1,@dns) + N(location2,@dns) + N(location3,@dns) + N(location4,@dns) + N(location5,@dns)))
+(N(@serious-wordpress) = (N(location1,@serious-wordpress) + N(location2,@serious-wordpress) + N(location3,@serious-wordpress) + N(location4,@serious-wordpress) + N(location5,@serious-wordpress)))
+(N(@wordpress-backend) = (N(location1,@wordpress-backend) + N(location2,@wordpress-backend) + N(location3,@wordpress-backend) + N(location4,@wordpress-backend) + N(location5,@wordpress-backend)))
+(N(@mysql) = (N(location1,@mysql) + N(location2,@mysql) + N(location3,@mysql) + N(location4,@mysql) + N(location5,@mysql)))
+(N(bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = (N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) + N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) + N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) + N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) + N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))))
+(N(mysql-server (= 5.1.49-3)) = (N(location1,mysql-server (= 5.1.49-3)) + N(location2,mysql-server (= 5.1.49-3)) + N(location3,mysql-server (= 5.1.49-3)) + N(location4,mysql-server (= 5.1.49-3)) + N(location5,mysql-server (= 5.1.49-3))))
+(N(varnish (= 2.1.3-8)) = (N(location1,varnish (= 2.1.3-8)) + N(location2,varnish (= 2.1.3-8)) + N(location3,varnish (= 2.1.3-8)) + N(location4,varnish (= 2.1.3-8)) + N(location5,varnish (= 2.1.3-8))))
+(N(2vcard (x 23886)) = (N(location1,2vcard (x 23886)) + N(location2,2vcard (x 23886)) + N(location3,2vcard (x 23886)) + N(location4,2vcard (x 23886)) + N(location5,2vcard (x 23886))))
+(N(wordpress (= 3.3.2+dfsg-1~squeeze1)) = (N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) + N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) + N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) + N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) + N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))))
+(N(libgd2-xpm (x 125)) = (N(location1,libgd2-xpm (x 125)) + N(location2,libgd2-xpm (x 125)) + N(location3,libgd2-xpm (x 125)) + N(location4,libgd2-xpm (x 125)) + N(location5,libgd2-xpm (x 125))))
+(N(location1,@dns) = ((1 * N(location1,DNS-load-balancer))))
+(N(location1,@serious-wordpress) = ((1 * N(location1,DNS-load-balancer)) + (1 * N(location1,HTTP-proxy-load-balancer))))
+(N(location1,@wordpress-backend) = ((1 * N(location1,Wordpress))))
+(N(location1,@mysql) = ((3 * N(location1,MySQL))))
+(N(location2,@dns) = ((1 * N(location2,DNS-load-balancer))))
+(N(location2,@serious-wordpress) = ((1 * N(location2,DNS-load-balancer)) + (1 * N(location2,HTTP-proxy-load-balancer))))
+(N(location2,@wordpress-backend) = ((1 * N(location2,Wordpress))))
+(N(location2,@mysql) = ((3 * N(location2,MySQL))))
+(N(location3,@dns) = ((1 * N(location3,DNS-load-balancer))))
+(N(location3,@serious-wordpress) = ((1 * N(location3,DNS-load-balancer)) + (1 * N(location3,HTTP-proxy-load-balancer))))
+(N(location3,@wordpress-backend) = ((1 * N(location3,Wordpress))))
+(N(location3,@mysql) = ((3 * N(location3,MySQL))))
+(N(location4,@dns) = ((1 * N(location4,DNS-load-balancer))))
+(N(location4,@serious-wordpress) = ((1 * N(location4,DNS-load-balancer)) + (1 * N(location4,HTTP-proxy-load-balancer))))
+(N(location4,@wordpress-backend) = ((1 * N(location4,Wordpress))))
+(N(location4,@mysql) = ((3 * N(location4,MySQL))))
+(N(location5,@dns) = ((1 * N(location5,DNS-load-balancer))))
+(N(location5,@serious-wordpress) = ((1 * N(location5,DNS-load-balancer)) + (1 * N(location5,HTTP-proxy-load-balancer))))
+(N(location5,@wordpress-backend) = ((1 * N(location5,Wordpress))))
+(N(location5,@mysql) = ((3 * N(location5,MySQL))))
+
++ repository constraints:
+((R(location1,debian-squeeze)) = 1)
+((R(location2,debian-squeeze)) = 1)
+((R(location3,debian-squeeze)) = 1)
+((R(location4,debian-squeeze)) = 1)
+((R(location5,debian-squeeze)) = 1)
+((R(location1,debian-squeeze) = 1) => (N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= 1))
+((R(location1,debian-squeeze) = 1) => (N(location1,mysql-server (= 5.1.49-3)) <= 1))
+((R(location1,debian-squeeze) = 1) => (N(location1,varnish (= 2.1.3-8)) <= 1))
+((R(location1,debian-squeeze) = 1) => (N(location1,2vcard (x 23886)) <= 1))
+((R(location1,debian-squeeze) = 1) => (N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= 1))
+((R(location1,debian-squeeze) = 1) => (N(location1,libgd2-xpm (x 125)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,mysql-server (= 5.1.49-3)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,varnish (= 2.1.3-8)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,2vcard (x 23886)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= 1))
+((R(location2,debian-squeeze) = 1) => (N(location2,libgd2-xpm (x 125)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,mysql-server (= 5.1.49-3)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,varnish (= 2.1.3-8)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,2vcard (x 23886)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= 1))
+((R(location3,debian-squeeze) = 1) => (N(location3,libgd2-xpm (x 125)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,mysql-server (= 5.1.49-3)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,varnish (= 2.1.3-8)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,2vcard (x 23886)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= 1))
+((R(location4,debian-squeeze) = 1) => (N(location4,libgd2-xpm (x 125)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,mysql-server (= 5.1.49-3)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,varnish (= 2.1.3-8)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,2vcard (x 23886)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= 1))
+((R(location5,debian-squeeze) = 1) => (N(location5,libgd2-xpm (x 125)) <= 1))
+
++ package constraints:
+((N(location1,DNS-load-balancer) >= 1) => ((N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) >= 1))
+((N(location1,HTTP-proxy-load-balancer) >= 1) => ((N(location1,varnish (= 2.1.3-8))) >= 1))
+((N(location1,Wordpress) >= 1) => ((N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))) >= 1))
+((N(location1,MySQL) >= 1) => ((N(location1,mysql-server (= 5.1.49-3))) >= 1))
+((N(location2,DNS-load-balancer) >= 1) => ((N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) >= 1))
+((N(location2,HTTP-proxy-load-balancer) >= 1) => ((N(location2,varnish (= 2.1.3-8))) >= 1))
+((N(location2,Wordpress) >= 1) => ((N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))) >= 1))
+((N(location2,MySQL) >= 1) => ((N(location2,mysql-server (= 5.1.49-3))) >= 1))
+((N(location3,DNS-load-balancer) >= 1) => ((N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) >= 1))
+((N(location3,HTTP-proxy-load-balancer) >= 1) => ((N(location3,varnish (= 2.1.3-8))) >= 1))
+((N(location3,Wordpress) >= 1) => ((N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))) >= 1))
+((N(location3,MySQL) >= 1) => ((N(location3,mysql-server (= 5.1.49-3))) >= 1))
+((N(location4,DNS-load-balancer) >= 1) => ((N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) >= 1))
+((N(location4,HTTP-proxy-load-balancer) >= 1) => ((N(location4,varnish (= 2.1.3-8))) >= 1))
+((N(location4,Wordpress) >= 1) => ((N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))) >= 1))
+((N(location4,MySQL) >= 1) => ((N(location4,mysql-server (= 5.1.49-3))) >= 1))
+((N(location5,DNS-load-balancer) >= 1) => ((N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) >= 1))
+((N(location5,HTTP-proxy-load-balancer) >= 1) => ((N(location5,varnish (= 2.1.3-8))) >= 1))
+((N(location5,Wordpress) >= 1) => ((N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))) >= 1))
+((N(location5,MySQL) >= 1) => ((N(location5,mysql-server (= 5.1.49-3))) >= 1))
+(N(location1,libgd2-xpm (x 125)) <= (N(location1,libgd2-xpm (x 125))))
+(N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= (N(location1,2vcard (x 23886))))
+(N(location1,mysql-server (= 5.1.49-3)) <= (N(location1,2vcard (x 23886))))
+(N(location1,varnish (= 2.1.3-8)) <= (N(location1,2vcard (x 23886))))
+(N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= (N(location1,libgd2-xpm (x 125))))
+(N(location2,libgd2-xpm (x 125)) <= (N(location2,libgd2-xpm (x 125))))
+(N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= (N(location2,2vcard (x 23886))))
+(N(location2,mysql-server (= 5.1.49-3)) <= (N(location2,2vcard (x 23886))))
+(N(location2,varnish (= 2.1.3-8)) <= (N(location2,2vcard (x 23886))))
+(N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= (N(location2,libgd2-xpm (x 125))))
+(N(location3,libgd2-xpm (x 125)) <= (N(location3,libgd2-xpm (x 125))))
+(N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= (N(location3,2vcard (x 23886))))
+(N(location3,mysql-server (= 5.1.49-3)) <= (N(location3,2vcard (x 23886))))
+(N(location3,varnish (= 2.1.3-8)) <= (N(location3,2vcard (x 23886))))
+(N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= (N(location3,libgd2-xpm (x 125))))
+(N(location4,libgd2-xpm (x 125)) <= (N(location4,libgd2-xpm (x 125))))
+(N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= (N(location4,2vcard (x 23886))))
+(N(location4,mysql-server (= 5.1.49-3)) <= (N(location4,2vcard (x 23886))))
+(N(location4,varnish (= 2.1.3-8)) <= (N(location4,2vcard (x 23886))))
+(N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= (N(location4,libgd2-xpm (x 125))))
+(N(location5,libgd2-xpm (x 125)) <= (N(location5,libgd2-xpm (x 125))))
+(N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) <= (N(location5,2vcard (x 23886))))
+(N(location5,mysql-server (= 5.1.49-3)) <= (N(location5,2vcard (x 23886))))
+(N(location5,varnish (= 2.1.3-8)) <= (N(location5,2vcard (x 23886))))
+(N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1)) <= (N(location5,libgd2-xpm (x 125))))
+
++ resource constraints:
+(O(location1,ram) >= (((2048 * N(location1,DNS-load-balancer)) + (2048 * N(location1,HTTP-proxy-load-balancer)) + (512 * N(location1,Wordpress)) + (512 * N(location1,MySQL))) + ((0 * N(location1,2vcard (x 23886))) + (0 * N(location1,libgd2-xpm (x 125))) + (0 * N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) + (0 * N(location1,mysql-server (= 5.1.49-3))) + (0 * N(location1,varnish (= 2.1.3-8))) + (0 * N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))))))
+(O(location2,ram) >= (((2048 * N(location2,DNS-load-balancer)) + (2048 * N(location2,HTTP-proxy-load-balancer)) + (512 * N(location2,Wordpress)) + (512 * N(location2,MySQL))) + ((0 * N(location2,2vcard (x 23886))) + (0 * N(location2,libgd2-xpm (x 125))) + (0 * N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) + (0 * N(location2,mysql-server (= 5.1.49-3))) + (0 * N(location2,varnish (= 2.1.3-8))) + (0 * N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))))))
+(O(location3,ram) >= (((2048 * N(location3,DNS-load-balancer)) + (2048 * N(location3,HTTP-proxy-load-balancer)) + (512 * N(location3,Wordpress)) + (512 * N(location3,MySQL))) + ((0 * N(location3,2vcard (x 23886))) + (0 * N(location3,libgd2-xpm (x 125))) + (0 * N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) + (0 * N(location3,mysql-server (= 5.1.49-3))) + (0 * N(location3,varnish (= 2.1.3-8))) + (0 * N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))))))
+(O(location4,ram) >= (((2048 * N(location4,DNS-load-balancer)) + (2048 * N(location4,HTTP-proxy-load-balancer)) + (512 * N(location4,Wordpress)) + (512 * N(location4,MySQL))) + ((0 * N(location4,2vcard (x 23886))) + (0 * N(location4,libgd2-xpm (x 125))) + (0 * N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) + (0 * N(location4,mysql-server (= 5.1.49-3))) + (0 * N(location4,varnish (= 2.1.3-8))) + (0 * N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))))))
+(O(location5,ram) >= (((2048 * N(location5,DNS-load-balancer)) + (2048 * N(location5,HTTP-proxy-load-balancer)) + (512 * N(location5,Wordpress)) + (512 * N(location5,MySQL))) + ((0 * N(location5,2vcard (x 23886))) + (0 * N(location5,libgd2-xpm (x 125))) + (0 * N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))) + (0 * N(location5,mysql-server (= 5.1.49-3))) + (0 * N(location5,varnish (= 2.1.3-8))) + (0 * N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))))))
+(O(location1,ram) = 2048)
+(O(location2,ram) = 2048)
+(O(location3,ram) = 2048)
+(O(location4,ram) = 2048)
+(O(location5,ram) = 2048)
+
++ specification constraints:
+(((N(@serious-wordpress) = 1) and ((||((true and ((R(location1,debian-squeeze)) = 1)) and (N(location1,MySQL) > 1))|| + ||((true and ((R(location2,debian-squeeze)) = 1)) and (N(location2,MySQL) > 1))|| + ||((true and ((R(location3,debian-squeeze)) = 1)) and (N(location3,MySQL) > 1))|| + ||((true and ((R(location4,debian-squeeze)) = 1)) and (N(location4,MySQL) > 1))|| + ||((true and ((R(location5,debian-squeeze)) = 1)) and (N(location5,MySQL) > 1))||) = 0)) and ((||((true and ((R(location1,debian-squeeze)) = 1)) and (N(location1,Wordpress) > 1))|| + ||((true and ((R(location2,debian-squeeze)) = 1)) and (N(location2,Wordpress) > 1))|| + ||((true and ((R(location3,debian-squeeze)) = 1)) and (N(location3,Wordpress) > 1))|| + ||((true and ((R(location4,debian-squeeze)) = 1)) and (N(location4,Wordpress) > 1))|| + ||((true and ((R(location5,debian-squeeze)) = 1)) and (N(location5,Wordpress) > 1))||) = 0))
+
+
+===> INITIALIZING THE FACILE CONSTRAINTS... <===
+
+
+===> THE FACILE VARIABLES <===
+
+N(DNS-load-balancer) = 0
+N(HTTP-proxy-load-balancer) = N(HTTP-proxy-load-balancer)[0-1]
+N(Wordpress) = N(Wordpress)[0-5]
+N(MySQL) = N(MySQL)[0-5]
+N(@dns) = 0
+N(@serious-wordpress) = 1
+N(@wordpress-backend) = N(@wordpress-backend)[0-5]
+N(@mysql) = N(@mysql)[0-15]
+N(bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-5]
+N(mysql-server (= 5.1.49-3)) = N(mysql-server (= 5.1.49-3))[0-5]
+N(varnish (= 2.1.3-8)) = N(varnish (= 2.1.3-8))[0-5]
+N(2vcard (x 23886)) = N(2vcard (x 23886))[0-5]
+N(wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(wordpress (= 3.3.2+dfsg-1~squeeze1))[0-5]
+N(libgd2-xpm (x 125)) = N(libgd2-xpm (x 125))[0-5]
+N(location1,DNS-load-balancer) = 0
+N(location1,HTTP-proxy-load-balancer) = N(location1,HTTP-proxy-load-balancer)[0-1]
+N(location1,Wordpress) = N(location1,Wordpress)[0-1]
+N(location1,MySQL) = N(location1,MySQL)[0-1]
+N(location1,@dns) = 0
+N(location1,@serious-wordpress) = N(location1,@serious-wordpress)[0-1]
+N(location1,@wordpress-backend) = N(location1,@wordpress-backend)[0-1]
+N(location1,@mysql) = N(location1,@mysql)[0-3]
+N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1]
+N(location1,mysql-server (= 5.1.49-3)) = N(location1,mysql-server (= 5.1.49-3))[0-1]
+N(location1,varnish (= 2.1.3-8)) = N(location1,varnish (= 2.1.3-8))[0-1]
+N(location1,2vcard (x 23886)) = N(location1,2vcard (x 23886))[0-1]
+N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1]
+N(location1,libgd2-xpm (x 125)) = N(location1,libgd2-xpm (x 125))[0-1]
+N(location2,DNS-load-balancer) = 0
+N(location2,HTTP-proxy-load-balancer) = N(location2,HTTP-proxy-load-balancer)[0-1]
+N(location2,Wordpress) = N(location2,Wordpress)[0-1]
+N(location2,MySQL) = N(location2,MySQL)[0-1]
+N(location2,@dns) = 0
+N(location2,@serious-wordpress) = N(location2,@serious-wordpress)[0-1]
+N(location2,@wordpress-backend) = N(location2,@wordpress-backend)[0-1]
+N(location2,@mysql) = N(location2,@mysql)[0-3]
+N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1]
+N(location2,mysql-server (= 5.1.49-3)) = N(location2,mysql-server (= 5.1.49-3))[0-1]
+N(location2,varnish (= 2.1.3-8)) = N(location2,varnish (= 2.1.3-8))[0-1]
+N(location2,2vcard (x 23886)) = N(location2,2vcard (x 23886))[0-1]
+N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1]
+N(location2,libgd2-xpm (x 125)) = N(location2,libgd2-xpm (x 125))[0-1]
+N(location3,DNS-load-balancer) = 0
+N(location3,HTTP-proxy-load-balancer) = N(location3,HTTP-proxy-load-balancer)[0-1]
+N(location3,Wordpress) = N(location3,Wordpress)[0-1]
+N(location3,MySQL) = N(location3,MySQL)[0-1]
+N(location3,@dns) = 0
+N(location3,@serious-wordpress) = N(location3,@serious-wordpress)[0-1]
+N(location3,@wordpress-backend) = N(location3,@wordpress-backend)[0-1]
+N(location3,@mysql) = N(location3,@mysql)[0-3]
+N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1]
+N(location3,mysql-server (= 5.1.49-3)) = N(location3,mysql-server (= 5.1.49-3))[0-1]
+N(location3,varnish (= 2.1.3-8)) = N(location3,varnish (= 2.1.3-8))[0-1]
+N(location3,2vcard (x 23886)) = N(location3,2vcard (x 23886))[0-1]
+N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1]
+N(location3,libgd2-xpm (x 125)) = N(location3,libgd2-xpm (x 125))[0-1]
+N(location4,DNS-load-balancer) = 0
+N(location4,HTTP-proxy-load-balancer) = N(location4,HTTP-proxy-load-balancer)[0-1]
+N(location4,Wordpress) = N(location4,Wordpress)[0-1]
+N(location4,MySQL) = N(location4,MySQL)[0-1]
+N(location4,@dns) = 0
+N(location4,@serious-wordpress) = N(location4,@serious-wordpress)[0-1]
+N(location4,@wordpress-backend) = N(location4,@wordpress-backend)[0-1]
+N(location4,@mysql) = N(location4,@mysql)[0-3]
+N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1]
+N(location4,mysql-server (= 5.1.49-3)) = N(location4,mysql-server (= 5.1.49-3))[0-1]
+N(location4,varnish (= 2.1.3-8)) = N(location4,varnish (= 2.1.3-8))[0-1]
+N(location4,2vcard (x 23886)) = N(location4,2vcard (x 23886))[0-1]
+N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1]
+N(location4,libgd2-xpm (x 125)) = N(location4,libgd2-xpm (x 125))[0-1]
+N(location5,DNS-load-balancer) = 0
+N(location5,HTTP-proxy-load-balancer) = N(location5,HTTP-proxy-load-balancer)[0-1]
+N(location5,Wordpress) = N(location5,Wordpress)[0-1]
+N(location5,MySQL) = N(location5,MySQL)[0-1]
+N(location5,@dns) = 0
+N(location5,@serious-wordpress) = N(location5,@serious-wordpress)[0-1]
+N(location5,@wordpress-backend) = N(location5,@wordpress-backend)[0-1]
+N(location5,@mysql) = N(location5,@mysql)[0-3]
+N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1]
+N(location5,mysql-server (= 5.1.49-3)) = N(location5,mysql-server (= 5.1.49-3))[0-1]
+N(location5,varnish (= 2.1.3-8)) = N(location5,varnish (= 2.1.3-8))[0-1]
+N(location5,2vcard (x 23886)) = N(location5,2vcard (x 23886))[0-1]
+N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1)) = N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1]
+N(location5,libgd2-xpm (x 125)) = N(location5,libgd2-xpm (x 125))[0-1]
+B(@wordpress-backend,Wordpress,DNS-load-balancer) = 0
+B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer) = B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)[0-3]
+B(@mysql,MySQL,Wordpress) = B(@mysql,MySQL,Wordpress)[0-10]
+R(location1,debian-squeeze) = 1
+R(location2,debian-squeeze) = 1
+R(location3,debian-squeeze) = 1
+R(location4,debian-squeeze) = 1
+R(location5,debian-squeeze) = 1
+O(location1,ram) = 2048
+O(location2,ram) = 2048
+O(location3,ram) = 2048
+O(location4,ram) = 2048
+O(location5,ram) = 2048
+
+===> THE FACILE CONSTRAINTS <===
+
++ component types constraints:
+2:  -1.0 <= 0
+6: (5:  +1.0 <= 0) ||~~ (3:  +1.0 = 1)
+7:  -1.0 <= 0
+8:  -1.N(HTTP-proxy-load-balancer)[0-1] <= 0
+9:  +1.B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)[0-3] -1.N(Wordpress)[0-5] <= 0
+10: 0 = 7 * 0
+11: B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)[0-3] = 3 * N(HTTP-proxy-load-balancer)[0-1]
+13: 0 <= 0 + 0
+15: B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer)[0-3] <= _98[0-5] + 0
+16:  +1.B(@mysql,MySQL,Wordpress)[0-10] -3.N(MySQL)[0-5] <= 0
+17: B(@mysql,MySQL,Wordpress)[0-10] = 2 * N(Wordpress)[0-5]
+19: B(@mysql,MySQL,Wordpress)[0-10] <= _99[0-25] + 0
+
++ location constraints:
+20:  -1.0 -1.0 -1.0 -1.0 -1.0 = 0
+21:  +1.N(HTTP-proxy-load-balancer)[0-1] -1.N(location5,HTTP-proxy-load-balancer)[0-1] -1.N(location4,HTTP-proxy-load-balancer)[0-1] -1.N(location3,HTTP-proxy-load-balancer)[0-1] -1.N(location2,HTTP-proxy-load-balancer)[0-1] -1.N(location1,HTTP-proxy-load-balancer)[0-1] = 0
+22:  +1.N(Wordpress)[0-5] -1.N(location5,Wordpress)[0-1] -1.N(location4,Wordpress)[0-1] -1.N(location3,Wordpress)[0-1] -1.N(location2,Wordpress)[0-1] -1.N(location1,Wordpress)[0-1] = 0
+23:  +1.N(MySQL)[0-5] -1.N(location5,MySQL)[0-1] -1.N(location4,MySQL)[0-1] -1.N(location3,MySQL)[0-1] -1.N(location2,MySQL)[0-1] -1.N(location1,MySQL)[0-1] = 0
+24:  +1.0 = 0
+25:  -1.N(location5,@serious-wordpress)[0-1] -1.N(location4,@serious-wordpress)[0-1] -1.N(location3,@serious-wordpress)[0-1] -1.N(location2,@serious-wordpress)[0-1] -1.N(location1,@serious-wordpress)[0-1] = -1
+26:  +1.N(@wordpress-backend)[0-5] -1.N(location5,@wordpress-backend)[0-1] -1.N(location4,@wordpress-backend)[0-1] -1.N(location3,@wordpress-backend)[0-1] -1.N(location2,@wordpress-backend)[0-1] -1.N(location1,@wordpress-backend)[0-1] = 0
+27:  +1.N(@mysql)[0-15] -1.N(location5,@mysql)[0-3] -1.N(location4,@mysql)[0-3] -1.N(location3,@mysql)[0-3] -1.N(location2,@mysql)[0-3] -1.N(location1,@mysql)[0-3] = 0
+28:  +1.N(bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-5] -1.N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] -1.N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] -1.N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] -1.N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] -1.N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] = 0
+29:  +1.N(mysql-server (= 5.1.49-3))[0-5] -1.N(location5,mysql-server (= 5.1.49-3))[0-1] -1.N(location4,mysql-server (= 5.1.49-3))[0-1] -1.N(location3,mysql-server (= 5.1.49-3))[0-1] -1.N(location2,mysql-server (= 5.1.49-3))[0-1] -1.N(location1,mysql-server (= 5.1.49-3))[0-1] = 0
+30:  +1.N(varnish (= 2.1.3-8))[0-5] -1.N(location5,varnish (= 2.1.3-8))[0-1] -1.N(location4,varnish (= 2.1.3-8))[0-1] -1.N(location3,varnish (= 2.1.3-8))[0-1] -1.N(location2,varnish (= 2.1.3-8))[0-1] -1.N(location1,varnish (= 2.1.3-8))[0-1] = 0
+31:  +1.N(2vcard (x 23886))[0-5] -1.N(location5,2vcard (x 23886))[0-1] -1.N(location4,2vcard (x 23886))[0-1] -1.N(location3,2vcard (x 23886))[0-1] -1.N(location2,2vcard (x 23886))[0-1] -1.N(location1,2vcard (x 23886))[0-1] = 0
+32:  +1.N(wordpress (= 3.3.2+dfsg-1~squeeze1))[0-5] -1.N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] -1.N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] -1.N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] -1.N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] -1.N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] = 0
+33:  +1.N(libgd2-xpm (x 125))[0-5] -1.N(location5,libgd2-xpm (x 125))[0-1] -1.N(location4,libgd2-xpm (x 125))[0-1] -1.N(location3,libgd2-xpm (x 125))[0-1] -1.N(location2,libgd2-xpm (x 125))[0-1] -1.N(location1,libgd2-xpm (x 125))[0-1] = 0
+34:  +1.0 = 0
+35:  +1.N(location1,@serious-wordpress)[0-1] -1.N(location1,HTTP-proxy-load-balancer)[0-1] = 0
+36:  +1.N(location1,@wordpress-backend)[0-1] -1.N(location1,Wordpress)[0-1] = 0
+37: N(location1,@mysql)[0-3] = 3 * N(location1,MySQL)[0-1]
+38:  +1.0 = 0
+39:  +1.N(location2,@serious-wordpress)[0-1] -1.N(location2,HTTP-proxy-load-balancer)[0-1] = 0
+40:  +1.N(location2,@wordpress-backend)[0-1] -1.N(location2,Wordpress)[0-1] = 0
+41: N(location2,@mysql)[0-3] = 3 * N(location2,MySQL)[0-1]
+42:  +1.0 = 0
+43:  +1.N(location3,@serious-wordpress)[0-1] -1.N(location3,HTTP-proxy-load-balancer)[0-1] = 0
+44:  +1.N(location3,@wordpress-backend)[0-1] -1.N(location3,Wordpress)[0-1] = 0
+45: N(location3,@mysql)[0-3] = 3 * N(location3,MySQL)[0-1]
+46:  +1.0 = 0
+47:  +1.N(location4,@serious-wordpress)[0-1] -1.N(location4,HTTP-proxy-load-balancer)[0-1] = 0
+48:  +1.N(location4,@wordpress-backend)[0-1] -1.N(location4,Wordpress)[0-1] = 0
+49: N(location4,@mysql)[0-3] = 3 * N(location4,MySQL)[0-1]
+50:  +1.0 = 0
+51:  +1.N(location5,@serious-wordpress)[0-1] -1.N(location5,HTTP-proxy-load-balancer)[0-1] = 0
+52:  +1.N(location5,@wordpress-backend)[0-1] -1.N(location5,Wordpress)[0-1] = 0
+53: N(location5,@mysql)[0-3] = 3 * N(location5,MySQL)[0-1]
+
++ repository constraints:
+54:  +1.1 = 1
+55:  +1.1 = 1
+56:  +1.1 = 1
+57:  +1.1 = 1
+58:  +1.1 = 1
+62: (61:  +1.1 <> 1) ||~~ (59:  +1.N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= 1)
+66: (65:  +1.1 <> 1) ||~~ (63:  +1.N(location1,mysql-server (= 5.1.49-3))[0-1] <= 1)
+70: (69:  +1.1 <> 1) ||~~ (67:  +1.N(location1,varnish (= 2.1.3-8))[0-1] <= 1)
+74: (73:  +1.1 <> 1) ||~~ (71:  +1.N(location1,2vcard (x 23886))[0-1] <= 1)
+78: (77:  +1.1 <> 1) ||~~ (75:  +1.N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= 1)
+82: (81:  +1.1 <> 1) ||~~ (79:  +1.N(location1,libgd2-xpm (x 125))[0-1] <= 1)
+86: (85:  +1.1 <> 1) ||~~ (83:  +1.N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= 1)
+90: (89:  +1.1 <> 1) ||~~ (87:  +1.N(location2,mysql-server (= 5.1.49-3))[0-1] <= 1)
+94: (93:  +1.1 <> 1) ||~~ (91:  +1.N(location2,varnish (= 2.1.3-8))[0-1] <= 1)
+98: (97:  +1.1 <> 1) ||~~ (95:  +1.N(location2,2vcard (x 23886))[0-1] <= 1)
+102: (101:  +1.1 <> 1) ||~~ (99:  +1.N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= 1)
+106: (105:  +1.1 <> 1) ||~~ (103:  +1.N(location2,libgd2-xpm (x 125))[0-1] <= 1)
+110: (109:  +1.1 <> 1) ||~~ (107:  +1.N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= 1)
+114: (113:  +1.1 <> 1) ||~~ (111:  +1.N(location3,mysql-server (= 5.1.49-3))[0-1] <= 1)
+118: (117:  +1.1 <> 1) ||~~ (115:  +1.N(location3,varnish (= 2.1.3-8))[0-1] <= 1)
+122: (121:  +1.1 <> 1) ||~~ (119:  +1.N(location3,2vcard (x 23886))[0-1] <= 1)
+126: (125:  +1.1 <> 1) ||~~ (123:  +1.N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= 1)
+130: (129:  +1.1 <> 1) ||~~ (127:  +1.N(location3,libgd2-xpm (x 125))[0-1] <= 1)
+134: (133:  +1.1 <> 1) ||~~ (131:  +1.N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= 1)
+138: (137:  +1.1 <> 1) ||~~ (135:  +1.N(location4,mysql-server (= 5.1.49-3))[0-1] <= 1)
+142: (141:  +1.1 <> 1) ||~~ (139:  +1.N(location4,varnish (= 2.1.3-8))[0-1] <= 1)
+146: (145:  +1.1 <> 1) ||~~ (143:  +1.N(location4,2vcard (x 23886))[0-1] <= 1)
+150: (149:  +1.1 <> 1) ||~~ (147:  +1.N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= 1)
+154: (153:  +1.1 <> 1) ||~~ (151:  +1.N(location4,libgd2-xpm (x 125))[0-1] <= 1)
+158: (157:  +1.1 <> 1) ||~~ (155:  +1.N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= 1)
+162: (161:  +1.1 <> 1) ||~~ (159:  +1.N(location5,mysql-server (= 5.1.49-3))[0-1] <= 1)
+166: (165:  +1.1 <> 1) ||~~ (163:  +1.N(location5,varnish (= 2.1.3-8))[0-1] <= 1)
+170: (169:  +1.1 <> 1) ||~~ (167:  +1.N(location5,2vcard (x 23886))[0-1] <= 1)
+174: (173:  +1.1 <> 1) ||~~ (171:  +1.N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= 1)
+178: (177:  +1.1 <> 1) ||~~ (175:  +1.N(location5,libgd2-xpm (x 125))[0-1] <= 1)
+
++ package constraints:
+182: (181:  +1.0 <= 0) ||~~ (179:  -1.N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= -1)
+186: (185:  +1.N(location1,HTTP-proxy-load-balancer)[0-1] <= 0) ||~~ (183:  -1.N(location1,varnish (= 2.1.3-8))[0-1] <= -1)
+190: (189:  +1.N(location1,Wordpress)[0-1] <= 0) ||~~ (187:  -1.N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= -1)
+194: (193:  +1.N(location1,MySQL)[0-1] <= 0) ||~~ (191:  -1.N(location1,mysql-server (= 5.1.49-3))[0-1] <= -1)
+198: (197:  +1.0 <= 0) ||~~ (195:  -1.N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= -1)
+202: (201:  +1.N(location2,HTTP-proxy-load-balancer)[0-1] <= 0) ||~~ (199:  -1.N(location2,varnish (= 2.1.3-8))[0-1] <= -1)
+206: (205:  +1.N(location2,Wordpress)[0-1] <= 0) ||~~ (203:  -1.N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= -1)
+210: (209:  +1.N(location2,MySQL)[0-1] <= 0) ||~~ (207:  -1.N(location2,mysql-server (= 5.1.49-3))[0-1] <= -1)
+214: (213:  +1.0 <= 0) ||~~ (211:  -1.N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= -1)
+218: (217:  +1.N(location3,HTTP-proxy-load-balancer)[0-1] <= 0) ||~~ (215:  -1.N(location3,varnish (= 2.1.3-8))[0-1] <= -1)
+222: (221:  +1.N(location3,Wordpress)[0-1] <= 0) ||~~ (219:  -1.N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= -1)
+226: (225:  +1.N(location3,MySQL)[0-1] <= 0) ||~~ (223:  -1.N(location3,mysql-server (= 5.1.49-3))[0-1] <= -1)
+230: (229:  +1.0 <= 0) ||~~ (227:  -1.N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= -1)
+234: (233:  +1.N(location4,HTTP-proxy-load-balancer)[0-1] <= 0) ||~~ (231:  -1.N(location4,varnish (= 2.1.3-8))[0-1] <= -1)
+238: (237:  +1.N(location4,Wordpress)[0-1] <= 0) ||~~ (235:  -1.N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= -1)
+242: (241:  +1.N(location4,MySQL)[0-1] <= 0) ||~~ (239:  -1.N(location4,mysql-server (= 5.1.49-3))[0-1] <= -1)
+246: (245:  +1.0 <= 0) ||~~ (243:  -1.N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= -1)
+250: (249:  +1.N(location5,HTTP-proxy-load-balancer)[0-1] <= 0) ||~~ (247:  -1.N(location5,varnish (= 2.1.3-8))[0-1] <= -1)
+254: (253:  +1.N(location5,Wordpress)[0-1] <= 0) ||~~ (251:  -1.N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= -1)
+258: (257:  +1.N(location5,MySQL)[0-1] <= 0) ||~~ (255:  -1.N(location5,mysql-server (= 5.1.49-3))[0-1] <= -1)
+0: one
+259: N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= N(location1,2vcard (x 23886))[0-1] + 0
+260: N(location1,mysql-server (= 5.1.49-3))[0-1] <= N(location1,2vcard (x 23886))[0-1] + 0
+261: N(location1,varnish (= 2.1.3-8))[0-1] <= N(location1,2vcard (x 23886))[0-1] + 0
+262: N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= N(location1,libgd2-xpm (x 125))[0-1] + 0
+0: one
+263: N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= N(location2,2vcard (x 23886))[0-1] + 0
+264: N(location2,mysql-server (= 5.1.49-3))[0-1] <= N(location2,2vcard (x 23886))[0-1] + 0
+265: N(location2,varnish (= 2.1.3-8))[0-1] <= N(location2,2vcard (x 23886))[0-1] + 0
+266: N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= N(location2,libgd2-xpm (x 125))[0-1] + 0
+0: one
+267: N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= N(location3,2vcard (x 23886))[0-1] + 0
+268: N(location3,mysql-server (= 5.1.49-3))[0-1] <= N(location3,2vcard (x 23886))[0-1] + 0
+269: N(location3,varnish (= 2.1.3-8))[0-1] <= N(location3,2vcard (x 23886))[0-1] + 0
+270: N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= N(location3,libgd2-xpm (x 125))[0-1] + 0
+0: one
+271: N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= N(location4,2vcard (x 23886))[0-1] + 0
+272: N(location4,mysql-server (= 5.1.49-3))[0-1] <= N(location4,2vcard (x 23886))[0-1] + 0
+273: N(location4,varnish (= 2.1.3-8))[0-1] <= N(location4,2vcard (x 23886))[0-1] + 0
+274: N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= N(location4,libgd2-xpm (x 125))[0-1] + 0
+0: one
+275: N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9))[0-1] <= N(location5,2vcard (x 23886))[0-1] + 0
+276: N(location5,mysql-server (= 5.1.49-3))[0-1] <= N(location5,2vcard (x 23886))[0-1] + 0
+277: N(location5,varnish (= 2.1.3-8))[0-1] <= N(location5,2vcard (x 23886))[0-1] + 0
+278: N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1))[0-1] <= N(location5,libgd2-xpm (x 125))[0-1] + 0
+
++ resource constraints:
+279:  +512.N(location1,Wordpress)[0-1] +512.N(location1,MySQL)[0-1] +2048.N(location1,HTTP-proxy-load-balancer)[0-1] <= 2048
+280:  +512.N(location2,Wordpress)[0-1] +512.N(location2,MySQL)[0-1] +2048.N(location2,HTTP-proxy-load-balancer)[0-1] <= 2048
+281:  +512.N(location3,Wordpress)[0-1] +512.N(location3,MySQL)[0-1] +2048.N(location3,HTTP-proxy-load-balancer)[0-1] <= 2048
+282:  +512.N(location4,Wordpress)[0-1] +512.N(location4,MySQL)[0-1] +2048.N(location4,HTTP-proxy-load-balancer)[0-1] <= 2048
+283:  +512.N(location5,Wordpress)[0-1] +512.N(location5,MySQL)[0-1] +2048.N(location5,HTTP-proxy-load-balancer)[0-1] <= 2048
+284:  +1.2048 = 2048
+285:  +1.2048 = 2048
+286:  +1.2048 = 2048
+287:  +1.2048 = 2048
+288:  +1.2048 = 2048
+
++ specification constraints:
+557: (556: (555:  +1.1 = 1) &&~~ (554:  = 0)) &&~~ (421:  = 0)
+
+
+===> SOLVING! <===
+
+> Found a solution! Cost = 4 
+N(DNS-load-balancer) = 0
+N(HTTP-proxy-load-balancer) = 1
+N(Wordpress) = 3
+N(MySQL) = 2
+N(@dns) = 0
+N(@serious-wordpress) = 1
+N(@wordpress-backend) = 3
+N(@mysql) = 6
+N(bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(mysql-server (= 5.1.49-3)) = 2
+N(varnish (= 2.1.3-8)) = 1
+N(2vcard (x 23886)) = 3
+N(wordpress (= 3.3.2+dfsg-1~squeeze1)) = 3
+N(libgd2-xpm (x 125)) = 3
+N(location1,DNS-load-balancer) = 0
+N(location1,HTTP-proxy-load-balancer) = 0
+N(location1,Wordpress) = 0
+N(location1,MySQL) = 0
+N(location1,@dns) = 0
+N(location1,@serious-wordpress) = 0
+N(location1,@wordpress-backend) = 0
+N(location1,@mysql) = 0
+N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location1,mysql-server (= 5.1.49-3)) = 0
+N(location1,varnish (= 2.1.3-8)) = 0
+N(location1,2vcard (x 23886)) = 0
+N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 0
+N(location1,libgd2-xpm (x 125)) = 0
+N(location2,DNS-load-balancer) = 0
+N(location2,HTTP-proxy-load-balancer) = 0
+N(location2,Wordpress) = 1
+N(location2,MySQL) = 0
+N(location2,@dns) = 0
+N(location2,@serious-wordpress) = 0
+N(location2,@wordpress-backend) = 1
+N(location2,@mysql) = 0
+N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location2,mysql-server (= 5.1.49-3)) = 0
+N(location2,varnish (= 2.1.3-8)) = 0
+N(location2,2vcard (x 23886)) = 0
+N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location2,libgd2-xpm (x 125)) = 1
+N(location3,DNS-load-balancer) = 0
+N(location3,HTTP-proxy-load-balancer) = 0
+N(location3,Wordpress) = 1
+N(location3,MySQL) = 1
+N(location3,@dns) = 0
+N(location3,@serious-wordpress) = 0
+N(location3,@wordpress-backend) = 1
+N(location3,@mysql) = 3
+N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location3,mysql-server (= 5.1.49-3)) = 1
+N(location3,varnish (= 2.1.3-8)) = 0
+N(location3,2vcard (x 23886)) = 1
+N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location3,libgd2-xpm (x 125)) = 1
+N(location4,DNS-load-balancer) = 0
+N(location4,HTTP-proxy-load-balancer) = 0
+N(location4,Wordpress) = 1
+N(location4,MySQL) = 1
+N(location4,@dns) = 0
+N(location4,@serious-wordpress) = 0
+N(location4,@wordpress-backend) = 1
+N(location4,@mysql) = 3
+N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location4,mysql-server (= 5.1.49-3)) = 1
+N(location4,varnish (= 2.1.3-8)) = 0
+N(location4,2vcard (x 23886)) = 1
+N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location4,libgd2-xpm (x 125)) = 1
+N(location5,DNS-load-balancer) = 0
+N(location5,HTTP-proxy-load-balancer) = 1
+N(location5,Wordpress) = 0
+N(location5,MySQL) = 0
+N(location5,@dns) = 0
+N(location5,@serious-wordpress) = 1
+N(location5,@wordpress-backend) = 0
+N(location5,@mysql) = 0
+N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location5,mysql-server (= 5.1.49-3)) = 0
+N(location5,varnish (= 2.1.3-8)) = 1
+N(location5,2vcard (x 23886)) = 1
+N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 0
+N(location5,libgd2-xpm (x 125)) = 0
+B(@wordpress-backend,Wordpress,DNS-load-balancer) = 0
+B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer) = 3
+B(@mysql,MySQL,Wordpress) = 6
+R(location1,debian-squeeze) = 1
+R(location2,debian-squeeze) = 1
+R(location3,debian-squeeze) = 1
+R(location4,debian-squeeze) = 1
+R(location5,debian-squeeze) = 1
+O(location1,ram) = 2048
+O(location2,ram) = 2048
+O(location3,ram) = 2048
+O(location4,ram) = 2048
+O(location5,ram) = 2048
+
+===> THE SOLUTION <===
+
+N(DNS-load-balancer) = 0
+N(HTTP-proxy-load-balancer) = 1
+N(Wordpress) = 3
+N(MySQL) = 2
+N(@dns) = 0
+N(@serious-wordpress) = 1
+N(@wordpress-backend) = 3
+N(@mysql) = 6
+N(bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(mysql-server (= 5.1.49-3)) = 2
+N(varnish (= 2.1.3-8)) = 1
+N(2vcard (x 23886)) = 3
+N(wordpress (= 3.3.2+dfsg-1~squeeze1)) = 3
+N(libgd2-xpm (x 125)) = 3
+N(location1,DNS-load-balancer) = 0
+N(location1,HTTP-proxy-load-balancer) = 0
+N(location1,Wordpress) = 0
+N(location1,MySQL) = 0
+N(location1,@dns) = 0
+N(location1,@serious-wordpress) = 0
+N(location1,@wordpress-backend) = 0
+N(location1,@mysql) = 0
+N(location1,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location1,mysql-server (= 5.1.49-3)) = 0
+N(location1,varnish (= 2.1.3-8)) = 0
+N(location1,2vcard (x 23886)) = 0
+N(location1,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 0
+N(location1,libgd2-xpm (x 125)) = 0
+N(location2,DNS-load-balancer) = 0
+N(location2,HTTP-proxy-load-balancer) = 0
+N(location2,Wordpress) = 1
+N(location2,MySQL) = 0
+N(location2,@dns) = 0
+N(location2,@serious-wordpress) = 0
+N(location2,@wordpress-backend) = 1
+N(location2,@mysql) = 0
+N(location2,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location2,mysql-server (= 5.1.49-3)) = 0
+N(location2,varnish (= 2.1.3-8)) = 0
+N(location2,2vcard (x 23886)) = 0
+N(location2,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location2,libgd2-xpm (x 125)) = 1
+N(location3,DNS-load-balancer) = 0
+N(location3,HTTP-proxy-load-balancer) = 0
+N(location3,Wordpress) = 1
+N(location3,MySQL) = 1
+N(location3,@dns) = 0
+N(location3,@serious-wordpress) = 0
+N(location3,@wordpress-backend) = 1
+N(location3,@mysql) = 3
+N(location3,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location3,mysql-server (= 5.1.49-3)) = 1
+N(location3,varnish (= 2.1.3-8)) = 0
+N(location3,2vcard (x 23886)) = 1
+N(location3,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location3,libgd2-xpm (x 125)) = 1
+N(location4,DNS-load-balancer) = 0
+N(location4,HTTP-proxy-load-balancer) = 0
+N(location4,Wordpress) = 1
+N(location4,MySQL) = 1
+N(location4,@dns) = 0
+N(location4,@serious-wordpress) = 0
+N(location4,@wordpress-backend) = 1
+N(location4,@mysql) = 3
+N(location4,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location4,mysql-server (= 5.1.49-3)) = 1
+N(location4,varnish (= 2.1.3-8)) = 0
+N(location4,2vcard (x 23886)) = 1
+N(location4,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 1
+N(location4,libgd2-xpm (x 125)) = 1
+N(location5,DNS-load-balancer) = 0
+N(location5,HTTP-proxy-load-balancer) = 1
+N(location5,Wordpress) = 0
+N(location5,MySQL) = 0
+N(location5,@dns) = 0
+N(location5,@serious-wordpress) = 1
+N(location5,@wordpress-backend) = 0
+N(location5,@mysql) = 0
+N(location5,bind9 (= 1:9.7.3.dfsg-1~squeeze9)) = 0
+N(location5,mysql-server (= 5.1.49-3)) = 0
+N(location5,varnish (= 2.1.3-8)) = 1
+N(location5,2vcard (x 23886)) = 1
+N(location5,wordpress (= 3.3.2+dfsg-1~squeeze1)) = 0
+N(location5,libgd2-xpm (x 125)) = 0
+B(@wordpress-backend,Wordpress,DNS-load-balancer) = 0
+B(@wordpress-backend,Wordpress,HTTP-proxy-load-balancer) = 3
+B(@mysql,MySQL,Wordpress) = 6
+R(location1,debian-squeeze) = 1
+R(location2,debian-squeeze) = 1
+R(location3,debian-squeeze) = 1
+R(location4,debian-squeeze) = 1
+R(location5,debian-squeeze) = 1
+O(location1,ram) = 2048
+O(location2,ram) = 2048
+O(location3,ram) = 2048
+O(location4,ram) = 2048
+O(location5,ram) = 2048
+
+===> THE GENERATED CONFIGURATION <===
+
+=== Location [location1] ===
+ > Repository : debian-squeeze
+ > Packages installed : 
+ > Resources provided : 
+   + ram : 2048
+ > Components installed : 
+
+
+=== Location [location2] ===
+ > Repository : debian-squeeze
+ > Packages installed : wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+   + ram : 2048
+ > Components installed : 
+   + location2-Wordpress-1
+
+
+=== Location [location3] ===
+ > Repository : debian-squeeze
+ > Packages installed : mysql-server (= 5.1.49-3), 2vcard (x 23886), wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+   + ram : 2048
+ > Components installed : 
+   + location3-Wordpress-1
+   + location3-MySQL-1
+
+
+=== Location [location4] ===
+ > Repository : debian-squeeze
+ > Packages installed : mysql-server (= 5.1.49-3), 2vcard (x 23886), wordpress (= 3.3.2+dfsg-1~squeeze1), libgd2-xpm (x 125)
+ > Resources provided : 
+   + ram : 2048
+ > Components installed : 
+   + location4-Wordpress-1
+   + location4-MySQL-1
+
+
+=== Location [location5] ===
+ > Repository : debian-squeeze
+ > Packages installed : varnish (= 2.1.3-8), 2vcard (x 23886)
+ > Resources provided : 
+   + ram : 2048
+ > Components installed : 
+   + location5-HTTP-proxy-load-balancer-1
+
+
+
+=== Components ===
+ > Component [location2-Wordpress-1] : <type : Wordpress; location : location2>
+ > Component [location3-Wordpress-1] : <type : Wordpress; location : location3>
+ > Component [location3-MySQL-1] : <type : MySQL; location : location3>
+ > Component [location4-Wordpress-1] : <type : Wordpress; location : location4>
+ > Component [location4-MySQL-1] : <type : MySQL; location : location4>
+ > Component [location5-HTTP-proxy-load-balancer-1] : <type : HTTP-proxy-load-balancer; location : location5>
+
+=== Bindings ===
+ > Binding over port [@wordpress-backend] :  ([location5-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location4-Wordpress-1])
+ > Binding over port [@wordpress-backend] :  ([location5-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location3-Wordpress-1])
+ > Binding over port [@wordpress-backend] :  ([location5-HTTP-proxy-load-balancer-1])~~C o~~~~~C o~~([location2-Wordpress-1])
+ > Binding over port [@mysql] :  ([location4-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location4-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+ > Binding over port [@mysql] :  ([location3-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location3-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+ > Binding over port [@mysql] :  ([location2-Wordpress-1])~~C o~~~~~C o~~([location4-MySQL-1])
+ > Binding over port [@mysql] :  ([location2-Wordpress-1])~~C o~~~~~C o~~([location3-MySQL-1])
+
+1473.18user 0.01system 24:33.11elapsed 100%CPU (0avgtext+0avgdata 74656maxresident)k
+0inputs+1992outputs (0major+5072minor)pagefaults 0swaps
