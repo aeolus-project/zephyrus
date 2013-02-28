@@ -1,7 +1,7 @@
 #!/bin/bash
 
-../zephyr\
+../zephyrus\
  -u u_2.json\
  -spec spec_2.spec\
  -ic ic_1.json\
- -repo ubuntu repositories/repo-ubuntu-precise.json -print-u -print-tu
+ -repo ubuntu ../repositories/repo-ubuntu-precise.json -print-u -print-tu

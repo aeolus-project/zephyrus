@@ -28,9 +28,9 @@ facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
 specification_parser.mly specification_lexer.mll\
 universe_trimming.mli universe_trimming.ml\
-zephyr.ml
+zephyrus.ml
 
-RESULT = zephyr
+RESULT = zephyrus
 
 PACKS = atdgen facile extlib batteries
 

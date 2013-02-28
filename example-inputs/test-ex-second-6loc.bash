@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/usr/bin/time ../zephyr\
+/usr/bin/time ../zephyrus\
  -u           u-ex-3-3.json\
  -spec        spec-ex.spec\
  -ic          ic-ex-first-output-6loc.json\

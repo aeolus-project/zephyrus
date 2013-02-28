@@ -1,3 +1,4 @@
+*~
 *.cmi
 *.cmx
 *.o
@@ -13,8 +14,7 @@
 *_t.o
 *.d
 *.di
-zephyr
 specification_lexer.ml
 specification_parser.ml
 specification_parser.mli
-*~
+zephyrus
