@@ -18,3 +18,4 @@ specification_lexer.ml
 specification_parser.ml
 specification_parser.mli
 zephyrus
+zephyrus-*.tar.gz

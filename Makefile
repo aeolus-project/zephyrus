@@ -37,9 +37,12 @@ PACKS = atdgen facile extlib batteries
 # "include OCamlMakefile" must come after defs for SOURCES, RESULT, PACKS, etc.
 include OCamlMakefile
 
-.PHONY: sources opt all
+.PHONY: sources opt all dist
 sources: $(SOURCES)
 opt: sources
 	$(MAKE) native-code
 all: sources
 	$(MAKE) byte-code
+
+dist: 
+	./dist_make.bash
