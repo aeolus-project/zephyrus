@@ -44,5 +44,5 @@ opt: sources
 all: sources
 	$(MAKE) byte-code
 
-dist: 
+dist: clean
 	./dist_make.bash
