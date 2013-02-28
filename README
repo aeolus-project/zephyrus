@@ -1,11 +1,28 @@
-Tools used:
+
+In order to compile the tool simply type "make".
+
+To obtain basic information about using the tool type "./zephyrus -help".
+
+For simple examples of use see files in "tests" subdirectory, especially
+all the test scripts "test*.bash".
+
+For several tests based on a more complicated example (the one presented
+in the paper), see files in the "example-inputs" subdirectory. Some results
+of these tests are available in the "example-results" subdirectory.
+
+================================
+
+
+Ingredients required for successful compilation:
+
 
 1. OCaml Batteries Included
 
 http://batteries.forge.ocamlcore.org/
 
-Debian packages:
+Debian package:
 ocaml-batteries-included
+
 
 2. Atd & Atdgen
 
@@ -27,5 +44,5 @@ libfacile-ocaml-dev
 
 http://gallium.inria.fr/~fpottier/menhir/
 
-Debian packages:
+Debian package:
 menhir
