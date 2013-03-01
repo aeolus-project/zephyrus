@@ -8,6 +8,22 @@ open Variable_keys
 
 open Aeolus_types_output_facade.Aeolus_types_plain_output
 
+
+
+
+  
+
+let sanitize_name name =
+  let lowercased_name = String.lowercase name
+  in
+  BatString.filter_map (fun c ->
+    match c with 
+    | 'a'..'z' -> Some c 
+    | '@'
+    | ' '      -> None
+    | _        -> Some '_'
+  ) lowercased_name
+
 let string_of_element element =
   match element with
   | ComponentType (component_type_name) -> Printf.sprintf "component_type_%s" (string_of_component_type_name component_type_name)
@@ -19,38 +35,49 @@ let string_of_variable_key variable_key =
   | GlobalElementVariable   (element) ->
       Printf.sprintf 
         "global_element_%s" 
-        (string_of_element element)
+        (sanitize_name (string_of_element element))
 
   | LocalElementVariable    (location_name, element) ->
       Printf.sprintf
         "local_element_%s_%s"
-        (string_of_location_name location_name)
-        (string_of_element element)
+        (sanitize_name (string_of_location_name location_name))
+        (sanitize_name (string_of_element element))
 
   | BindingVariable         (port_name, providing_component_type_name, requiring_component_type_name) ->
       Printf.sprintf
         "binding_%s_%s_%s"      
-        (string_of_port_name           port_name)
-        (string_of_component_type_name providing_component_type_name)
-        (string_of_component_type_name requiring_component_type_name)
+        (sanitize_name (string_of_port_name           port_name))
+        (sanitize_name (string_of_component_type_name providing_component_type_name))
+        (sanitize_name (string_of_component_type_name requiring_component_type_name))
 
   | LocalRepositoryVariable (location_name, repository_name) ->
       Printf.sprintf
         "local_repository_%s_%s"
-        (string_of_location_name   location_name)
-        (string_of_repository_name repository_name)
+        (sanitize_name (string_of_location_name   location_name))
+        (sanitize_name (string_of_repository_name repository_name))
 
   | LocalResourceVariable   (location_name, resource_name) ->
       Printf.sprintf
         "local_resource_%s_%s"
-        (string_of_location_name location_name)
-        (string_of_resource_name resource_name)
+        (sanitize_name (string_of_location_name location_name))
+        (sanitize_name (string_of_resource_name resource_name))
 
   | SpecificationVariable   (spec_variable_name) ->
       Printf.sprintf 
         "spec_var_%s"
-        (string_of_spec_variable_name spec_variable_name)
+        (sanitize_name (string_of_spec_variable_name spec_variable_name))
 
+let create_minizinc_variable variable_key =
+  (variable_key, string_of_variable_key variable_key)
+
+let create_minizinc_variables variable_keys =
+  List.map create_minizinc_variable variable_keys
+
+let get_minizinc_variable minizinc_variables variable_key =
+  List.assoc variable_key minizinc_variables
+
+let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
+  BatList.assoc_inv minizinc_variable minizinc_variables
 
 module C = Generic_constraints
 
@@ -141,8 +168,8 @@ and string_of_expr expr =
 
 and string_of_cstr cstr = 
   match cstr with
-  | C.TrueCstr  -> "true"  (* TODO *)
-  | C.FalseCstr -> "false" (* TODO *)
+  | C.TrueCstr  -> "true" 
+  | C.FalseCstr -> "false"
 
   | C.BinaryArithCmpCstr (op, lexpr, rexpr) ->
       Printf.sprintf "(%s %s %s)" 
@@ -160,3 +187,37 @@ and string_of_cstr cstr =
       Printf.sprintf "(%s (%s))"
       (string_of_unary_cstr_op op)
       (string_of_cstr cstr)
+
+
+let translate_constraints minizinc_variables cstrs minimize_expr =
+  let strings_of_variables =
+    List.map (fun (key, var) -> 
+      match Variables.variable_kind_of_variable_key key with 
+      | Variables.BooleanVariable -> Printf.sprintf "var 0..1: %s;\n" var
+      | Variables.NaturalVariable -> Printf.sprintf "var 0..10000: %s;\n" var
+    ) minizinc_variables
+  in
+  let strings_of_constraints =
+    List.map (fun cstr ->
+      Printf.sprintf "constraint %s;\n" (string_of_cstr cstr)
+    ) cstrs
+  in
+  let solve_string =
+    Printf.sprintf "solve minimize %s;" (string_of_expr minimize_expr)
+  in
+  let output_variable_strings =
+    List.map (fun (key, var) ->
+      Printf.sprintf "\"%s = \", show(%s), \"\\n\"\n" (Variable_keys.string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
+    ) minizinc_variables
+  in
+  let output_string =
+    Printf.sprintf
+      "output [\n%s];"
+      (String.concat "," output_variable_strings)
+  in
+  Printf.sprintf
+    "\n%s\n\n%s\n\n%s\n\n%s\n" 
+    (String.concat "" strings_of_variables) 
+    (String.concat "" strings_of_constraints) 
+    solve_string 
+    output_string

@@ -76,6 +76,8 @@ let print_intermediate_solutions = ref false
 let print_solution               = ref false
 let print_all                    = ref false
 
+let zync = ref false
+
 (* Arg module settings *)
 
 let usage = 
@@ -136,6 +138,10 @@ let speclist =
     ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
     ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
     ("-print-all",           Arg.Set (print_all),                    " Print everything");
+  ] @
+
+  Arg.align [
+    ("-zync",        Arg.Set (zync), " MiniZync");
   ]
 
 (* Read the arguments *)
@@ -354,6 +360,40 @@ let () =
     flush stdout;
   )
 
+(* Handle the optimization function argument. *)
+
+let generic_optimization_expr =
+  match optimization_function with
+  | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
+  | Compact_optimization_function      -> Optimization_functions.(*cost_expr_compact*)cost_expr_number_of_used_locations my_initial_configuration my_universe
+  | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
+
+(* ZYNC *)
+
+let () =
+  if !zync
+  then (
+    let minizinc_variables = 
+      Minizinc_constraints.create_minizinc_variables (Variables.get_variable_keys my_universe my_initial_configuration my_specification)
+    in
+
+    let minizinc_constraints = 
+      Minizinc_constraints.translate_constraints 
+        minizinc_variables
+        (List.flatten (List.map snd (my_translation_constraints @ my_specification_constraints) ))
+        generic_optimization_expr
+
+    
+    in
+
+    Printf.fprintf !output_channel "%s" minizinc_constraints;
+    flush !output_channel;
+
+    Printf.printf "\n\n%s\n\n" (minizinc_constraints);
+
+    exit 0
+  )
+
 
 (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
 
@@ -374,14 +414,6 @@ let my_facile_constraints : generated_constraints =
     (constraints_group_name, facile_constraints)
   ) (my_translation_constraints @ my_specification_constraints)
 
-
-(* Handle the optimization function argument. *)
-
-let generic_optimization_expr =
-  match optimization_function with
-  | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
-  | Compact_optimization_function      -> Optimization_functions.(*cost_expr_compact*)cost_expr_number_of_used_locations my_initial_configuration my_universe
-  | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
 
 let cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
 
@@ -451,11 +483,6 @@ let () =
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
   Printf.printf "\n%s\n\n" (Simple_configuration_output.string_of_configuration final_configuration);
   flush stdout;
-
-  let minizinc_constraints = 
-    List.flatten (List.map (fun (group,cstrs) -> List.map Minizinc_constraints.string_of_cstr cstrs) (my_translation_constraints @ my_specification_constraints) )
-  in
-  Printf.printf "\n\n%s\n\n" (lines_of_strings minizinc_constraints);
 
   ()
 
