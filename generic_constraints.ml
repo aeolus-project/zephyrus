@@ -88,7 +88,7 @@ and cstr =
 
 let rec string_of_unary_arith_op op =
   match op with
-  | Abs -> "|"
+  | Abs -> "abs"
 
 and string_of_binary_arith_op op =
   match op with
@@ -147,10 +147,9 @@ and string_of_expr expr =
       Printf.sprintf "||%s||" (string_of_cstr cstr)
   
   | UnaryArithExpr (op, expr) ->
-      Printf.sprintf "%s %s %s"
+      Printf.sprintf "%s (%s)"
       (string_of_unary_arith_op op)
       (string_of_expr expr)
-      (string_of_unary_arith_op op)
 
   | BinaryArithExpr (op, lexpr, rexpr) ->
       Printf.sprintf "(%s %s %s)" 
