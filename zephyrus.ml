@@ -452,5 +452,10 @@ let () =
   Printf.printf "\n%s\n\n" (Simple_configuration_output.string_of_configuration final_configuration);
   flush stdout;
 
+  let minizinc_constraints = 
+    List.flatten (List.map (fun (group,cstrs) -> List.map Minizinc_constraints.string_of_cstr cstrs) (my_translation_constraints @ my_specification_constraints) )
+  in
+  Printf.printf "\n\n%s\n\n" (lines_of_strings minizinc_constraints);
+
   ()
 
