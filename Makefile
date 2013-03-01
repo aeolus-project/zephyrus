@@ -26,6 +26,7 @@ constraints.ml\
 configuration_generation.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
+minizinc_constraints.ml\
 specification_parser.mly specification_lexer.mll\
 universe_trimming.mli universe_trimming.ml\
 zephyrus.ml
