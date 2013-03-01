@@ -24,6 +24,7 @@ optimization_functions.mli            optimization_functions.ml\
 matching_algorithm.ml\
 constraints.ml\
 configuration_generation.ml\
+variables.mli          variables.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
 minizinc_constraints.ml\
