@@ -387,6 +387,12 @@ let solution =
 
   | G12Solver -> (
 
+      (* Check if commands "mzn2fzn" and "flatzinc" are available. *)
+      List.iter (fun program ->
+        if not (did_process_exit_ok (Unix.system (Printf.sprintf "which %s" program)))
+        then failwith (Printf.sprintf "The \"%s\" program is not available on this machine!" program)
+      ) ["mzn2fzn"; "flatzinc"];
+
       (* Preparing variables for MiniZinc translation. *)
       Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
       let minizinc_variables = 
@@ -412,25 +418,20 @@ let solution =
       flush minizinc_out;
       close_out minizinc_out;
 
-      (* Helper for handling errors of external commands. *)
-      let process_exit_ok process_status =
-        match process_status with 
-        | Unix.WEXITED 0 -> true 
-        | _ -> false
-      in
+
 
       (* Converting MiniZinc to FlatZinc. *)
       Printf.printf "\n===> Converting MiniZinc to FlatZinc...\n";
       let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
-      let process_status_1 = Unix.system (Printf.sprintf "mzn2fzn --no-output-ozn %s -o %s" minizinc_filepath flatzinc_filepath) in
-      assert (process_exit_ok process_status_1);
+      let mzn2fzn_process_status = Unix.system (Printf.sprintf "mzn2fzn --no-output-ozn %s -o %s" minizinc_filepath flatzinc_filepath) in
+      assert (did_process_exit_ok mzn2fzn_process_status);
       Sys.remove minizinc_filepath;
 
       (* Solving the problem encoded in FlatZinc using G12 solver. *)
       let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
       Printf.printf "\n===> Solving the problem using G12 solver...\n";
-      let process_status_2 = Unix.system (Printf.sprintf "flatzinc %s -o %s" flatzinc_filepath solution_filepath) in
-      assert (process_exit_ok process_status_2);
+      let flatzinc_process_status = Unix.system (Printf.sprintf "flatzinc %s -o %s" flatzinc_filepath solution_filepath) in
+      assert (did_process_exit_ok flatzinc_process_status);
       Sys.remove flatzinc_filepath;
 
       (* Reading the solution found by the G12 solver. *)

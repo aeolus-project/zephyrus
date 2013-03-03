@@ -78,6 +78,8 @@ let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
 
 module C = Generic_constraints
 
+let minizinc_max_int = 10000
+
 let rec string_of_unary_arith_op op =
   match op with
   | C.Abs -> "abs"
@@ -129,7 +131,7 @@ and string_of_expr expr =
     (
       match const with
       | C.Int (const) -> Printf.sprintf "%d" const
-      | C.Inf (plus)  -> Printf.sprintf "%s1000" (if plus then "" else "-") 
+      | C.Inf (plus)  -> Printf.sprintf "%s%d" (if plus then "" else "-") minizinc_max_int
     )
 
   | C.Var (var) ->
