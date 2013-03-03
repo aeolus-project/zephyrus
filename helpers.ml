@@ -39,3 +39,10 @@ let string_of_input_channel (in_channel : in_channel) =
     really_input in_channel s 0 in_channel_length;
     close_in in_channel;
     s
+
+(* Helper for handling errors of external commands. *)
+let did_process_exit_ok process_status =
+  match process_status with 
+  | Unix.WEXITED 0 -> true 
+  | _ -> false
+  

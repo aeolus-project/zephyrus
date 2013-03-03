@@ -46,3 +46,15 @@ http://gallium.inria.fr/~fpottier/menhir/
 
 Debian package:
 menhir
+
+
+
+If you want to use the C12 solver:
+
+5. G12 MiniZinc Distribution (version 1.6)
+
+http://www.g12.csse.unimelb.edu.au/minizinc/download.html
+
+You should install it following its installation instructions
+and make sure that binaries "mzn2fzn" and "flatzinc" are in
+your PATH when you execute Zephyrus.
