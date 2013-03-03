@@ -9,16 +9,13 @@ open Variable_keys
 open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 
-
-
-  
-
 let sanitize_name name =
   let lowercased_name = String.lowercase name
   in
   BatString.filter_map (fun c ->
     match c with 
     | 'a'..'z' -> Some c 
+    | '0'..'9' -> Some c
     | '@'
     | ' '      -> None
     | _        -> Some '_'
@@ -207,13 +204,13 @@ let translate_constraints minizinc_variables cstrs minimize_expr =
   in
   let output_variable_strings =
     List.map (fun (key, var) ->
-      Printf.sprintf "\"%s = \", show(%s), \"\\n\"\n" (Variable_keys.string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
+      Printf.sprintf "\"  (\\\"%s\\\" , \\\"\", show(%s), \"\\\")\\n\",\n" (Variable_keys.string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
     ) minizinc_variables
   in
   let output_string =
     Printf.sprintf
-      "output [\n%s];"
-      (String.concat "," output_variable_strings)
+      "output [\n\"[\\n\",\n%s\"\\n]\"];"
+      (String.concat "" output_variable_strings)
   in
   Printf.sprintf
     "\n%s\n\n%s\n\n%s\n\n%s\n" 
