@@ -76,7 +76,7 @@ let print_intermediate_solutions = ref false
 let print_solution               = ref false
 let print_all                    = ref false
 
-let zync = ref false
+let zinc = ref false
 
 (* Arg module settings *)
 
@@ -141,7 +141,7 @@ let speclist =
   ] @
 
   Arg.align [
-    ("-zync",        Arg.Set (zync), " MiniZync");
+    ("-zinc",        Arg.Set (zinc), " MiniZinc");
   ]
 
 (* Read the arguments *)
@@ -368,10 +368,10 @@ let generic_optimization_expr =
   | Compact_optimization_function      -> Optimization_functions.(*cost_expr_compact*)cost_expr_number_of_used_locations my_initial_configuration my_universe
   | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
 
-(* ZYNC *)
+(* Zinc *)
 
 let () =
-  if !zync
+  if !zinc
   then (
     let minizinc_variables = 
       Minizinc_constraints.create_minizinc_variables (Variables.get_variable_keys my_universe my_initial_configuration my_specification)
