@@ -54,6 +54,7 @@ let output_channel                = ref stdout
 
 let output_format_string         = ref "plain"
 let optimization_function_string = ref "simple"
+let solver_choice_string         = ref "g12"
 
 let import_repository_names      = ref []
 let import_repository_filenames  = ref []
@@ -76,19 +77,18 @@ let print_intermediate_solutions = ref false
 let print_solution               = ref false
 let print_all                    = ref false
 
-let zinc = ref false
-
 (* Arg module settings *)
 
 let usage = 
   Printf.sprintf
-    "usage: %s %s %s %s %s %s %s %s"
+    "usage: %s %s %s %s %s %s %s %s %s"
     Sys.argv.(0)
     "[-u universe-file]"
     "[-ic initial-configuration-file]"
     "[-spec specification-file]"
     "[-repo repository-name packages-file]*" 
     "[-opt optimization-function]"
+    "[-solver solver]"
     "[-out output-file]"
     "[-out-format {plain|json}]"
 
@@ -105,25 +105,26 @@ let speclist =
                       [Arg.String (fun repository_name     -> import_repository_names     := repository_name     :: !import_repository_names);
                        Arg.String (fun repository_filename -> import_repository_filenames := repository_filename :: !import_repository_filenames)]
                     ),
-                    " The additional repository import: repository name and packages input file (you can include multiple repositories)");
+                    " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
 
     ("-prefix-repos", Arg.Set (prefix_repositories), " Prefix all package names in imported repositories by the repository name.");
   ] @
 
   Arg.align [
-    (* Output arguments *)
-    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The output file");  
-    ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The typed system output format (only for the output file)");
-  ] @
-
-  Arg.align [
-    (* Optimization function argument *)
+    (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
+    ("-solver",     Arg.Symbol ( ["facile"; "g12"],                     (fun s -> solver_choice_string := s) ),         " The solver choice"); 
   ] @ 
 
   Arg.align [
-    ("-only-check-spec", Arg.Set (only_check_spec),  " Just parse specification and exit.");
-    ("-do-not-solve",    Arg.Set (do_not_solve),     " Do not create the problem nor solve it (i.e. exit after generating generic constraints)");
+    (* Output arguments *)
+    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The final configuration output file");  
+    ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The final configuration output format (only for the output file)");
+  ] @
+
+  Arg.align [
+    ("-only-check-spec", Arg.Set (only_check_spec),  " Just parse specification and exit");
+    ("-do-not-solve",    Arg.Set (do_not_solve),     " Do not use the solver (exit directly after generating generic constraints)");
   ] @
 
   Arg.align [
@@ -138,10 +139,6 @@ let speclist =
     ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
     ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
     ("-print-all",           Arg.Set (print_all),                    " Print everything");
-  ] @
-
-  Arg.align [
-    ("-zinc",        Arg.Set (zinc), " MiniZinc");
   ]
 
 (* Read the arguments *)
@@ -166,7 +163,7 @@ let () =
     print_solution               := true;
   )
 
-(* Handle the output-format argument. *)
+(* Handle the output format choice argument. *)
 type output_format = Plain_output | JSON_output
 
 let output_format =
@@ -175,7 +172,7 @@ let output_format =
   | "json"  -> JSON_output
   | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
 
-(* Handle the optimization-function argument. *)
+(* Handle the optimization function choice argument. *)
 type optimization_function = 
   | Simple_optimization_function
   | Compact_optimization_function
@@ -187,6 +184,17 @@ let optimization_function =
   | "compact"      -> Compact_optimization_function
   | "conservative" -> Conservative_optimization_function
   | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
+
+(* Handle the solver choice argument. *)
+type solver_choice = 
+  | FaCiLeSolver
+  | G12Solver
+
+let solver_choice =
+  match !solver_choice_string with
+  | "facile" -> FaCiLeSolver
+  | "g12"    -> G12Solver
+  | _ -> failwith "Invalid solver choice have passed through the Arg.Symbol!"
 
 
 (* === Set up everything === *)
@@ -220,7 +228,7 @@ let prefix_repository repository =
       repository.repository_packages;
   }
 
-
+(* Import the repositories. *)
 let imported_repositories =
   try
     List.rev_map2 (fun repository_name repository_filename -> 
@@ -329,15 +337,15 @@ let () =
     flush stdout;
   )
 
-(* Trimming! *)
 
+(* Trim the universe. *)
 let my_universe = 
   Universe_trimming.trim my_universe my_initial_configuration my_specification
 
 let () = 
   if(!print_tu)
   then (
-    Printf.printf "\n===> THE TRIMMED UNIVERSE <===\n\n";    
+    Printf.printf "\n===> THE UNIVERSE AFTER TRIMMING <===\n\n";    
     Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_universe my_universe));
     flush stdout;
   )
@@ -360,139 +368,161 @@ let () =
     flush stdout;
   )
 
-(* Handle the optimization function argument. *)
-
+(* Prepare the optimization expression. *)
 let generic_optimization_expr =
   match optimization_function with
   | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
-  | Compact_optimization_function      -> Optimization_functions.(*cost_expr_compact*)cost_expr_number_of_used_locations my_initial_configuration my_universe
+  | Compact_optimization_function      -> Optimization_functions.cost_expr_number_of_used_locations my_initial_configuration my_universe
   | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
 
-(* Zinc *)
+
+(* Solve! *)
 
 let () =
   if !do_not_solve 
   then (exit 0)
 
 let solution =
-  if !zinc
-  then (
-    let minizinc_variables = 
-      Minizinc_constraints.create_minizinc_variables (Variables.get_variable_keys my_universe my_initial_configuration my_specification)
-    in
+  match solver_choice with
 
-    let minizinc_constraints = 
-      Minizinc_constraints.translate_constraints 
-        minizinc_variables
-        (List.flatten (List.map snd (my_translation_constraints @ my_specification_constraints) ))
-        generic_optimization_expr
+  | G12Solver -> (
 
-    
-    in
+      (* Preparing variables for MiniZinc translation. *)
+      Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
+      let minizinc_variables = 
+        Minizinc_constraints.create_minizinc_variables
+        (Variables.get_variable_keys my_universe my_initial_configuration my_specification)
+      in
 
-    Printf.printf "\n\n%s\n\n" (minizinc_constraints);
+      (* Translating constraint into MiniZinc. *)
+      Printf.printf "\n===> Translating constraint into MiniZinc...\n";
+      let minizinc_constraints = 
+        Minizinc_constraints.translate_constraints 
+          minizinc_variables
+          (List.flatten (List.map snd (my_translation_constraints @ my_specification_constraints) ))
+          generic_optimization_expr
+      in
 
-    let minizinc_out = (open_out "tmp.mzn") in
+      Printf.printf "\n\n%s\n\n" (minizinc_constraints);
 
-    Printf.fprintf minizinc_out "%s" minizinc_constraints;
-    flush minizinc_out;
-    close_out minizinc_out;
+      (* Printing the MiniZinc constraints to a temporary .mzn file. *)
+      Printf.printf "\n===> Printing the MiniZinc constraints to a temporary .mzn file...\n";
+      let (minizinc_filepath, minizinc_out) = Filename.open_temp_file "zephyrus" ".mzn" in
+      Printf.fprintf minizinc_out "%s" minizinc_constraints;
+      flush minizinc_out;
+      close_out minizinc_out;
 
-    (* Converting MiniZinc to FlatZinc *)
-    Printf.printf "\nConverting MiniZinc to FlatZinc...\n";
-    let process_status_1 = Unix.system "mzn2fzn tmp.mzn" in
-    assert (match process_status_1 with Unix.WEXITED 0 -> true | _ -> false);
+      (* Helper for handling errors of external commands. *)
+      let process_exit_ok process_status =
+        match process_status with 
+        | Unix.WEXITED 0 -> true 
+        | _ -> false
+      in
 
-    (* Solving the problem encoded in FlatZinc *)
-    Printf.printf "\nSolving the problem encoded in FlatZinc...\n";
-    let process_status_2 = Unix.system "flatzinc tmp.fzn -o tmp.solution" in
-    assert (match process_status_2 with Unix.WEXITED 0 -> true | _ -> false);
+      (* Converting MiniZinc to FlatZinc. *)
+      Printf.printf "\n===> Converting MiniZinc to FlatZinc...\n";
+      let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
+      let process_status_1 = Unix.system (Printf.sprintf "mzn2fzn --no-output-ozn %s -o %s" minizinc_filepath flatzinc_filepath) in
+      assert (process_exit_ok process_status_1);
+      Sys.remove minizinc_filepath;
 
-    (* Reading and parsing the solution found by the FlatZinc solver *)
-    Printf.printf "\nReading solution found by the FlatZinc solver...\n";
-    let solution_in = (open_in "tmp.solution") in
-    let solution_string = string_of_input_channel solution_in in
-    close_in solution_in;
+      (* Solving the problem encoded in FlatZinc using G12 solver. *)
+      let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
+      Printf.printf "\n===> Solving the problem using G12 solver...\n";
+      let process_status_2 = Unix.system (Printf.sprintf "flatzinc %s -o %s" flatzinc_filepath solution_filepath) in
+      assert (process_exit_ok process_status_2);
+      Sys.remove flatzinc_filepath;
 
-    Printf.printf "\nThe solution found by the FlatZinc solver:\n";
-    Printf.printf "%s" solution_string;
-    
-    Printf.printf "\nParsing and translating the solution found by the FlatZinc solver...\n";
-    let lexbuf = Lexing.from_string solution_string in
-    let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
-    let solution = Minizinc_constraints.solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+      (* Reading the solution found by the G12 solver. *)
+      Printf.printf "\n===> Getting the solution found by the G12 solver...\n";
+      let solution_in = (open_in solution_filepath) in
+      let solution_string = string_of_input_channel solution_in in
+      close_in solution_in;
+      Sys.remove solution_filepath;
 
-    solution
-  )
-  else (
+      Printf.printf "\nThe solution:\n%s\n" solution_string;
+      
+      (* Parsing the solution. *)
+      Printf.printf "\n===> Parsing the solution found by the G12 solver...\n";
+      let lexbuf = Lexing.from_string solution_string in
+      let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
+      let solution = Minizinc_constraints.solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
-    (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
+      (* Returning the solution in a right format. *)
+      solution
+    )
 
-    let my_facile_variables =
-      create_facile_variables my_universe my_initial_configuration my_specification
-    in
+  | FaCiLeSolver -> (
 
-    let my_facile_constraints : generated_constraints = 
-      List.map (fun (constraints_group_name, constraints) ->
-        let facile_constraints = 
-          List.map 
-            (Facile_constraints.translate_cstr my_facile_variables)
-            constraints
-        in
-        (constraints_group_name, facile_constraints)
-      ) (my_translation_constraints @ my_specification_constraints)
-    
-    and cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
+      (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
 
-    (* A placeholder for the solution.*)
-    and facile_solution = ref []
-    in
+      let my_facile_variables =
+        create_facile_variables my_universe my_initial_configuration my_specification
+      in
 
-    (* The goal.*)
-    let goal = create_optimized_goal my_facile_variables cost_expr facile_solution !print_intermediate_solutions
-    in
+      let my_facile_constraints : generated_constraints = 
+        List.map (fun (constraints_group_name, constraints) ->
+          let facile_constraints = 
+            List.map 
+              (Facile_constraints.translate_cstr my_facile_variables)
+              constraints
+          in
+          (constraints_group_name, facile_constraints)
+        ) (my_translation_constraints @ my_specification_constraints)
+      
+      and cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
 
-    Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
-    post_translation_constraints my_facile_constraints;
+      (* A placeholder for the solution.*)
+      and facile_solution = ref []
+      in
 
-    if(!print_facile_vars)
-    then (
-      Printf.printf "\n===> THE FACILE VARIABLES <===\n";
-      Printf.printf "%s" (string_of_facile_variables my_facile_variables);
+      (* The goal.*)
+      let goal = create_optimized_goal my_facile_variables cost_expr facile_solution !print_intermediate_solutions
+      in
+
+      Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
+      post_translation_constraints my_facile_constraints;
+
+      if(!print_facile_vars)
+      then (
+        Printf.printf "\n===> THE FACILE VARIABLES <===\n";
+        Printf.printf "%s" (string_of_facile_variables my_facile_variables);
+        flush stdout;
+      );
+
+      if(!print_facile_cstrs)
+      then (
+        Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
+        Printf.printf "%s" (string_of_constraints my_facile_constraints);
+        flush stdout;
+      );
+
+      Printf.printf "\n===> SOLVING! <===\n"; 
       flush stdout;
-    );
 
-    if(!print_facile_cstrs)
-    then (
-      Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
-      Printf.printf "%s" (string_of_constraints my_facile_constraints);
-      flush stdout;
-    );
+      let _ = Goals.solve (goal ||~ Goals.success) in
 
-    Printf.printf "\n===> SOLVING! <===\n"; 
-    flush stdout;
-
-    let _ = Goals.solve (goal ||~ Goals.success) in
-
-    !facile_solution
-  )
+      !facile_solution
+    )
 
 
-(* === Main program === *)
+(* Print the solution. *)
 
 let () =
-
   if(!print_solution)
   then (
     Printf.printf "\n===> THE SOLUTION <===\n";
     Printf.printf "%s" (string_of_solution solution);
     flush stdout;
-  );
+  )
 
   
-  (* Convert the constraint problem solution to a typed system. *)
-  let final_configuration = configuration_of_solution my_universe my_initial_configuration solution
-  in
+(* Convert the constraint problem solution to a configuration. *)
+let final_configuration = configuration_of_solution my_universe my_initial_configuration solution
+
+
+(* Output the final configuration. *)
+let () =
 
   (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)
   if( !output_channel != stdout )
@@ -511,7 +541,4 @@ let () =
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
   Printf.printf "\n%s\n\n" (Simple_configuration_output.string_of_configuration final_configuration);
-  flush stdout;
-
-  ()
-
+  flush stdout
