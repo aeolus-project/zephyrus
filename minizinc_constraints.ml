@@ -204,17 +204,22 @@ let translate_constraints minizinc_variables cstrs minimize_expr =
   in
   let output_variable_strings =
     List.map (fun (key, var) ->
-      Printf.sprintf "\"  (\\\"%s\\\" , \\\"\", show(%s), \"\\\")\\n\",\n" (Variable_keys.string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
+      Printf.sprintf "\"%s = \" , show(%s), \";\\n\"" (string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
     ) minizinc_variables
   in
   let output_string =
     Printf.sprintf
-      "output [\n\"[\\n\",\n%s\"\\n]\"];"
-      (String.concat "" output_variable_strings)
+      "output [ \n %s ];"
+      (String.concat ",\n" output_variable_strings)
   in
   Printf.sprintf
     "\n%s\n\n%s\n\n%s\n\n%s\n" 
     (String.concat "" strings_of_variables) 
     (String.concat "" strings_of_constraints) 
-    solve_string 
+    solve_string
     output_string
+
+let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : (string * int) list) : Solution.solution =
+  List.map ( fun (minizinc_variable, value) ->
+    (get_minizinc_variable_reverse minizinc_variables minizinc_variable, value)
+  ) bound_variables
