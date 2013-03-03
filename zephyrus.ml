@@ -371,6 +371,10 @@ let generic_optimization_expr =
 (* Zinc *)
 
 let () =
+  if !do_not_solve 
+  then (exit 0)
+
+let solution =
   if !zinc
   then (
     let minizinc_variables = 
@@ -386,83 +390,108 @@ let () =
     
     in
 
-    Printf.fprintf !output_channel "%s" minizinc_constraints;
-    flush !output_channel;
-
     Printf.printf "\n\n%s\n\n" (minizinc_constraints);
 
-    exit 0
+    let minizinc_out = (open_out "tmp.mzn") in
+
+    Printf.fprintf minizinc_out "%s" minizinc_constraints;
+    flush minizinc_out;
+    close_out minizinc_out;
+
+    (* Converting MiniZinc to FlatZinc *)
+    Printf.printf "\nConverting MiniZinc to FlatZinc...\n";
+    let process_status_1 = Unix.system "mzn2fzn tmp.mzn" in
+    assert (match process_status_1 with Unix.WEXITED 0 -> true | _ -> false);
+
+    (* Solving the problem encoded in FlatZinc *)
+    Printf.printf "\nSolving the problem encoded in FlatZinc...\n";
+    let process_status_2 = Unix.system "flatzinc tmp.fzn -o tmp.solution" in
+    assert (match process_status_2 with Unix.WEXITED 0 -> true | _ -> false);
+
+    (* Reading and parsing the solution found by the FlatZinc solver *)
+    Printf.printf "\nReading solution found by the FlatZinc solver...\n";
+    let solution_in = (open_in "tmp.solution") in
+    let solution_string = string_of_input_channel solution_in in
+    close_in solution_in;
+
+    Printf.printf "\nThe solution found by the FlatZinc solver:\n";
+    Printf.printf "%s" solution_string;
+    
+    Printf.printf "\nParsing and translating the solution found by the FlatZinc solver...\n";
+    let lexbuf = Lexing.from_string solution_string in
+    let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
+    let solution = Minizinc_constraints.solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+
+    solution
   )
+  else (
 
+    (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
 
-(* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
-
-let () =
-  if !do_not_solve 
-  then (exit 0)
-
-let my_facile_variables =
-  create_facile_variables my_universe my_initial_configuration my_specification
-
-let my_facile_constraints : generated_constraints = 
-  List.map (fun (constraints_group_name, constraints) ->
-    let facile_constraints = 
-      List.map 
-        (Facile_constraints.translate_cstr my_facile_variables)
-        constraints
+    let my_facile_variables =
+      create_facile_variables my_universe my_initial_configuration my_specification
     in
-    (constraints_group_name, facile_constraints)
-  ) (my_translation_constraints @ my_specification_constraints)
 
+    let my_facile_constraints : generated_constraints = 
+      List.map (fun (constraints_group_name, constraints) ->
+        let facile_constraints = 
+          List.map 
+            (Facile_constraints.translate_cstr my_facile_variables)
+            constraints
+        in
+        (constraints_group_name, facile_constraints)
+      ) (my_translation_constraints @ my_specification_constraints)
+    
+    and cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
 
-let cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
+    (* A placeholder for the solution.*)
+    and facile_solution = ref []
+    in
 
+    (* The goal.*)
+    let goal = create_optimized_goal my_facile_variables cost_expr facile_solution !print_intermediate_solutions
+    in
 
-(* A placeholder for the solution.*)
-let solution = ref []
+    Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
+    post_translation_constraints my_facile_constraints;
 
-(* The goal.*)
-let goal = create_optimized_goal my_facile_variables cost_expr solution !print_intermediate_solutions
+    if(!print_facile_vars)
+    then (
+      Printf.printf "\n===> THE FACILE VARIABLES <===\n";
+      Printf.printf "%s" (string_of_facile_variables my_facile_variables);
+      flush stdout;
+    );
+
+    if(!print_facile_cstrs)
+    then (
+      Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
+      Printf.printf "%s" (string_of_constraints my_facile_constraints);
+      flush stdout;
+    );
+
+    Printf.printf "\n===> SOLVING! <===\n"; 
+    flush stdout;
+
+    let _ = Goals.solve (goal ||~ Goals.success) in
+
+    !facile_solution
+  )
 
 
 (* === Main program === *)
 
 let () =
 
-  Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
-  post_translation_constraints my_facile_constraints;
-
-  if(!print_facile_vars)
-  then (
-    Printf.printf "\n===> THE FACILE VARIABLES <===\n";
-    Printf.printf "%s" (string_of_facile_variables my_facile_variables);
-    flush stdout;
-  );
-
-  if(!print_facile_cstrs)
-  then (
-    Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_constraints my_facile_constraints);
-    flush stdout;
-  );
-
-
-
-  Printf.printf "\n===> SOLVING! <===\n"; 
-  flush stdout;
-
-  let _ = Goals.solve (goal ||~ Goals.success) in
-
   if(!print_solution)
   then (
     Printf.printf "\n===> THE SOLUTION <===\n";
-    Printf.printf "%s" (string_of_solution !solution);
+    Printf.printf "%s" (string_of_solution solution);
     flush stdout;
   );
 
   
   (* Convert the constraint problem solution to a typed system. *)
-  let final_configuration = configuration_of_solution my_universe my_initial_configuration !solution
+  let final_configuration = configuration_of_solution my_universe my_initial_configuration solution
   in
 
   (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)

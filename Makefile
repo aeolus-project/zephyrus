@@ -27,6 +27,7 @@ configuration_generation.ml\
 variables.mli          variables.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
+flatzinc_output_parser.mly flatzinc_output_lexer.mll\
 minizinc_constraints.ml\
 specification_parser.mly specification_lexer.mll\
 universe_trimming.mli universe_trimming.ml\
