@@ -189,11 +189,14 @@ and string_of_cstr cstr =
 
 
 let translate_constraints minizinc_variables cstrs minimize_expr =
+  let constants_string =
+    Printf.sprintf "int: max_int = %d;" minizinc_max_int
+  in 
   let strings_of_variables =
     List.map (fun (key, var) -> 
       match Variables.variable_kind_of_variable_key key with 
       | Variables.BooleanVariable -> Printf.sprintf "var 0..1: %s;\n" var
-      | Variables.NaturalVariable -> Printf.sprintf "var 0..10000: %s;\n" var
+      | Variables.NaturalVariable -> Printf.sprintf "var 0..max_int: %s;\n"  var
     ) minizinc_variables
   in
   let strings_of_constraints =
@@ -215,7 +218,8 @@ let translate_constraints minizinc_variables cstrs minimize_expr =
       (String.concat ",\n" output_variable_strings)
   in
   Printf.sprintf
-    "\n%s\n\n%s\n\n%s\n\n%s\n" 
+    "\n%s\n\n%s\n\n%s\n\n%s\n\n%s\n" 
+    constants_string
     (String.concat "" strings_of_variables) 
     (String.concat "" strings_of_constraints) 
     solve_string

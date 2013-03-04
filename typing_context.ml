@@ -197,6 +197,23 @@ let get_location_names configuration =
 
 let get_locations configuration = configuration.configuration_locations
 
+let get_location configuration location_name = 
+  try
+    List.find (fun location ->
+      location.location_name = location_name 
+    ) (get_locations configuration)
+  with
+  | Not_found -> 
+      failwith 
+        (Printf.sprintf 
+        "the location %s does not exist in this configuration" 
+        (string_of_location_name location_name))
+
+let get_location_packages_installed configuration location_name =
+  let location = get_location configuration location_name
+  in
+  location.location_packages_installed
+
 let get_resource_provide_arity location resource_name =
   try
     List.assoc resource_name location.location_provide_resources

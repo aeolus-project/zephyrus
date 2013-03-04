@@ -206,7 +206,7 @@ module MyInitialConfigurationInput = Configuration_input_facade.JSON_configurati
 module MySpecificationInput        = Specification_input_facade.JSON_specification_input
 
 
-(* Handle the imported repositories arguments. *)
+(* Handle the imported repositories. *)
 
 (* Prefix all package names in the repository with the repository name. *)
 let prefix_repository repository = 
@@ -371,9 +371,9 @@ let () =
 (* Prepare the optimization expression. *)
 let generic_optimization_expr =
   match optimization_function with
-  | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components my_universe
-  | Compact_optimization_function      -> Optimization_functions.cost_expr_number_of_used_locations my_initial_configuration my_universe
-  | Conservative_optimization_function -> Optimization_functions.cost_expr_difference_of_components my_initial_configuration my_universe
+  | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components                          my_universe
+  | Compact_optimization_function      -> Optimization_functions.cost_expr_compact                  my_initial_configuration my_universe
+  | Conservative_optimization_function -> Optimization_functions.cost_expr_conservative             my_initial_configuration my_universe
 
 
 (* Solve! *)
@@ -424,14 +424,16 @@ let solution =
       Printf.printf "\n===> Converting MiniZinc to FlatZinc...\n";
       let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
       let mzn2fzn_process_status = Unix.system (Printf.sprintf "mzn2fzn --no-output-ozn %s -o %s" minizinc_filepath flatzinc_filepath) in
-      assert (did_process_exit_ok mzn2fzn_process_status);
+      (if not (did_process_exit_ok mzn2fzn_process_status)
+      then failwith "mzn2fzn error!");
       Sys.remove minizinc_filepath;
 
       (* Solving the problem encoded in FlatZinc using G12 solver. *)
       let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
       Printf.printf "\n===> Solving the problem using G12 solver...\n";
       let flatzinc_process_status = Unix.system (Printf.sprintf "flatzinc %s -o %s" flatzinc_filepath solution_filepath) in
-      assert (did_process_exit_ok flatzinc_process_status);
+      (if not (did_process_exit_ok flatzinc_process_status)
+      then failwith "flatzinc error!");
       Sys.remove flatzinc_filepath;
 
       (* Reading the solution found by the G12 solver. *)
@@ -449,7 +451,7 @@ let solution =
       let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
       let solution = Minizinc_constraints.solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
-      (* Returning the solution in a right format. *)
+      (* Returning the solution in the right format. *)
       solution
     )
 
