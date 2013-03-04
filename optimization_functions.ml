@@ -23,6 +23,7 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
+
 let cost_expr_number_of_all_components universe = 
   let component_type_names = get_component_type_names universe
   in
@@ -74,6 +75,7 @@ let cost_expr_compact initial_configuration universe =
     +~
     (cost_expr_number_of_used_locations initial_configuration universe)
   )
+
 
 let cost_expr_difference_of_components initial_configuration universe =
   let component_type_names = get_component_type_names universe
@@ -161,6 +163,7 @@ let cost_expr_difference_of_packages initial_configuration universe =
   let total_difference_of_package_installation = (sum local_differences_of_package_installation)
   in
   total_difference_of_package_installation
+
 
 let cost_expr_conservative initial_configuration universe =
   (
