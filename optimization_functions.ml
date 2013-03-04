@@ -116,3 +116,57 @@ let cost_expr_difference_of_components initial_configuration universe =
   let total_difference_of_number_of_components = (sum local_differences_of_number_of_components)
   in
   total_difference_of_number_of_components
+
+
+let cost_expr_difference_of_packages initial_configuration universe =
+  let package_names  = get_package_names universe
+  and location_names = get_location_names initial_configuration
+  in
+
+  let local_differences_of_package_installation = 
+    
+    List.flatten (
+      List.map (fun location_name ->
+
+        let initial_package_names = get_location_packages_installed initial_configuration location_name
+        in
+
+        List.map (fun package_name ->
+
+          let is_package_installed_in_initial_configuration =
+            List.mem package_name initial_package_names
+
+          and is_package_installed_in_final_configuration = 
+            var (LocalElementVariable (location_name, (Package package_name)))
+
+          in
+
+          let local_difference_of_package_installation = 
+
+            abs ( 
+              (var2expr is_package_installed_in_final_configuration)
+              -~
+              (int2expr (if is_package_installed_in_initial_configuration then 1 else 0))
+            )
+
+          in
+
+          local_difference_of_package_installation
+            
+        ) package_names
+      ) location_names
+    )
+
+  in
+  let total_difference_of_package_installation = (sum local_differences_of_package_installation)
+  in
+  total_difference_of_package_installation
+
+let cost_expr_conservative initial_configuration universe =
+  (
+    (cost_expr_difference_of_components initial_configuration universe) 
+    +~
+    (cost_expr_difference_of_packages   initial_configuration universe)
+    +~
+    (cost_expr_number_of_used_locations initial_configuration universe)
+  )
