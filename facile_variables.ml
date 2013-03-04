@@ -99,9 +99,7 @@ let create_new_variable (kind : variable_kind) (key : variable_key) =
   let new_var  = create_new_facile_variable kind var_name in
   (key, new_var)
 
-let create_facile_variables universe configuration specification = 
-  let variable_keys = get_variable_keys universe configuration specification
-  in
+let create_facile_variables variable_keys = 
   List.map (fun variable_key ->
     let variable_kind = variable_kind_of_variable_key variable_key
     in

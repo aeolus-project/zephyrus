@@ -51,7 +51,7 @@ val get_specification_variables    : facile_variables -> facile_variable list
 
 (* Creating *)
 
-val create_facile_variables : universe -> configuration -> specification -> facile_variables
+val create_facile_variables : variable_key list -> facile_variables
 
 
 (* Printing *)

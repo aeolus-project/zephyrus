@@ -95,15 +95,15 @@ let usage =
 let speclist = 
   Arg.align [
     (* Input arguments *)
-    ("-u",          Arg.String (fun filename -> universe_channel              := (open_in  filename)), " The universe input file");
-    ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in  filename)), " The initial configuration input file");
-    ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in  filename)), " The specification input file");
-    ("-raw-spec",   Arg.Set (raw_specification),                                                       " The specification is given directly in JSON, not using the nice syntax");
+    ("-u",          Arg.String (fun filename -> universe_channel              := (open_in filename)), " The universe input file");
+    ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in filename)), " The initial configuration input file");
+    ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in filename)), " The specification input file");
+    ("-raw-spec",   Arg.Set (raw_specification),                                                      " The specification is given directly in JSON, not using the nice syntax");
     
     ("-repo",       Arg.Tuple 
                     (
-                      [Arg.String (fun repository_name     -> import_repository_names     := repository_name     :: !import_repository_names);
-                       Arg.String (fun repository_filename -> import_repository_filenames := repository_filename :: !import_repository_filenames)]
+                      [Arg.String (fun repository_name     -> import_repository_names     := (!import_repository_names     @ [repository_name]    ));
+                       Arg.String (fun repository_filename -> import_repository_filenames := (!import_repository_filenames @ [repository_filename]))]
                     ),
                     " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
 
@@ -113,12 +113,12 @@ let speclist =
   Arg.align [
     (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
-    ("-solver",     Arg.Symbol ( ["facile"; "g12"],                     (fun s -> solver_choice_string := s) ),         " The solver choice"); 
+    ("-solver",     Arg.Symbol ( ["facile"; "g12"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
   ] @ 
 
   Arg.align [
     (* Output arguments *)
-    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The final configuration output file");  
+    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The final configuration output file");
     ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The final configuration output format (only for the output file)");
   ] @
 
@@ -197,6 +197,7 @@ let solver_choice =
   | _ -> failwith "Invalid solver choice have passed through the Arg.Symbol!"
 
 
+
 (* === Set up everything === *)
 
 (* Prepare input modules. *)
@@ -252,6 +253,7 @@ let imported_repositories =
 
       in
 
+      (* Return the repository, prefix all packages inside with the repository name if needed. *)
       if !prefix_repositories 
       then prefix_repository repository
       else repository
@@ -266,29 +268,33 @@ let imported_repositories =
 
 (* Read the input. *)
 
+(* Read the universe. *)
 let my_universe =
   let universe =
     MyUniverseInput.universe_of_string (string_of_input_channel !universe_channel)
   in
+  (* Append the imported repositories.*)
   {
     universe_component_types = universe.universe_component_types;
     universe_implementation = universe.universe_implementation;
     universe_repositories = universe.universe_repositories @ imported_repositories
   }
 
+(* Read the initial configuration. *)
 let my_initial_configuration =
   MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
-
+(* Read the specification. *)
 let specification_string = string_of_input_channel !specification_channel
 
 let my_specification =
   if (!raw_specification)
-  then 
+  then
+    (* If specification is already in JSON format we read it directly through ATD. *) 
     MySpecificationInput.specification_of_string specification_string
   else
+    (* If specification is written in Aeolus specifiaction syntax we have to parse it. *)
     (
-      (* Specification_lexer.initialize_names_table my_universe; *)
       let lexbuf = Lexing.from_string specification_string in
       let specification = Specification_parser.main Specification_lexer.token lexbuf in
       
@@ -330,10 +336,11 @@ let () =
     if(not !raw_specification)
     then begin 
       Printf.printf "> Unparsed specification:\n\n%s\n\n" specification_string;
+      Printf.printf "> Parsed specification:\n\n";
       flush stdout;
     end;
 
-    Printf.printf "> Parsed specification:\n\n%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
+    Printf.printf "%s\n" (Yojson.Safe.prettify (Aeolus_types_j.string_of_specification my_specification));
     flush stdout;
   )
 
@@ -352,19 +359,21 @@ let () =
 
 
 (* Generate the constraints from the resource types and the specification *)
-let my_translation_constraints = 
+let my_universe_constraints = 
   translate_universe_and_initial_configuration my_universe my_initial_configuration
 
 let my_specification_constraints =
   translate_specification my_specification my_initial_configuration
 
+let my_constraints = 
+  my_universe_constraints @ my_specification_constraints
 
 (* Print the generated constraints. *)
 let () =
   if(!print_cstrs)
   then (
     Printf.printf "\n===> THE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_generated_constraints (my_translation_constraints @ my_specification_constraints));
+    Printf.printf "%s" (string_of_generated_constraints my_constraints);
     flush stdout;
   )
 
@@ -383,6 +392,11 @@ let () =
   then (exit 0)
 
 let solution =
+  
+  let variable_keys = 
+    Variables.get_variable_keys my_universe my_initial_configuration my_specification
+  in
+
   match solver_choice with
 
   | G12Solver -> (
@@ -396,16 +410,15 @@ let solution =
       (* Preparing variables for MiniZinc translation. *)
       Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
       let minizinc_variables = 
-        Minizinc_constraints.create_minizinc_variables
-        (Variables.get_variable_keys my_universe my_initial_configuration my_specification)
+        Minizinc_constraints.create_minizinc_variables variable_keys
       in
 
-      (* Translating constraint into MiniZinc. *)
-      Printf.printf "\n===> Translating constraint into MiniZinc...\n";
+      (* Translating constraints into MiniZinc. *)
+      Printf.printf "\n===> Translating constraints into MiniZinc...\n";
       let minizinc_constraints = 
         Minizinc_constraints.translate_constraints 
           minizinc_variables
-          (List.flatten (List.map snd (my_translation_constraints @ my_specification_constraints) ))
+          (List.flatten (List.map snd my_constraints ))
           generic_optimization_expr
       in
 
@@ -459,44 +472,44 @@ let solution =
 
       (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
 
-      let my_facile_variables =
-        create_facile_variables my_universe my_initial_configuration my_specification
+      let facile_variables =
+        create_facile_variables variable_keys
       in
 
-      let my_facile_constraints : generated_constraints = 
+      let facile_constraints : generated_constraints = 
         List.map (fun (constraints_group_name, constraints) ->
           let facile_constraints = 
             List.map 
-              (Facile_constraints.translate_cstr my_facile_variables)
+              (Facile_constraints.translate_cstr facile_variables)
               constraints
           in
           (constraints_group_name, facile_constraints)
-        ) (my_translation_constraints @ my_specification_constraints)
+        ) my_constraints
       
-      and cost_expr = Facile_constraints.translate_expr my_facile_variables generic_optimization_expr
+      and cost_expr = Facile_constraints.translate_expr facile_variables generic_optimization_expr
 
       (* A placeholder for the solution.*)
       and facile_solution = ref []
       in
 
       (* The goal.*)
-      let goal = create_optimized_goal my_facile_variables cost_expr facile_solution !print_intermediate_solutions
+      let goal = create_optimized_goal facile_variables cost_expr facile_solution !print_intermediate_solutions
       in
 
       Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
-      post_translation_constraints my_facile_constraints;
+      post_translation_constraints facile_constraints;
 
       if(!print_facile_vars)
       then (
         Printf.printf "\n===> THE FACILE VARIABLES <===\n";
-        Printf.printf "%s" (string_of_facile_variables my_facile_variables);
+        Printf.printf "%s" (string_of_facile_variables facile_variables);
         flush stdout;
       );
 
       if(!print_facile_cstrs)
       then (
         Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
-        Printf.printf "%s" (string_of_constraints my_facile_constraints);
+        Printf.printf "%s" (string_of_constraints facile_constraints);
         flush stdout;
       );
 
@@ -521,7 +534,8 @@ let () =
 
   
 (* Convert the constraint problem solution to a configuration. *)
-let final_configuration = configuration_of_solution my_universe my_initial_configuration solution
+let final_configuration = 
+  configuration_of_solution my_universe my_initial_configuration solution
 
 
 (* Output the final configuration. *)
