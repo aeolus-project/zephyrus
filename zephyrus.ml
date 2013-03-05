@@ -71,8 +71,8 @@ let print_tu                     = ref false
 let print_ic                     = ref false
 let print_spec                   = ref false
 let print_cstrs                  = ref false
-let print_facile_vars            = ref false
-let print_facile_cstrs           = ref false
+let print_solver_vars            = ref false
+let print_solver_cstrs           = ref false
 let print_intermediate_solutions = ref false
 let print_solution               = ref false
 let print_all                    = ref false
@@ -134,8 +134,8 @@ let speclist =
     ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
     ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
     ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
-    ("-print-facile-vars",   Arg.Set (print_facile_vars),            " Print the FaCiLe variables");
-    ("-print-facile-cstrs",  Arg.Set (print_facile_cstrs),           " Print the FaCiLe constraints");
+    ("-print-solver-vars",   Arg.Set (print_solver_vars),            " Print the solver specific variables");
+    ("-print-solver-cstrs",  Arg.Set (print_solver_cstrs),           " Print the solver specific constraints");
     ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
     ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
     ("-print-all",           Arg.Set (print_all),                    " Print everything");
@@ -157,8 +157,8 @@ let () =
     print_ic                     := true;
     print_spec                   := true;
     print_cstrs                  := true;
-    print_facile_vars            := true;
-    print_facile_cstrs           := true;
+    print_solver_vars            := true;
+    print_solver_cstrs           := true;
     print_intermediate_solutions := true;
     print_solution               := true;
   )
@@ -365,7 +365,7 @@ let my_universe_constraints =
 let my_specification_constraints =
   translate_specification my_specification my_initial_configuration
 
-let my_constraints = 
+let my_generated_constraints = 
   my_universe_constraints @ my_specification_constraints
 
 (* Print the generated constraints. *)
@@ -373,7 +373,7 @@ let () =
   if(!print_cstrs)
   then (
     Printf.printf "\n===> THE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_generated_constraints my_constraints);
+    Printf.printf "%s" (string_of_generated_constraints my_generated_constraints);
     flush stdout;
   )
 
@@ -401,28 +401,45 @@ let solution =
 
   | G12Solver -> (
 
+      let open Minizinc_constraints in
+
       (* Check if commands "mzn2fzn" and "flatzinc" are available. *)
       List.iter (fun program ->
         if not (did_process_exit_ok (Unix.system (Printf.sprintf "which %s" program)))
         then failwith (Printf.sprintf "The \"%s\" program is not available on this machine!" program)
       ) ["mzn2fzn"; "flatzinc"];
 
+
       (* Preparing variables for MiniZinc translation. *)
       Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
       let minizinc_variables = 
-        Minizinc_constraints.create_minizinc_variables variable_keys
+        create_minizinc_variables variable_keys
       in
+
+      if(!print_solver_vars)
+      then (
+        Printf.printf "\n===> THE MINIZINC VARIABLES <===\n\n";
+        Printf.printf "%s\n" (string_of_minizinc_variables minizinc_variables);
+        flush stdout;
+      );
+
 
       (* Translating constraints into MiniZinc. *)
       Printf.printf "\n===> Translating constraints into MiniZinc...\n";
       let minizinc_constraints = 
-        Minizinc_constraints.translate_constraints 
+        translate_constraints 
           minizinc_variables
-          (List.flatten (List.map snd my_constraints ))
+          my_generated_constraints
           generic_optimization_expr
       in
 
-      Printf.printf "\n\n%s\n\n" (minizinc_constraints);
+      if(!print_solver_cstrs)
+      then (
+        Printf.printf "\n===> THE MINIZINC CONSTRAINTS <===\n\n";
+        Printf.printf "%s" minizinc_constraints;
+        flush stdout;
+      );
+
 
       (* Printing the MiniZinc constraints to a temporary .mzn file. *)
       Printf.printf "\n===> Printing the MiniZinc constraints to a temporary .mzn file...\n";
@@ -430,7 +447,6 @@ let solution =
       Printf.fprintf minizinc_out "%s" minizinc_constraints;
       flush minizinc_out;
       close_out minizinc_out;
-
 
 
       (* Converting MiniZinc to FlatZinc. *)
@@ -462,7 +478,7 @@ let solution =
       Printf.printf "\n===> Parsing the solution found by the G12 solver...\n";
       let lexbuf = Lexing.from_string solution_string in
       let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
-      let solution = Minizinc_constraints.solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+      let solution = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
       (* Returning the solution in the right format. *)
       solution
@@ -484,7 +500,7 @@ let solution =
               constraints
           in
           (constraints_group_name, facile_constraints)
-        ) my_constraints
+        ) my_generated_constraints
       
       and cost_expr = Facile_constraints.translate_expr facile_variables generic_optimization_expr
 
@@ -499,14 +515,14 @@ let solution =
       Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
       post_translation_constraints facile_constraints;
 
-      if(!print_facile_vars)
+      if(!print_solver_vars)
       then (
         Printf.printf "\n===> THE FACILE VARIABLES <===\n";
         Printf.printf "%s" (string_of_facile_variables facile_variables);
         flush stdout;
       );
 
-      if(!print_facile_cstrs)
+      if(!print_solver_cstrs)
       then (
         Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
         Printf.printf "%s" (string_of_constraints facile_constraints);
