@@ -403,11 +403,20 @@ let solution =
 
       let open Minizinc_constraints in
 
+      let minizinc_to_flatzinc_converter_command input_minizinc_filepath output_flatzinc_filepath =
+        Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" output_flatzinc_filepath input_minizinc_filepath
+
+      and flatzinc_solver_command input_flatzinc_file output_solution_file =
+        Printf.sprintf "flatzinc -o %s %s" output_solution_file input_flatzinc_file
+        (*Printf.sprintf "fz -o %s %s" output_solution_file input_flatzinc_file*)
+
+      in
+
       (* Check if commands "mzn2fzn" and "flatzinc" are available. *)
       List.iter (fun program ->
         if not (did_process_exit_ok (Unix.system (Printf.sprintf "which %s" program)))
         then failwith (Printf.sprintf "The \"%s\" program is not available on this machine!" program)
-      ) ["mzn2fzn"; "flatzinc"];
+      ) ["mzn2fzn"; "flatzinc" (*"fz"*)];
 
 
       (* Preparing variables for MiniZinc translation. *)
@@ -452,7 +461,7 @@ let solution =
       (* Converting MiniZinc to FlatZinc. *)
       Printf.printf "\n===> Converting MiniZinc to FlatZinc...\n";
       let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
-      let mzn2fzn_process_status = Unix.system (Printf.sprintf "mzn2fzn --no-output-ozn %s -o %s" minizinc_filepath flatzinc_filepath) in
+      let mzn2fzn_process_status = Unix.system (minizinc_to_flatzinc_converter_command minizinc_filepath flatzinc_filepath) in
       (if not (did_process_exit_ok mzn2fzn_process_status)
       then failwith "mzn2fzn error!");
       Sys.remove minizinc_filepath;
@@ -460,7 +469,7 @@ let solution =
       (* Solving the problem encoded in FlatZinc using G12 solver. *)
       let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
       Printf.printf "\n===> Solving the problem using G12 solver...\n";
-      let flatzinc_process_status = Unix.system (Printf.sprintf "flatzinc %s -o %s" flatzinc_filepath solution_filepath) in
+      let flatzinc_process_status = Unix.system (flatzinc_solver_command flatzinc_filepath solution_filepath) in
       (if not (did_process_exit_ok flatzinc_process_status)
       then failwith "flatzinc error!");
       Sys.remove flatzinc_filepath;
