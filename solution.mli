@@ -21,5 +21,6 @@
 open Variable_keys
 
 type solution = (variable_key * int) list 
+type solution_with_cost = solution * int
 
 val string_of_solution : solution -> string

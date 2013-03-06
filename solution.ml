@@ -22,6 +22,7 @@ open Variable_keys
 open Helpers
 
 type solution = (variable_key * int) list 
+type solution_with_cost = solution * int
 
 let string_of_solution solution =
   let strings_of_solution_assoc_list solution_assoc_list string_of_key =

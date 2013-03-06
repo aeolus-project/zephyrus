@@ -27,6 +27,8 @@ open Variable_keys
 open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 
+let cost_var_name = "cost_var"
+
 let sanitize_name name =
   let lowercased_name = String.lowercase name
   in
@@ -86,13 +88,19 @@ let create_minizinc_variable variable_key =
   (variable_key, string_of_variable_key variable_key)
 
 let create_minizinc_variables variable_keys =
-  List.map create_minizinc_variable variable_keys
+  (List.map create_minizinc_variable variable_keys)
 
 let get_minizinc_variable minizinc_variables variable_key =
   List.assoc variable_key minizinc_variables
 
 let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
-  BatList.assoc_inv minizinc_variable minizinc_variables
+  try
+    if minizinc_variable = cost_var_name 
+    then None
+    else Some (BatList.assoc_inv minizinc_variable minizinc_variables)
+  with
+  | Not_found -> failwith (Printf.sprintf "get_minizinc_variable_reverse: no minizinc variable \"%s\"" minizinc_variable)
+  
 
 let string_of_minizinc_variables minizinc_variables =
   lines_of_strings 
@@ -215,57 +223,114 @@ and string_of_cstr cstr =
 
 
 let translate_constraints minizinc_variables generated_cstrs minimize_expr =
+  
+  let minizinc_of_variable type_string name_string = 
+    Printf.sprintf "var %s : %s;\n" type_string name_string
+  
+  and minizinc_of_constraints_group_name constraints_group_name_string = 
+    Printf.sprintf "\n%% + %s constraints\n" constraints_group_name_string
+  
+  and minizinc_of_constraint constraint_string = 
+    Printf.sprintf "constraint %s;\n" constraint_string
+  
+  and minizinc_of_output_variable variable_key_string variable_value_string = 
+    Printf.sprintf "  \"%s = \" , show(%s), \";\\n\"" variable_key_string variable_value_string
+
+  in
+
   let constants_string =
     Printf.sprintf "int: max_int = %d;" minizinc_max_int
-  in 
-  let strings_of_variables =
-    List.map (fun (key, var) -> 
-      match Variables.variable_kind_of_variable_key key with 
-      | Variables.BooleanVariable -> Printf.sprintf "var 0..1       : %s;\n" var
-      | Variables.NaturalVariable -> Printf.sprintf "var 0..max_int : %s;\n"  var
+  
+  
+  and variables_string = 
+
+    let strings_of_variables =
+    List.map (fun (var_key, var_name) -> 
+      match Variables.variable_kind_of_variable_key var_key with 
+      | Variables.BooleanVariable ->   minizinc_of_variable "0..1"       var_name
+      | Variables.NaturalVariable ->   minizinc_of_variable "0..max_int" var_name
     ) minizinc_variables
-  in
-  let strings_of_constraints =
-    List.flatten (
-      List.map (fun (constraints_group_name, cstrs) ->
 
-        let constraints_group_name_string =
-          Printf.sprintf "\n%% + %s constraints\n" constraints_group_name
+    and optimization_variable_string = minizinc_of_variable "int"   cost_var_name
+    in
 
-        and cstrs_strings =
-          List.map (fun cstr ->
-            Printf.sprintf "constraint %s;\n" (string_of_cstr cstr)
-          ) cstrs
+    String.concat "" (strings_of_variables @ [optimization_variable_string])
 
-        in
+  
+  and constraints_string =
 
-        constraints_group_name_string :: cstrs_strings
+    let strings_of_constraints =
+      List.flatten (
+        List.map (fun (constraints_group_name, cstrs) ->
 
-      ) generated_cstrs
-    )
-  in
-  let solve_string =
-    Printf.sprintf "solve minimize %s;" (string_of_expr minimize_expr)
-  in
-  let output_variable_strings =
-    List.map (fun (key, var) ->
-      Printf.sprintf "  \"%s = \" , show(%s), \";\\n\"" (string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
-    ) minizinc_variables
-  in
-  let output_string =
+          let constraints_group_name_string =
+            minizinc_of_constraints_group_name constraints_group_name
+
+          and cstrs_strings =
+            List.map (fun cstr ->
+              minizinc_of_constraint (string_of_cstr cstr)
+            ) cstrs
+
+          in
+
+          constraints_group_name_string :: cstrs_strings
+
+        ) generated_cstrs
+      )
+    
+    and optimization_variable_constraint_string = 
+      Printf.sprintf "%s%s"
+        (minizinc_of_constraints_group_name "current optimization constraint")
+        (minizinc_of_constraint ("cost_var = " ^ (string_of_expr minimize_expr)))
+
+    in
+
+    String.concat "" (strings_of_constraints @ [optimization_variable_constraint_string])
+
+  
+  and solve_string =
+    Printf.sprintf "solve minimize cost_var;"
+
+  
+  and output_string =
+
+    let output_variable_strings =
+      List.map (fun (key, var) ->
+        minizinc_of_output_variable (string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
+      ) minizinc_variables
+
+    and optimization_variable_output_string =
+      minizinc_of_output_variable cost_var_name cost_var_name
+
+    in
+    
     Printf.sprintf
       "output [\n%s\n];"
-      (String.concat ",\n" output_variable_strings)
+      (String.concat ",\n" (output_variable_strings @ [optimization_variable_output_string]))
+  
+
   in
   Printf.sprintf
     "%% ======= MiniZinc file automatically generated by Zephyrus =======\n\n%% === Constants ===\n%s\n\n\n%% === Variables ===\n%s\n\n%% === Constraints ===\n%s\n\n%% === Optimization function ===\n%s\n\n\n%% === Output definition ===\n%s\n" 
     constants_string
-    (String.concat "" strings_of_variables) 
-    (String.concat "" strings_of_constraints) 
+    variables_string
+    constraints_string 
     solve_string
     output_string
 
-let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : (string * int) list) : Solution.solution =
-  List.map ( fun (minizinc_variable, value) ->
-    (get_minizinc_variable_reverse minizinc_variables minizinc_variable, value)
-  ) bound_variables
+
+let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : (string * int) list) : Solution.solution_with_cost =
+
+  let solution : Solution.solution =
+    BatList.filter_map ( fun (minizinc_variable, value) ->
+      match get_minizinc_variable_reverse minizinc_variables minizinc_variable with
+      | Some key -> Some (key, value)
+      | None     -> None
+    ) bound_variables
+
+  and cost : int =
+    List.assoc cost_var_name bound_variables
+  
+  in
+  (solution, cost)
+

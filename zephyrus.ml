@@ -487,7 +487,7 @@ let solution =
       Printf.printf "\n===> Parsing the solution found by the G12 solver...\n";
       let lexbuf = Lexing.from_string solution_string in
       let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
-      let solution = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+      let (solution, _) = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
       (* Returning the solution in the right format. *)
       solution
