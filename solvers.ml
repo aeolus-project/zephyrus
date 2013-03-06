@@ -15,18 +15,16 @@ module type SOLVER_FACADE =
   end
 *)
 
-module Solver_G12 =
+module G12 =
   struct
 
     let solve 
       variable_keys 
       generated_constraints
-      generic_optimization_exprs
+      generic_optimization_expr
       solver_settings
 
       =
-
-      let generic_optimization_expr = List.hd generic_optimization_exprs in
 
       let open Minizinc_constraints in
 
@@ -122,19 +120,17 @@ module Solver_G12 =
   end
 
 
-module Solver_FaCiLe =
+module FaCiLe =
   struct
 
     let solve 
       variable_keys 
       generated_constraints
-      generic_optimization_exprs
+      generic_optimization_expr
       solver_settings
 
       =
 
-      let generic_optimization_expr = List.hd generic_optimization_exprs in
-      
       let open Facile_variables in
       let open Facile_constraints in
       let open Facile in

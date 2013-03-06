@@ -408,20 +408,36 @@ let solution =
     Variables.get_variable_keys my_universe my_initial_configuration my_specification
   in
 
+  let generic_optimization_expr = List.hd generic_optimization_exprs 
+  in
+
   match solver_choice with
 
   | G12Solver ->
-      Solvers.Solver_G12.solve
-        variable_keys 
-        my_generated_constraints
-        generic_optimization_exprs
-        solver_settings
+
+      let tmp_solution = ref [] in
+
+      let _ = List.fold_left (fun additional_constraints (optimization_expr : Generic_constraints.expr) -> 
+        tmp_solution :=
+          Solvers.G12.solve
+            variable_keys 
+            my_generated_constraints
+            optimization_expr
+            solver_settings;
+        []
+      ) [] generic_optimization_exprs
+
+      in
+
+      !tmp_solution
+
+
 
   | FaCiLeSolver ->
-      Solvers.Solver_FaCiLe.solve
+      Solvers.FaCiLe.solve
         variable_keys 
         my_generated_constraints
-        generic_optimization_exprs
+        generic_optimization_expr
         solver_settings
 
 
