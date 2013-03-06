@@ -113,7 +113,7 @@ let speclist =
   Arg.align [
     (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
-    ("-solver",     Arg.Symbol ( ["facile"; "g12"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
+    ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],           (fun s -> solver_choice_string         := s) ), " The solver choice"); 
   ] @ 
 
   Arg.align [
@@ -189,11 +189,13 @@ let optimization_function =
 type solver_choice = 
   | FaCiLeSolver
   | G12Solver
+  | GeCodeSolver
 
 let solver_choice =
   match !solver_choice_string with
   | "facile" -> FaCiLeSolver
   | "g12"    -> G12Solver
+  | "gecode" -> GeCodeSolver
   | _ -> failwith "Invalid solver choice have passed through the Arg.Symbol!"
 
 
@@ -422,6 +424,14 @@ let solution =
         solver_settings
     )
 
+  | GeCodeSolver ->
+    fst (
+      GeCode.solve_lex
+        variable_keys 
+        my_generated_constraints
+        optimization_exprs
+        solver_settings
+    )
 
   | FaCiLeSolver ->
       fst (

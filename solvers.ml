@@ -84,108 +84,159 @@ let solve_lex
 
 
 
+type in_out_program = {
+  name    : string;
+  command : string;
+  exe     : string -> string -> string;
+}
+
+let is_program_available program =
+  did_process_exit_ok (Unix.system (Printf.sprintf "which %s > /dev/null" program))
+
+let check_if_programs_available programs =
+  Printf.printf "\n===> Checking if required programs are available...\n";
+
+  (* Check if given commands are available on the machine. *)
+  List.iter (fun program ->
+    if not (is_program_available program.command)
+    then failwith (Printf.sprintf "The program \"%s\" (command \"%s\") is not available on this machine!" program.name program.command)
+  ) programs;
+
+  Printf.printf "\nOK!\n"
+
+
+
+let standard_flatzinc_command_line_solver 
+
+  (minizinc_to_flatzinc_converter : in_out_program)
+  (flatzinc_solver                : in_out_program)
+
+  (variable_keys             :  Variable_keys.variable_key list)
+  (generated_constraints     : Constraints.generated_constraints)
+  (generic_optimization_expr : Generic_constraints.expr)
+  (solver_settings           : solver_settings) 
+
+  : Solution.solution_with_cost
+  
+  =
+
+  let open Minizinc_constraints in
+
+  check_if_programs_available [minizinc_to_flatzinc_converter; flatzinc_solver];
+
+  (* Preparing variables for MiniZinc translation. *)
+  Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
+  let minizinc_variables = 
+    create_minizinc_variables variable_keys
+  in
+
+  if(solver_settings.print_solver_vars)
+  then (
+    Printf.printf "\n===> THE MINIZINC VARIABLES <===\n\n";
+    Printf.printf "%s\n" (string_of_minizinc_variables minizinc_variables);
+    flush stdout;
+  );
+
+
+  (* Translating constraints into MiniZinc. *)
+  Printf.printf "\n===> Translating constraints into MiniZinc...\n";
+  let minizinc_constraints = 
+    translate_constraints 
+      minizinc_variables
+      generated_constraints
+      generic_optimization_expr
+  in
+
+  if(solver_settings.print_solver_cstrs)
+  then (
+    Printf.printf "\n===> THE MINIZINC CONSTRAINTS <===\n\n";
+    Printf.printf "%s" minizinc_constraints;
+    flush stdout;
+  );
+
+
+  (* Printing the MiniZinc constraints to a temporary .mzn file. *)
+  Printf.printf "\n===> Printing the MiniZinc constraints to a temporary .mzn file...\n"; flush stdout;
+  let (minizinc_filepath, minizinc_out) = Filename.open_temp_file "zephyrus" ".mzn" in
+  Printf.fprintf minizinc_out "%s" minizinc_constraints;
+  flush minizinc_out;
+  close_out minizinc_out;
+
+
+  (* Converting MiniZinc to FlatZinc. *)
+  Printf.printf "\n===> Converting MiniZinc to FlatZinc using converter %s...\n" minizinc_to_flatzinc_converter.name; flush stdout;
+  let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
+  let minizinc_to_flatzinc_converter_exe = minizinc_to_flatzinc_converter.exe minizinc_filepath flatzinc_filepath in
+  Printf.printf "\nExecuting command: %s\n" minizinc_to_flatzinc_converter_exe; flush stdout;
+  let mzn2fzn_process_status = Unix.system minizinc_to_flatzinc_converter_exe in
+  (if not (did_process_exit_ok mzn2fzn_process_status)
+  then failwith (Printf.sprintf "%s error!" minizinc_to_flatzinc_converter.command));
+  Sys.remove minizinc_filepath;
+
+  (* Solving the problem encoded in FlatZinc using an external solver. *)
+  let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
+  Printf.printf "\n===> Solving the problem using flatzinc solver %s...\n" flatzinc_solver.name; flush stdout;
+  let flatzinc_solver_exe = flatzinc_solver.exe flatzinc_filepath solution_filepath in
+  Printf.printf "\nExecuting command: %s\n" flatzinc_solver_exe; flush stdout;
+  let flatzinc_process_status = Unix.system flatzinc_solver_exe in
+  (if not (did_process_exit_ok flatzinc_process_status)
+  then failwith (Printf.sprintf "%s error!" flatzinc_solver.command));
+  Sys.remove flatzinc_filepath;
+
+  (* Reading the solution found by the an external solver. *)
+  Printf.printf "\n===> Getting the solution found by the flatzinc solver...\n"; flush stdout;
+  let solution_in = (open_in solution_filepath) in
+  let solution_string = string_of_input_channel solution_in in
+  close_in solution_in;
+  Sys.remove solution_filepath;
+
+  Printf.printf "\nThe solution:\n%s\n" solution_string; flush stdout;
+  
+  (* Parsing the solution. *)
+  Printf.printf "\n===> Parsing the solution found by the flatzinc solver...\n"; flush stdout;
+  let lexbuf = Lexing.from_string solution_string in
+  let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
+  let solution_with_cost = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+
+  (* Returning the solution in the right format. *)
+  solution_with_cost
+
+
+let mzn2fzn = {
+  name    = "G12 mzn2fzn";
+  command = "mzn2fzn";
+  exe     = (fun input_minizinc_filepath output_flatzinc_filepath ->
+              Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" output_flatzinc_filepath input_minizinc_filepath)
+}
+
+let g12_flatzinc_solver = {
+  name    = "G12";
+  command = "flatzinc";
+  exe     = (fun input_flatzinc_file output_solution_file ->
+              Printf.sprintf "flatzinc -o %s %s" output_solution_file input_flatzinc_file)
+}
+
 module G12 : SOLVER_LEX =
   struct
 
-    let solve
-      variable_keys 
-      generated_constraints
-      generic_optimization_expr
-      solver_settings
+    let solve = standard_flatzinc_command_line_solver mzn2fzn g12_flatzinc_solver
 
-      =
+    let solve_lex = solve_lex solve
 
-      let open Minizinc_constraints in
-
-      let minizinc_to_flatzinc_converter_command input_minizinc_filepath output_flatzinc_filepath =
-        Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" output_flatzinc_filepath input_minizinc_filepath
-
-      and flatzinc_solver_command input_flatzinc_file output_solution_file =
-        Printf.sprintf "flatzinc -o %s %s" output_solution_file input_flatzinc_file
-        (*Printf.sprintf "fz -o %s %s" output_solution_file input_flatzinc_file*)
-
-      in
-
-      (* Check if commands "mzn2fzn" and "flatzinc" are available. *)
-      List.iter (fun program ->
-        if not (did_process_exit_ok (Unix.system (Printf.sprintf "which %s" program)))
-        then failwith (Printf.sprintf "The \"%s\" program is not available on this machine!" program)
-      ) ["mzn2fzn"; "flatzinc" (*"fz"*)];
+  end
 
 
-      (* Preparing variables for MiniZinc translation. *)
-      Printf.printf "\n===> Preparing variables for MiniZinc translation...\n";
-      let minizinc_variables = 
-        create_minizinc_variables variable_keys
-      in
+let gecode_flatzinc_solver = {
+  name    = "GeCode";
+  command = "fz";
+  exe     = (fun input_flatzinc_file output_solution_file ->
+              Printf.sprintf "fz -o %s %s" output_solution_file input_flatzinc_file)
+}
 
-      if(solver_settings.print_solver_vars)
-      then (
-        Printf.printf "\n===> THE MINIZINC VARIABLES <===\n\n";
-        Printf.printf "%s\n" (string_of_minizinc_variables minizinc_variables);
-        flush stdout;
-      );
+module GeCode : SOLVER_LEX =
+  struct
 
-
-      (* Translating constraints into MiniZinc. *)
-      Printf.printf "\n===> Translating constraints into MiniZinc...\n";
-      let minizinc_constraints = 
-        translate_constraints 
-          minizinc_variables
-          generated_constraints
-          generic_optimization_expr
-      in
-
-      if(solver_settings.print_solver_cstrs)
-      then (
-        Printf.printf "\n===> THE MINIZINC CONSTRAINTS <===\n\n";
-        Printf.printf "%s" minizinc_constraints;
-        flush stdout;
-      );
-
-
-      (* Printing the MiniZinc constraints to a temporary .mzn file. *)
-      Printf.printf "\n===> Printing the MiniZinc constraints to a temporary .mzn file...\n";
-      let (minizinc_filepath, minizinc_out) = Filename.open_temp_file "zephyrus" ".mzn" in
-      Printf.fprintf minizinc_out "%s" minizinc_constraints;
-      flush minizinc_out;
-      close_out minizinc_out;
-
-
-      (* Converting MiniZinc to FlatZinc. *)
-      Printf.printf "\n===> Converting MiniZinc to FlatZinc...\n";
-      let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
-      let mzn2fzn_process_status = Unix.system (minizinc_to_flatzinc_converter_command minizinc_filepath flatzinc_filepath) in
-      (if not (did_process_exit_ok mzn2fzn_process_status)
-      then failwith "mzn2fzn error!");
-      Sys.remove minizinc_filepath;
-
-      (* Solving the problem encoded in FlatZinc using G12 solver. *)
-      let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
-      Printf.printf "\n===> Solving the problem using G12 solver...\n";
-      let flatzinc_process_status = Unix.system (flatzinc_solver_command flatzinc_filepath solution_filepath) in
-      (if not (did_process_exit_ok flatzinc_process_status)
-      then failwith "flatzinc error!");
-      Sys.remove flatzinc_filepath;
-
-      (* Reading the solution found by the G12 solver. *)
-      Printf.printf "\n===> Getting the solution found by the G12 solver...\n";
-      let solution_in = (open_in solution_filepath) in
-      let solution_string = string_of_input_channel solution_in in
-      close_in solution_in;
-      Sys.remove solution_filepath;
-
-      Printf.printf "\nThe solution:\n%s\n" solution_string;
-      
-      (* Parsing the solution. *)
-      Printf.printf "\n===> Parsing the solution found by the G12 solver...\n";
-      let lexbuf = Lexing.from_string solution_string in
-      let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
-      let solution_with_cost = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
-
-      (* Returning the solution in the right format. *)
-      solution_with_cost
-
+    let solve = standard_flatzinc_command_line_solver mzn2fzn gecode_flatzinc_solver
 
     let solve_lex = solve_lex solve
 
