@@ -73,6 +73,7 @@ let print_spec                   = ref false
 let print_cstrs                  = ref false
 let print_solver_vars            = ref false
 let print_solver_cstrs           = ref false
+let print_solver_exe             = ref false
 let print_intermediate_solutions = ref false
 let print_solution               = ref false
 let print_all                    = ref false
@@ -136,6 +137,7 @@ let speclist =
     ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
     ("-print-solver-vars",   Arg.Set (print_solver_vars),            " Print the solver specific variables");
     ("-print-solver-cstrs",  Arg.Set (print_solver_cstrs),           " Print the solver specific constraints");
+    ("-print-solver-exe",    Arg.Set (print_solver_exe),             " Print the solver execution details");
     ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
     ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
     ("-print-all",           Arg.Set (print_all),                    " Print everything");
@@ -159,6 +161,7 @@ let () =
     print_cstrs                  := true;
     print_solver_vars            := true;
     print_solver_cstrs           := true;
+    print_solver_exe             := true;
     print_intermediate_solutions := true;
     print_solution               := true;
   )
@@ -405,6 +408,7 @@ let solution =
   let solver_settings = {
     print_solver_vars            = !print_solver_vars;
     print_solver_cstrs           = !print_solver_cstrs;
+    print_solver_exe             = !print_solver_exe;
     print_intermediate_solutions = !print_intermediate_solutions;
   }
   in
