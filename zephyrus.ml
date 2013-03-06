@@ -112,8 +112,8 @@ let speclist =
 
   Arg.align [
     (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"], (fun s -> optimization_function_string := s) ), " The optimization function");
-    ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],           (fun s -> solver_choice_string         := s) ), " The solver choice"); 
+    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"; "spread"], (fun s -> optimization_function_string := s) ), " The optimization function");
+    ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
   ] @ 
 
   Arg.align [
@@ -177,12 +177,14 @@ type optimization_function =
   | Simple_optimization_function
   | Compact_optimization_function
   | Conservative_optimization_function
+  | Spread_optimization_function
 
 let optimization_function =
   match !optimization_function_string with
   | "simple"       -> Simple_optimization_function
   | "compact"      -> Compact_optimization_function
   | "conservative" -> Conservative_optimization_function
+  | "spread"       -> Spread_optimization_function
   | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
 
 (* Handle the solver choice argument. *)
@@ -382,14 +384,12 @@ let () =
 (* Prepare the optimization expression. *)
 
 
-let optimization_expr =
+let optimization_exprs =
     match optimization_function with
-    | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components                          my_universe
-    | Compact_optimization_function      -> Optimization_functions.cost_expr_compact                  my_initial_configuration my_universe
-    | Conservative_optimization_function -> Optimization_functions.cost_expr_conservative             my_initial_configuration my_universe
-
-
-let optimization_exprs = [optimization_expr]
+    | Simple_optimization_function       -> [Optimization_functions.cost_expr_number_of_all_components                          my_universe]
+    | Compact_optimization_function      ->  Optimization_functions.cost_expr_compact                  my_initial_configuration my_universe
+    | Conservative_optimization_function ->  Optimization_functions.cost_expr_conservative             my_initial_configuration my_universe
+    | Spread_optimization_function       ->  Optimization_functions.cost_expr_spread                   my_initial_configuration my_universe
 
 
 (* Solve! *)

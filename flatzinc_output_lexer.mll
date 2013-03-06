@@ -13,15 +13,15 @@ rule token = parse
   | ['a'-'z' 'A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '_']+ as lxm { NAME(lxm) }
 
   (* Constants *)
-  | ['0'-'9']+ as lxm                     { INT(int_of_string lxm) }
+  | '-'? ['0'-'9']+ as lxm                { INT(int_of_string lxm) }
 
   (* Other *)
   | '='                                   { EQ }
   | ';'                                   { SEMICOLON }
 
   (* Before the end *)
-  | '=' ['=']+                              { token lexbuf }
-  | '-' ['-']+                              { token lexbuf }
+  | '=' ['=']+                            { token lexbuf }
+  | '-' ['-']+                            { token lexbuf }
 
   (* End of file *)                       
   | eof                                   { EOF }
