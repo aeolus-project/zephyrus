@@ -58,3 +58,17 @@ http://www.g12.csse.unimelb.edu.au/minizinc/download.html
 You should install it following its installation instructions
 and make sure that binaries "mzn2fzn" and "flatzinc" are in
 your PATH when you execute Zephyrus.
+
+
+
+If you also want to use the GeCode solver:
+
+(you still need C12 installed, because it contains
+the mzn2fzn MiniZinc to FlatZinc converter)
+
+6. GeCode
+
+http://www.gecode.org/
+
+Debian package:
+flatzinc
