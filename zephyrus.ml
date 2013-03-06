@@ -378,13 +378,16 @@ let () =
   )
 
 (* Prepare the optimization expression. *)
-let generic_optimization_exprs =
-  [
+
+
+let optimization_expr =
     match optimization_function with
     | Simple_optimization_function       -> Optimization_functions.cost_expr_number_of_all_components                          my_universe
     | Compact_optimization_function      -> Optimization_functions.cost_expr_compact                  my_initial_configuration my_universe
     | Conservative_optimization_function -> Optimization_functions.cost_expr_conservative             my_initial_configuration my_universe
-  ]
+
+
+let optimization_exprs = [optimization_expr]
 
 
 (* Solve! *)
@@ -408,37 +411,26 @@ let solution =
     Variables.get_variable_keys my_universe my_initial_configuration my_specification
   in
 
-  let generic_optimization_expr = List.hd generic_optimization_exprs 
-  in
-
   match solver_choice with
 
   | G12Solver ->
-
-      let tmp_solution = ref [] in
-
-      let _ = List.fold_left (fun additional_constraints (optimization_expr : Generic_constraints.expr) -> 
-        tmp_solution :=
-          Solvers.G12.solve
-            variable_keys 
-            my_generated_constraints
-            optimization_expr
-            solver_settings;
-        []
-      ) [] generic_optimization_exprs
-
-      in
-
-      !tmp_solution
-
+    fst (
+      G12.solve_lex
+        variable_keys 
+        my_generated_constraints
+        optimization_exprs
+        solver_settings
+    )
 
 
   | FaCiLeSolver ->
-      Solvers.FaCiLe.solve
-        variable_keys 
-        my_generated_constraints
-        generic_optimization_expr
-        solver_settings
+      fst (
+        FaCiLe.solve
+          variable_keys 
+          my_generated_constraints
+          (List.hd optimization_exprs)
+          solver_settings
+      )
 
 
 (* Print the solution. *)

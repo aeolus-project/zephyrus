@@ -280,7 +280,7 @@ let translate_constraints minizinc_variables generated_cstrs minimize_expr =
     
     and optimization_variable_constraint_string = 
       Printf.sprintf "%s%s"
-        (minizinc_of_constraints_group_name "current optimization constraint")
+        (minizinc_of_constraints_group_name "current optimization")
         (minizinc_of_constraint ("cost_var = " ^ (string_of_expr minimize_expr)))
 
     in

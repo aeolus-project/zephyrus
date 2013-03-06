@@ -8,17 +8,86 @@ type solver_settings = {
   print_intermediate_solutions : bool;
 }
 
-(*
-module type SOLVER_FACADE =
-  sig
-  	val solve : 
-  end
-*)
+type solve_function =
+  Variable_keys.variable_key list ->
+  Constraints.generated_constraints ->
+  Generic_constraints.expr -> (* A single optimization expression. *)
+  solver_settings ->
+  Solution.solution_with_cost
 
-module G12 =
+module type SOLVER =
+  sig
+    val solve : solve_function
+  end
+
+type solve_lex_function =
+  Variable_keys.variable_key list ->
+  Constraints.generated_constraints ->
+  Generic_constraints.expr list -> (* List of optimization expressions. *)
+  solver_settings ->
+  Solution.solution_with_costs (* List of optimization expressions. *)
+
+module type SOLVER_LEX =
+  sig 
+    include SOLVER
+    val solve_lex : solve_lex_function
+  end
+
+let solve_lex 
+  (solve_function : solve_function) 
+  variable_keys 
+  generated_constraints
+  generic_optimization_exprs
+  solver_settings
+  =
+
+  let (solution, costs, _) = 
+    List.fold_left 
+    ( 
+      fun 
+        
+        ( (_, previous_costs, additional_constraints) : (Solution.solution * int list * Generic_constraints.cstr list) ) 
+        (optimization_expr : Generic_constraints.expr) 
+
+      -> 
+    
+        let constraints =
+          generated_constraints @ [("previous optimization"), additional_constraints]
+
+        in
+
+        let (solution, cost) =
+          solve_function
+            variable_keys 
+            constraints
+            optimization_expr
+            solver_settings
+
+        in
+
+        let new_constraint =
+          let open Generic_constraints in
+          optimization_expr =~ (int2expr cost)
+
+        in
+
+        (
+          solution,
+          cost :: previous_costs,
+          new_constraint :: additional_constraints
+        )
+
+  ) ([], [], []) generic_optimization_exprs
+
+  in
+  (solution, costs)
+
+
+
+module G12 : SOLVER_LEX =
   struct
 
-    let solve 
+    let solve
       variable_keys 
       generated_constraints
       generic_optimization_expr
@@ -112,15 +181,18 @@ module G12 =
       Printf.printf "\n===> Parsing the solution found by the G12 solver...\n";
       let lexbuf = Lexing.from_string solution_string in
       let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
-      let (solution, _) = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
+      let solution_with_cost = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
       (* Returning the solution in the right format. *)
-      solution
+      solution_with_cost
+
+
+    let solve_lex = solve_lex solve
 
   end
 
 
-module FaCiLe =
+module FaCiLe : SOLVER =
   struct
 
     let solve 
@@ -184,6 +256,6 @@ module FaCiLe =
 
       let _ = Goals.solve (goal ||~ Goals.success) in
 
-      !facile_solution
+      (!facile_solution, 0)
 
   end
