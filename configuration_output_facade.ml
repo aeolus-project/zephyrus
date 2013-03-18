@@ -19,6 +19,8 @@
 
 
 open Helpers
+open Typing_context
+open Aeolus_types_t
 
 (*
 module type CONFIGURATION_TYPES =
@@ -152,10 +154,7 @@ module Simple_configuration_output : CONFIGURATION_OUTPUT =
             Printf.sprintf
               "%s\n%s\n\n"
               (string_of_location location)
-              (string_of_location_components 
-                (List.filter (fun component -> 
-                  component.component_location = location.location_name
-                ) configuration.configuration_components))
+              (string_of_location_components (get_location_components configuration location.location_name))
           ) configuration.configuration_locations)
         )
         
@@ -185,10 +184,8 @@ module JSON_configuration_output : CONFIGURATION_OUTPUT =
 
   end
 
-module Graphviz_configuration_output : CONFIGURATION_OUTPUT = 
+module Graphviz_configuration_output = 
   struct 
-
-    open Aeolus_types_t
 
     let string_of_component_type_name    = Simple_configuration_output.string_of_component_type_name
     let string_of_port_name              = Simple_configuration_output.string_of_port_name
@@ -213,16 +210,30 @@ module Graphviz_configuration_output : CONFIGURATION_OUTPUT =
     let component_id component_name =
       Printf.sprintf "component_%s" (id_of_name component_name)
 
-    let string_of_location (location : location)    = ""
-    
+    let location_id location_name =
+      Printf.sprintf "location_%s" (id_of_name location_name)
+
     let string_of_component (component : component) = 
       let id    = component_id component.component_name
       and label = Printf.sprintf "%s" component.component_name
       in
       Printf.sprintf
-        "  %s [shape=box,label=\"%s\"];"
+        "    %s [shape=box,label=\"%s\"];"
         id
         label
+    
+    let string_of_location (configuration : configuration) (location : location) =
+      let id    = location_id location.location_name
+      and label = Printf.sprintf "%s" location.location_name
+      in
+      let location_component_strings =
+        List.map string_of_component (get_location_components configuration location.location_name)
+      in
+      Printf.sprintf
+        "  subgraph cluster_%s {\n    label = \"%s\";\n%s\n  }"
+        id
+        label
+        (lines_of_strings location_component_strings)
 
     let string_of_binding (binding : binding) = 
       let requirer_id  = component_id binding.binding_requirer
@@ -233,11 +244,16 @@ module Graphviz_configuration_output : CONFIGURATION_OUTPUT =
         requirer_id
         provider_id
 
+  end
+
+module Graphviz_configuration_output_1 = 
+  struct
+  
+    open Graphviz_configuration_output
+
     let string_of_configuration (configuration : configuration) =
       let first_line = "digraph Configuration {"
-      and graph_setting_strings = [
-        "rankdir=LR;"
-      ]
+      and graph_setting_strings = ["rankdir=LR;"]
       and last_line  = "}"
       in
       let component_strings = List.map string_of_component configuration.configuration_components
@@ -248,6 +264,29 @@ module Graphviz_configuration_output : CONFIGURATION_OUTPUT =
         first_line
         (lines_of_strings graph_setting_strings)
         (lines_of_strings component_strings)
+        (lines_of_strings binding_strings)
+        last_line
+
+  end
+
+module Graphviz_configuration_output_2 = 
+  struct
+  
+    open Graphviz_configuration_output
+
+    let string_of_configuration (configuration : configuration) =
+      let first_line = "digraph Configuration {"
+      and graph_setting_strings = ["rankdir=LR;"]
+      and last_line  = "}"
+      in
+      let location_strings = List.map (string_of_location configuration) configuration.configuration_locations
+      and binding_strings  = List.map string_of_binding  configuration.configuration_bindings
+      in
+      Printf.sprintf
+        "%s\n\n%s\n\n%s\n\n%s\n\n%s"
+        first_line
+        (lines_of_strings graph_setting_strings)
+        (lines_of_strings location_strings)
         (lines_of_strings binding_strings)
         last_line
 

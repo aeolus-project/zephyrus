@@ -173,7 +173,7 @@ let () =
   )
 
 (* Handle the output format choice argument. *)
-type output_format = Plain_output | JSON_output | Graph1
+type output_format = Plain_output | JSON_output | Graph1 | Graph2
 
 let output_channels = !output_channels
 
@@ -182,7 +182,7 @@ let output_formats =
     match output_format_string with
     | "plain" -> Plain_output
     | "json"  -> JSON_output
-    | "graph" -> Graph1
+    | "graph" -> Graph2
     | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
   ) !output_format_strings
 
@@ -482,7 +482,8 @@ let () =
     let output_string = (match output_format with
      | Plain_output ->                      (Simple_configuration_output.string_of_configuration final_configuration)
      | JSON_output  -> Yojson.Safe.prettify (JSON_configuration_output  .string_of_configuration final_configuration) 
-     | Graph1       ->                      (Graphviz_configuration_output.string_of_configuration final_configuration)
+     | Graph1       ->                      (Graphviz_configuration_output_1.string_of_configuration final_configuration)
+     | Graph2       ->                      (Graphviz_configuration_output_2.string_of_configuration final_configuration)
     )
     in
 

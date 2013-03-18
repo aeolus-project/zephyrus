@@ -5,7 +5,7 @@
  -spec        spec-ex-no-ram.spec\
  -ic          ic-ex-first-output-6loc-no-ram.json\
  -out         json ic-ex-second-output-6loc-no-ram-result.json\
- -out         graph ic-ex-second-output-6loc-no-ram-result.dot\
+ -out         graph result-second-output-6loc-no-ram.dot\
  -repo        debian-squeeze ../repositories/repo-debian-squeeze.json\
  -opt         conservative\
  -print-all > result-second-6loc-no-ram.txt 2> time-second-6loc-no-ram.txt

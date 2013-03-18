@@ -209,6 +209,11 @@ let get_location configuration location_name =
         "the location %s does not exist in this configuration" 
         (string_of_location_name location_name))
 
+let get_location_components configuration location_name =
+  List.filter (fun component -> 
+    component.component_location = location_name
+  ) configuration.configuration_components
+
 let get_location_packages_installed configuration location_name =
   let location = get_location configuration location_name
   in

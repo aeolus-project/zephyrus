@@ -5,7 +5,7 @@
  -spec        spec-ex.spec\
  -ic          ic-ex-first-output-4loc.json\
  -out         json ic-ex-second-output-4loc-result.json\
- -out         graph ic-ex-second-output-4loc-result.dot\
+ -out         graph result-second-output-4loc.dot\
  -repo        debian-squeeze ../repositories/repo-debian-squeeze.json\
  -opt         conservative\
  -print-all > result-second-4loc.txt 2> time-second-4loc.txt

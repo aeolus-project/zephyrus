@@ -42,6 +42,7 @@ val get_elements                      : universe -> element list
 val get_location_names                : configuration -> location_name list
 val get_locations                     : configuration -> location list
 val get_location                      : configuration -> location_name -> location
+val get_location_components           : configuration -> location_name -> component list
 val get_location_packages_installed   : configuration -> location_name -> package_name list
 
 val get_resource_provide_arity        : location -> resource_name -> resource_provide_arity
