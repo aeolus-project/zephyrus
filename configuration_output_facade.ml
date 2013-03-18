@@ -168,19 +168,87 @@ module Simple_configuration_output : CONFIGURATION_OUTPUT =
 module JSON_configuration_output : CONFIGURATION_OUTPUT = 
   struct 
 
-   open Aeolus_types_j
+    open Aeolus_types_j
 
-    let string_of_component_type_name (component_type_name : component_type_name) = string_of_component_type_name component_type_name
-    let string_of_port_name (port_name : port_name) = string_of_port_name port_name
-    let string_of_component_name (component_name : component_name) = string_of_component_name component_name
-    let string_of_package_name (package_name : package_name) = string_of_package_name package_name
-    let string_of_repository_name (repository_name : repository_name) = string_of_repository_name repository_name
-    let string_of_location_name (location_name : location_name) = string_of_location_name location_name
-    let string_of_resource_name (resource_name : resource_name) = string_of_resource_name resource_name
+    let string_of_component_type_name (component_type_name : component_type_name)          = string_of_component_type_name component_type_name
+    let string_of_port_name (port_name : port_name)                                        = string_of_port_name port_name
+    let string_of_component_name (component_name : component_name)                         = string_of_component_name component_name
+    let string_of_package_name (package_name : package_name)                               = string_of_package_name package_name
+    let string_of_repository_name (repository_name : repository_name)                      = string_of_repository_name repository_name
+    let string_of_location_name (location_name : location_name)                            = string_of_location_name location_name
+    let string_of_resource_name (resource_name : resource_name)                            = string_of_resource_name resource_name
     let string_of_resource_provide_arity (resource_provide_arity : resource_provide_arity) = string_of_resource_provide_arity resource_provide_arity
-    let string_of_location (location : location) = string_of_location location
-    let string_of_component (component : component) = string_of_component component
-    let string_of_binding (binding : binding) = string_of_binding binding
-    let string_of_configuration (configuration : configuration) = string_of_configuration configuration
+    let string_of_location (location : location)                                           = string_of_location location
+    let string_of_component (component : component)                                        = string_of_component component
+    let string_of_binding (binding : binding)                                              = string_of_binding binding
+    let string_of_configuration (configuration : configuration)                            = string_of_configuration configuration
+
+  end
+
+module Graphviz_configuration_output : CONFIGURATION_OUTPUT = 
+  struct 
+
+    open Aeolus_types_t
+
+    let string_of_component_type_name    = Simple_configuration_output.string_of_component_type_name
+    let string_of_port_name              = Simple_configuration_output.string_of_port_name
+    let string_of_component_name         = Simple_configuration_output.string_of_component_name
+    let string_of_package_name           = Simple_configuration_output.string_of_package_name
+    let string_of_repository_name        = Simple_configuration_output.string_of_repository_name
+    let string_of_location_name          = Simple_configuration_output.string_of_location_name
+    let string_of_resource_name          = Simple_configuration_output.string_of_resource_name
+    let string_of_resource_provide_arity = Simple_configuration_output.string_of_resource_provide_arity
+
+    let id_of_name name = 
+      BatString.filter_map (fun c ->
+        match c with 
+        | 'a'..'z' -> Some c
+        | 'A'..'Z' -> Some c
+        | '0'..'9' -> Some c
+        | '@'
+        | ' '      -> None
+        | _        -> Some '_'
+      ) name
+    
+    let component_id component_name =
+      Printf.sprintf "component_%s" (id_of_name component_name)
+
+    let string_of_location (location : location)    = ""
+    
+    let string_of_component (component : component) = 
+      let id    = component_id component.component_name
+      and label = Printf.sprintf "%s" component.component_name
+      in
+      Printf.sprintf
+        "  %s [shape=box,label=\"%s\"];"
+        id
+        label
+
+    let string_of_binding (binding : binding) = 
+      let requirer_id  = component_id binding.binding_requirer
+      and provider_id  = component_id binding.binding_provider
+      in
+      Printf.sprintf
+        "  %s -> %s;"
+        requirer_id
+        provider_id
+
+    let string_of_configuration (configuration : configuration) =
+      let first_line = "digraph Configuration {"
+      and graph_setting_strings = [
+        "rankdir=LR;"
+      ]
+      and last_line  = "}"
+      in
+      let component_strings = List.map string_of_component configuration.configuration_components
+      and binding_strings   = List.map string_of_binding   configuration.configuration_bindings
+      in
+      Printf.sprintf
+        "%s\n\n%s\n\n%s\n\n%s\n\n%s"
+        first_line
+        (lines_of_strings graph_setting_strings)
+        (lines_of_strings component_strings)
+        (lines_of_strings binding_strings)
+        last_line
 
   end

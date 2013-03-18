@@ -50,9 +50,10 @@ open Configuration_output_facade
 let universe_channel              = ref stdin
 let specification_channel         = ref stdin
 let initial_configuration_channel = ref stdin
-let output_channel                = ref stdout
 
-let output_format_string         = ref "plain"
+let output_channels               = ref [stdout]
+let output_format_strings         = ref ["plain"]
+
 let optimization_function_string = ref "simple"
 let solver_choice_string         = ref "g12"
 
@@ -119,8 +120,13 @@ let speclist =
 
   Arg.align [
     (* Output arguments *)
-    ("-out",        Arg.String (fun filename -> output_channel := (open_out filename)),      " The final configuration output file");
-    ("-out-format", Arg.Symbol ( ["plain"; "json"], (fun s -> output_format_string := s) ),  " The final configuration output format (only for the output file)");
+    ("-out",        Arg.Tuple
+                    (
+                      [Arg.Symbol ( ["plain"; "json"; "graph"], (fun s -> output_format_strings := !output_format_strings @ [s]));
+                       Arg.String (fun filename -> output_channels := (!output_channels @ [(open_out filename)]))]
+                    ),
+                    " The final configuration output file; The final configuration output format (only for the output file)");
+
   ] @
 
   Arg.align [
@@ -167,13 +173,18 @@ let () =
   )
 
 (* Handle the output format choice argument. *)
-type output_format = Plain_output | JSON_output
+type output_format = Plain_output | JSON_output | Graph1
 
-let output_format =
-  match !output_format_string with
-  | "plain" -> Plain_output
-  | "json"  -> JSON_output
-  | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
+let output_channels = !output_channels
+
+let output_formats =
+  List.map (fun output_format_string ->
+    match output_format_string with
+    | "plain" -> Plain_output
+    | "json"  -> JSON_output
+    | "graph" -> Graph1
+    | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
+  ) !output_format_strings
 
 (* Handle the optimization function choice argument. *)
 type optimization_function = 
@@ -466,19 +477,19 @@ let final_configuration =
 (* Output the final configuration. *)
 let () =
 
-  (* If user has specified an output file, we print a formatted verion (i.e. either plain text or JSON) there. *)
-  if( !output_channel != stdout )
-  then (
+  List.iter2 (fun output_channel output_format -> 
     
     let output_string = (match output_format with
      | Plain_output ->                      (Simple_configuration_output.string_of_configuration final_configuration)
      | JSON_output  -> Yojson.Safe.prettify (JSON_configuration_output  .string_of_configuration final_configuration) 
+     | Graph1       ->                      (Graphviz_configuration_output.string_of_configuration final_configuration)
     )
     in
 
-    Printf.fprintf !output_channel "%s" output_string;
-    flush !output_channel;
-  );
+    Printf.fprintf output_channel "%s" output_string;
+    flush output_channel
+
+  ) output_channels output_formats;
 
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
