@@ -238,7 +238,15 @@ module Graphviz_configuration_output =
     let string_of_binding (binding : binding) = 
       let requirer_id  = component_id binding.binding_requirer
       and provider_id  = component_id binding.binding_provider
+      (* and label        = binding.binding_port *)
       in
+      (*
+      Printf.sprintf
+        "  %s -> %s [label=\"%s\"];"
+        requirer_id
+        provider_id
+        label
+      *)
       Printf.sprintf
         "  %s -> %s;"
         requirer_id
