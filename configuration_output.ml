@@ -217,14 +217,14 @@ module Graphviz_configuration_output =
 module Graphviz_configuration_output_aaa = 
   struct 
 
-    let string_of_component_type_name    = Simple_configuration_output.string_of_component_type_name
-    let string_of_port_name              = Simple_configuration_output.string_of_port_name
-    let string_of_component_name         = Simple_configuration_output.string_of_component_name
-    let string_of_package_name           = Simple_configuration_output.string_of_package_name
-    let string_of_repository_name        = Simple_configuration_output.string_of_repository_name
-    let string_of_location_name          = Simple_configuration_output.string_of_location_name
-    let string_of_resource_name          = Simple_configuration_output.string_of_resource_name
-    let string_of_resource_provide_arity = Simple_configuration_output.string_of_resource_provide_arity
+    let string_of_component_type_name    = Simple.string_of_component_type_name
+    let string_of_port_name              = Simple.string_of_port_name
+    let string_of_component_name         = Simple.string_of_component_name
+    let string_of_package_name           = Simple.string_of_package_name
+    let string_of_repository_name        = Simple.string_of_repository_name
+    let string_of_location_name          = Simple.string_of_location_name
+    let string_of_resource_name          = Simple.string_of_resource_name
+    let string_of_resource_provide_arity = Simple.string_of_resource_provide_arity
 
     let id_of_name name = 
       BatString.filter_map (fun c ->
@@ -349,14 +349,14 @@ module Graphviz_configuration_output_aaa =
 module Graphviz_configuration_output_bbb = 
   struct 
 
-    let string_of_component_type_name    = Simple_configuration_output.string_of_component_type_name
-    let string_of_port_name              = Simple_configuration_output.string_of_port_name
-    let string_of_component_name         = Simple_configuration_output.string_of_component_name
-    let string_of_package_name           = Simple_configuration_output.string_of_package_name
-    let string_of_repository_name        = Simple_configuration_output.string_of_repository_name
-    let string_of_location_name          = Simple_configuration_output.string_of_location_name
-    let string_of_resource_name          = Simple_configuration_output.string_of_resource_name
-    let string_of_resource_provide_arity = Simple_configuration_output.string_of_resource_provide_arity
+    let string_of_component_type_name    = Simple.string_of_component_type_name
+    let string_of_port_name              = Simple.string_of_port_name
+    let string_of_component_name         = Simple.string_of_component_name
+    let string_of_package_name           = Simple.string_of_package_name
+    let string_of_repository_name        = Simple.string_of_repository_name
+    let string_of_location_name          = Simple.string_of_location_name
+    let string_of_resource_name          = Simple.string_of_resource_name
+    let string_of_resource_provide_arity = Simple.string_of_resource_provide_arity
 
     let id_of_name name = 
       BatString.filter_map (fun c ->
