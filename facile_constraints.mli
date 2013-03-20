@@ -109,12 +109,13 @@ module Facile_constraints :
 
 type generated_constraints = (string * (Facile_constraints.cstr list)) list
 
+(* Posting *)
 val post_constraints : Facile_constraints.cstr list -> unit
-
 val post_translation_constraints : generated_constraints -> unit
 
+(* Printing *)
 val string_of_constraint : Facile_constraints.cstr -> string
-
 val string_of_constraints : generated_constraints -> string
 
+(* Goals *)
 val create_optimized_goal : facile_variables -> Facile_constraints.expr -> (Solution.solution ref) -> bool -> Facile.Goals.t

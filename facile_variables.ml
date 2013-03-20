@@ -32,13 +32,13 @@ open Solution
 
 (* Types *)
 
-type facile_variable = Facile.Var.Fd.t
+type native_facile_variable = Facile.Var.Fd.t
 
-type facile_variables = (variable_key * facile_variable) list
+type facile_variables = (variable_key * native_facile_variable) list
 
 (* Accessing *)
 
-let get_facile_variable facile_variables variable_key =
+let get_native_facile_variable facile_variables variable_key =
   try
     List.assoc variable_key facile_variables
   with
@@ -49,24 +49,8 @@ let get_facile_variable facile_variables variable_key =
       (string_of_variable_key variable_key) )
 
 
-let get_facile_variables facile_variables =
+let get_native_facile_variables facile_variables =
   List.map (fun (key, variable) -> variable) facile_variables
-
-
-let filter_variables_by_key (predicate : variable_key -> bool) (facile_variables : facile_variables) =
-  BatList.filter_map ( fun (key, variable) ->
-    if predicate key
-    then Some (variable)
-    else None
-  ) facile_variables
-
-let get_global_element_variables   = filter_variables_by_key pred_global_element_variable
-let get_local_element_variables    = filter_variables_by_key pred_local_element_variable
-let get_binding_variables          = filter_variables_by_key pred_binding_variable
-let get_local_repository_variables = filter_variables_by_key pred_local_repository_variable
-let get_local_resource_variables   = filter_variables_by_key pred_local_resource_variable
-let get_specification_variables    = filter_variables_by_key pred_specification_variable
-
 
 
 (* Creating *)

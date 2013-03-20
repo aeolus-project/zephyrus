@@ -20,7 +20,7 @@
 
 open Helpers
 
-open Aeolus_types_j
+open Aeolus_types_t
 
 open Typing_context
 open Variable_keys
@@ -113,7 +113,7 @@ module Facile_constraints =
 
     let rec translate_var (facile_variables : facile_variables) (var : C.var) : var =
       match var with
-      | C.NamedVar  (var_key) -> get_facile_variable facile_variables var_key
+      | C.NamedVar  (var_key) -> get_native_facile_variable facile_variables var_key
 
     and translate_expr (facile_variables : facile_variables) (expr : C.expr) : expr =
       match expr with
@@ -187,8 +187,8 @@ open Facile_constraints
 
 type generated_constraints = (string * (cstr list)) list
 
-(* Posting *)
 
+(* Posting *)
 let post_constraints constraints = 
   List.iter post constraints
 
@@ -198,6 +198,7 @@ let post_translation_constraints translation_constraints =
   translation_constraints
 
 let string_of_constraint = Facile_constraints.string_of_cstr
+
 
 (* Printing *)
 let string_of_constraints constraints =
@@ -225,7 +226,7 @@ let create_optimized_goal facile_variables cost_expr store_solution_here print_s
 
     (* The goal is simple: all domain facile_variables have to be set. *)
     let goal =
-      Facile.Goals.List.forall (Facile.Goals.indomain) (get_facile_variables facile_variables)
+      Facile.Goals.List.forall (Facile.Goals.indomain) (get_native_facile_variables facile_variables)
     in
 
     (* The cost variable to optimize (minimize): *)
