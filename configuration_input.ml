@@ -17,30 +17,21 @@
 (*                                                                          *)
 (****************************************************************************)
 
-{
-  open Flatzinc_output_parser        (* The type token is defined in flatzinc_output_parser.mli *)
-  exception Eof  
-}
 
-rule token = parse
+open Helpers
 
-  (* Blanks *)
-  | [' ' '\t']                            { token lexbuf }     (* skip blanks *)
-  | ['\n']                                { token lexbuf }     (* skip newlines *)
+module type CONFIGURATION =
+  sig
+    type location
+    type configuration
+  end
 
-  (* Variable names *)
-  | ['a'-'z' 'A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '_']+ as lxm { NAME(lxm) }
+module C = Aeolus_types_j
 
-  (* Constants *)
-  | '-'? ['0'-'9']+ as lxm                { INT(int_of_string lxm) }
+module type CONFIGURATION_INPUT =
+  sig
+    val location_of_string      : string -> C.location
+    val configuration_of_string : string -> C.configuration
+ end
 
-  (* Other *)
-  | '='                                   { EQ }
-  | ';'                                   { SEMICOLON }
-
-  (* Before the end *)
-  | '=' ['=']+                            { token lexbuf }
-  | '-' ['-']+                            { token lexbuf }
-
-  (* End of file *)                       
-  | eof                                   { EOF }
+module JSON : CONFIGURATION_INPUT = Aeolus_types_j

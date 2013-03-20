@@ -68,4 +68,4 @@ module type UNIVERSE_INPUT =
     val universe_of_string               : string -> U.universe
  end
 
-module JSON_universe_input : UNIVERSE_INPUT = Aeolus_types_j
+module JSON : UNIVERSE_INPUT = Aeolus_types_j

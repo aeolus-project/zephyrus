@@ -27,12 +27,13 @@ include Atdgen.mk
 SOURCES = \
 helpers.mli helpers.ml\
 aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
-aeolus_types_output_facade.ml\
+aeolus_types_output.ml\
 typing_context.mli                    typing_context.ml\
-configuration_output_facade.ml\
-universe_input_facade.ml\
-specification_input_facade.ml\
-configuration_input_facade.ml\
+configuration_output.ml\
+universe_input.ml\
+specification_parser.mly specification_lexer.mll\
+specification_input.ml\
+configuration_input.ml\
 variable_keys.mli                     variable_keys.ml\
 solution.mli                          solution.ml\
 generic_constraints.mli               generic_constraints.ml\
@@ -49,9 +50,8 @@ configuration_generation.ml\
 variables.mli          variables.ml\
 facile_variables.mli   facile_variables.ml\
 facile_constraints.mli facile_constraints.ml\
-flatzinc_output_parser.mly flatzinc_output_lexer.mll\
+flatzinc_solution_parser.mly flatzinc_solution_lexer.mll\
 minizinc_constraints.ml\
-specification_parser.mly specification_lexer.mll\
 universe_trimming.mli universe_trimming.ml\
 solvers.mli           solvers.ml\
 zephyrus.ml

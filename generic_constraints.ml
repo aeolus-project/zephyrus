@@ -19,7 +19,7 @@
 
 
 open Helpers
-open Aeolus_types_output_facade.Aeolus_types_plain_output
+open Aeolus_types_output.Plain
 
 
 (* Operator types definitions *)

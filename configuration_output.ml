@@ -22,73 +22,37 @@ open Helpers
 open Typing_context
 open Aeolus_types_t
 
-(*
-module type CONFIGURATION_TYPES =
-  sig
-    type component_type_name
-    type port_name
-    type component_name
-    type package_name
-    type repository_name
-    type location_name
-    type resource_name
-    type resource_provide_arity
-    type location
-    type component
-    type binding
-    type configuration
-  end
-
-module My_resource_types : CONFIGURATION_TYPES = Configuration_generation
-
-*)
 module C = Aeolus_types_j
 
 module type CONFIGURATION_OUTPUT =
-  (* functor (T : CONFIGURATION_TYPES) -> *)
   sig
-    val string_of_component_type_name : C.component_type_name -> string
-    val string_of_port_name : C.port_name -> string
-    val string_of_component_name : C.component_name -> string
-    val string_of_package_name : C.package_name -> string
-    val string_of_repository_name : C.repository_name -> string
-    val string_of_location_name : C.location_name -> string
-    val string_of_resource_name : C.resource_name -> string
+    val string_of_component_type_name    : C.component_type_name    -> string
+    val string_of_port_name              : C.port_name              -> string
+    val string_of_component_name         : C.component_name         -> string
+    val string_of_package_name           : C.package_name           -> string
+    val string_of_repository_name        : C.repository_name        -> string
+    val string_of_location_name          : C.location_name          -> string
+    val string_of_resource_name          : C.resource_name          -> string
     val string_of_resource_provide_arity : C.resource_provide_arity -> string
-    val string_of_location : C.location -> string
-    val string_of_component : C.component -> string
-    val string_of_binding : C.binding -> string
-    val string_of_configuration : C.configuration -> string
+    val string_of_location               : C.location               -> string
+    val string_of_component              : C.component              -> string
+    val string_of_binding                : C.binding                -> string
+    val string_of_configuration          : C.configuration          -> string
   end
 
-module Simple_configuration_output : CONFIGURATION_OUTPUT =
+module Simple : CONFIGURATION_OUTPUT =
   struct
 
     open Aeolus_types_j
 
-    let string_of_component_type_name (component_type_name : component_type_name) : string =
-      component_type_name
-
-    let string_of_port_name (port_name : port_name) : string =
-      port_name
-
-    let string_of_component_name (component_name : component_name) : string =
-      component_name
-
-    let string_of_package_name (package_name : package_name) : string =
-      package_name
-
-    let string_of_repository_name (repository_name : repository_name) : string =
-      repository_name
-
-    let string_of_location_name (location_name : location_name) : string =
-      location_name
-
-    let string_of_resource_name (resource_name : resource_name) : string =
-      resource_name
-
-    let string_of_resource_provide_arity (resource_provide_arity : resource_provide_arity) : string =
-      Printf.sprintf "%d" resource_provide_arity
+    let string_of_component_type_name    component_type_name    = component_type_name
+    let string_of_port_name              port_name              = port_name
+    let string_of_component_name         component_name         = component_name
+    let string_of_package_name           package_name           = package_name
+    let string_of_repository_name        repository_name        = repository_name
+    let string_of_location_name          location_name          = location_name
+    let string_of_resource_name          resource_name          = resource_name
+    let string_of_resource_provide_arity resource_provide_arity = Printf.sprintf "%d" resource_provide_arity
 
     let string_of_location_repository (location_repository : repository_name) : string =
       Printf.sprintf
@@ -164,7 +128,7 @@ module Simple_configuration_output : CONFIGURATION_OUTPUT =
   end
 
 
-module JSON_configuration_output : CONFIGURATION_OUTPUT = 
+module JSON : CONFIGURATION_OUTPUT = 
   struct 
 
     open Aeolus_types_j
@@ -187,14 +151,14 @@ module JSON_configuration_output : CONFIGURATION_OUTPUT =
 module Graphviz_configuration_output = 
   struct 
 
-    let string_of_component_type_name    = Simple_configuration_output.string_of_component_type_name
-    let string_of_port_name              = Simple_configuration_output.string_of_port_name
-    let string_of_component_name         = Simple_configuration_output.string_of_component_name
-    let string_of_package_name           = Simple_configuration_output.string_of_package_name
-    let string_of_repository_name        = Simple_configuration_output.string_of_repository_name
-    let string_of_location_name          = Simple_configuration_output.string_of_location_name
-    let string_of_resource_name          = Simple_configuration_output.string_of_resource_name
-    let string_of_resource_provide_arity = Simple_configuration_output.string_of_resource_provide_arity
+    let string_of_component_type_name    = Simple.string_of_component_type_name
+    let string_of_port_name              = Simple.string_of_port_name
+    let string_of_component_name         = Simple.string_of_component_name
+    let string_of_package_name           = Simple.string_of_package_name
+    let string_of_repository_name        = Simple.string_of_repository_name
+    let string_of_location_name          = Simple.string_of_location_name
+    let string_of_resource_name          = Simple.string_of_resource_name
+    let string_of_resource_provide_arity = Simple.string_of_resource_provide_arity
 
     let id_of_name name = 
       BatString.filter_map (fun c ->

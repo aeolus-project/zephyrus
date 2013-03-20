@@ -39,7 +39,7 @@ open Constraints
 open Solution
 open Configuration_generation
 
-open Configuration_output_facade
+open Configuration_output
 
 
 (* === Handling the arguments === *)
@@ -54,30 +54,30 @@ let initial_configuration_channel = ref stdin
 let output_channels               = ref [stdout]
 let output_format_strings         = ref ["plain"]
 
-let optimization_function_string = ref "simple"
-let solver_choice_string         = ref "g12"
+let optimization_function_string  = ref "simple"
+let solver_choice_string          = ref "g12"
 
-let import_repository_names      = ref []
-let import_repository_filenames  = ref []
-let prefix_repositories          = ref false
+let import_repository_names       = ref []
+let import_repository_filenames   = ref []
+let prefix_repositories           = ref false
 
-let raw_specification            = ref false
-let only_check_spec              = ref false
+let raw_specification             = ref false
+let only_check_spec               = ref false
 
-let do_not_solve                 = ref false
+let do_not_solve                  = ref false
 
 (* printing settings *)
-let print_u                      = ref false
-let print_tu                     = ref false
-let print_ic                     = ref false
-let print_spec                   = ref false
-let print_cstrs                  = ref false
-let print_solver_vars            = ref false
-let print_solver_cstrs           = ref false
-let print_solver_exe             = ref false
-let print_intermediate_solutions = ref false
-let print_solution               = ref false
-let print_all                    = ref false
+let print_u                       = ref false
+let print_tu                      = ref false
+let print_ic                      = ref false
+let print_spec                    = ref false
+let print_cstrs                   = ref false
+let print_solver_vars             = ref false
+let print_solver_cstrs            = ref false
+let print_solver_exe              = ref false
+let print_intermediate_solutions  = ref false
+let print_solution                = ref false
+let print_all                     = ref false
 
 (* Arg module settings *)
 
@@ -160,7 +160,7 @@ let () =
 let () =
   if !print_all
   then (
-  (* print_u                      := true; *)
+  (*print_u                      := true;*) (* If we have any imported repositories the untrimmed universe gets huge and illisible so we don't print it by default. *)
     print_tu                     := true;
     print_ic                     := true;
     print_spec                   := true;
@@ -218,18 +218,12 @@ let solver_choice =
 
 (* === Set up everything === *)
 
-(* Prepare input modules. *)
-
-module MyUniverseInput             = Universe_input_facade.JSON_universe_input
-module MyInitialConfigurationInput = Configuration_input_facade.JSON_configuration_input
-module MySpecificationInput        = Specification_input_facade.JSON_specification_input
-
 
 (* Handle the imported repositories. *)
 
 (* Prefix all package names in the repository with the repository name. *)
 let prefix_repository repository = 
-  let open Aeolus_types_output_facade.Aeolus_types_plain_output 
+  let open Aeolus_types_output.Plain 
   in
   let prefix package_name = Printf.sprintf "%s-%s" (string_of_repository_name repository.repository_name) (string_of_package_name package_name)
   in
@@ -251,7 +245,7 @@ let prefix_repository repository =
 let imported_repositories =
   try
     List.rev_map2 (fun repository_name repository_filename -> 
-      let open Aeolus_types_output_facade.Aeolus_types_plain_output 
+      let open Aeolus_types_output.Plain 
       in
       Printf.printf "Importing repository %s from file %s...\n" (string_of_repository_name repository_name) repository_filename;
       flush stdout;
@@ -259,7 +253,7 @@ let imported_repositories =
       let repository_channel = (open_in repository_filename) 
       in
       let packages = 
-        MyUniverseInput.packages_of_string (string_of_input_channel repository_channel)
+        Universe_input.JSON.packages_of_string (string_of_input_channel repository_channel)
       in
 
       (* The imported repository : *)
@@ -289,7 +283,7 @@ let imported_repositories =
 (* Read the universe. *)
 let my_universe =
   let universe =
-    MyUniverseInput.universe_of_string (string_of_input_channel !universe_channel)
+    Universe_input.JSON.universe_of_string (string_of_input_channel !universe_channel)
   in
   (* Append the imported repositories.*)
   {
@@ -300,7 +294,7 @@ let my_universe =
 
 (* Read the initial configuration. *)
 let my_initial_configuration =
-  MyInitialConfigurationInput.configuration_of_string (string_of_input_channel !initial_configuration_channel)
+  Configuration_input.JSON.configuration_of_string (string_of_input_channel !initial_configuration_channel)
 
 (* Read the specification. *)
 let specification_string = string_of_input_channel !specification_channel
@@ -308,14 +302,14 @@ let specification_string = string_of_input_channel !specification_channel
 let my_specification =
   if (!raw_specification)
   then
-    (* If specification is already in JSON format we read it directly through ATD. *) 
-    MySpecificationInput.specification_of_string specification_string
+    (* If specification is in JSON format we read it directly through ATD. *)
+    Specification_input.JSON.specification_of_string specification_string
   else
-    (* If specification is written in Aeolus specifiaction syntax we have to parse it. *)
+    (* If specification is written in Aeolus specifiaction syntax, we parse it using our parser. *)
     (
-      let lexbuf = Lexing.from_string specification_string in
-      let specification = Specification_parser.main Specification_lexer.token lexbuf in
-      
+      let specification = Specification_input.Aeolus_specification_language.specification_of_string specification_string
+      in
+
       if !only_check_spec 
       then
         begin
@@ -480,8 +474,8 @@ let () =
   List.iter2 (fun output_channel output_format -> 
     
     let output_string = (match output_format with
-     | Plain_output ->                      (Simple_configuration_output.string_of_configuration final_configuration)
-     | JSON_output  -> Yojson.Safe.prettify (JSON_configuration_output  .string_of_configuration final_configuration) 
+     | Plain_output ->                      (Simple.string_of_configuration final_configuration)
+     | JSON_output  -> Yojson.Safe.prettify (JSON  .string_of_configuration final_configuration) 
      | Graph1       ->                      (Graphviz_configuration_output_1.string_of_configuration final_configuration)
      | Graph2       ->                      (Graphviz_configuration_output_2.string_of_configuration final_configuration)
     )
@@ -494,5 +488,5 @@ let () =
 
   (* Then we print the plain text version on the standard output anyway. *)
   Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
-  Printf.printf "\n%s\n\n" (Simple_configuration_output.string_of_configuration final_configuration);
+  Printf.printf "\n%s\n\n" (Simple.string_of_configuration final_configuration);
   flush stdout

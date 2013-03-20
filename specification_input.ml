@@ -20,18 +20,25 @@
 
 open Helpers
 
-module type CONFIGURATION =
+module S = Aeolus_types_t
+
+module type SPECIFICATION_INPUT =
   sig
-    type location
-    type configuration
+    val specification_of_string : string -> S.specification
   end
 
-module C = Aeolus_types_j
+(* The specification is written in JSON, ATD can parse it directly. *)
+module JSON : SPECIFICATION_INPUT = Aeolus_types_j
 
-module type CONFIGURATION_INPUT =
-  sig
-    val location_of_string      : string -> C.location
-    val configuration_of_string : string -> C.configuration
- end
+(* The specification is written in Aeolus specifiaction syntax, we have to parse it. *)
+module Aeolus_specification_language : SPECIFICATION_INPUT =
+  struct
 
-module JSON_configuration_input : CONFIGURATION_INPUT = Aeolus_types_j
+    let specification_of_string specification_string =
+      let lexbuf = Lexing.from_string specification_string 
+      in
+      let specification = Specification_parser.main Specification_lexer.token lexbuf
+      in
+      specification
+
+  end

@@ -20,7 +20,7 @@
 open Helpers
 
 open Aeolus_types_t
-open Aeolus_types_output_facade.Aeolus_types_plain_output
+open Aeolus_types_output.Plain
 
 open Typing_context
 open Variable_keys

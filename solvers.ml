@@ -212,7 +212,7 @@ let standard_flatzinc_command_line_solver
   (* Parsing the solution. *)
   solver_exe_printf (Printf.sprintf "\n===> Parsing the solution found by the flatzinc solver...\n");
   let lexbuf = Lexing.from_string solution_string in
-  let minizinc_solution = Flatzinc_output_parser.main Flatzinc_output_lexer.token lexbuf in
+  let minizinc_solution = Flatzinc_solution_parser.main Flatzinc_solution_lexer.token lexbuf in
   let solution_with_cost = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
 
   (* Returning the solution in the right format. *)
