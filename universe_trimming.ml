@@ -18,7 +18,7 @@
 (****************************************************************************)
 
 
-open Aeolus_types_j
+open Aeolus_types_t
 
 let dependency_transitive_closure (initial_package_names : package_name list) (packages : package list) : package list =
 

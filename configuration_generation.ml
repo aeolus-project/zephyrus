@@ -18,7 +18,8 @@
 (****************************************************************************)
 
 
-open Aeolus_types_j
+open Aeolus_types_t
+open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 open Typing_context
 open Variable_keys
@@ -147,10 +148,6 @@ let solution_number_of_components_for_location (solution : solution) (location_n
 type used_names = component_name list
 
 let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names ref) : component_name =
-  
-  let 
-    open Configuration_output_facade.Simple_configuration_output
-  in
 
   let build_component_name = 
     Printf.sprintf

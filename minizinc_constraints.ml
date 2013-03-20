@@ -19,12 +19,12 @@
 
 open Helpers
 
-open Aeolus_types_j
+open Aeolus_types_t
+open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 open Typing_context
 open Variable_keys
 
-open Aeolus_types_output_facade.Aeolus_types_plain_output
 
 
 let cost_var_name = "cost_var"

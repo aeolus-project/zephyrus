@@ -18,7 +18,7 @@
 (****************************************************************************)
 
 
-open Aeolus_types_j
+open Aeolus_types_t
 
 val trim : universe -> configuration -> specification -> universe
  

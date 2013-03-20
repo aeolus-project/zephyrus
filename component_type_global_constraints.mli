@@ -19,7 +19,7 @@
 
 (** This module generates the constraints corresponding to component types. *)
 
-open Aeolus_types_j
+open Aeolus_types_t
 open Typing_context
 open Variable_keys
 open Generic_constraints

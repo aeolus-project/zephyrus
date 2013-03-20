@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-open Aeolus_types_j
+open Aeolus_types_t
 open Variable_keys
 
 type variable_kind =
