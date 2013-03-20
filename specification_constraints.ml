@@ -171,29 +171,34 @@ and translate_spec_resource_constraint (location_name : location_name) : (spec_r
 
 and translate_spec_repository_constraints (location_name : location_name) (spec_repository_constraints : spec_repository_constraints) : cstr =
 
-  let repository_names = spec_repository_constraints
-  in
+  match spec_repository_constraints with
+  
+  (* The repository constraint is "_", which means that any repository should be accepted. *)
+  | [] -> truecstr
 
-  (* The left side expression: *)
-  let exprs_to_sum = 
-    List.map ( fun repository_name ->
+  (* There is one or more repositories specified, exactly one of them must be present. *)
+  | repository_names ->
+  
+    (* The left side expression: *)
+    let exprs_to_sum = 
+      List.map ( fun repository_name ->
 
-      let local_repository_var = 
-        var (LocalRepositoryVariable (location_name, repository_name))
-      in
+        let local_repository_var = 
+          var (LocalRepositoryVariable (location_name, repository_name))
+        in
 
-      (* Part of the sum: R(location_name, repository_name) *)
-      (var2expr local_repository_var)
-        
-    ) repository_names
-  in
-  let sum_of_local_repository_vars = (sum exprs_to_sum)
+        (* Part of the sum: R(location_name, repository_name) *)
+        (var2expr local_repository_var)
+          
+      ) repository_names
+    in
+    let sum_of_local_repository_vars = (sum exprs_to_sum)
 
-  (* The right side expression is a constant equal 1. *)
+    (* The right side expression is a constant equal 1. *)
 
-  in
-  (* Constraint: *)
-  ( sum_of_local_repository_vars =~ (int2expr 1) )
+    in
+    (* Constraint: *)
+    ( sum_of_local_repository_vars =~ (int2expr 1) )
 
 and translate_spec_op (spec_op : spec_op) : (expr -> expr -> cstr) =
   match spec_op with

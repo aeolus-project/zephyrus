@@ -142,6 +142,7 @@ spec_resource_constraint:
   | LPAREN spec_resource_constraint RPAREN { $2 }
 
 spec_repository_constraints:
+  | UNDERSCORE                                                 { [] }
   | spec_repository_constraint                                 { [$1] }
   | spec_repository_constraint OR spec_repository_constraints  { $1 :: $3 }
 

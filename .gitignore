@@ -17,8 +17,8 @@
 specification_lexer.ml
 specification_parser.ml
 specification_parser.mli
-flatzinc_output_lexer.ml
-flatzinc_output_parser.ml
-flatzinc_output_parser.mli
+flatzinc_solution_lexer.ml
+flatzinc_solution_parser.ml
+flatzinc_solution_parser.mli
 zephyrus
 zephyrus-*.tar.gz
