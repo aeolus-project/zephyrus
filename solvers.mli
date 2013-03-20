@@ -17,21 +17,38 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
-val string_of_printing_function : (out_channel -> 'a -> 'b) -> 'a -> string
-
-val lines_of_strings : string list -> string
-
-val string_of_input_channel : in_channel -> string
-
-val did_process_exit_ok : Unix.process_status -> bool
-
-type in_out_program = {
-  name    : string;
-  command : string;
-  exe     : string -> string -> string;
+type solver_settings = {
+  print_solver_vars            : bool;
+  print_solver_cstrs           : bool;
+  print_solver_exe             : bool;
+  print_intermediate_solutions : bool;
 }
 
-val is_program_available : string -> bool
+module type SOLVER =
+  sig
+    
+    val solve : 
+      Variable_keys.variable_key list ->
+      Constraints.generated_constraints ->
+      Generic_constraints.expr -> (* A single optimization expression. *)
+      solver_settings ->
+      Solution.solution_with_cost (* It returns the solution and its cost. *)
+      
+  end
 
-val check_if_programs_available : in_out_program list -> unit
+module type SOLVER_LEX =
+  sig 
+    include SOLVER
+
+    val solve_lex : 
+      Variable_keys.variable_key list ->
+      Constraints.generated_constraints ->
+      Generic_constraints.expr list -> (* List of optimization expressions. *)
+      solver_settings ->
+      Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
+
+  end
+
+module G12    : SOLVER_LEX
+module GeCode : SOLVER_LEX
+module FaCiLe : SOLVER

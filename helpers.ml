@@ -46,3 +46,19 @@ let did_process_exit_ok process_status =
   | Unix.WEXITED 0 -> true 
   | _ -> false
   
+
+type in_out_program = {
+  name    : string;
+  command : string;
+  exe     : string -> string -> string;
+}
+
+let is_program_available program =
+  did_process_exit_ok (Unix.system (Printf.sprintf "which %s > /dev/null" program))
+
+let check_if_programs_available programs =
+  (* Check if given commands are available on the machine. *)
+  List.iter (fun program ->
+    if not (is_program_available program.command)
+    then failwith (Printf.sprintf "The program \"%s\" (command \"%s\") is not available on this machine!" program.name program.command)
+  ) programs
