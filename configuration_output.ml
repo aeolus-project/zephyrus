@@ -22,28 +22,24 @@ open Helpers
 open Typing_context
 open Aeolus_types_t
 
-module C = Aeolus_types_j
-
 module type CONFIGURATION_OUTPUT =
   sig
-    val string_of_component_type_name    : C.component_type_name    -> string
-    val string_of_port_name              : C.port_name              -> string
-    val string_of_component_name         : C.component_name         -> string
-    val string_of_package_name           : C.package_name           -> string
-    val string_of_repository_name        : C.repository_name        -> string
-    val string_of_location_name          : C.location_name          -> string
-    val string_of_resource_name          : C.resource_name          -> string
-    val string_of_resource_provide_arity : C.resource_provide_arity -> string
-    val string_of_location               : C.location               -> string
-    val string_of_component              : C.component              -> string
-    val string_of_binding                : C.binding                -> string
-    val string_of_configuration          : C.configuration          -> string
+    val string_of_component_type_name    : component_type_name    -> string
+    val string_of_port_name              : port_name              -> string
+    val string_of_component_name         : component_name         -> string
+    val string_of_package_name           : package_name           -> string
+    val string_of_repository_name        : repository_name        -> string
+    val string_of_location_name          : location_name          -> string
+    val string_of_resource_name          : resource_name          -> string
+    val string_of_resource_provide_arity : resource_provide_arity -> string
+    val string_of_location               : location               -> string
+    val string_of_component              : component              -> string
+    val string_of_binding                : binding                -> string
+    val string_of_configuration          : configuration          -> string
   end
 
 module Simple : CONFIGURATION_OUTPUT =
   struct
-
-    open Aeolus_types_j
 
     let string_of_component_type_name    component_type_name    = component_type_name
     let string_of_port_name              port_name              = port_name
@@ -133,18 +129,18 @@ module JSON : CONFIGURATION_OUTPUT =
 
     open Aeolus_types_j
 
-    let string_of_component_type_name (component_type_name : component_type_name)          = string_of_component_type_name component_type_name
-    let string_of_port_name (port_name : port_name)                                        = string_of_port_name port_name
-    let string_of_component_name (component_name : component_name)                         = string_of_component_name component_name
-    let string_of_package_name (package_name : package_name)                               = string_of_package_name package_name
-    let string_of_repository_name (repository_name : repository_name)                      = string_of_repository_name repository_name
-    let string_of_location_name (location_name : location_name)                            = string_of_location_name location_name
-    let string_of_resource_name (resource_name : resource_name)                            = string_of_resource_name resource_name
-    let string_of_resource_provide_arity (resource_provide_arity : resource_provide_arity) = string_of_resource_provide_arity resource_provide_arity
-    let string_of_location (location : location)                                           = string_of_location location
-    let string_of_component (component : component)                                        = string_of_component component
-    let string_of_binding (binding : binding)                                              = string_of_binding binding
-    let string_of_configuration (configuration : configuration)                            = string_of_configuration configuration
+    let string_of_component_type_name    component_type_name    = string_of_component_type_name    component_type_name
+    let string_of_port_name              port_name              = string_of_port_name              port_name
+    let string_of_component_name         component_name         = string_of_component_name         component_name
+    let string_of_package_name           package_name           = string_of_package_name           package_name
+    let string_of_repository_name        repository_name        = string_of_repository_name        repository_name
+    let string_of_location_name          location_name          = string_of_location_name          location_name
+    let string_of_resource_name          resource_name          = string_of_resource_name          resource_name
+    let string_of_resource_provide_arity resource_provide_arity = string_of_resource_provide_arity resource_provide_arity
+    let string_of_location               location               = string_of_location               location
+    let string_of_component              component              = string_of_component              component
+    let string_of_binding                binding                = string_of_binding                binding
+    let string_of_configuration          configuration          = string_of_configuration          configuration
 
   end
 

@@ -43,4 +43,4 @@ module type UNIVERSE_INPUT =
     val universe_of_string               : string -> universe
  end
 
-module JSON : UNIVERSE_INPUT = Aeolus_types_j
+module JSON : UNIVERSE_INPUT

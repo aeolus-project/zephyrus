@@ -17,30 +17,21 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
 open Aeolus_types_t
+open Variable_keys
+open Generic_constraints
 
-module type UNIVERSE_INPUT =
-  sig
-    val component_type_name_of_string    : string -> component_type_name
-    val port_name_of_string              : string -> port_name
-    val component_name_of_string         : string -> component_name
-    val package_name_of_string           : string -> package_name
-    val repository_name_of_string        : string -> repository_name
-    val location_name_of_string          : string -> location_name
-    val resource_name_of_string          : string -> resource_name
-    val provide_arity_of_string          : string -> provide_arity
-    val require_arity_of_string          : string -> require_arity
-    val resource_consumption_of_string   : string -> resource_consumption
-    val resource_provide_arity_of_string : string -> resource_provide_arity
-    val component_type_of_string         : string -> component_type
-    val component_types_of_string        : string -> component_types
-    val package_of_string                : string -> package
-    val packages_of_string               : string -> packages
-    val repository_of_string             : string -> repository
-    val repositories_of_string           : string -> repositories
-    val package_names_of_string          : string -> package_names
-    val universe_of_string               : string -> universe
- end
+type minizinc_variables
 
-module JSON : UNIVERSE_INPUT = Aeolus_types_j
+val create_minizinc_variables : variable_key list -> minizinc_variables
+val string_of_minizinc_variables : minizinc_variables -> string
+
+val translate_constraints : 
+  minizinc_variables ->                 (* The minizinc variables to use in the translation. *)
+  Constraints.generated_constraints ->  (* The generated constraints which will be translated. *)
+  expr ->                               (* The optimization expression. *)
+  string
+
+type bound_minizinc_variables = (string * int) list
+
+val solution_of_bound_minizinc_variables : minizinc_variables -> bound_minizinc_variables -> Solution.solution_with_cost

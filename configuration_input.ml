@@ -17,21 +17,12 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
-open Helpers
-
-module type CONFIGURATION =
-  sig
-    type location
-    type configuration
-  end
-
-module C = Aeolus_types_j
+open Aeolus_types_t
 
 module type CONFIGURATION_INPUT =
   sig
-    val location_of_string      : string -> C.location
-    val configuration_of_string : string -> C.configuration
+    val location_of_string      : string -> location
+    val configuration_of_string : string -> configuration
  end
 
 module JSON : CONFIGURATION_INPUT = Aeolus_types_j

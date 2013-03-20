@@ -84,6 +84,10 @@ let string_of_variable_key variable_key =
         "spec_var_%s"
         (sanitize_name (string_of_spec_variable_name spec_variable_name))
 
+
+
+type minizinc_variables = (variable_key * string) list
+
 let create_minizinc_variable variable_key =
   (variable_key, string_of_variable_key variable_key)
 
@@ -319,7 +323,9 @@ let translate_constraints minizinc_variables generated_cstrs minimize_expr =
     output_string
 
 
-let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : (string * int) list) : Solution.solution_with_cost =
+type bound_minizinc_variables = (string * int) list
+
+let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : bound_minizinc_variables) : Solution.solution_with_cost =
 
   let solution : Solution.solution =
     BatList.filter_map ( fun (minizinc_variable, value) ->

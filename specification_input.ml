@@ -17,14 +17,11 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
-open Helpers
-
-module S = Aeolus_types_t
+open Aeolus_types_t
 
 module type SPECIFICATION_INPUT =
   sig
-    val specification_of_string : string -> S.specification
+    val specification_of_string : string -> specification
   end
 
 (* The specification is written in JSON, ATD can parse it directly. *)

@@ -26,17 +26,22 @@ include Atdgen.mk
 
 SOURCES = \
 helpers.mli helpers.ml\
+ \
 aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
 aeolus_types_output.ml\
+ \
 typing_context.mli                    typing_context.ml\
+ \
 configuration_output.ml\
-universe_input.ml\
-specification_parser.mly specification_lexer.mll\
-specification_input.ml\
-configuration_input.ml\
+universe_input.mli                    universe_input.ml\
+specification_parser.mly              specification_lexer.mll\
+specification_input.mli               specification_input.ml\
+configuration_input.mli               configuration_input.ml\
+ \
 variable_keys.mli                     variable_keys.ml\
 solution.mli                          solution.ml\
 generic_constraints.mli               generic_constraints.ml\
+ \
 component_type_global_constraints.mli component_type_global_constraints.ml\
 location_constraints.mli              location_constraints.ml\
 repository_constraints.mli            repository_constraints.ml\
@@ -45,15 +50,19 @@ resource_constraints.mli              resource_constraints.ml\
 specification_constraints.mli         specification_constraints.ml\
 optimization_functions.mli            optimization_functions.ml\
 matching_algorithm.ml\
-constraints.ml\
-configuration_generation.ml\
-variables.mli          variables.ml\
-facile_variables.mli   facile_variables.ml\
-facile_constraints.mli facile_constraints.ml\
-flatzinc_solution_parser.mly flatzinc_solution_lexer.mll\
-minizinc_constraints.ml\
-universe_trimming.mli universe_trimming.ml\
-solvers.mli           solvers.ml\
+constraints.mli                       constraints.ml\
+ \
+configuration_generation.mli          configuration_generation.ml\
+variables.mli                         variables.ml\
+ \
+facile_variables.mli                  facile_variables.ml\
+facile_constraints.mli                facile_constraints.ml\
+ \
+flatzinc_solution_parser.mly          flatzinc_solution_lexer.mll\
+minizinc_constraints.mli              minizinc_constraints.ml\
+ \
+universe_trimming.mli                 universe_trimming.ml\
+solvers.mli                           solvers.ml\
 zephyrus.ml
 
 RESULT = zephyrus
