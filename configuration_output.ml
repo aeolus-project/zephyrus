@@ -214,6 +214,14 @@ module Graphviz_configuration_output =
 
   end
 
+type graph_settings = {
+  show_components : bool;
+  show_ports      : bool;
+  show_bindings   : bool;
+  show_locations  : bool;
+  show_packages   : bool;
+}
+
 module Graphviz_configuration_output_aaa = 
   struct 
 
@@ -257,92 +265,199 @@ module Graphviz_configuration_output_aaa =
 
     (* "<img src=\"tux.jpg\" scale=\"true\"/>" *)
 
-    let string_of_component (universe : universe) (component : component) = 
-      let component_type = get_component_type universe component.component_type
-      in
+    let string_of_configuration (graph_settings : graph_settings) (universe : universe) (configuration : configuration) : string =
 
-      let required_ports_table =
-        let required_ports_strings =
-          List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id port_name) (BatString.lchop port_name)) component_type.component_type_require
+      let strings_of_component : component -> string list =
+
+        let strings_of_component_without_ports (component : component) : string list = 
+          let id    = component_id component.component_name
+          and label = Printf.sprintf "%s" component.component_name
+          in
+          [Printf.sprintf "%s [shape=box,label=\"%s\"];" id label]
+
+        and strings_of_component_with_ports (component : component) : string list = 
+          let component_type = get_component_type universe component.component_type
+          in
+
+          let required_ports_table =
+            let required_ports_strings =
+              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id port_name) (BatString.lchop port_name)) component_type.component_type_require
+            in
+            if required_ports_strings = [] then " "
+            else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (lines_of_strings required_ports_strings)
+
+          and provided_ports_table =
+            let provided_ports_strings =
+              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id port_name) (BatString.lchop port_name)) component_type.component_type_provide
+            in
+            if provided_ports_strings = [] then " "
+            else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"green\">%s</table>" (lines_of_strings provided_ports_strings)
+
+          in
+          let id    = component_id component.component_name
+          and label = Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr><td colspan=\"2\">%s</td></tr><tr><td>%s</td><td>%s</td></tr></table>" component.component_name provided_ports_table required_ports_table
+          in
+          [Printf.sprintf "%s [label=<%s>];" id label]
+
         in
-        if required_ports_strings = []
-        then " "
-        else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (lines_of_strings required_ports_strings)
 
-      and provided_ports_table =
-        let provided_ports_strings =
-          List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id port_name) (BatString.lchop port_name)) component_type.component_type_provide
+        if graph_settings.show_ports
+        then strings_of_component_with_ports
+        else strings_of_component_without_ports
+
+      in
+      let strings_of_binding : binding -> string list = 
+
+        let strings_of_binding_without_ports (binding : binding) = 
+          let requirer_id  = component_id binding.binding_requirer
+          and provider_id  = component_id binding.binding_provider
+          in
+          [Printf.sprintf
+             "  %s -> %s;"
+             requirer_id
+             provider_id]
+
+        and strings_of_binding_with_ports (binding : binding) : string list = 
+          let requirer_id  = component_id binding.binding_requirer
+          and provider_id  = component_id binding.binding_provider
+          in
+          [Printf.sprintf
+            "  %s:%s -> %s:%s;"
+            requirer_id
+            (required_port_id binding.binding_port)
+            provider_id
+            (provided_port_id binding.binding_port)]
+
         in
-        if provided_ports_strings = []
-        then " "
-        else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"green\">%s</table>" (lines_of_strings provided_ports_strings)
+        if graph_settings.show_ports
+        then strings_of_binding_with_ports
+        else strings_of_binding_without_ports
+      in
+      let strings_of_package_at_location  (location : location) (package_name : package_name) : string list =
+        [
+          Printf.sprintf
+            "%s [shape=ellipse,label=\"%s\"];"
+            (package_at_location_id location.location_name package_name)
+            package_name
+        ]
+      in
+      let strings_of_packages_at_location (location : location) : string list =
+        List.flatten (List.map (strings_of_package_at_location location) (get_location_packages_installed configuration location.location_name))
+      in
+      let strings_of_package_dependency_at_location (location : location) : string list =
+
+        let location_repository = get_repository universe location.location_repository
+        and location_packages_installed = location.location_packages_installed
+        in
+        let location_package_dependency_strings =
+          List.flatten (
+            List.map (fun package_name -> 
+              let package = get_package location_repository package_name
+              in
+              let dependencies = 
+                List.filter (fun package_name -> List.mem package_name location_packages_installed) (BatList.unique (List.flatten package.package_depend))
+              in
+              List.map (fun depended_package_name ->
+                Printf.sprintf 
+                  "%s -> %s;"
+                  (package_at_location_id location.location_name package_name)
+                  (package_at_location_id location.location_name depended_package_name)
+                ) dependencies
+            ) location_packages_installed )
+        in
+        location_package_dependency_strings
+      in
+      let strings_of_package_implementation_at_location (location : location) : string list =
+        let location_packages_installed = location.location_packages_installed
+        in
+        let location_implementation_strings =
+          List.flatten (
+            List.map (fun component ->
+              let implementing_packages =
+                List.filter (fun package_name -> List.mem package_name location_packages_installed) (get_component_type_implementation universe component.component_type)
+              in
+              List.map (fun depended_package_name ->
+                Printf.sprintf 
+                  "%s -> %s;"
+                  (component_id component.component_name)
+                  (package_at_location_id location.location_name depended_package_name)
+                ) implementing_packages
+            ) (get_location_components configuration location.location_name) )
+        in
+        location_implementation_strings
+      in
+      let strings_of_location (location : location) : string list =
+        let id    = location_id location.location_name
+        and label = Printf.sprintf "%s\\n[%s]" location.location_name location.location_repository
+        in
+
+        let location_component_strings : string list =
+          if graph_settings.show_components
+          then List.flatten (List.map strings_of_component (get_location_components configuration location.location_name))
+          else []
+
+        and location_package_strings : string list =
+          if graph_settings.show_packages
+          then
+            (strings_of_packages_at_location location) 
+            @ (strings_of_package_dependency_at_location location)
+            @ (if graph_settings.show_components 
+               then strings_of_package_implementation_at_location location
+               else [])
+          else []
+
+        in
+        
+        let before = [
+          Printf.sprintf "subgraph cluster_%s {" id
+        ]
+        
+        and content = [
+          Printf.sprintf "label = \"%s\";" label;
+          "node [shape=plaintext];"
+        ] 
+        @ location_component_strings 
+        @ location_package_strings
+
+        and after =
+          ["}"]
+
+        in
+        before @ (indent_lines content) @ after
+      in
+
+      let location_strings : string list = 
+        List.flatten (List.map strings_of_location configuration.configuration_locations)
+      
+      and binding_strings : string list = 
+        if graph_settings.show_bindings
+        then List.flatten (List.map strings_of_binding configuration.configuration_bindings)
+        else []
 
       in
 
-      let id    = component_id component.component_name
-      and label = Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\"><tr><td colspan=\"2\">%s</td></tr><tr><td>%s</td><td>%s</td></tr></table>" component.component_name provided_ports_table required_ports_table
+      let before = [
+        "digraph Configuration {";
+      ]
+      
+      and content = [
+        "rankdir=LR;";
+      ] 
+      @ location_strings
+      @ binding_strings
+        
+      and after = [
+        "}"
+      ]
       in
-      Printf.sprintf
-        "    %s [label=<%s>];"
-        id
-        label
-    
-    let string_of_package_at_location (universe : universe) (location : location) (package_name : package_name)  =
-      Printf.sprintf
-        "%s [shape=ellipse,label=\"%s\"];"
-        (package_at_location_id location.location_name package_name)
-        package_name
 
-    let string_of_location (universe : universe) (configuration : configuration) (location : location) =
-      let id    = location_id location.location_name
-      and label = Printf.sprintf "%s\\n[%s]" location.location_name location.location_repository
+      let result = 
+        before @ (indent_lines content) @ after
+
       in
-      let location_component_strings =
-        List.map (string_of_component universe) (get_location_components configuration location.location_name)
-      (* and location_package_strings =
-        List.map (string_of_package_at_location universe location) (get_location_packages_installed configuration location.location_name) *)
-      in
-      Printf.sprintf
-        "  subgraph cluster_%s {\n    label = \"%s\";\n    node [shape=plaintext];\n%s\n  }"
-        id
-        label
-        (lines_of_strings location_component_strings)
+      lines_of_strings result
 
 
-    let string_of_binding (universe : universe) (binding : binding) = 
-      let requirer_id  = component_id binding.binding_requirer
-      and provider_id  = component_id binding.binding_provider
-      (* and label        = binding.binding_port *)
-      in
-      (*
-      Printf.sprintf
-        "  %s -> %s [label=\"%s\"];"
-        requirer_id
-        provider_id
-        label
-      *)
-      Printf.sprintf
-        "  %s:%s -> %s:%s;"
-        requirer_id
-        (required_port_id binding.binding_port)
-        provider_id
-        (provided_port_id binding.binding_port)
-
-    let string_of_configuration (universe : universe) (configuration : configuration) =
-      let first_line = "digraph Configuration {"
-      and graph_setting_strings = ["rankdir=LR;"]
-      and last_line  = "}"
-      in
-      let location_strings = List.map (string_of_location universe configuration) configuration.configuration_locations
-      and binding_strings  = List.map (string_of_binding  universe) configuration.configuration_bindings
-      in
-      Printf.sprintf
-        "%s\n\n%s\n\n%s\n\n%s\n\n%s"
-        first_line
-        (lines_of_strings graph_setting_strings)
-        (lines_of_strings location_strings)
-        (lines_of_strings binding_strings)
-        last_line
 
   end
 

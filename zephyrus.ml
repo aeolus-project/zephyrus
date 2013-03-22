@@ -173,7 +173,7 @@ let () =
   )
 
 (* Handle the output format choice argument. *)
-type output_format = Plain_output | JSON_output | Graph1 | Graph2 | Graph3
+type output_format = Plain_output | JSON_output | Graph1 | Graph2 | Graph3 | Graph4
 
 let output_channels = !output_channels
 
@@ -473,12 +473,23 @@ let () =
 
   List.iter2 (fun output_channel output_format -> 
     
+    let graph_settings = {
+      show_components = true;
+      show_ports      = true;
+      show_bindings   = true;
+      show_locations  = true; (* Doesn't work yet! *)
+      show_packages   = false;
+    }
+    
+    in
+
     let output_string = (match output_format with
      | Plain_output ->                      (Simple.string_of_configuration final_configuration)
      | JSON_output  -> Yojson.Safe.prettify (JSON  .string_of_configuration final_configuration) 
      | Graph1       ->                      (Graphviz_configuration_output_1.string_of_configuration final_configuration)
      | Graph2       ->                      (Graphviz_configuration_output_2.string_of_configuration final_configuration)
-     | Graph3       ->                      (Graphviz_configuration_output_bbb.string_of_configuration my_universe final_configuration)
+     | Graph3       ->                      (Graphviz_configuration_output_aaa.string_of_configuration graph_settings my_universe final_configuration)
+     | Graph4       ->                      (Graphviz_configuration_output_bbb.string_of_configuration my_universe final_configuration)
     )
     in
 

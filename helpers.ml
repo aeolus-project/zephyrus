@@ -30,6 +30,13 @@ let string_of_printing_function printing_function argument =
 
 let lines_of_strings strings = String.concat "\n" strings
 
+let ident = "  "
+
+let indent_line  line  = Printf.sprintf "%s%s" ident line
+let indent_lines lines = List.map indent_line lines
+
+let indent_lines_of_strings strings = lines_of_strings (indent_lines strings)
+
 let string_of_input_channel (in_channel : in_channel) =
   let in_channel_length = in_channel_length in_channel in
   if in_channel_length > Sys.max_string_length

@@ -20,7 +20,9 @@
 
 val string_of_printing_function : (out_channel -> 'a -> 'b) -> 'a -> string
 
-val lines_of_strings : string list -> string
+val lines_of_strings        : string list -> string
+val indent_lines            : string list -> string list
+val indent_lines_of_strings : string list -> string
 
 val string_of_input_channel : in_channel -> string
 
