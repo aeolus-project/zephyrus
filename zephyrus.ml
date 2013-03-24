@@ -83,7 +83,7 @@ let print_all                     = ref false
 
 let usage = 
   Printf.sprintf
-    "usage: %s %s %s %s %s %s %s %s %s"
+    "usage: %s %s %s %s %s %s %s %s"
     Sys.argv.(0)
     "[-u universe-file]"
     "[-ic initial-configuration-file]"
@@ -91,8 +91,7 @@ let usage =
     "[-repo repository-name packages-file]*" 
     "[-opt optimization-function]"
     "[-solver solver]"
-    "[-out output-file]"
-    "[-out-format {plain|json}]"
+    "[-out output-format output-file]*"
 
 let speclist = 
   Arg.align [
@@ -110,31 +109,30 @@ let speclist =
                     " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
 
     ("-prefix-repos", Arg.Set (prefix_repositories), " Prefix all package names in imported repositories by the repository name.");
-  ] @
 
-  Arg.align [
     (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"; "spread"], (fun s -> optimization_function_string := s) ), " The optimization function");
     ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
-  ] @ 
 
-  Arg.align [
     (* Output arguments *)
     ("-out",        Arg.Tuple
                     (
-                      [Arg.Symbol ( ["plain"; "json"; "graph"], (fun s -> output_format_strings := !output_format_strings @ [s]));
+                      [Arg.Symbol ( ["plain"; 
+                                     "json"; 
+                                     "graph"; 
+                                     "deployment-graph"; 
+                                     "simplified-deployment-graph"; 
+                                     "components-graph"; 
+                                     "packages-graph"], 
+                                     (fun s -> output_format_strings := !output_format_strings @ [s]));
+
                        Arg.String (fun filename -> output_channels := (!output_channels @ [(open_out filename)]))]
                     ),
-                    " The final configuration output file; The final configuration output format (only for the output file)");
+                    " The final configuration output file and the output format (you can specify multiple output files with different formats). Output formats available: {plain|json|graph|deployment-graph|simplified-deployment-graph|components-graph|packages-graph}");
 
-  ] @
-
-  Arg.align [
     ("-only-check-spec", Arg.Set (only_check_spec),  " Just parse specification and exit");
     ("-do-not-solve",    Arg.Set (do_not_solve),     " Do not use the solver (exit directly after generating generic constraints)");
-  ] @
 
-  Arg.align [
     (* Printing options arguments *)
     ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
     ("-print-tu",            Arg.Set (print_tu),                     " Print the trimmed universe");
@@ -173,16 +171,21 @@ let () =
   )
 
 (* Handle the output format choice argument. *)
-type output_format = Plain_output | JSON_output | Graph1 | Graph2 | Graph3 | Graph4
+type output_format = Plain_output | JSON_output | Graph_output of graph_type
 
 let output_channels = !output_channels
 
 let output_formats =
+
   List.map (fun output_format_string ->
     match output_format_string with
-    | "plain" -> Plain_output
-    | "json"  -> JSON_output
-    | "graph" -> Graph3
+    | "plain"                       ->  Plain_output
+    | "json"                        ->  JSON_output
+    | "graph"                       ->  Graph_output Deployment_graph (* default *)
+    | "deployment-graph"            ->  Graph_output Deployment_graph
+    | "simplified-deployment-graph" ->  Graph_output Simplified_deployment_graph
+    | "components-graph"            ->  Graph_output Components_graph
+    | "packages-graph"              ->  Graph_output Packages_graph
     | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
   ) !output_format_strings
 
@@ -472,24 +475,11 @@ let final_configuration =
 let () =
 
   List.iter2 (fun output_channel output_format -> 
-    
-    let graph_settings = {
-      show_components = true;
-      show_ports      = true;
-      show_bindings   = true;
-      show_locations  = true; (* Doesn't work yet! *)
-      show_packages   = false;
-    }
-    
-    in
 
     let output_string = (match output_format with
-     | Plain_output ->                      (Simple.string_of_configuration final_configuration)
-     | JSON_output  -> Yojson.Safe.prettify (JSON  .string_of_configuration final_configuration) 
-     | Graph1       ->                      (Graphviz_configuration_output_1.string_of_configuration final_configuration)
-     | Graph2       ->                      (Graphviz_configuration_output_2.string_of_configuration final_configuration)
-     | Graph3       ->                      (Graphviz_configuration_output_aaa.string_of_configuration graph_settings my_universe final_configuration)
-     | Graph4       ->                      (Graphviz_configuration_output_bbb.string_of_configuration my_universe final_configuration)
+     | Plain_output            -> Simple  .string_of_configuration final_configuration
+     | JSON_output             -> JSON    .string_of_configuration final_configuration
+     | Graph_output graph_type -> Graphviz.string_of_configuration (graph_settings_of_graph_type graph_type) my_universe final_configuration
     )
     in
 
