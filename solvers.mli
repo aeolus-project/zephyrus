@@ -30,7 +30,7 @@ module type SOLVER =
     val solve : 
       Variable_keys.variable_key list ->
       Constraints.generated_constraints ->
-      Generic_constraints.expr -> (* A single optimization expression. *)
+      Optimization_functions.optimization_function -> (* A single optimization function. *)
       solver_settings ->
       Solution.solution_with_cost (* It returns the solution and its cost. *)
       
@@ -43,7 +43,7 @@ module type SOLVER_LEX =
     val solve_lex : 
       Variable_keys.variable_key list ->
       Constraints.generated_constraints ->
-      Generic_constraints.expr list -> (* List of optimization expressions. *)
+      Optimization_functions.optimization_function list -> (* List of optimization functions. *)
       solver_settings ->
       Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
 

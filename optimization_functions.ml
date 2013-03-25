@@ -23,6 +23,10 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
+type optimization_function =
+  | Satisfy          (* Output the first solution found that satisfies the constraints. *)
+  | Maximize of expr (* Search for the solution that maximizes the given expression. *)
+  | Minimize of expr (* Search for the solution that minimizes the given expression. *)
 
 let cost_expr_number_of_all_components universe = 
   let component_type_names = get_component_type_names universe
@@ -50,7 +54,9 @@ let cost_expr_number_of_all_packages initial_configuration universe =
   )
 
 
-let cost_expr_number_of_used_locations initial_configuration universe only_components_count =
+type used_or_free = Used | Free
+
+let cost_expr_number_of_used_or_free_locations used_or_free initial_configuration universe only_components_count =
   let component_type_names = get_component_type_names universe
   and package_names        = get_package_names        universe
   and location_names       = get_location_names       initial_configuration
@@ -80,43 +86,44 @@ let cost_expr_number_of_used_locations initial_configuration universe only_compo
         )
       
       in 
-      reify ( local_components_and_packages >=~ (int2expr 1) )
+      match used_or_free with
+      | Used -> reify ( local_components_and_packages >~ (int2expr 0) )
+      | Free -> reify ( local_components_and_packages =~ (int2expr 0) )
 
     ) location_names
 
-    in
-    let total_number_of_used_locations = (sum used_locations)
-    in
-    total_number_of_used_locations
+  in
+  let total_number_of_used_locations = (sum used_locations)
+  in
+  total_number_of_used_locations
+
+let cost_expr_number_of_used_locations = cost_expr_number_of_used_or_free_locations Used
+let cost_expr_number_of_free_locations = cost_expr_number_of_used_or_free_locations Free
 
 
-let cost_expr_number_of_used_locations_reversed initial_configuration universe only_components_count =
-  (* If the solver tries to minimize this expression, he will maximize the number of used locations. *)
-  ( (int2expr 0) -~ (cost_expr_number_of_used_locations initial_configuration universe only_components_count) )
-
-let cost_expr_compact initial_configuration universe =
+let compact initial_configuration universe =
   (* 
     First minimize the number of used locations,
     then minimize the number of components,  (useful only if we can have multiple components of the same component type on one machine)
     finally minimize the number of packages. (so we do not have useless packages) 
   *)
   [
-    cost_expr_number_of_used_locations initial_configuration universe false;
-    cost_expr_number_of_all_components                       universe;
-    cost_expr_number_of_all_packages   initial_configuration universe;
+    Minimize (cost_expr_number_of_used_locations initial_configuration universe false);
+    Minimize (cost_expr_number_of_all_components                       universe      );
+    Minimize (cost_expr_number_of_all_packages   initial_configuration universe      );
   ]
 
 
-let cost_expr_spread initial_configuration universe =
+let spread initial_configuration universe =
   (* 
     First minimize the number of components,
     then maximize the number of used locations, (counting only locations with at least one component)
     finally minimize the number of packages.
   *)
   [
-    cost_expr_number_of_all_components                                universe;
-    cost_expr_number_of_used_locations_reversed initial_configuration universe true;
-    cost_expr_number_of_all_packages            initial_configuration universe;
+    Minimize (cost_expr_number_of_all_components                       universe     );
+    Maximize (cost_expr_number_of_used_locations initial_configuration universe true);
+    Minimize (cost_expr_number_of_all_packages   initial_configuration universe     );
   ]
 
 
@@ -208,12 +215,12 @@ let cost_expr_difference_of_packages initial_configuration universe =
   total_difference_of_package_installation
 
 
-let cost_expr_conservative initial_configuration universe =
+let conservative initial_configuration universe =
   (* First minimize the number of changed components,
      then minimize the number of used locations       (so machines which do not have components now will be also freed of packages),
      finally minimize the number of changed packages. (so on machines which are not empty we will try to keep previous packages even if they are useless) *)
   [
-    cost_expr_difference_of_components initial_configuration universe;
-    cost_expr_number_of_used_locations initial_configuration universe false;
-    cost_expr_difference_of_packages   initial_configuration universe;
+    Minimize (cost_expr_difference_of_components initial_configuration universe      );
+    Minimize (cost_expr_number_of_used_locations initial_configuration universe false);
+    Minimize (cost_expr_difference_of_packages   initial_configuration universe      );
   ]

@@ -226,7 +226,9 @@ and string_of_cstr cstr =
       (string_of_cstr cstr)
 
 
-let translate_constraints minizinc_variables generated_cstrs minimize_expr =
+let translate_constraints minizinc_variables generated_cstrs optimization_function =
+
+  let open Optimization_functions in
   
   let minizinc_of_variable type_string name_string = 
     Printf.sprintf "var %s : %s;\n" type_string name_string
@@ -283,9 +285,13 @@ let translate_constraints minizinc_variables generated_cstrs minimize_expr =
       )
     
     and optimization_variable_constraint_string = 
-      Printf.sprintf "%s%s"
-        (minizinc_of_constraints_group_name "current optimization")
-        (minizinc_of_constraint ("cost_var = " ^ (string_of_expr minimize_expr)))
+      match optimization_function with
+      | Satisfy -> "cost_var = 0;"
+      | Minimize optimize_expr
+      | Maximize optimize_expr ->
+          Printf.sprintf "%s%s"
+            (minizinc_of_constraints_group_name "current optimization")
+            (minizinc_of_constraint ("cost_var = " ^ (string_of_expr optimize_expr)))
 
     in
 
@@ -293,7 +299,14 @@ let translate_constraints minizinc_variables generated_cstrs minimize_expr =
 
   
   and solve_string =
-    Printf.sprintf "solve minimize cost_var;"
+    let kind_of_problem =
+      match optimization_function with
+      | Satisfy    -> "satisfy"
+      | Minimize _ -> "minimize cost_var"
+      | Maximize _ -> "maximize cost_var"
+
+    in
+    Printf.sprintf "solve %s;" kind_of_problem 
 
   
   and output_string =

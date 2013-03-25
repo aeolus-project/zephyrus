@@ -18,6 +18,7 @@
 (****************************************************************************)
 
 open Helpers
+open Optimization_functions
 
 type solver_settings = {
   print_solver_vars            : bool;
@@ -29,7 +30,7 @@ type solver_settings = {
 type solve_function =
   Variable_keys.variable_key list ->
   Constraints.generated_constraints ->
-  Generic_constraints.expr -> (* A single optimization expression. *)
+  Optimization_functions.optimization_function -> (* A single optimization function. *)
   solver_settings ->
   Solution.solution_with_cost (* It returns the solution and its cost. *)
 
@@ -41,7 +42,7 @@ module type SOLVER =
 type solve_lex_function =
   Variable_keys.variable_key list ->
   Constraints.generated_constraints ->
-  Generic_constraints.expr list -> (* List of optimization expressions. *)
+  Optimization_functions.optimization_function list -> (* List of optimization functions. *)
   solver_settings ->
   Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
 
@@ -55,7 +56,7 @@ let solve_lex
   (solve_function : solve_function) 
   variable_keys 
   generated_constraints
-  generic_optimization_exprs
+  optimization_functions
   solver_settings
   =
 
@@ -65,7 +66,7 @@ let solve_lex
       fun 
         
         ( (_, previous_costs, additional_constraints) : (Solution.solution * int list * Generic_constraints.cstr list) ) 
-        (optimization_expr : Generic_constraints.expr) 
+        (optimization_function : Optimization_functions.optimization_function) 
 
       -> 
     
@@ -77,12 +78,12 @@ let solve_lex
 
         in
 
-        (* Solve the problem using the current oprimization expression. *)
+        (* Solve the problem using the current optimization function. *)
         let (solution, cost) =
           solve_function
             variable_keys 
-            constraints       (* Our generated constraints + previous optimizations constraints. *)
-            optimization_expr (* The current optimization expression. *)
+            constraints           (* Our generated constraints + previous optimizations constraints. *)
+            optimization_function (* The current optimization function. *)
             solver_settings
 
         in
@@ -91,7 +92,10 @@ let solve_lex
         let new_constraint =
           let open Generic_constraints in
           (* For all the subsequent steps this expression's value must be equal to the optimal value found. *)
-          optimization_expr =~ (int2expr cost)
+          match optimization_function with
+          | Satisfy                -> truecstr
+          | Minimize optimize_expr
+          | Maximize optimize_expr -> optimize_expr =~ (int2expr cost)
 
         in
 
@@ -101,7 +105,7 @@ let solve_lex
           new_constraint :: additional_constraints (* Append the new optimization constraint to the accumulator. *)
         )
 
-  ) ([], [], []) generic_optimization_exprs
+  ) ([], [], []) optimization_functions
 
   in
   (solution, costs)
@@ -113,10 +117,10 @@ let standard_flatzinc_command_line_solver
   (minizinc_to_flatzinc_converter : in_out_program)
   (flatzinc_solver                : in_out_program)
 
-  (variable_keys             :  Variable_keys.variable_key list)
-  (generated_constraints     : Constraints.generated_constraints)
-  (generic_optimization_expr : Generic_constraints.expr)
-  (solver_settings           : solver_settings) 
+  (variable_keys         : Variable_keys.variable_key list)
+  (generated_constraints : Constraints.generated_constraints)
+  (optimization_function : Optimization_functions.optimization_function)
+  (solver_settings       : solver_settings) 
 
   : Solution.solution_with_cost
   
@@ -157,7 +161,7 @@ let standard_flatzinc_command_line_solver
     translate_constraints 
       minizinc_variables
       generated_constraints
-      generic_optimization_expr
+      optimization_function
   in
 
   if(solver_settings.print_solver_cstrs)
@@ -265,7 +269,7 @@ module FaCiLe : SOLVER =
     let solve 
       variable_keys 
       generated_constraints
-      generic_optimization_expr
+      optimization_function
       solver_settings
 
       =
@@ -276,6 +280,15 @@ module FaCiLe : SOLVER =
       let open Easy in
 
       (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
+
+      let minimize_expr =
+        let open Generic_constraints 
+        in
+        match optimization_function with 
+        | Satisfy                -> failwith "Sorry, satisfy problems are not implemented in Zephyrus FaCiLe interface..."
+        | Minimize minimize_expr -> minimize_expr
+        | Maximize maximize_expr -> ((int2expr 0) -~ maximize_expr)
+      in
 
       let facile_variables =
         create_facile_variables variable_keys
@@ -291,7 +304,7 @@ module FaCiLe : SOLVER =
           (constraints_group_name, facile_constraints)
         ) generated_constraints
       
-      and cost_expr = Facile_constraints.translate_expr facile_variables generic_optimization_expr
+      and cost_expr = Facile_constraints.translate_expr facile_variables minimize_expr
 
       (* A placeholder for the solution.*)
       and facile_solution = ref []

@@ -23,15 +23,20 @@ open Typing_context
 open Variable_keys
 open Generic_constraints
 
+type optimization_function =
+  | Satisfy          (* Output the first solution found that satisfies the constraints. *)
+  | Maximize of expr (* Search for the solution that maximizes the given expression. *)
+  | Minimize of expr (* Search for the solution that minimizes the given expression. *)
+
 (* Ingredients of optimization function expressions. *)
-val cost_expr_number_of_all_components          :                  universe -> expr
-val cost_expr_number_of_all_packages            : configuration -> universe -> expr
+val cost_expr_number_of_all_components          :                  universe         -> expr
+val cost_expr_number_of_all_packages            : configuration -> universe         -> expr
 val cost_expr_number_of_used_locations          : configuration -> universe -> bool -> expr
-val cost_expr_number_of_used_locations_reversed : configuration -> universe -> bool -> expr
-val cost_expr_difference_of_components          : configuration -> universe -> expr
-val cost_expr_difference_of_packages            : configuration -> universe -> expr
+val cost_expr_number_of_free_locations          : configuration -> universe -> bool -> expr
+val cost_expr_difference_of_components          : configuration -> universe         -> expr
+val cost_expr_difference_of_packages            : configuration -> universe         -> expr
 
 (* Full optimization function expressions. *)
-val cost_expr_compact      : configuration -> universe -> expr list
-val cost_expr_conservative : configuration -> universe -> expr list
-val cost_expr_spread       : configuration -> universe -> expr list
+val compact      : configuration -> universe -> optimization_function list
+val conservative : configuration -> universe -> optimization_function list
+val spread       : configuration -> universe -> optimization_function list

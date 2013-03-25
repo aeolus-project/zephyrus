@@ -111,7 +111,7 @@ let speclist =
     ("-prefix-repos", Arg.Set (prefix_repositories), " Prefix all package names in imported repositories by the repository name.");
 
     (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"; "spread"], (fun s -> optimization_function_string := s) ), " The optimization function");
+    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"; "spread"; "none"], (fun s -> optimization_function_string := s) ), " The optimization function");
     ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
 
     (* Output arguments *)
@@ -195,6 +195,7 @@ type optimization_function =
   | Compact_optimization_function
   | Conservative_optimization_function
   | Spread_optimization_function
+  | None_optimization_function
 
 let optimization_function =
   match !optimization_function_string with
@@ -202,6 +203,7 @@ let optimization_function =
   | "compact"      -> Compact_optimization_function
   | "conservative" -> Conservative_optimization_function
   | "spread"       -> Spread_optimization_function
+  | "none"         -> None_optimization_function
   | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
 
 (* Handle the solver choice argument. *)
@@ -396,18 +398,21 @@ let () =
 
 
 let optimization_exprs =
+    let open Optimization_functions 
+    in
     match optimization_function with
-    | Simple_optimization_function       -> [Optimization_functions.cost_expr_number_of_all_components                          my_universe]
-    | Compact_optimization_function      ->  Optimization_functions.cost_expr_compact                  my_initial_configuration my_universe
-    | Conservative_optimization_function ->  Optimization_functions.cost_expr_conservative             my_initial_configuration my_universe
-    | Spread_optimization_function       ->  Optimization_functions.cost_expr_spread                   my_initial_configuration my_universe
+    | Simple_optimization_function       -> [Minimize (cost_expr_number_of_all_components my_universe)]
+    | Compact_optimization_function      -> compact      my_initial_configuration my_universe
+    | Conservative_optimization_function -> conservative my_initial_configuration my_universe
+    | Spread_optimization_function       -> spread       my_initial_configuration my_universe
+    | None_optimization_function         -> [Satisfy]
 
 
 (* Solve! *)
 
 let () =
   if !do_not_solve 
-  then (exit 0)
+  then exit 0
 
 let solution =
   
