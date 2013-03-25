@@ -1,0 +1,62 @@
+--- old-Mancoosi/rpm_lib.ml     2013-03-14 18:25:08.180838442 +0100
++++ new-Mancoosi/rpm_lib.ml     2013-03-14 18:25:08.200837872 +0100
+@@ -307,7 +307,9 @@
+ let _DIRNAMES = 1118
+ let _DISTEPOCH = 1218
+
+-let etag entry i = let (tag, _, _, _) = entry.(i) in tag
++let etag entry i =
++  if i >= Array.length entry then max_int else
++  let (tag, _, _, _) = entry.(i) in tag
+
+ let rec move_to entry i tag =
+   if etag entry i >= tag then i else move_to entry (i + 1) tag
+@@ -515,9 +517,10 @@
+   if s = "" then
+     None
+   else if not (Str.string_match version_re_1 s 0 ||
+-               Str.string_match version_re_2 s 0) then
+-    failwith ("Bad version " ^ s)
+-  else begin
++               Str.string_match version_re_2 s 0) then begin
++    Util.print_warning (Format.sprintf "bad version '%s'" s);
++    raise Skip
++  end else begin
+     let epoch =
+       try
+         let s = Str.matched_group 2 s in
+@@ -757,10 +760,14 @@
+       if file_info then eint32_array store entry (i + 2) _FILEFLAGS else [||]
+     in
+     let i = move_to entry i _PROVIDENAME in
+-    let providename = estring_array store entry i _PROVIDENAME in
+-    let requireflags = eint32_array store entry (i + 1) _REQUIREFLAGS in
+-    let requirename = estring_array store entry (i + 2) _REQUIRENAME in
+-    let requireversion = estring_array store entry (i + 3) _REQUIREVERSION in
++    let has_provides = etag entry i = _PROVIDENAME in
++    let providename =
++      if has_provides then estring_array store entry i _PROVIDENAME else [||]
++    in
++    let i = move_to entry i _REQUIREFLAGS in
++    let requireflags = eint32_array store entry i _REQUIREFLAGS in
++    let requirename = estring_array store entry (i + 1) _REQUIRENAME in
++    let requireversion = estring_array store entry (i + 2) _REQUIREVERSION in
+     let i = move_to entry i _CONFLICTFLAGS in
+     let has_confl = etag entry i = _CONFLICTFLAGS in
+     let conflictflags =
+@@ -773,8 +780,13 @@
+       else [||]
+     in
+     let i = move_to entry i _PROVIDEFLAGS in
+-    let provideflags = eint32_array store entry i _PROVIDEFLAGS in
+-    let provideversion = estring_array store entry (i + 1) _PROVIDEVERSION in
++    let provideflags =
++      if has_provides then eint32_array store entry i _PROVIDEFLAGS else [||]
++    in
++    let provideversion =
++      if has_provides then estring_array store entry (i + 1) _PROVIDEVERSION
++      else [||]
++    in
+     let i = move_to entry i _DIRINDEXES in
+     let non_empty = etag entry i = _DIRINDEXES in
+     let dirindexes =
