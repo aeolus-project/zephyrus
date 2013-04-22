@@ -1,0 +1,43 @@
+{
+	"component_types": [
+		{
+			"name"     : "DNS-load-balancer",
+			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]], ["@dns", ["FiniteProvide", 1]]],
+			"require"  : [["@wordpress-backend", 7]],
+			"conflict" : ["@dns"]
+		},
+		{
+			"name"     : "HTTP-proxy-load-balancer",
+			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]]],
+			"require"  : [["@wordpress-backend", 3]]
+		},
+		{
+			"name"     : "Wordpress",
+			"provide"  : [["@wordpress-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@mysql", 2]]
+		},
+		{
+			"name"     : "MySQL",
+			"provide"  : [["@mysql", ["FiniteProvide", 3]]]
+		}
+	],
+	"implementation": [
+		[
+			"DNS-load-balancer",
+			["bind (= 9.9.2.P1-5.mbs1)"]
+		],
+		[
+			"HTTP-proxy-load-balancer",
+			["varnish (= 3.0.2-2.mbs1)"]
+		],
+		[
+			"Wordpress",
+			["wordpress (= 3.3.2-3.mbs1)"]
+		],
+		[
+			"MySQL",
+			["mysql-MariaDB (= 5.5.23-5.mbs1)"]
+		]
+
+	]
+}

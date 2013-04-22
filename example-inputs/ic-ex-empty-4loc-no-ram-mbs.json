@@ -1,0 +1,20 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "mbs"
+		},
+		{
+			"name" : "location2",
+			"repository" : "mbs"
+		},
+		{
+			"name" : "location3",
+			"repository" : "mbs"
+		},
+		{
+			"name" : "location4",
+			"repository" : "mbs"
+		}
+	]
+}
