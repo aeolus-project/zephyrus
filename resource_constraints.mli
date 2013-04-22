@@ -24,6 +24,7 @@ open Variable_keys
 open Generic_constraints
 
 val create_local_resource_constraints                 : configuration -> universe -> cstr list
+val create_local_component_resource_constraints       : configuration -> universe -> cstr list
 val create_initial_configuration_resource_constraints : configuration -> universe -> cstr list
 
 val create_resource_constraints : configuration -> universe -> cstr list

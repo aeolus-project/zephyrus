@@ -42,7 +42,7 @@ let element_exprs_to_sum
 
 
 
-let create_local_resource_constraints configuration universe =
+let create_local_resource_constraints_with_or_without_packages (include_packages_resource_consumption : bool) configuration universe =
 
   let location_names       = get_location_names  configuration
   and resource_names       = get_resource_names  universe
@@ -76,22 +76,36 @@ let create_local_resource_constraints configuration universe =
           (sum component_type_exprs_to_sum)
         
         in
-  
-        (* Second part of the sum: packages *)
-        let sum_of_local_consumption_by_packages = 
+        
+        (* Do we include the resources consumed by packages? *)
+        if include_packages_resource_consumption
+        then
+
+          (* We count in the resources consumed by packages. *)
+
+          (* Second part of the sum: packages *)
+          let sum_of_local_consumption_by_packages = 
+            
+            let package_exprs_to_sum = 
+              element_exprs_to_sum
+                (fun (package : package) -> get_package_resource_consumption package resource_name)
+                (fun (package : package) -> (LocalElementVariable (location_name, (Package package.package_name))))
+                (packages : package list)
+            in
+            (sum package_exprs_to_sum)
           
-          let package_exprs_to_sum = 
-            element_exprs_to_sum
-              (fun (package : package) -> get_package_resource_consumption package resource_name)
-              (fun (package : package) -> (LocalElementVariable (location_name, (Package package.package_name))))
-              (packages : package list)
           in
-          (sum package_exprs_to_sum)
-        
-        in
-        
-        (* The constraint :  *)
-        ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components +~ sum_of_local_consumption_by_packages) )
+          
+          (* The constraint :  *)
+          ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components +~ sum_of_local_consumption_by_packages) )
+
+        else
+
+          (* We don't count in the resources consumed by packages. *)
+
+          (* The constraint :  *)
+          ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components) )
+
   
         (* Name        : *)
         (* Description : *)
@@ -101,11 +115,20 @@ let create_local_resource_constraints configuration universe =
     ) location_names
   )
 
+let create_local_resource_constraints           = create_local_resource_constraints_with_or_without_packages true  (* Count the resources consumed by both the components and the packages. *)
+let create_local_component_resource_constraints = create_local_resource_constraints_with_or_without_packages false (* Count only the resources consumed by the components. *)
+
+(* 
+  Note: 
+    The "components + packages" constraints are strictly stronger (or equal) to the "components only" constraints.
+    Therefore we can safely use both of these types in the same problem and we will have the same effect as if we used only the stronger ones.
+*)
+
 
 let create_initial_configuration_resource_constraints configuration universe =
 
   let locations       = get_locations      configuration
-  and resource_names       = get_resource_names universe
+  and resource_names  = get_resource_names universe
   in
 
   List.flatten (
