@@ -48,10 +48,17 @@ Debian package:
 menhir
 
 
+5. Extlib
+
+http://code.google.com/p/ocaml-extlib/
+
+Debian package:
+libextlib-ocaml libextlib-ocaml-dev
+
 
 If you want to use the C12 solver:
 
-5. G12 MiniZinc Distribution (version 1.6)
+6. G12 MiniZinc Distribution (version 1.6)
 
 http://www.g12.csse.unimelb.edu.au/minizinc/download.html
 
@@ -66,7 +73,7 @@ If you also want to use the GeCode solver:
 (you still need C12 installed, because it contains
 the mzn2fzn MiniZinc to FlatZinc converter)
 
-6. GeCode
+7. GeCode
 
 http://www.gecode.org/
 
