@@ -112,8 +112,7 @@ module Facile_constraints =
 
 
     let rec translate_var (facile_variables : facile_variables) (var : C.var) : var =
-      match var with
-      | C.NamedVar  (var_key) -> get_native_facile_variable facile_variables var_key
+      get_native_facile_variable facile_variables var
 
     and translate_expr (facile_variables : facile_variables) (expr : C.expr) : expr =
       match expr with

@@ -62,7 +62,7 @@ type const =
   | Inf of bool (* Plus and minus infinity *)
 
 type var = 
-  | NamedVar  of Variable_keys.variable_key
+  Variable_keys.variable_key
 
 and expr =
   | Const               of const                              (* expr = integer constant *)

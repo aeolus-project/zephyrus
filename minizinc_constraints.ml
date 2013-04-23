@@ -160,8 +160,7 @@ and string_of_unary_cstr_op op =
   | C.Not -> "not"
 
 and string_of_var var =
-  match var with
-  | C.NamedVar  (var_key) -> string_of_variable_key var_key
+  string_of_variable_key var
   
 and string_of_expr expr = 
   match expr with

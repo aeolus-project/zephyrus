@@ -64,7 +64,7 @@ type const =
   | Inf of bool (* Plus and minus infinity *)
 
 type var = 
-  | NamedVar  of Variable_keys.variable_key
+  Variable_keys.variable_key
 
 and expr =
   | Const               of const                              (* expr = integer constant *)
@@ -128,8 +128,7 @@ and string_of_unary_cstr_op op =
   | Not -> "not"
 
 and string_of_var var =
-  match var with
-  | NamedVar  (var_key) -> Variable_keys.string_of_variable_key var_key
+  Variable_keys.string_of_variable_key var
   
 and string_of_expr expr = 
   match expr with
@@ -199,7 +198,7 @@ and string_of_cstr cstr =
 
 (* Building expressions *)
 
-let var (variable_key : Variable_keys.variable_key) = NamedVar variable_key
+let var (variable_key : Variable_keys.variable_key) = variable_key
 
 let var2expr   (var   : var)   : expr = Var var
 let const2expr (const : const) : expr = Const const
@@ -269,10 +268,10 @@ let rec extract_variable_keys_of_cstr cstr =
 
 and extract_variable_keys_of_expr expr =
   match expr with
-  | Const              (const)                 -> []
-  | Var                (NamedVar variable_key) -> [variable_key]
-  | Reified            (cstr)                  -> extract_variable_keys_of_cstr cstr
-  | UnaryArithExpr     (op, expr)              -> (extract_variable_keys_of_expr expr)
-  | BinaryArithExpr    (op, lexpr, rexpr)      -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
-  | NaryArithExpr      (op, exprs)             -> List.flatten (List.map (fun expr -> (extract_variable_keys_of_expr expr)) exprs)
-  | BinaryArithCmpExpr (op, lexpr, rexpr)      -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
+  | Const              (const)            -> []
+  | Var                (variable_key)     -> [variable_key]
+  | Reified            (cstr)             -> extract_variable_keys_of_cstr cstr
+  | UnaryArithExpr     (op, expr)         -> (extract_variable_keys_of_expr expr)
+  | BinaryArithExpr    (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
+  | NaryArithExpr      (op, exprs)        -> List.flatten (List.map (fun expr -> (extract_variable_keys_of_expr expr)) exprs)
+  | BinaryArithCmpExpr (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
