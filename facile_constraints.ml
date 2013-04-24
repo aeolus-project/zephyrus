@@ -144,14 +144,6 @@ module Facile_constraints =
           (match op with
           | C.Sum -> sum (List.map (translate_expr facile_variables) exprs) )
 
-      | C.BinaryArithCmpExpr (op, lexpr, rexpr) ->    
-          (match op with
-          | C.Lt  -> (translate_expr facile_variables lexpr)  <~~ (translate_expr facile_variables rexpr)
-          | C.LEq -> (translate_expr facile_variables lexpr) <=~~ (translate_expr facile_variables rexpr)
-          | C.Eq  -> (translate_expr facile_variables lexpr)  =~~ (translate_expr facile_variables rexpr)
-          | C.GEq -> (translate_expr facile_variables lexpr) >=~~ (translate_expr facile_variables rexpr)
-          | C.Gt  -> (translate_expr facile_variables lexpr)  >~~ (translate_expr facile_variables rexpr)
-          | C.NEq -> (translate_expr facile_variables lexpr) <>~~ (translate_expr facile_variables rexpr) )
 
     and translate_cstr (facile_variables : facile_variables) (cstr : C.cstr) : cstr =
       match cstr with
@@ -172,8 +164,7 @@ module Facile_constraints =
           | C.And         -> (translate_cstr facile_variables lcstr)  &&~~ (translate_cstr facile_variables rcstr)
           | C.Or          -> (translate_cstr facile_variables lcstr)  ||~~ (translate_cstr facile_variables rcstr)
           | C.Impl        -> (translate_cstr facile_variables lcstr)  =>~~ (translate_cstr facile_variables rcstr)
-          | C.IfAndOnlyIf -> (translate_cstr facile_variables lcstr) <=>~~ (translate_cstr facile_variables rcstr)
-          | C.Xor         -> xor (translate_cstr facile_variables lcstr) (translate_cstr facile_variables rcstr) )
+          | C.IfAndOnlyIf -> (translate_cstr facile_variables lcstr) <=>~~ (translate_cstr facile_variables rcstr) )
 
       | C.UnaryCstrOpCstr (op, cstr) ->
           (match op with

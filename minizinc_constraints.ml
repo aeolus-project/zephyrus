@@ -153,7 +153,6 @@ and string_of_binary_cstr_op op =
   | C.Or          -> "\\/"
   | C.Impl        -> "->"
   | C.IfAndOnlyIf -> "<->"
-  | C.Xor         -> "xor" (* TODO *)
 
 and string_of_unary_cstr_op op =
   match op with
@@ -196,10 +195,6 @@ and string_of_expr expr =
          (String.concat
            (Printf.sprintf " %s " (string_of_nary_arith_op op))
            (List.map string_of_expr exprs) ) )
-
-  | C.BinaryArithCmpExpr (op, lexpr, rexpr) ->
-      Printf.sprintf "(bool2int %s)"
-      (string_of_cstr (C.BinaryArithCmpCstr (op, lexpr, rexpr)))
 
 
 and string_of_cstr cstr = 

@@ -48,7 +48,6 @@ and binary_cstr_op =
   | Or
   | Impl
   | IfAndOnlyIf
-  | Xor
 
 and unary_cstr_op =
   | Not
@@ -71,7 +70,6 @@ and expr =
   | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
-  | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
 
 and cstr =
   | TrueCstr
@@ -120,16 +118,6 @@ val abs    : expr -> expr
 val sum : expr list -> expr
 
 
-(* Reified arithmetic comparisons *)
-
-val (  <~~ ) : expr -> expr -> expr
-val ( <=~~ ) : expr -> expr -> expr
-val (  =~~ ) : expr -> expr -> expr
-val ( >=~~ ) : expr -> expr -> expr
-val (  >~~ ) : expr -> expr -> expr
-val ( <>~~ ) : expr -> expr -> expr
-
-
 (* Arithmetic comparisons *)
 
 val (  <~ ) : expr -> expr -> cstr
@@ -142,11 +130,10 @@ val ( <>~ ) : expr -> expr -> cstr
 
 (* Constraint operators *)
 
-val (  &&~~ ) : cstr -> cstr -> cstr    
-val (  ||~~ ) : cstr -> cstr -> cstr    
-val (  =>~~ ) : cstr -> cstr -> cstr    
-val ( <=>~~ ) : cstr -> cstr -> cstr    
-val xor       : cstr -> cstr -> cstr    
+val (  &&~~ ) : cstr -> cstr -> cstr
+val (  ||~~ ) : cstr -> cstr -> cstr
+val (  =>~~ ) : cstr -> cstr -> cstr
+val ( <=>~~ ) : cstr -> cstr -> cstr
 val not       : cstr -> cstr
 
 

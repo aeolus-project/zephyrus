@@ -50,7 +50,6 @@ and binary_cstr_op =
   | Or
   | Impl
   | IfAndOnlyIf
-  | Xor
 
 and unary_cstr_op =
   | Not
@@ -73,7 +72,6 @@ and expr =
   | UnaryArithExpr      of unary_arith_op      * expr         (* expr = OP expr *)
   | BinaryArithExpr     of binary_arith_op     * expr * expr  (* expr = lexpr OP rexpr *)
   | NaryArithExpr       of nary_arith_op       * expr list    (* expr = OP (expr1, expr2, ... , expr) *)
-  | BinaryArithCmpExpr  of binary_arith_cmp_op * expr * expr  (* expr = if (lexpr OP rexpr) then 1 else 0 *)
 
 and cstr =
   | TrueCstr
@@ -121,7 +119,6 @@ and string_of_binary_cstr_op op =
   | Or          -> "or"
   | Impl        -> "=>"
   | IfAndOnlyIf -> "<=>"
-  | Xor         -> "xor"
 
 and string_of_unary_cstr_op op =
   match op with
@@ -164,12 +161,6 @@ and string_of_expr expr =
          (String.concat
            (Printf.sprintf " %s " (string_of_nary_arith_op op))
            (List.map string_of_expr exprs) ) )
-
-  | BinaryArithCmpExpr (op, lexpr, rexpr) ->
-      Printf.sprintf "[[%s %s %s]]" 
-      (string_of_expr lexpr)
-      (string_of_binary_arith_cmp_op op)
-      (string_of_expr rexpr)
 
 
 and string_of_cstr cstr = 
@@ -226,16 +217,6 @@ let abs       x    = UnaryArithExpr  (Abs, x)
 let sum exprs_to_sum = NaryArithExpr (Sum, exprs_to_sum)
 
 
-(* Reified arithmetic comparisons *)
-
-let (  <~~ )  x y  = BinaryArithCmpExpr (Lt,  x, y)
-let ( <=~~ )  x y  = BinaryArithCmpExpr (LEq, x, y)
-let (  =~~ )  x y  = BinaryArithCmpExpr (Eq,  x, y)
-let ( >=~~ )  x y  = BinaryArithCmpExpr (GEq, x, y)
-let (  >~~ )  x y  = BinaryArithCmpExpr (Gt,  x, y)
-let ( <>~~ )  x y  = BinaryArithCmpExpr (NEq, x, y)
-
-
 (* Arithmetic comparisons *)
 
 let (  <~ )   x y  = BinaryArithCmpCstr (Lt,  x, y)
@@ -252,7 +233,6 @@ let (  &&~~ ) x y  = BinaryCstrOpCstr (And,         x, y)
 let (  ||~~ ) x y  = BinaryCstrOpCstr (Or,          x, y)
 let (  =>~~ ) x y  = BinaryCstrOpCstr (Impl,        x, y)
 let ( <=>~~ ) x y  = BinaryCstrOpCstr (IfAndOnlyIf, x, y)
-let xor       x y  = BinaryCstrOpCstr (Xor,         x, y)
 let not       x    = UnaryCstrOpCstr  (Not,         x)
 
 
@@ -274,4 +254,3 @@ and extract_variable_keys_of_expr expr =
   | UnaryArithExpr     (op, expr)         -> (extract_variable_keys_of_expr expr)
   | BinaryArithExpr    (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
   | NaryArithExpr      (op, exprs)        -> List.flatten (List.map (fun expr -> (extract_variable_keys_of_expr expr)) exprs)
-  | BinaryArithCmpExpr (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
