@@ -77,8 +77,8 @@ and cstr =
   | TrueCstr
   | FalseCstr
   | BinaryArithCmpCstr  of binary_arith_cmp_op * expr * expr  (* cstr : lexpr OP rexpr *)
-  | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  (* cstr : lcstr OP rcstr *)
   | UnaryCstrOpCstr     of unary_cstr_op       * cstr         (* cstr : OP cstr' *)
+  | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  (* cstr : lcstr OP rcstr *)
 
 
 
@@ -124,17 +124,18 @@ and string_of_unary_cstr_op op =
   match op with
   | Not -> "not"
 
+and string_of_const const =
+  match const with
+  | Int (const) -> Printf.sprintf "%d" const
+  | Inf (plus)  -> Printf.sprintf "%sINFINITY" (if plus then "" else "NEG_")
+
 and string_of_var var =
   Variable_keys.string_of_variable_key var
   
 and string_of_expr expr = 
   match expr with
   | Const (const) -> 
-    (
-      match const with
-      | Int (const) -> Printf.sprintf "%d" const
-      | Inf (plus)  -> Printf.sprintf "%sINFINITY" (if plus then "" else "NEG_") 
-    )
+      string_of_const const
 
   | Var (var) ->
       Printf.sprintf "%s" (string_of_var var)
@@ -203,6 +204,7 @@ let falsecstr = FalseCstr
 (* Reification *)
 
 let reify cstr = Reified cstr
+
 
 (* Arithmetic operators *)
 
