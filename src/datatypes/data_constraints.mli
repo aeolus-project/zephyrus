@@ -25,17 +25,17 @@
 
 type variable =
   (* Number of instances of a given component_type / port / package installed globally in the configuration. *)
-  | GlobalElementVariable    of DataInput.element
+  | GlobalElementVariable    of Data_input.element
   (* Number of instances of a given component_type / port / package installed on a given location. *)
-  | LocalElementVariable     of DataInput.location_name * DataInput.element
+  | LocalElementVariable     of Data_input.location_name * Data_input.element
   (* Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
-  | BindingVariable          of DataInput.port_name * DataInput.component_type_name * DataInput.component_type_name
+  | BindingVariable          of Data_input.port_name * Data_input.component_type_name * Data_input.component_type_name
   (* Is the given repository installed on the given location? (boolean variable) *)
-  | LocalRepositoryVariable  of DataInput.location_name * DataInput.repository_name
+  | LocalRepositoryVariable  of Data_input.location_name * Data_input.repository_name
   (* How many resources of the given type are provided by the given location. *)
-  | LocalResourceVariable    of DataInput.location_name * DataInput.resource_name
+  | LocalResourceVariable    of Data_input.location_name * Data_input.resource_name
   (* Specifiaction variable *)
-  | SpecificationVariable    of DataInput.spec_variable_name
+  | SpecificationVariable    of Data_input.spec_variable_name
 
 type unary_arith_op = | Abs
 type binary_arith_op = | Add | Sub | Mul | Div | Mod
