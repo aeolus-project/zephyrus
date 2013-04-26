@@ -26,7 +26,7 @@ type variable_kind =
   | BooleanVariable
   | NaturalVariable
 
-let variable_kind_of_variable variable =
+let variable_kind variable =
   match variable with
   | GlobalElementVariable   _ -> NaturalVariable
   | LocalElementVariable    _ -> NaturalVariable
@@ -38,12 +38,12 @@ let variable_kind_of_variable variable =
 
 
 
-let get_global_element_variables universe =
+let get_all_global_element_variables universe =
   List.map (fun element ->
     (GlobalElementVariable element)
   ) (get_elements universe)
 
-let get_local_element_variables universe configuration =
+let get_all_local_element_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun element ->
@@ -52,7 +52,7 @@ let get_local_element_variables universe configuration =
     ) (get_location_names configuration)
   )
 
-let get_binding_variables universe =
+let get_all_binding_variables universe =
   List.flatten ( List.flatten (
     List.map (fun port_name ->
       List.map (fun providing_component_type_name ->
@@ -63,7 +63,7 @@ let get_binding_variables universe =
     ) (get_port_names universe)
   ))
 
-let get_local_repository_variables universe configuration =
+let get_all_local_repository_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun repository_name ->
@@ -72,7 +72,7 @@ let get_local_repository_variables universe configuration =
     ) (get_location_names configuration)
   )
 
-let get_local_resource_variables universe configuration =
+let get_all_local_resource_variables universe configuration =
   List.flatten (
     List.map (fun location_name ->
       List.map (fun resource_name ->
@@ -81,7 +81,12 @@ let get_local_resource_variables universe configuration =
     ) (get_location_names configuration)
   )
 
-let get_specification_variables specification configuration =
+let pred_specification_variable variable =
+  match variable with
+  | SpecificationVariable _   -> true
+  | _                         -> false
+
+let get_all_specification_variables specification configuration =
   let all_variables_from_specification =
     Specification_constraints.extract_variables_from_specification configuration specification
   in
@@ -91,11 +96,11 @@ let get_specification_variables specification configuration =
   specification_variables
 
 
-let get_variables universe configuration specification = 
+let get_all_variables universe configuration specification = 
   List.flatten
-    [get_global_element_variables   universe                   ;
-     get_local_element_variables    universe      configuration;
-     get_binding_variables          universe                   ;
-     get_local_repository_variables universe      configuration;
-     get_local_resource_variables   universe      configuration;
-     get_specification_variables    specification configuration]
+    [get_all_global_element_variables   universe                   ;
+     get_all_local_element_variables    universe      configuration;
+     get_all_binding_variables          universe                   ;
+     get_all_local_repository_variables universe      configuration;
+     get_all_local_resource_variables   universe      configuration;
+     get_all_specification_variables    specification configuration]

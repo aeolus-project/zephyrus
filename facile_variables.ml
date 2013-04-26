@@ -85,7 +85,7 @@ let create_new_variable (kind : variable_kind) (key : variable) =
 
 let create_facile_variables variables = 
   List.map (fun variable ->
-    let variable_kind = variable_kind_of_variable variable
+    let variable_kind = variable_kind variable
     in
     create_new_variable variable_kind variable
   ) variables

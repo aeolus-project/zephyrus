@@ -24,6 +24,6 @@ type variable_kind =
   | BooleanVariable
   | NaturalVariable
 
-val variable_kind_of_variable : variable -> variable_kind
+val variable_kind : variable -> variable_kind
 
-val get_variables : universe -> configuration -> specification -> variable list
+val get_all_variables : universe -> configuration -> specification -> variable list

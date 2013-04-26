@@ -246,7 +246,7 @@ let translate_constraints minizinc_variables generated_cstrs optimization_functi
 
     let strings_of_variables =
     List.map (fun (var, var_name) -> 
-      match Model_variables.variable_kind_of_variable var with 
+      match Model_variables.variable_kind var with 
       | Model_variables.BooleanVariable ->   minizinc_of_variable "0..1"       var_name
       | Model_variables.NaturalVariable ->   minizinc_of_variable "0..max_int" var_name
     ) minizinc_variables

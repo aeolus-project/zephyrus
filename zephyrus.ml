@@ -427,7 +427,7 @@ let solution =
   in
 
   let variables = 
-    Model_variables.get_variables my_universe my_initial_configuration my_specification
+    Model_variables.get_all_variables my_universe my_initial_configuration my_specification
   in
 
   match solver_choice with
