@@ -20,7 +20,7 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 val create_component_type_location_constraints   : configuration -> universe -> cstr list

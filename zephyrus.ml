@@ -426,8 +426,8 @@ let solution =
   }
   in
 
-  let variable_keys = 
-    Variables.get_variable_keys my_universe my_initial_configuration my_specification
+  let variables = 
+    Model_variables.get_variables my_universe my_initial_configuration my_specification
   in
 
   match solver_choice with
@@ -435,7 +435,7 @@ let solution =
   | G12Solver ->
     fst (
       G12.solve_lex
-        variable_keys 
+        variables 
         my_generated_constraints
         optimization_exprs
         solver_settings
@@ -444,7 +444,7 @@ let solution =
   | GeCodeSolver ->
     fst (
       GeCode.solve_lex
-        variable_keys 
+        variables 
         my_generated_constraints
         optimization_exprs
         solver_settings
@@ -453,7 +453,7 @@ let solution =
   | FaCiLeSolver ->
       fst (
         FaCiLe.solve
-          variable_keys 
+          variables 
           my_generated_constraints
           (List.hd optimization_exprs)
           solver_settings

@@ -23,7 +23,7 @@ open Aeolus_types_t
 open Aeolus_types_output.Plain
 
 open Typing_context
-open Variable_keys
+open Variables
 
 
 
@@ -47,8 +47,8 @@ let string_of_element element =
   | Port          (port_name)           -> Printf.sprintf "port_%s"           (string_of_port_name           port_name)
   | Package       (package_name)        -> Printf.sprintf "package_%s"        (string_of_package_name        package_name)
 
-let string_of_variable_key variable_key =
-  match variable_key with
+let string_of_variable variable =
+  match variable with
   | GlobalElementVariable   (element) ->
       Printf.sprintf 
         "global_element_%s" 
@@ -86,16 +86,16 @@ let string_of_variable_key variable_key =
 
 
 
-type minizinc_variables = (variable_key * string) list
+type minizinc_variables = (variable * string) list
 
-let create_minizinc_variable variable_key =
-  (variable_key, string_of_variable_key variable_key)
+let create_minizinc_variable variable =
+  (variable, string_of_variable variable)
 
-let create_minizinc_variables variable_keys =
-  (List.map create_minizinc_variable variable_keys)
+let create_minizinc_variables variables =
+  (List.map create_minizinc_variable variables)
 
-let get_minizinc_variable minizinc_variables variable_key =
-  List.assoc variable_key minizinc_variables
+let get_minizinc_variable minizinc_variables variable =
+  List.assoc variable minizinc_variables
 
 let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
   try
@@ -109,8 +109,8 @@ let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
 let string_of_minizinc_variables minizinc_variables =
   lines_of_strings 
   (
-    List.map (fun (variable_key, minizinc_variable) ->
-      Printf.sprintf "%s => \"%s\"" (Variable_keys.string_of_variable_key variable_key) minizinc_variable
+    List.map (fun (variable, minizinc_variable) ->
+      Printf.sprintf "%s => \"%s\"" (Variables.string_of_variable variable) minizinc_variable
     ) minizinc_variables
   )
 
@@ -159,7 +159,7 @@ and string_of_unary_cstr_op op =
   | C.Not -> "not"
 
 and string_of_var var =
-  string_of_variable_key var
+  string_of_variable var
   
 and string_of_expr expr = 
   match expr with
@@ -233,8 +233,8 @@ let translate_constraints minizinc_variables generated_cstrs optimization_functi
   and minizinc_of_constraint constraint_string = 
     Printf.sprintf "constraint %s;\n" constraint_string
   
-  and minizinc_of_output_variable variable_key_string variable_value_string = 
-    Printf.sprintf "  \"%s = \" , show(%s), \";\\n\"" variable_key_string variable_value_string
+  and minizinc_of_output_variable variable_string variable_value_string = 
+    Printf.sprintf "  \"%s = \" , show(%s), \";\\n\"" variable_string variable_value_string
 
   in
 
@@ -245,10 +245,10 @@ let translate_constraints minizinc_variables generated_cstrs optimization_functi
   and variables_string = 
 
     let strings_of_variables =
-    List.map (fun (var_key, var_name) -> 
-      match Variables.variable_kind_of_variable_key var_key with 
-      | Variables.BooleanVariable ->   minizinc_of_variable "0..1"       var_name
-      | Variables.NaturalVariable ->   minizinc_of_variable "0..max_int" var_name
+    List.map (fun (var, var_name) -> 
+      match Model_variables.variable_kind_of_variable var with 
+      | Model_variables.BooleanVariable ->   minizinc_of_variable "0..1"       var_name
+      | Model_variables.NaturalVariable ->   minizinc_of_variable "0..max_int" var_name
     ) minizinc_variables
 
     and optimization_variable_string = minizinc_of_variable "int"   cost_var_name
@@ -307,7 +307,7 @@ let translate_constraints minizinc_variables generated_cstrs optimization_functi
 
     let output_variable_strings =
       List.map (fun (key, var) ->
-        minizinc_of_output_variable (string_of_variable_key key) (get_minizinc_variable minizinc_variables key)
+        minizinc_of_output_variable (string_of_variable key) (get_minizinc_variable minizinc_variables key)
       ) minizinc_variables
 
     and optimization_variable_output_string =

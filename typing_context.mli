@@ -19,7 +19,7 @@
 
 
 open Aeolus_types_t
-open Variable_keys
+open Variables
 
 val get_component_type                : universe -> component_type_name -> component_type
 val get_component_type_implementation : universe -> component_type_name -> package_name list

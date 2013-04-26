@@ -38,7 +38,7 @@ specification_parser.mly              specification_lexer.mll\
 specification_input.mli               specification_input.ml\
 configuration_input.mli               configuration_input.ml\
  \
-variable_keys.mli                     variable_keys.ml\
+variables.mli                         variables.ml\
 solution.mli                          solution.ml\
 generic_constraints.mli               generic_constraints.ml\
  \
@@ -53,7 +53,7 @@ matching_algorithm.ml\
 constraints.mli                       constraints.ml\
  \
 configuration_generation.mli          configuration_generation.ml\
-variables.mli                         variables.ml\
+model_variables.mli                   model_variables.ml\
  \
 facile_variables.mli                  facile_variables.ml\
 facile_constraints.mli                facile_constraints.ml\

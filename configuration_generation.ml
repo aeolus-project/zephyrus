@@ -22,7 +22,7 @@ open Aeolus_types_t
 open Aeolus_types_output.Plain
 
 open Typing_context
-open Variable_keys
+open Variables
 open Solution
 open Facile_variables
 open Helpers
@@ -102,8 +102,8 @@ open Facile_constraints
 
 let solution_repository_for_location (solution : solution) (location_name : location_name) : repository_name =
   let repository_names =
-    BatList.filter_map (fun (var_key, value) -> 
-      match var_key with
+    BatList.filter_map (fun (var, value) -> 
+      match var with
       | LocalRepositoryVariable (var_location_name, var_repository_name) ->
           if (var_location_name = location_name) && (value = 1)
           then Some var_repository_name
@@ -118,8 +118,8 @@ let solution_repository_for_location (solution : solution) (location_name : loca
 
 let solution_packages_for_location (solution : solution) (location_name : location_name) : package_name list =
   let package_names =
-    BatList.filter_map (fun (var_key, value) -> 
-      match var_key with    
+    BatList.filter_map (fun (var, value) -> 
+      match var with    
       | LocalElementVariable (var_location_name, (Package var_package_name)) ->
           if (var_location_name = location_name) && (value = 1)
           then Some var_package_name
@@ -131,8 +131,8 @@ let solution_packages_for_location (solution : solution) (location_name : locati
 
 let solution_number_of_components_for_location (solution : solution) (location_name : location_name) (component_type_name :component_type_name) : int =
   let components_counts =
-    BatList.filter_map (fun (var_key, value) -> 
-      match var_key with    
+    BatList.filter_map (fun (var, value) -> 
+      match var with    
       | LocalElementVariable (var_location_name, (ComponentType var_component_type_name)) ->
           if (var_location_name = location_name) && (var_component_type_name = component_type_name)
           then Some value

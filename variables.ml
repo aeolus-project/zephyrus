@@ -17,85 +17,169 @@
 (*                                                                          *)
 (****************************************************************************)
 
+
 open Aeolus_types_t
-open Typing_context
-open Variable_keys
+open Aeolus_types_output.Plain
+
+open Helpers
 
 
-type variable_kind =
-  | BooleanVariable
-  | NaturalVariable
+type element =
+  | ComponentType of component_type_name
+  | Port          of port_name
+  | Package       of package_name
 
-let variable_kind_of_variable_key variable_key =
-  match variable_key with
-  | GlobalElementVariable   _ -> NaturalVariable
-  | LocalElementVariable    _ -> NaturalVariable
-  | BindingVariable         _ -> NaturalVariable
-  | LocalRepositoryVariable _ -> BooleanVariable
-  | LocalResourceVariable   _ -> NaturalVariable
-  | SpecificationVariable   _ -> NaturalVariable
-
+let string_of_element element =
+  match element with
+  | ComponentType (component_type_name) -> Printf.sprintf "%s" (string_of_component_type_name component_type_name)
+  | Port          (port_name)           -> Printf.sprintf "%s" (string_of_port_name           port_name)
+  | Package       (package_name)        -> Printf.sprintf "%s" (string_of_package_name        package_name)
 
 
 
-let get_global_element_variable_keys universe =
-  List.map (fun element ->
-    (GlobalElementVariable element)
-  ) (get_elements universe)
+type global_element_variable = element
 
-let get_local_element_variable_keys universe configuration =
-  List.flatten (
-    List.map (fun location_name ->
-      List.map (fun element ->
-        (LocalElementVariable (location_name, element))
-      ) (get_elements universe)
-    ) (get_location_names configuration)
-  )
-
-let get_binding_variable_keys universe =
-  List.flatten ( List.flatten (
-    List.map (fun port_name ->
-      List.map (fun providing_component_type_name ->
-        List.map (fun requiring_component_type_name ->
-          (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
-        ) (requirers universe port_name)
-      ) (providers universe port_name)
-    ) (get_port_names universe)
-  ))
-
-let get_local_repository_variable_keys universe configuration =
-  List.flatten (
-    List.map (fun location_name ->
-      List.map (fun repository_name ->
-        (LocalRepositoryVariable (location_name, repository_name))
-      ) (get_repository_names universe)
-    ) (get_location_names configuration)
-  )
-
-let get_local_resource_variable_keys universe configuration =
-  List.flatten (
-    List.map (fun location_name ->
-      List.map (fun resource_name ->
-        (LocalResourceVariable (location_name, resource_name))
-      ) (get_resource_names universe)
-    ) (get_location_names configuration)
-  )
-
-let get_specification_variable_keys specification configuration =
-  let all_variable_keys_from_specification =
-    Specification_constraints.extract_variable_keys_from_specification configuration specification
-  in
-  let specification_variable_keys =
-    List.filter pred_specification_variable all_variable_keys_from_specification
-  in
-  specification_variable_keys
+let string_of_global_element_variable = 
+  fun element ->
+    Printf.sprintf
+      "N(%s)"
+      (string_of_element element)
 
 
-let get_variable_keys universe configuration specification = 
-  List.flatten
-    [get_global_element_variable_keys   universe                   ;
-     get_local_element_variable_keys    universe      configuration;
-     get_binding_variable_keys          universe                   ;
-     get_local_repository_variable_keys universe      configuration;
-     get_local_resource_variable_keys   universe      configuration;
-     get_specification_variable_keys    specification configuration]
+
+type local_element_variable = location_name * element
+
+let string_of_local_element_variable = 
+  fun (location_name, element) ->
+    Printf.sprintf 
+      "N(%s,%s)"
+      (string_of_location_name location_name)
+      (string_of_element       element)
+
+
+
+type binding_variable = port_name * component_type_name * component_type_name
+
+let string_of_binding_variable = 
+  fun (port_name, providing_component_type_name, requiring_component_type_name) ->
+    Printf.sprintf 
+      "B(%s,%s,%s)"
+      (string_of_port_name           port_name)
+      (string_of_component_type_name providing_component_type_name)
+      (string_of_component_type_name requiring_component_type_name)
+
+
+
+type local_repository_variable = location_name * repository_name
+
+let string_of_local_repository_variable = 
+  fun (location_name, repository_name) ->
+    Printf.sprintf 
+      "R(%s,%s)"
+      (string_of_location_name   location_name)
+      (string_of_repository_name repository_name)
+
+
+
+type local_resource_variable = location_name * resource_name
+
+let string_of_local_resource_variable = 
+  fun (location_name, resource_name) ->
+    Printf.sprintf 
+      "O(%s,%s)"
+      (string_of_location_name location_name)
+      (string_of_resource_name resource_name)
+
+
+type specification_variable = spec_variable_name
+
+let string_of_specification_variable =
+  fun specification_variable ->
+    Printf.sprintf
+      "S(%s)"
+      (string_of_spec_variable_name specification_variable)
+
+
+
+type variable =
+  (* Number of instances of a given component_type / port / package installed globally in the configuration. *)
+  | GlobalElementVariable    of element
+
+  (* Number of instances of a given component_type / port / package installed on a given location. *)
+  | LocalElementVariable     of location_name * element
+
+  (* Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
+  | BindingVariable          of port_name * component_type_name * component_type_name
+
+  (* Is the given repository installed on the given location? (boolean variable) *)
+  | LocalRepositoryVariable  of location_name * repository_name
+
+  (* How many resources of the given type are provided by the given location. *)
+  | LocalResourceVariable    of location_name * resource_name
+
+  (* Specifiaction variable *)
+  | SpecificationVariable    of spec_variable_name
+
+
+
+
+let descr_of_variable variable =
+  match variable with
+  | GlobalElementVariable   (element)                                                                 -> "global element variable"
+  | LocalElementVariable    (location_name, element)                                                  -> "local element variable"
+  | BindingVariable         (port_name, providing_component_type_name, requiring_component_type_name) -> "binding variable"
+  | LocalRepositoryVariable (location_name, repository_name)                                          -> "local repository variable"
+  | LocalResourceVariable   (location_name, resource_name)                                            -> "local resource variable"
+  | SpecificationVariable   (spec_variable_name)                                                      -> "specification variable"
+
+
+let string_of_variable variable =
+  match variable with
+  | GlobalElementVariable   (element) ->
+      string_of_global_element_variable (element)
+
+  | LocalElementVariable    (location_name, element) ->
+      string_of_local_element_variable (location_name, element)
+
+  | BindingVariable         (port_name, providing_component_type_name, requiring_component_type_name) ->
+      string_of_binding_variable (port_name, providing_component_type_name, requiring_component_type_name)
+
+  | LocalRepositoryVariable (location_name, repository_name) ->
+      string_of_local_repository_variable (location_name, repository_name)
+
+  | LocalResourceVariable   (location_name, resource_name) ->
+      string_of_local_resource_variable (location_name, resource_name)
+
+  | SpecificationVariable   (spec_variable_name) ->
+      string_of_specification_variable (spec_variable_name)
+
+
+let pred_global_element_variable variable =
+  match variable with
+  | GlobalElementVariable _   -> true
+  | _                         -> false
+
+let pred_local_element_variable variable =
+  match variable with
+  | LocalElementVariable _    -> true
+  | _                         -> false
+
+let pred_binding_variable variable =
+  match variable with
+  | BindingVariable _         -> true
+  | _                         -> false
+
+let pred_local_repository_variable variable =
+  match variable with
+  | LocalRepositoryVariable _ -> true
+  | _                         -> false
+
+let pred_local_resource_variable variable =
+  match variable with
+  | LocalResourceVariable _   -> true
+  | _                         -> false
+
+let pred_specification_variable variable =
+  match variable with
+  | SpecificationVariable _   -> true
+  | _                         -> false

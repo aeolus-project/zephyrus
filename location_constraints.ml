@@ -20,7 +20,7 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 let const_of_provide_arity (provide_arity : provide_arity) : const =
@@ -33,8 +33,8 @@ let providearity2expr (provide_arity : provide_arity) : expr =
 
 let create_element_location_constraints
   (get_element_names_function : universe -> 'a list)
-  (global_var_key_function : 'a -> variable_key)
-  (local_var_key_function : location_name -> 'a -> variable_key)
+  (global_var_function : 'a -> variable)
+  (local_var_function : location_name -> 'a -> variable)
   configuration
   universe 
   : cstr list =
@@ -46,7 +46,7 @@ let create_element_location_constraints
   List.map (fun element_name ->
 
     (* The left side expression: *)
-    let global_element_var = var (global_var_key_function element_name)
+    let global_element_var = var (global_var_function element_name)
     in
 
     (* The right side expression: *)
@@ -54,7 +54,7 @@ let create_element_location_constraints
       List.map ( fun location_name ->
 
         let local_element_var = 
-          var (local_var_key_function location_name element_name)
+          var (local_var_function location_name element_name)
         in
 
         (* Part of the sum: N(location_name, element_name) *)

@@ -18,12 +18,12 @@
 (****************************************************************************)
 
 open Aeolus_types_t
-open Variable_keys
+open Variables
 open Generic_constraints
 
 type minizinc_variables
 
-val create_minizinc_variables : variable_key list -> minizinc_variables
+val create_minizinc_variables : variable list -> minizinc_variables
 val string_of_minizinc_variables : minizinc_variables -> string
 
 val translate_constraints : 

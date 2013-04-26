@@ -20,7 +20,7 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 let const_of_provide_arity (provide_arity : provide_arity) : const =

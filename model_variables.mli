@@ -17,38 +17,13 @@
 (*                                                                          *)
 (****************************************************************************)
 
-type solver_settings = {
-  print_solver_vars            : bool;
-  print_solver_cstrs           : bool;
-  print_solver_exe             : bool;
-  print_intermediate_solutions : bool;
-}
+open Aeolus_types_t
+open Variables
 
-module type SOLVER =
-  sig
-    
-    val solve : 
-      Variables.variable list ->
-      Constraints.generated_constraints ->
-      Optimization_functions.optimization_function -> (* A single optimization function. *)
-      solver_settings ->
-      Solution.solution_with_cost (* It returns the solution and its cost. *)
-      
-  end
+type variable_kind =
+  | BooleanVariable
+  | NaturalVariable
 
-module type SOLVER_LEX =
-  sig 
-    include SOLVER
+val variable_kind_of_variable : variable -> variable_kind
 
-    val solve_lex : 
-      Variables.variable list ->
-      Constraints.generated_constraints ->
-      Optimization_functions.optimization_function list -> (* List of optimization functions. *)
-      solver_settings ->
-      Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
-
-  end
-
-module G12    : SOLVER_LEX
-module GeCode : SOLVER_LEX
-module FaCiLe : SOLVER
+val get_variables : universe -> configuration -> specification -> variable list

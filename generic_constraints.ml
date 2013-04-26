@@ -63,7 +63,7 @@ type const =
   | Inf of bool (* Plus and minus infinity *)
 
 type var = 
-  Variable_keys.variable_key
+  Variables.variable
 
 and expr =
   | Const               of const                              (* expr = integer constant *)
@@ -130,7 +130,7 @@ and string_of_const const =
   | Inf (plus)  -> Printf.sprintf "%sINFINITY" (if plus then "" else "NEG_")
 
 and string_of_var var =
-  Variable_keys.string_of_variable_key var
+  Variables.string_of_variable var
   
 and string_of_expr expr = 
   match expr with
@@ -190,7 +190,7 @@ and string_of_cstr cstr =
 
 (* Building expressions *)
 
-let var (variable_key : Variable_keys.variable_key) = variable_key
+let var (variable : Variables.variable) = variable
 
 let var2expr   (var   : var)   : expr = Var var
 let const2expr (const : const) : expr = Const const
@@ -240,19 +240,19 @@ let not       x    = UnaryCstrOpCstr  (Not,         x)
 
 (* Extract all variable keys that appear in a constraint / expression. *)
 
-let rec extract_variable_keys_of_cstr cstr =
+let rec extract_variables_of_cstr cstr =
   match cstr with
   | TrueCstr                              -> []
   | FalseCstr                             -> []
-  | BinaryArithCmpCstr (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
-  | BinaryCstrOpCstr   (op, lcstr, rcstr) -> (extract_variable_keys_of_cstr lcstr) @ (extract_variable_keys_of_cstr rcstr)
-  | UnaryCstrOpCstr    (op, cstr)         -> extract_variable_keys_of_cstr cstr
+  | BinaryArithCmpCstr (op, lexpr, rexpr) -> (extract_variables_of_expr lexpr) @ (extract_variables_of_expr rexpr)
+  | BinaryCstrOpCstr   (op, lcstr, rcstr) -> (extract_variables_of_cstr lcstr) @ (extract_variables_of_cstr rcstr)
+  | UnaryCstrOpCstr    (op, cstr)         -> extract_variables_of_cstr cstr
 
-and extract_variable_keys_of_expr expr =
+and extract_variables_of_expr expr =
   match expr with
   | Const              (const)            -> []
-  | Var                (variable_key)     -> [variable_key]
-  | Reified            (cstr)             -> extract_variable_keys_of_cstr cstr
-  | UnaryArithExpr     (op, expr)         -> (extract_variable_keys_of_expr expr)
-  | BinaryArithExpr    (op, lexpr, rexpr) -> (extract_variable_keys_of_expr lexpr) @ (extract_variable_keys_of_expr rexpr)
-  | NaryArithExpr      (op, exprs)        -> List.flatten (List.map (fun expr -> (extract_variable_keys_of_expr expr)) exprs)
+  | Var                (variable)     -> [variable]
+  | Reified            (cstr)             -> extract_variables_of_cstr cstr
+  | UnaryArithExpr     (op, expr)         -> (extract_variables_of_expr expr)
+  | BinaryArithExpr    (op, lexpr, rexpr) -> (extract_variables_of_expr lexpr) @ (extract_variables_of_expr rexpr)
+  | NaryArithExpr      (op, exprs)        -> List.flatten (List.map (fun expr -> (extract_variables_of_expr expr)) exprs)

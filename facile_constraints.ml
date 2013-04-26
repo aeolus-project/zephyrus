@@ -23,7 +23,7 @@ open Helpers
 open Aeolus_types_t
 
 open Typing_context
-open Variable_keys
+open Variables
 open Facile_variables
 open Solution
 
