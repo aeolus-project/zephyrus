@@ -67,7 +67,8 @@ zephyrus.ml
 
 RESULT = zephyrus
 
-PACKS = atdgen facile extlib batteries
+PACKS = atdgen facile extlib unix
+#batteries
 
 # "include OCamlMakefile" must come after defs for SOURCES, RESULT, PACKS, etc.
 include OCamlMakefile
