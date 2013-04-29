@@ -17,13 +17,35 @@
 (*                                                                          *)
 (****************************************************************************)
 
+
 open Aeolus_types_t
-open Variable_keys
 
-type variable_kind =
-  | BooleanVariable
-  | NaturalVariable
+type element =
+  | ComponentType of component_type_name
+  | Port          of port_name
+  | Package       of package_name
 
-val variable_kind_of_variable_key : variable_key -> variable_kind
+type variable =
+  | GlobalElementVariable    of element
+  (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
 
-val get_variable_keys : universe -> configuration -> specification -> variable_key list
+  | LocalElementVariable     of location_name * element
+  (** Number of instances of a given component_type / port / package installed on a given location. *)
+
+  | BindingVariable          of port_name * component_type_name * component_type_name
+  (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
+
+  | LocalRepositoryVariable  of location_name * repository_name
+  (** Is the given repository installed on the given location? (boolean variable) *)
+
+  | LocalResourceVariable    of location_name * resource_name
+  (** How many resources of the given type are provided by the given location. *)
+
+  | SpecificationVariable    of spec_variable_name
+  (** Specifiaction variable *)
+
+
+val string_of_element  : element -> string
+val string_of_variable : variable -> string
+
+val descr_of_variable  : variable -> string

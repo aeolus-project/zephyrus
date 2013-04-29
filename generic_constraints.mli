@@ -67,7 +67,7 @@ type const =
 
 (** Variables *)
 type var = 
-  Variable_keys.variable_key
+  Variables.variable
 
 (** Arithmetic expressions *)
 type expr =
@@ -98,7 +98,7 @@ val string_of_cstr : cstr -> string
 
 (** Building expressions *)
 
-val var        : Variable_keys.variable_key -> var
+val var        : Variables.variable -> var
 
 val var2expr   : var   -> expr
 val const2expr : const -> expr
@@ -146,4 +146,4 @@ val not       : cstr -> cstr
 
 
 (** Extract all variable keys that appear in a constraint / expression. *)
-val extract_variable_keys_of_cstr : cstr -> Variable_keys.variable_key list
+val extract_variables_of_cstr : cstr -> Variables.variable list

@@ -28,7 +28,7 @@ type solver_settings = {
 }
 
 type solve_function =
-  Variable_keys.variable_key list ->
+  Variables.variable list ->
   Constraints.generated_constraints ->
   Optimization_functions.optimization_function -> (* A single optimization function. *)
   solver_settings ->
@@ -40,7 +40,7 @@ module type SOLVER =
   end
 
 type solve_lex_function =
-  Variable_keys.variable_key list ->
+  Variables.variable list ->
   Constraints.generated_constraints ->
   Optimization_functions.optimization_function list -> (* List of optimization functions. *)
   solver_settings ->
@@ -54,7 +54,7 @@ module type SOLVER_LEX =
 
 let solve_lex 
   (solve_function : solve_function) 
-  variable_keys 
+  variables 
   generated_constraints
   optimization_functions
   solver_settings
@@ -81,7 +81,7 @@ let solve_lex
         (* Solve the problem using the current optimization function. *)
         let (solution, cost) =
           solve_function
-            variable_keys 
+            variables 
             constraints           (* Our generated constraints + previous optimizations constraints. *)
             optimization_function (* The current optimization function. *)
             solver_settings
@@ -117,7 +117,7 @@ let standard_flatzinc_command_line_solver
   (minizinc_to_flatzinc_converter : in_out_program)
   (flatzinc_solver                : in_out_program)
 
-  (variable_keys         : Variable_keys.variable_key list)
+  (variables         : Variables.variable list)
   (generated_constraints : Constraints.generated_constraints)
   (optimization_function : Optimization_functions.optimization_function)
   (solver_settings       : solver_settings) 
@@ -144,7 +144,7 @@ let standard_flatzinc_command_line_solver
   (* Preparing variables for MiniZinc translation. *)
   solver_exe_printf (Printf.sprintf "\n===> Preparing variables for MiniZinc translation...\n");
   let minizinc_variables = 
-    create_minizinc_variables variable_keys
+    create_minizinc_variables variables
   in
 
   if(solver_settings.print_solver_vars)
@@ -267,7 +267,7 @@ module FaCiLe : SOLVER =
   struct
 
     let solve 
-      variable_keys 
+      variables 
       generated_constraints
       optimization_function
       solver_settings
@@ -291,7 +291,7 @@ module FaCiLe : SOLVER =
       in
 
       let facile_variables =
-        create_facile_variables variable_keys
+        create_facile_variables variables
       in
 
       let facile_constraints : generated_constraints = 

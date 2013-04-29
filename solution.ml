@@ -18,10 +18,10 @@
 (****************************************************************************)
 
 
-open Variable_keys
+open Variables
 open Helpers
 
-type solution = (variable_key * int) list 
+type solution = (variable * int) list 
 type solution_with_cost  = solution * int
 type solution_with_costs = solution * int list
 
@@ -37,7 +37,7 @@ let string_of_solution solution =
         ) solution_assoc_list
   in
   let strings = 
-    strings_of_solution_assoc_list solution string_of_variable_key
+    strings_of_solution_assoc_list solution string_of_variable
   in
   Printf.sprintf
     "\n%s\n"

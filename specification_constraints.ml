@@ -20,7 +20,7 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 let rec translate_spec_variable_name spec_variable_name =
@@ -223,9 +223,9 @@ let create_specification_constraints initial_configuration specification : cstr 
 
 let rec extract_spec_variable_name spec_variable_name = [ SpecificationVariable spec_variable_name ]
 
-and extract_spec_const (spec_const : spec_const) : variable_key list = []
+and extract_spec_const (spec_const : spec_const) : variable list = []
 
-and extract_specification (location_names : location_name list) (specification : specification) : variable_key list =
+and extract_specification (location_names : location_name list) (specification : specification) : variable list =
   match specification with
   | `SpecTrue -> []
 
@@ -244,7 +244,7 @@ and extract_specification (location_names : location_name list) (specification :
   | `SpecNot (specification) ->
       (extract_specification location_names specification)
 
-and extract_spec_expr (location_names : location_name list) (spec_expr : spec_expr) : variable_key list =
+and extract_spec_expr (location_names : location_name list) (spec_expr : spec_expr) : variable list =
   match spec_expr with
   | `SpecExprVar spec_variable_name ->
       ( extract_spec_variable_name spec_variable_name )
@@ -264,7 +264,7 @@ and extract_spec_expr (location_names : location_name list) (spec_expr : spec_ex
   | `SpecExprMul (spec_const, spec_expr) ->
       ( (extract_spec_const spec_const) @ (extract_spec_expr location_names spec_expr) )
 
-and extract_spec_element  (location_names : location_name list) (spec_element : spec_element) : variable_key list =
+and extract_spec_element  (location_names : location_name list) (spec_element : spec_element) : variable list =
   match spec_element with
   | `SpecElementPackage (package_name) ->
       [ GlobalElementVariable (Package package_name) ]
@@ -277,7 +277,7 @@ and extract_spec_element  (location_names : location_name list) (spec_element : 
 
   | `SpecElementLocalisation (spec_resource_constraints, spec_repository_constraints, local_specification) ->
 
-      let variable_keys_lists = 
+      let variables_lists = 
         List.map ( fun location_name ->
             
             let spec_resource_constraints_cstr =
@@ -296,10 +296,10 @@ and extract_spec_element  (location_names : location_name list) (spec_element : 
         ) location_names
 
       in
-      (List.flatten variable_keys_lists)
+      (List.flatten variables_lists)
 
 
-and extract_local_specification (location_name : location_name) (local_specification : local_specification) : variable_key list =
+and extract_local_specification (location_name : location_name) (local_specification : local_specification) : variable list =
   match local_specification with
   | `SpecLocalTrue -> []
 
@@ -318,7 +318,7 @@ and extract_local_specification (location_name : location_name) (local_specifica
   | `SpecLocalNot (local_specification) ->
       (extract_local_specification location_name local_specification)
 
-and extract_spec_local_expr (location_name : location_name) (spec_local_expr : spec_local_expr) : variable_key list =
+and extract_spec_local_expr (location_name : location_name) (spec_local_expr : spec_local_expr) : variable list =
   match spec_local_expr with
   | `SpecLocalExprVar spec_variable_name ->
       ( extract_spec_variable_name spec_variable_name )
@@ -339,7 +339,7 @@ and extract_spec_local_expr (location_name : location_name) (spec_local_expr : s
       ( (extract_spec_const spec_const) @ (extract_spec_local_expr location_name spec_local_expr) )
 
 
-and extract_spec_local_element (location_name : location_name) (spec_local_element : spec_local_element) : variable_key list =
+and extract_spec_local_element (location_name : location_name) (spec_local_element : spec_local_element) : variable list =
   match spec_local_element with
   | `SpecLocalElementPackage (package_name) ->
       [ GlobalElementVariable (Package package_name) ]
@@ -350,19 +350,19 @@ and extract_spec_local_element (location_name : location_name) (spec_local_eleme
   | `SpecLocalElementPort (port_name) ->
       [ GlobalElementVariable (Port port_name) ]
 
-and extract_spec_resource_constraints (location_name : location_name) (spec_resource_constraints : spec_resource_constraints) : variable_key list =
+and extract_spec_resource_constraints (location_name : location_name) (spec_resource_constraints : spec_resource_constraints) : variable list =
   List.fold_left (fun a spec_resource_constraint -> 
     (a @ (extract_spec_resource_constraint location_name spec_resource_constraint)) 
   ) [] spec_resource_constraints
 
-and extract_spec_resource_constraint (location_name : location_name) : (spec_resource_constraint -> variable_key list) =
+and extract_spec_resource_constraint (location_name : location_name) : (spec_resource_constraint -> variable list) =
   fun (resource_name, spec_op, spec_const) ->
     let resource_var_expr = [ LocalResourceVariable (location_name, resource_name) ]
     and spec_const_expr   = ( extract_spec_const spec_const )
     in
     ( resource_var_expr @ spec_const_expr )
 
-and extract_spec_repository_constraints (location_name : location_name) (spec_repository_constraints : spec_repository_constraints) : variable_key list =
+and extract_spec_repository_constraints (location_name : location_name) (spec_repository_constraints : spec_repository_constraints) : variable list =
   let repository_names = spec_repository_constraints
   in
   List.map ( fun repository_name ->
@@ -371,7 +371,7 @@ and extract_spec_repository_constraints (location_name : location_name) (spec_re
 
 
 
-let extract_variable_keys_from_specification initial_configuration specification =
+let extract_variables_from_specification initial_configuration specification =
   let location_names = get_location_names initial_configuration
   in
   extract_specification location_names specification

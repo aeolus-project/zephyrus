@@ -21,7 +21,7 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 (* The constraint : [for each component type t_r which requires port p]  require_arity(t_r,p) x N(t_r) = sum (over all t_p from the universe which provide port p) B(t_p,t_r,p) *)

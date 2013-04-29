@@ -23,20 +23,20 @@ open Aeolus_types_t
 open Facile
 open Easy
 
-open Variable_keys
+open Variables
 open Solution
 
 
 (* Types *)
 type native_facile_variable = Facile.Var.Fd.t
-type facile_variables       = (variable_key * native_facile_variable) list
+type facile_variables       = (variable * native_facile_variable) list
 
 (* Accessing *)
-val get_native_facile_variable  : facile_variables -> variable_key -> native_facile_variable
+val get_native_facile_variable  : facile_variables -> variable -> native_facile_variable
 val get_native_facile_variables : facile_variables -> native_facile_variable list
 
 (* Creating *)
-val create_facile_variables : variable_key list -> facile_variables
+val create_facile_variables : variable list -> facile_variables
 
 (* Printing *)
 val string_of_facile_variable  : native_facile_variable  -> string

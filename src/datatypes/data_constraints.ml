@@ -25,17 +25,17 @@
 (************************************)
 
 type variable =
-  | GlobalElementVariable    of DataInput.element
-  | LocalElementVariable     of DataInput.location_name * DataInput.element
-  | BindingVariable          of DataInput.port_name * DataInput.component_type_name * DataInput.component_type_name
-  | LocalRepositoryVariable  of DataInput.location_name * DataInput.repository_name
-  | LocalResourceVariable    of DataInput.location_name * DataInput.resource_name
-  | SpecificationVariable    of DataInput.spec_variable_name
+  | GlobalElementVariable    of Data_input.element
+  | LocalElementVariable     of Data_input.location_name * Data_input.element
+  | BindingVariable          of Data_input.port_name * Data_input.component_type_name * Data_input.component_type_name
+  | LocalRepositoryVariable  of Data_input.location_name * Data_input.repository_name
+  | LocalResourceVariable    of Data_input.location_name * Data_input.resource_name
+  | SpecificationVariable    of Data_input.spec_variable_name
 
 let string_of_variable variable =
   match variable with
-  | GlobalElementVariable(element) -> Printf.sprintf "N(%s)" (DataInput.string_of_element element)
-  | LocalElementVariable(location_name, element) -> Printf.sprintf "N(%s,%s)" location_name (DataInput.string_of_element element)
+  | GlobalElementVariable(element) -> Printf.sprintf "N(%s)" (Data_input.string_of_element element)
+  | LocalElementVariable(location_name, element) -> Printf.sprintf "N(%s,%s)" location_name (Data_input.string_of_element element)
   | BindingVariable(port_name, providing_type, requiring_type) -> Printf.sprintf "B(%s,%s,%s)" port_name providing_type requiring_type
   | LocalRepositoryVariable(location_name, repository_name) -> Printf.sprintf "R(%s,%s)" location_name repository_name
   | LocalResourceVariable(location_name, resource_name) -> Printf.sprintf "O(%s,%s)" location_name resource_name

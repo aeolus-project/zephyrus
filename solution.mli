@@ -18,9 +18,9 @@
 (****************************************************************************)
 
 
-open Variable_keys
+open Variables
 
-type solution = (variable_key * int) list 
+type solution = (variable * int) list 
 type solution_with_cost  = solution * int
 type solution_with_costs = solution * int list
 

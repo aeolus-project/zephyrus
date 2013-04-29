@@ -26,27 +26,27 @@ open Easy
 open Helpers
 open Typing_context
 
-open Variable_keys
 open Variables
+open Model_variables
 open Solution
 
 (* Types *)
 
 type native_facile_variable = Facile.Var.Fd.t
 
-type facile_variables = (variable_key * native_facile_variable) list
+type facile_variables = (variable * native_facile_variable) list
 
 (* Accessing *)
 
-let get_native_facile_variable facile_variables variable_key =
+let get_native_facile_variable facile_variables variable =
   try
-    List.assoc variable_key facile_variables
+    List.assoc variable facile_variables
   with
   | _ -> 
     failwith (Printf.sprintf 
       "the requested %s %s does not exist!"
-      (descr_of_variable_key  variable_key)
-      (string_of_variable_key variable_key) )
+      (descr_of_variable  variable)
+      (string_of_variable variable) )
 
 
 let get_native_facile_variables facile_variables =
@@ -78,17 +78,17 @@ let create_new_facile_variable var_kind var_name =
   (* Create the variable. *)
   (Facile.Var.Fd.create ~name:var_name var_domain)
 
-let create_new_variable (kind : variable_kind) (key : variable_key) =
-  let var_name = string_of_variable_key key in
+let create_new_variable (kind : variable_kind) (key : variable) =
+  let var_name = string_of_variable key in
   let new_var  = create_new_facile_variable kind var_name in
   (key, new_var)
 
-let create_facile_variables variable_keys = 
-  List.map (fun variable_key ->
-    let variable_kind = variable_kind_of_variable_key variable_key
+let create_facile_variables variables = 
+  List.map (fun variable ->
+    let variable_kind = variable_kind variable
     in
-    create_new_variable variable_kind variable_key
-  ) variable_keys
+    create_new_variable variable_kind variable
+  ) variables
 
 
 
@@ -114,7 +114,7 @@ let string_of_variable_assoc_list key_variable_assoc_list string_of_key =
     (lines_of_strings strings)
 
 let string_of_facile_variables facile_variables =
-  string_of_variable_assoc_list facile_variables string_of_variable_key
+  string_of_variable_assoc_list facile_variables string_of_variable
 
 (* Extracting the solution from variables *)
 

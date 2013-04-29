@@ -20,10 +20,10 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 val create_specification_constraints : configuration -> specification -> cstr list
 
 (* Extract all variable keys that appear in the specification. *)
-val extract_variable_keys_from_specification : configuration -> specification -> variable_key list
+val extract_variables_from_specification : configuration -> specification -> variable list

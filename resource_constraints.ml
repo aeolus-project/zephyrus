@@ -20,19 +20,19 @@
 
 open Aeolus_types_t
 open Typing_context
-open Variable_keys
+open Variables
 open Generic_constraints
 
 let element_exprs_to_sum
   ( get_element_resource_consumption_funtion : 'a -> resource_consumption ) 
-  ( local_element_variable_key_function      : 'a -> variable_key )
+  ( local_element_variable_function      : 'a -> variable )
   ( elements : 'a list )
   : expr list = 
   
   List.map ( fun element ->
     
     let consume_arity     = get_element_resource_consumption_funtion element
-    and local_element_var = var (local_element_variable_key_function element)
+    and local_element_var = var (local_element_variable_function element)
     in
 
     (* Part of the sum: consumes(element_name, resource_name) * N(location_name, element_name) *)
