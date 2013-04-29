@@ -23,6 +23,8 @@ open Aeolus_types_output.Plain
 
 open Variables
 
+open ExtLib
+
 open Helpers
 
 let get_component_type universe component_type_name =
@@ -93,7 +95,7 @@ let get_component_type_names universe =
   ) universe.universe_component_types
 
 let get_port_names universe =
-  BatList.unique ( 
+  List.unique ( 
     List.flatten ( 
       List.map ( fun component_type -> 
         
@@ -121,7 +123,7 @@ let get_repository_names universe =
   ) universe.universe_repositories
 
 let get_package_names universe =
-  BatList.unique ( 
+  List.unique ( 
     List.flatten ( 
       List.map ( fun repository -> 
         List.flatten ( 
@@ -145,7 +147,7 @@ let consumed_resources_of_resource_consumption_list
   (resource_consumption_list : (resource_name * resource_consumption) list)
   : resource_name list =
 
-  BatList.filter_map (fun (resource_name, resource_consumption) ->
+  List.filter_map (fun (resource_name, resource_consumption) ->
     if resource_consumption > 0
     then Some(resource_name)
     else None
@@ -154,7 +156,7 @@ let consumed_resources_of_resource_consumption_list
 
 let get_resource_names universe =
 
-  BatList.unique (
+  List.unique (
 
     (* Resource names mentioned in all component types. *)
     List.flatten ( 
@@ -191,7 +193,7 @@ let get_elements universe =
   (component_type_elements @ port_elements @ package_elements)
 
 let get_location_names configuration =
-  BatList.unique (
+  List.unique (
     List.map (fun location -> 
       location.location_name
     ) configuration.configuration_locations
@@ -253,7 +255,7 @@ let get_package_resource_consumption package resource_name =
   | Not_found -> 0
 
 let requirers universe port_name =
-  BatList.filter_map (fun component_type ->
+  List.filter_map (fun component_type ->
     if List.exists (fun (required_port_name, require_arity) ->
          (required_port_name = port_name) && (require_arity > 0)
        ) component_type.component_type_require
@@ -262,7 +264,7 @@ let requirers universe port_name =
   ) universe.universe_component_types
 
 let providers universe port_name =
-  BatList.filter_map (fun component_type ->
+  List.filter_map (fun component_type ->
     if List.exists (fun (provided_port_name, provide_arity) ->
          (provided_port_name = port_name) 
          && 
@@ -275,7 +277,7 @@ let providers universe port_name =
   ) universe.universe_component_types
 
 let conflicters universe port_name =
-  BatList.filter_map (fun component_type ->
+  List.filter_map (fun component_type ->
     if List.exists (fun conflicted_port_name ->
          conflicted_port_name = port_name
        ) component_type.component_type_conflict
@@ -286,7 +288,7 @@ let conflicters universe port_name =
 (*
 let consumers universe resource_name =
   let component_types =
-    BatList.filter_map (fun component_type ->
+    List.filter_map (fun component_type ->
       if List.exists (fun (consumed_resource_name, resource_consumption) ->
            (consumed_resource_name = resource_name) && (resource_consumption > 0)
          ) component_type.component_type_consume
@@ -295,7 +297,7 @@ let consumers universe resource_name =
     ) universe.universe_component_types
 
   and packages =
-    BatList.filter_map (fun component_type ->
+    List.filter_map (fun component_type ->
       if List.exists (fun (consumed_resource_name, resource_consumption) ->
            (consumed_resource_name = resource_name) && (resource_consumption > 0)
          ) component_type.component_type_consume

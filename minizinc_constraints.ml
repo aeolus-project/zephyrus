@@ -25,6 +25,7 @@ open Aeolus_types_output.Plain
 open Typing_context
 open Variables
 
+open ExtLib
 
 
 let cost_var_name = "cost_var"
@@ -32,13 +33,13 @@ let cost_var_name = "cost_var"
 let sanitize_name name =
   let lowercased_name = String.lowercase name
   in
-  BatString.filter_map (fun c ->
+  String.replace_chars (fun c ->
     match c with 
-    | 'a'..'z' -> Some c 
-    | '0'..'9' -> Some c
+    | 'a'..'z' -> String.of_char c 
+    | '0'..'9' -> String.of_char c
     | '@'
-    | ' '      -> None
-    | _        -> Some '_'
+    | ' '      -> ""
+    | _        -> "_"
   ) lowercased_name
 
 let string_of_element element =
@@ -97,11 +98,19 @@ let create_minizinc_variables variables =
 let get_minizinc_variable minizinc_variables variable =
   List.assoc variable minizinc_variables
 
+(* XXX to be moved *)
+let assoc_inv e l =
+  let rec aux = function
+    | [] -> raise Not_found
+    | (a,b)::_ when b = e -> a
+    | _::t -> aux t
+  in aux l
+
 let get_minizinc_variable_reverse minizinc_variables minizinc_variable =
   try
     if minizinc_variable = cost_var_name 
     then None
-    else Some (BatList.assoc_inv minizinc_variable minizinc_variables)
+    else Some ((assoc_inv minizinc_variable minizinc_variables))
   with
   | Not_found -> failwith (Printf.sprintf "get_minizinc_variable_reverse: no minizinc variable \"%s\"" minizinc_variable)
   
@@ -335,7 +344,7 @@ type bound_minizinc_variables = (string * int) list
 let solution_of_bound_minizinc_variables minizinc_variables (bound_variables : bound_minizinc_variables) : Solution.solution_with_cost =
 
   let solution : Solution.solution =
-    BatList.filter_map ( fun (minizinc_variable, value) ->
+    List.filter_map ( fun (minizinc_variable, value) ->
       match get_minizinc_variable_reverse minizinc_variables minizinc_variable with
       | Some key -> Some (key, value)
       | None     -> None

@@ -26,6 +26,7 @@ open Variables
 open Solution
 open Facile_variables
 open Helpers
+open ExtLib
 
 (* Set up for the matching algorithm. *)
 
@@ -102,7 +103,7 @@ open Facile_constraints
 
 let solution_repository_for_location (solution : solution) (location_name : location_name) : repository_name =
   let repository_names =
-    BatList.filter_map (fun (var, value) -> 
+    List.filter_map (fun (var, value) -> 
       match var with
       | LocalRepositoryVariable (var_location_name, var_repository_name) ->
           if (var_location_name = location_name) && (value = 1)
@@ -118,7 +119,7 @@ let solution_repository_for_location (solution : solution) (location_name : loca
 
 let solution_packages_for_location (solution : solution) (location_name : location_name) : package_name list =
   let package_names =
-    BatList.filter_map (fun (var, value) -> 
+    List.filter_map (fun (var, value) -> 
       match var with    
       | LocalElementVariable (var_location_name, (Package var_package_name)) ->
           if (var_location_name = location_name) && (value = 1)
@@ -131,7 +132,7 @@ let solution_packages_for_location (solution : solution) (location_name : locati
 
 let solution_number_of_components_for_location (solution : solution) (location_name : location_name) (component_type_name :component_type_name) : int =
   let components_counts =
-    BatList.filter_map (fun (var, value) -> 
+    List.filter_map (fun (var, value) -> 
       match var with    
       | LocalElementVariable (var_location_name, (ComponentType var_component_type_name)) ->
           if (var_location_name = location_name) && (var_component_type_name = component_type_name)
@@ -212,7 +213,7 @@ let components_f
       List.map (fun ((location_name, component_type_name), required_number_of_components) ->
 
         let initial_components =
-          BatList.filter_map ( fun component ->
+          List.filter_map ( fun component ->
             if (component.component_type = component_type_name) && (component.component_location = location_name)
             then Some component
             else None
@@ -221,7 +222,7 @@ let components_f
         in
       
         let reused_components =
-          BatList.take required_number_of_components initial_components (* We take first components declared! *)
+          List.take required_number_of_components initial_components (* We take first components declared! *)
 
         in
 
@@ -244,7 +245,7 @@ let components_f
 
         (* New components *)
 
-        (BatList.make 
+        (List.make 
           number_of_new_components
           (NewComponent (fun used_names -> 
             let component_name = fresh_component_name location_name component_type_name used_names
@@ -259,7 +260,7 @@ let components_f
 
   in
 
-  let used_names = ref (BatList.filter_map (fun almost_done_component ->
+  let used_names = ref (List.filter_map (fun almost_done_component ->
     match almost_done_component with
     | ReusedComponent component -> Some component.component_name
     | NewComponent    _         -> None

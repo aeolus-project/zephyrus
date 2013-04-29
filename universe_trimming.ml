@@ -19,6 +19,7 @@
 
 
 open Aeolus_types_t
+open ExtLib
 
 let dependency_transitive_closure (initial_package_names : package_name list) (packages : package list) : package list =
 
@@ -33,7 +34,7 @@ let dependency_transitive_closure (initial_package_names : package_name list) (p
     try
       let package = Hashtbl.find dependency_table package_name
       in
-      BatList.unique (List.flatten package.package_depend)
+      List.unique (List.flatten package.package_depend)
     with Not_found -> []
   
   in
@@ -67,7 +68,7 @@ let dependency_transitive_closure (initial_package_names : package_name list) (p
     
   done;
 
-  BatList.filter_map (fun package ->
+  List.filter_map (fun package ->
     if List.mem package.package_name !in_the_closure
     then Some (
       {
@@ -103,7 +104,7 @@ let trim universe initial_configuration specification =
     
     (* List of packages which are implementing one of the component types. *)
     let implementing_packages =
-      BatList.unique ( List.flatten (
+      List.unique ( List.flatten (
         List.map ( fun (component_type_name, package_names) ->
           package_names
         ) trimmed_implementation
