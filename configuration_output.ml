@@ -21,6 +21,7 @@
 open Helpers
 open Typing_context
 open Aeolus_types_t
+open ExtLib
 
 module type CONFIGURATION_OUTPUT =
   sig
@@ -210,16 +211,15 @@ module Graphviz =
     let string_of_resource_provide_arity = Simple.string_of_resource_provide_arity
 
     let id_of_name name = 
-      BatString.filter_map (fun c ->
+      String.replace_chars (fun c ->
         match c with 
-        | 'a'..'z' -> Some c
-        | 'A'..'Z' -> Some c
-        | '0'..'9' -> Some c
-        | '@'
-        | ' '      -> None
-        | _        -> Some '_'
+        | 'a'..'z'  -> String.of_char c
+        | 'A'..'Z'  -> String.of_char c
+        | '0'..'9'  -> String.of_char c
+        | '@' | ' ' -> ""
+        | _         -> "_"
       ) name
-    
+
     let component_id component_name =
       Printf.sprintf "component_%s" (id_of_name component_name)
 
@@ -256,14 +256,14 @@ module Graphviz =
 
           let required_ports_table =
             let required_ports_strings =
-              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id port_name) (BatString.lchop port_name)) component_type.component_type_require
+              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id port_name) (String.lchop port_name)) component_type.component_type_require
             in
             if required_ports_strings = [] then " "
             else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (lines_of_strings required_ports_strings)
 
           and provided_ports_table =
             let provided_ports_strings =
-              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id port_name) (BatString.lchop port_name)) component_type.component_type_provide
+              List.map (fun (port_name, arity) -> Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id port_name) (String.lchop port_name)) component_type.component_type_provide
             in
             if provided_ports_strings = [] then " "
             else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"green\">%s</table>" (lines_of_strings provided_ports_strings)
@@ -330,7 +330,7 @@ module Graphviz =
               let package = get_package location_repository package_name
               in
               let dependencies = 
-                List.filter (fun package_name -> List.mem package_name location_packages_installed) (BatList.unique (List.flatten package.package_depend))
+                List.filter (fun package_name -> List.mem package_name location_packages_installed) (List.unique (List.flatten package.package_depend))
               in
               List.map (fun depended_package_name ->
                 Printf.sprintf 
