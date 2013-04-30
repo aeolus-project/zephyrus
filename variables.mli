@@ -45,7 +45,5 @@ type variable =
   (** Specifiaction variable *)
 
 
-val string_of_element  : element -> string
 val string_of_variable : variable -> string
-
 val descr_of_variable  : variable -> string

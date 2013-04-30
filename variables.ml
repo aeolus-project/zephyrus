@@ -91,6 +91,7 @@ let string_of_variable variable =
         "S(%s)"
         (string_of_spec_variable_name spec_variable_name)
 
+
 let descr_of_variable variable =
   match variable with
   | GlobalElementVariable   _ -> "global element variable"
