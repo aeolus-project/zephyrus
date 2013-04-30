@@ -20,5 +20,4 @@ variable_binding:
   | minizinc_variable EQ value SEMICOLON { ($1, $3) }
 
 variable_bindings:
-  | variable_binding { [ $1 ] }
-  | variable_binding variable_bindings { $1 :: $2 }
+  | variable_binding* { $1 }

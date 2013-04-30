@@ -16,12 +16,12 @@ of these tests are available in the "example-results" subdirectory.
 Ingredients required for successful compilation:
 
 
-1. OCaml Batteries Included
+1. Extlib
 
-http://batteries.forge.ocamlcore.org/
+http://code.google.com/p/ocaml-extlib/
 
 Debian package:
-ocaml-batteries-included
+libextlib-ocaml libextlib-ocaml-dev
 
 
 2. Atd & Atdgen
@@ -47,13 +47,6 @@ http://gallium.inria.fr/~fpottier/menhir/
 Debian package:
 menhir
 
-
-5. Extlib
-
-http://code.google.com/p/ocaml-extlib/
-
-Debian package:
-libextlib-ocaml libextlib-ocaml-dev
 
 
 If you want to use the C12 solver:
