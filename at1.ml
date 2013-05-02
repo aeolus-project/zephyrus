@@ -1,5 +1,8 @@
+
 (** Type definitions for naming. *)
 
+(* Two basic modules, which are reused many times after: 
+   a Map with strings as its keys and a Set with strings as its elements. *)
 module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
@@ -47,7 +50,8 @@ type component_type = {
 module ComponentType =
   struct
     type t = component_type
-    let compare component_type_1 component_type_2 = String.compare component_type_1.component_type_name component_type_2.component_type_name 
+    let compare component_type_1 component_type_2 = 
+      String.compare component_type_1.component_type_name component_type_2.component_type_name 
   end
 
 module ComponentTypeSet = Set.Make(ComponentType)
@@ -64,7 +68,8 @@ type package = {
 module Package =
   struct
     type t = package
-    let compare package_1 package_2 = String.compare package_1.package_name package_2.package_name 
+    let compare package_1 package_2 = 
+      String.compare package_1.package_name package_2.package_name 
   end
 
 module PackageSet = Set.Make(Package)
@@ -79,7 +84,8 @@ type repository = {
 module Repository =
   struct
     type t = repository
-    let compare repository_1 repository_2 = String.compare repository_1.repository_name repository_2.repository_name 
+    let compare repository_1 repository_2 = 
+      String.compare repository_1.repository_name repository_2.repository_name 
   end
 
 module RepositorySet = Set.Make(Repository)
@@ -101,13 +107,14 @@ type location = {
   location_name               : location_name;
   location_provide_resources  : resources_provided;
   location_repository         : repository_name;
-  location_packages_installed : package_name list
+  location_packages_installed : package_names;
 }
 
 module Location =
   struct
     type t = location
-    let compare location_1 location_2 = String.compare location_1.location_name location_2.location_name 
+    let compare location_1 location_2 = 
+      String.compare location_1.location_name location_2.location_name 
   end
 
 module LocationSet = Set.Make(Location)
@@ -115,13 +122,14 @@ module LocationSet = Set.Make(Location)
 type component = {
   component_name     : component_name;
   component_type     : component_type_name;
-  component_location : location_name
+  component_location : location_name;
 }
 
 module Component =
   struct
     type t = component
-    let compare component_1 component_2 = String.compare component_1.component_name component_2.component_name 
+    let compare component_1 component_2 = 
+      String.compare component_1.component_name component_2.component_name 
   end
 
 module ComponentSet = Set.Make(Component)
@@ -152,12 +160,13 @@ module Binding =
 
 module BindingSet = Set.Make(Binding)
 
-(** Type definitions for Specification. *)
 type configuration = {
   configuration_locations  : LocationSet.t;
   configuration_components : ComponentSet.t;
   configuration_bindings   : BindingSet.t
 }
+
+(** Type definitions for Specification. *)
 
 type spec_variable_name = string
 
