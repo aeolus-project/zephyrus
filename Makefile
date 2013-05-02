@@ -1,86 +1,107 @@
-# (****************************************************************************)
-# (*                                                                          *)
-# (*    This file is part of Zephyrus.                                        *)
-# (*                                                                          *)
-# (*    Zephyrus is free software: you can redistribute it and/or modify      *)
-# (*    it under the terms of the GNU General Public License as published by  *)
-# (*    the Free Software Foundation, either version 3 of the License, or     *)
-# (*    (at your option) any later version.                                   *)
-# (*                                                                          *)
-# (*    Zephyrus is distributed in the hope that it will be useful,           *)
-# (*    but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
-# (*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
-# (*    GNU General Public License for more details.                          *)
-# (*                                                                          *)
-# (*    You should have received a copy of the GNU General Public License     *)
-# (*    along with Zephyrus.  If not, see <http://www.gnu.org/licenses/>.     *)
-# (*                                                                          *)
-# (****************************************************************************)
 
-.PHONY: default
-default: opt
+VERSION=0.1
+NAME=zephyrus
 
-ATDGEN_SOURCES = aeolus_types.atd
-ATDGEN_FLAGS = -j-std
-include Atdgen.mk
+CFLAGS=-g -O2 -fPIC -Wall -pedantic -Werror -Wno-long-long
+LDFLAGS=-fstack-protector
 
-SOURCES = \
-helpers.mli helpers.ml\
- \
-aeolus_types_t.mli aeolus_types_t.ml aeolus_types_j.mli aeolus_types_j.ml\
-aeolus_types_output.ml\
- \
-at1.ml at2.ml\
- \
-typing_context.mli                    typing_context.ml\
- \
-configuration_output.ml\
-universe_input.mli                    universe_input.ml\
-specification_parser.mly              specification_lexer.mll\
-specification_input.mli               specification_input.ml\
-configuration_input.mli               configuration_input.ml\
- \
-variables.mli                         variables.ml\
-solution.mli                          solution.ml\
-generic_constraints.mli               generic_constraints.ml\
- \
-component_type_global_constraints.mli component_type_global_constraints.ml\
-location_constraints.mli              location_constraints.ml\
-repository_constraints.mli            repository_constraints.ml\
-package_constraints.mli               package_constraints.ml\
-resource_constraints.mli              resource_constraints.ml\
-specification_constraints.mli         specification_constraints.ml\
-optimization_functions.mli            optimization_functions.ml\
-matching_algorithm.ml\
-constraints.mli                       constraints.ml\
- \
-configuration_generation.mli          configuration_generation.ml\
-model_variables.mli                   model_variables.ml\
- \
-facile_variables.mli                  facile_variables.ml\
-facile_constraints.mli                facile_constraints.ml\
- \
-flatzinc_solution_parser.mly          flatzinc_solution_lexer.mll\
-minizinc_constraints.mli              minizinc_constraints.ml\
- \
-universe_trimming.mli                 universe_trimming.ml\
-solvers.mli                           solvers.ml\
-zephyrus.ml
+OCAMLFIND=ocamlfind
 
-RESULT = zephyrus
+DESTDIR =
+ifeq ($(DESTDIR),)
+exec_prefix=/usr/local
+BINDIR=${exec_prefix}/bin
+LIBDIR=$(shell ocamlfind printconf destdir)
 
-PACKS = atdgen facile extlib unix
-#batteries
+INSTALL=$(OCAMLFIND) install -destdir $(LIBDIR)
+UNINSTALL=$(OCAMLFIND) remove -destdir $(LIBDIR)
+else
+LIBDIR = $(DESTDIR)/$(shell ocamlc -where)
+BINDIR = $(DESTDIR)/usr/bin
 
-# "include OCamlMakefile" must come after defs for SOURCES, RESULT, PACKS, etc.
-include OCamlMakefile
+INSTALL = $(OCAMLFIND) install -destdir $(LIBDIR)
+UNINSTALL = $(OCAMLFIND) remove -destdir $(LIBDIR)
+endif
 
-.PHONY: sources opt all dist
-sources: $(SOURCES)
-opt: sources
-	$(MAKE) native-code
-all: sources
-	$(MAKE) byte-code
+OCAMLBEST=native
+OCAMLBUILD=ocamlbuild #-ocamlc ocamlc.opt -ocamlopt ocamlopt.opt -ocamldep ocamldep.opt
+INSTALLOPTS=-s
 
-dist: clean
-	./dist_make.bash
+TARGETS= \
+   zephyrus.$(OCAMLBEST) 
+
+BYTELIBS=
+OPTLIBS=
+CMXSLIBS=
+CMXSLIBS=
+ALIBS=
+
+DIST_DIR = $(NAME)-$(VERSION)
+DIST_TARBALL = $(DIST_DIR).tar.gz
+
+OBFLAGS := -j 10 -classic-display
+#OBFLAGS := $(OBFLAGS) -tag debug -tag profile
+#OBFLAGS := $(OBFLAGS) -classic-display
+
+all: $(CAMLP4CMXS) $(BYTELIBS) $(ALIBS) $(OPTLIBS) $(CMXSLIBS) man
+	$(OCAMLBUILD) $(OBFLAGS) $(TARGETS)
+
+fast: $(CAMLP4CMXS) $(OPTLIBS)
+	$(OCAMLBUILD) $(OBFLAGS) $(TARGETS)
+
+apps:
+	$(OCAMLBUILD) $(OBFLAGS) $(TARGETS)
+
+DOSELIBS = _build/doselibs
+
+clean:
+	$(OCAMLBUILD) -clean
+
+distclean: clean
+
+test: 
+
+# stuff not not put in a distribution tarball
+DIST_EXCLUDE = 
+
+INSTALL_STUFF_ = META
+INSTALL_STUFF_ += $(wildcard _build/*.cma _build/*.cmi)
+INSTALL_STUFF_ += $(wildcard _build/*.cmxa _build/*.cmxs)
+INSTALL_STUFF_ += $(wildcard _build/*.a)
+INSTALL_STUFF_ += $(wildcard _build/*.mli)
+
+exclude_libs =
+INSTALL_STUFF = $(filter-out $(exclude_libs), $(INSTALL_STUFF_))
+
+install: META
+	test -d $(LIBDIR) || mkdir -p $(LIBDIR)
+	test -d $(LIBDIR)/stublibs || mkdir -p $(LIBDIR)/stublibs
+	$(INSTALL) -patch-version $(VERSION) $(NAME) $(INSTALL_STUFF)
+
+uninstall:
+	$(OCAMLFIND) remove -destdir $(LIBDIR) $(NAME)
+
+dist: ./$(DIST_TARBALL)
+./$(DIST_TARBALL):
+	if [ -d ./$(DIST_DIR)/ ] ; then rm -rf ./$(DIST_DIR)/ ; fi
+	if [ -d ./$(DIST_TARBALL) ] ; then rm -f ./$(DIST_TARBALL) ; fi
+	mkdir ./$(DIST_DIR)/ ; git archive --format=tar HEAD | tar -x -C ./$(DIST_DIR)/ ; \
+	for f in $(DIST_EXCLUDE) ; do rm -rf ./$(DIST_DIR)/$$f; done
+	tar cvzf ./$(DIST_TARBALL) ./$(DIST_DIR)
+	rm -rf ./$(DIST_DIR)
+	@echo "Distribution tarball: ./$(DIST_TARBALL)"
+
+changelog:
+	dch -c CHANGES --package $(NAME) -v $(VERSION)
+
+credits:
+	@git log --pretty=format:'%aN        %aE' | LC_ALL=C sort -u | awk -F'\t' '{printf("\t%s <%s>\n",$$1,$$2)}';
+
+doc:
+	$(OCAMLBUILD) $(OBFLAGS) zephyrus.docdir/index.html
+	(cd doc && $(MAKE) all)
+
+man:
+#	cd doc/manpages && $(MAKE)
+
+.PHONY: all opt clean top-level headers test tags install uninstall dist doc man
