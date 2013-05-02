@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/usr/bin/time ../zephyrus\
+/usr/bin/time ../zephyrus.native\
  -u           u-ex-2-3.json\
  -spec        spec-ex.spec\
  -ic          ic-ex-empty-5loc.json\

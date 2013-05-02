@@ -1,6 +1,6 @@
 #!/bin/bash
 
-../zephyrus\
+../zephyrus.native\
  -u u_3.json\
  -spec spec_2.spec\
  -ic ic_1.json\

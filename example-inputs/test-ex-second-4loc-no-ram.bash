@@ -1,6 +1,6 @@
 #!/bin/bash
 
-/usr/bin/time ../zephyrus\
+/usr/bin/time ../zephyrus.native\
  -u           u-ex-3-3-no-ram.json\
  -spec        spec-ex-no-ram.spec\
  -ic          ic-ex-first-output-4loc-no-ram.json\
