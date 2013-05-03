@@ -37,3 +37,24 @@ type in_out_program = {
 val is_program_available : string -> bool
 
 val check_if_programs_available : in_out_program list -> unit
+
+module SetOfList :
+  functor (S : Set.S) ->
+  sig
+    exception DoubleElement of S.elt
+  	val translate : ('a -> S.elt) -> 'a list -> S.t
+  end
+
+module MapOfAssocList :
+  functor (M : Map.S) ->
+  sig
+    exception DoubleKey of M.key
+  	val translate : ('a -> M.key) -> ('b -> 'c) -> ('a * 'b) list -> 'c M.t
+  end
+
+module MapOfList :
+  functor (M : Map.S) ->
+  sig
+    exception DoubleKey of M.key
+  	val translate : ('a -> M.key) -> ('a -> 'b) -> 'a list -> 'b M.t
+  end

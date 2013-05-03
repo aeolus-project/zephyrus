@@ -1,4 +1,6 @@
 
+open Helpers
+
 module X = At1
 
 open Aeolus_types_t
@@ -17,48 +19,6 @@ let provide_arity_translate provide_arity =
 let require_arity_translate require_arity = require_arity
 let resource_consumption_translate resource_consumption = resource_consumption
 let resource_provide_arity_translate resource_provide_arity = resource_provide_arity
-
-
-module SetOfList =
-  functor (S : Set.S) ->
-  struct
-    exception DoubleElement of S.elt
-
-    let translate el_translate l =
-      List.fold_left (fun set el ->
-        let el = el_translate el
-        in
-        if S.mem el set
-        then raise (DoubleElement el)
-        else S.add el set
-      ) S.empty l
-  end
-
-module MapOfAssocList =
-  functor (M : Map.S) ->
-  struct
-    exception DoubleKey of M.key
-
-    let translate key_translate value_translate l =
-      List.fold_left (fun map (key, value) ->
-        let key   = key_translate key
-        and value = value_translate value
-        in
-        if M.mem key map
-        then raise (DoubleKey key)
-        else M.add key value map
-      ) M.empty l
-  end
-
-module MapOfList =
-  functor (M : Map.S) ->
-  struct
-    exception DoubleKey of M.key
-
-    let translate key_translate value_translate l =
-      let module T = MapOfAssocList(M) in
-      T.translate key_translate value_translate (List.combine l l)
-  end
 
 exception DoubleProvide  of component_type_name * port_name
 exception DoubleRequire  of component_type_name * port_name
