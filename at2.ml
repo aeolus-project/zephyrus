@@ -34,7 +34,7 @@ module SetOfList =
       ) S.empty l
   end
 
-module MapOfList =
+module MapOfAssocList =
   functor (M : Map.S) ->
   struct
     exception DoubleKey of M.key
@@ -50,6 +50,16 @@ module MapOfList =
       ) M.empty l
   end
 
+module MapOfList =
+  functor (M : Map.S) ->
+  struct
+    exception DoubleKey of M.key
+
+    let translate key_translate value_translate l =
+      let module T = MapOfAssocList(M) in
+      T.translate key_translate value_translate (List.combine l l)
+  end
+
 exception DoubleProvide  of component_type_name * port_name
 exception DoubleRequire  of component_type_name * port_name
 exception DoubleConflict of component_type_name * port_name
@@ -59,14 +69,14 @@ let component_type_translate component_type = {
   X.component_type_name = component_type_name_translate component_type.component_type_name;
 
   X.component_type_provide = (
-    let module T = MapOfList(X.PortNameMap) in
+    let module T = MapOfAssocList(X.PortNameMap) in
     try
       T.translate port_name_translate provide_arity_translate component_type.component_type_provide
     with
     | T.DoubleKey port_name -> raise (DoubleProvide (component_type.component_type_name, port_name)) );
   
   X.component_type_require = (
-    let module T = MapOfList(X.PortNameMap) in
+    let module T = MapOfAssocList(X.PortNameMap) in
     T.translate port_name_translate require_arity_translate component_type.component_type_require);
   
   X.component_type_conflict = (
@@ -74,7 +84,7 @@ let component_type_translate component_type = {
     T.translate port_name_translate component_type.component_type_conflict);
   
   X.component_type_consume = (
-    let module T = MapOfList(X.ResourceNameMap) in
+    let module T = MapOfAssocList(X.ResourceNameMap) in
     T.translate resource_name_translate resource_consumption_translate component_type.component_type_consume);
 }
 
@@ -88,7 +98,7 @@ let package_translate package = {
   X.package_conflict = List.map package_name_translate package.package_conflict;
 
   X.package_consume  = (
-    let module T = MapOfList(X.ResourceNameMap) in
+    let module T = MapOfAssocList(X.ResourceNameMap) in
     T.translate resource_name_translate resource_consumption_translate package.package_consume);
 }
 
@@ -98,8 +108,8 @@ let repository_translate repository = {
   X.repository_name     = repository_name_translate repository.repository_name;
 
   X.repository_packages = (
-    let module T = SetOfList(X.PackageSet) in
-    T.translate package_translate repository.repository_packages);
+    let module T = MapOfList(X.PackageNameMap) in
+    T.translate (fun package -> package.package_name) package_translate repository.repository_packages);
 }
 
 exception DoubleImplementation of component_type_name
@@ -108,20 +118,20 @@ exception DoubleRepositoryNameInUniverse of repository_name
 
 let universe_translate universe = {
   X.universe_component_types = (
-    let module T = SetOfList(X.ComponentTypeSet) in
-    T.translate component_type_translate universe.universe_component_types);
+    let module T = MapOfList(X.ComponentTypeNameMap) in
+    T.translate (fun component_type -> component_type.component_type_name) component_type_translate universe.universe_component_types);
 
   X.universe_implementation = (
     let package_names_translate package_names =
       let module T = SetOfList(X.PackageNameSet) in
       T.translate package_name_translate package_names
     in
-      let module T = MapOfList(X.ComponentTypeNameMap) in
+      let module T = MapOfAssocList(X.ComponentTypeNameMap) in
       T.translate component_type_name_translate package_names_translate universe.universe_implementation);
 
   X.universe_repositories = (
-    let module T = SetOfList(X.RepositorySet) in
-    T.translate repository_translate universe.universe_repositories);
+    let module T = MapOfList(X.RepositoryNameMap) in
+    T.translate (fun repository -> repository.repository_name) repository_translate universe.universe_repositories);
 }
 
 let location_name_translate location_name = location_name
@@ -131,7 +141,7 @@ let location_translate location = {
   X.location_name = location_name_translate location.location_name;
 
   X.location_provide_resources  = (
-    let module T = MapOfList(X.ResourceNameMap) in
+    let module T = MapOfAssocList(X.ResourceNameMap) in
     T.translate resource_name_translate resource_provide_arity_translate location.location_provide_resources);
 
   X.location_repository = repository_name_translate location.location_repository;
@@ -155,12 +165,12 @@ let binding_translate binding = {
 
 let configuration_translate configuration = {
   X.configuration_locations  = (
-    let module T = SetOfList(X.LocationSet) in
-    T.translate location_translate configuration.configuration_locations);
+    let module T = MapOfList(X.LocationNameMap) in
+    T.translate (fun location -> location.location_name) location_translate configuration.configuration_locations);
 
   X.configuration_components = (
-    let module T = SetOfList(X.ComponentSet) in
-    T.translate component_translate configuration.configuration_components);
+    let module T = MapOfList(X.ComponentNameMap) in
+    T.translate (fun component -> component.component_name) component_translate configuration.configuration_components);
 
   X.configuration_bindings = (
     let module T = SetOfList(X.BindingSet) in
