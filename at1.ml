@@ -62,10 +62,12 @@ module ComponentTypeSet = Set.Make(ComponentType)
 
 type component_types = ComponentTypeSet.t
 
+module PackageNameSetSet = Set.Make(PackageNameSet)
+
 type package = {
   package_name     : package_name;
-  package_depend   : package_name list list;
-  package_conflict : package_name list;
+  package_depend   : PackageNameSetSet.t;
+  package_conflict : PackageNameSet.t;
   package_consume  : resource_consumption ResourceNameMap.t
 }
 

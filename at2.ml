@@ -56,14 +56,34 @@ let component_type_translate component_type = {
       T.DoubleKey resource_name -> raise (DoubleConsume (component_type.Y.component_type_name, resource_name)) );
 }
 
-exception DoublePackageConsume of Y.package_name * Y.resource_name
+exception DoublePackageName of X.package_name
+exception DoublePackageConsume of X.package_name * X.resource_name
+exception DoublePackageDisjunction of X.PackageNameSet.t
+exception DoublePackageConflict of X.package_name * X.package_name
 
 let package_translate package = {
   X.package_name     = package_name_translate package.Y.package_name;
 
-  X.package_depend   = List.map (List.map package_name_translate) package.Y.package_depend;
-
-  X.package_conflict = List.map package_name_translate package.Y.package_conflict;
+  X.package_depend   = (
+    let package_names_translate package_names =
+      let module T = SetOfList(X.PackageNameSet) in
+      try
+        T.translate package_name_translate package_names
+      with
+        T.DoubleElement package_name -> raise (DoublePackageName package_name)
+    in
+      let module T = SetOfList(X.PackageNameSetSet) in
+      try
+        T.translate package_names_translate package.Y.package_depend
+      with
+        T.DoubleElement package_names -> raise (DoublePackageDisjunction package_names) );
+      
+  X.package_conflict = (
+    let module T = SetOfList(X.PackageNameSet) in
+    try
+      T.translate package_name_translate package.Y.package_conflict
+    with 
+      T.DoubleElement package_name -> raise (DoublePackageConflict (package.Y.package_name, package_name)) );
 
   X.package_consume  = (
     let module T = MapOfAssocList(X.ResourceNameMap) in
@@ -88,7 +108,6 @@ let repository_translate repository = {
 
 exception DoubleComponentTypeNameInUniverse of Y.component_type_name
 exception DoubleImplementationOfAComponentInUniverse of Y.component_type_name
-exception DoublePackageName of Y.package_name
 exception DoublePackageNameInImplementation of Y.component_type_name * Y.package_name (* TODO: There is no way to produce this exception, because when we want to throw it we have no information about the component type name... *)
 exception DoubleRepositoryNameInUniverse of Y.repository_name
 
