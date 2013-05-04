@@ -12,29 +12,33 @@ type port_name = string
 module PortNameSet = StringSet
 module PortNameMap = StringMap
 
-type location_name = string
-
-type package_name = string
-module PackageNameSet = StringSet
-type repository_name = string
-
-type resource_name = string
-module ResourceNameMap = StringMap
-
-type component_name = string
-module ComponentNameMap = StringMap
-
-(** Type definitions for Component Type. *)
-
 type provide_arity = 
   | InfiniteProvide 
   | FiniteProvide of int
 
 type require_arity = int
 
-type resource_consumption = int
+type repository_name = string
+module RepositoryNameMap = StringMap
+type package_name = string
+module PackageNameSet = StringSet
+module PackageNameMap = StringMap
 
+type resource_name = string
+module ResourceNameMap = StringMap
+
+type resource_consumption = int
 type resource_provide_arity = int
+
+type location_name = string
+module LocationNameMap = StringMap
+
+type component_name = string
+module ComponentNameMap = StringMap
+
+(** Type definitions for Component Type. *)
+
+
 
 
 type component_type = {
@@ -58,10 +62,12 @@ module ComponentTypeSet = Set.Make(ComponentType)
 
 type component_types = ComponentTypeSet.t
 
+module PackageNameSetSet = Set.Make(PackageNameSet)
+
 type package = {
   package_name     : package_name;
-  package_depend   : package_name list list;
-  package_conflict : package_name list;
+  package_depend   : PackageNameSetSet.t;
+  package_conflict : PackageNameSet.t;
   package_consume  : resource_consumption ResourceNameMap.t
 }
 
@@ -78,7 +84,7 @@ type packages = PackageSet.t
 
 type repository = {
   repository_name     : repository_name;
-  repository_packages : packages
+  repository_packages : package PackageNameMap.t
 }
 
 module Repository =
@@ -96,9 +102,9 @@ type package_names = PackageNameSet.t
 
 (** Type definitions for Configuration. *)
 type universe = {
-  universe_component_types : component_types;
+  universe_component_types : component_type ComponentTypeNameMap.t;
   universe_implementation  : PackageNameSet.t ComponentTypeNameMap.t;
-  universe_repositories    : repositories
+  universe_repositories    : repository RepositoryNameMap.t;
 }
 
 type resources_provided = resource_provide_arity ResourceNameMap.t
@@ -161,8 +167,8 @@ module Binding =
 module BindingSet = Set.Make(Binding)
 
 type configuration = {
-  configuration_locations  : LocationSet.t;
-  configuration_components : ComponentSet.t;
+  configuration_locations  : location LocationNameMap.t;
+  configuration_components : component ComponentNameMap.t;
   configuration_bindings   : BindingSet.t
 }
 

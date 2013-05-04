@@ -1,7 +1,8 @@
 
-module X = At1
+open Helpers
 
-open Aeolus_types_t
+module X = At1
+module Y = Aeolus_types_t
 
 let component_type_name_translate component_type_name = component_type_name
 let port_name_translate port_name = port_name
@@ -18,151 +19,271 @@ let require_arity_translate require_arity = require_arity
 let resource_consumption_translate resource_consumption = resource_consumption
 let resource_provide_arity_translate resource_provide_arity = resource_provide_arity
 
-
-module SetOfList =
-  functor (S : Set.S) ->
-  struct
-    exception DoubleElement of S.elt
-
-    let translate el_translate l =
-      List.fold_left (fun set el ->
-        let el = el_translate el
-        in
-        if S.mem el set
-        then raise (DoubleElement el)
-        else S.add el set
-      ) S.empty l
-  end
-
-module MapOfList =
-  functor (M : Map.S) ->
-  struct
-    exception DoubleKey of M.key
-
-    let translate key_translate value_translate l =
-      List.fold_left (fun map (key, value) ->
-        let key   = key_translate key
-        and value = value_translate value
-        in
-        if M.mem key map
-        then raise (DoubleKey key)
-        else M.add key value map
-      ) M.empty l
-  end
-
-exception DoubleProvide  of component_type_name * port_name
-exception DoubleRequire  of component_type_name * port_name
-exception DoubleConflict of component_type_name * port_name
-exception DoubleConsume  of component_type_name * resource_name
+exception DoubleProvide  of Y.component_type_name * Y.port_name
+exception DoubleRequire  of Y.component_type_name * Y.port_name
+exception DoubleConflict of Y.component_type_name * Y.port_name
+exception DoubleConsume  of Y.component_type_name * Y.resource_name
 
 let component_type_translate component_type = {
-  X.component_type_name = component_type_name_translate component_type.component_type_name;
+  X.component_type_name = component_type_name_translate component_type.Y.component_type_name;
 
   X.component_type_provide = (
-    let module T = MapOfList(X.PortNameMap) in
+    let module T = MapOfAssocList(X.PortNameMap) in
     try
-      T.translate port_name_translate provide_arity_translate component_type.component_type_provide
+      T.translate port_name_translate provide_arity_translate component_type.Y.component_type_provide
     with
-    | T.DoubleKey port_name -> raise (DoubleProvide (component_type.component_type_name, port_name)) );
+      T.DoubleKey port_name -> raise (DoubleProvide (component_type.Y.component_type_name, port_name)) );
   
   X.component_type_require = (
-    let module T = MapOfList(X.PortNameMap) in
-    T.translate port_name_translate require_arity_translate component_type.component_type_require);
+    let module T = MapOfAssocList(X.PortNameMap) in
+    try
+      T.translate port_name_translate require_arity_translate component_type.Y.component_type_require
+    with
+      T.DoubleKey port_name -> raise (DoubleRequire (component_type.Y.component_type_name, port_name)) );
   
   X.component_type_conflict = (
     let module T = SetOfList(X.PortNameSet) in
-    T.translate port_name_translate component_type.component_type_conflict);
+    try
+      T.translate port_name_translate component_type.Y.component_type_conflict
+    with 
+      T.DoubleElement port_name -> raise (DoubleConflict (component_type.Y.component_type_name, port_name)) );
   
   X.component_type_consume = (
-    let module T = MapOfList(X.ResourceNameMap) in
-    T.translate resource_name_translate resource_consumption_translate component_type.component_type_consume);
+    let module T = MapOfAssocList(X.ResourceNameMap) in
+    try
+      T.translate resource_name_translate resource_consumption_translate component_type.Y.component_type_consume
+    with
+      T.DoubleKey resource_name -> raise (DoubleConsume (component_type.Y.component_type_name, resource_name)) );
 }
 
-exception DoublePackageConsume of package_name * resource_name
+exception DoublePackageName of X.package_name
+exception DoublePackageConsume of X.package_name * X.resource_name
+exception DoublePackageDisjunction of X.PackageNameSet.t
+exception DoublePackageConflict of X.package_name * X.package_name
 
 let package_translate package = {
-  X.package_name     = package_name_translate package.package_name;
+  X.package_name     = package_name_translate package.Y.package_name;
 
-  X.package_depend   = List.map (List.map package_name_translate) package.package_depend;
-
-  X.package_conflict = List.map package_name_translate package.package_conflict;
+  X.package_depend   = (
+    let package_names_translate package_names =
+      let module T = SetOfList(X.PackageNameSet) in
+      try
+        T.translate package_name_translate package_names
+      with
+        T.DoubleElement package_name -> raise (DoublePackageName package_name)
+    in
+      let module T = SetOfList(X.PackageNameSetSet) in
+      try
+        T.translate package_names_translate package.Y.package_depend
+      with
+        T.DoubleElement package_names -> raise (DoublePackageDisjunction package_names) );
+      
+  X.package_conflict = (
+    let module T = SetOfList(X.PackageNameSet) in
+    try
+      T.translate package_name_translate package.Y.package_conflict
+    with 
+      T.DoubleElement package_name -> raise (DoublePackageConflict (package.Y.package_name, package_name)) );
 
   X.package_consume  = (
-    let module T = MapOfList(X.ResourceNameMap) in
-    T.translate resource_name_translate resource_consumption_translate package.package_consume);
+    let module T = MapOfAssocList(X.ResourceNameMap) in
+    try
+      T.translate resource_name_translate resource_consumption_translate package.Y.package_consume
+    with
+      T.DoubleKey resource_name -> raise (DoublePackageConsume (package.Y.package_name, resource_name)) );
 }
 
-exception DoublePackageNameInRepository of repository_name * package_name
+exception DoublePackageNameInRepository of Y.repository_name * Y.package_name
 
 let repository_translate repository = {
-  X.repository_name     = repository_name_translate repository.repository_name;
+  X.repository_name     = repository_name_translate repository.Y.repository_name;
 
   X.repository_packages = (
-    let module T = SetOfList(X.PackageSet) in
-    T.translate package_translate repository.repository_packages);
+    let module T = MapOfList(X.PackageNameMap) in
+    try
+      T.translate (fun package -> package.Y.package_name) package_translate repository.Y.repository_packages
+    with
+      T.DoubleKey package_name -> raise (DoublePackageNameInRepository (repository.Y.repository_name, package_name)) );
 }
 
-exception DoubleImplementation of component_type_name
-exception DoublePackageNameInImplementation of component_type_name * package_name
-exception DoubleRepositoryNameInUniverse of repository_name
+exception DoubleComponentTypeNameInUniverse of Y.component_type_name
+exception DoubleImplementationOfAComponentInUniverse of Y.component_type_name
+exception DoublePackageNameInImplementation of Y.component_type_name * Y.package_name (* TODO: There is no way to produce this exception, because when we want to throw it we have no information about the component type name... *)
+exception DoubleRepositoryNameInUniverse of Y.repository_name
 
 let universe_translate universe = {
   X.universe_component_types = (
-    let module T = SetOfList(X.ComponentTypeSet) in
-    T.translate component_type_translate universe.universe_component_types);
+    let module T = MapOfList(X.ComponentTypeNameMap) in
+    try
+      T.translate (fun component_type -> component_type.Y.component_type_name) component_type_translate universe.Y.universe_component_types
+    with
+      T.DoubleKey component_type_name -> raise (DoubleComponentTypeNameInUniverse component_type_name) );
 
   X.universe_implementation = (
     let package_names_translate package_names =
       let module T = SetOfList(X.PackageNameSet) in
-      T.translate package_name_translate package_names
+      try
+        T.translate package_name_translate package_names
+      with
+        T.DoubleElement package_name -> raise (DoublePackageName package_name)
     in
-      let module T = MapOfList(X.ComponentTypeNameMap) in
-      T.translate component_type_name_translate package_names_translate universe.universe_implementation);
+      let module T = MapOfAssocList(X.ComponentTypeNameMap) in
+      try
+        T.translate component_type_name_translate package_names_translate universe.Y.universe_implementation
+      with
+        T.DoubleKey component_type_name -> raise (DoubleImplementationOfAComponentInUniverse (component_type_name)) );
 
   X.universe_repositories = (
-    let module T = SetOfList(X.RepositorySet) in
-    T.translate repository_translate universe.universe_repositories);
+    let module T = MapOfList(X.RepositoryNameMap) in
+    try
+      T.translate (fun repository -> repository.Y.repository_name) repository_translate universe.Y.universe_repositories
+    with
+      T.DoubleKey repository_name -> raise (DoubleRepositoryNameInUniverse repository_name) );
 }
 
 let location_name_translate location_name = location_name
 let component_name_translate component_name = component_name
 
+exception DoubleLocationResourceProvide of Y.location_name * Y.resource_name
+exception DoubleLocationPackageInstalled of Y.location_name * Y.package_name
+
 let location_translate location = {
-  X.location_name = location_name_translate location.location_name;
+  X.location_name = location_name_translate location.Y.location_name;
 
   X.location_provide_resources  = (
-    let module T = MapOfList(X.ResourceNameMap) in
-    T.translate resource_name_translate resource_provide_arity_translate location.location_provide_resources);
+    let module T = MapOfAssocList(X.ResourceNameMap) in
+    try
+      T.translate resource_name_translate resource_provide_arity_translate location.Y.location_provide_resources
+    with
+      T.DoubleKey resource_name -> raise (DoubleLocationResourceProvide (location.Y.location_name, resource_name)) );
 
-  X.location_repository = repository_name_translate location.location_repository;
+  X.location_repository = repository_name_translate location.Y.location_repository;
 
   X.location_packages_installed = (
     let module T = SetOfList(X.PackageNameSet) in
-    T.translate package_name_translate location.location_packages_installed);
+    try
+      T.translate package_name_translate location.Y.location_packages_installed
+    with
+      T.DoubleElement package_name -> raise (DoubleLocationPackageInstalled (location.Y.location_name, package_name)) );
 }
 
 let component_translate component = {
-  X.component_name     = component_name_translate      component.component_name;
-  X.component_type     = component_type_name_translate component.component_type;
-  X.component_location = location_name_translate       component.component_location;
+  X.component_name     = component_name_translate      component.Y.component_name;
+  X.component_type     = component_type_name_translate component.Y.component_type;
+  X.component_location = location_name_translate       component.Y.component_location;
 }
 
 let binding_translate binding = {
-  X.binding_port     = port_name_translate      binding.binding_port;
-  X.binding_requirer = component_name_translate binding.binding_requirer;
-  X.binding_provider = component_name_translate binding.binding_provider;
+  X.binding_port     = port_name_translate      binding.Y.binding_port;
+  X.binding_requirer = component_name_translate binding.Y.binding_requirer;
+  X.binding_provider = component_name_translate binding.Y.binding_provider;
 }
+
+exception DoubleLocationNameInConfiguration of X.location_name
+exception DoubleComponentNameInConfiguration of X.component_name
+exception DoubleBindingInConfiguration of X.binding
 
 let configuration_translate configuration = {
   X.configuration_locations  = (
-    let module T = SetOfList(X.LocationSet) in
-    T.translate location_translate configuration.configuration_locations);
+    let module T = MapOfList(X.LocationNameMap) in
+    try
+      T.translate (fun location -> location.Y.location_name) location_translate configuration.Y.configuration_locations
+    with
+      T.DoubleKey location_name -> raise (DoubleLocationNameInConfiguration location_name) );
 
   X.configuration_components = (
-    let module T = SetOfList(X.ComponentSet) in
-    T.translate component_translate configuration.configuration_components);
+    let module T = MapOfList(X.ComponentNameMap) in
+    try
+      T.translate (fun component -> component.Y.component_name) component_translate configuration.Y.configuration_components
+    with
+      T.DoubleKey component_name -> raise (DoubleComponentNameInConfiguration component_name) );
 
   X.configuration_bindings = (
     let module T = SetOfList(X.BindingSet) in
-    T.translate binding_translate configuration.configuration_bindings);
+    try
+      T.translate binding_translate configuration.Y.configuration_bindings
+    with
+      T.DoubleElement binding -> raise (DoubleBindingInConfiguration binding));
 }
+
+
+
+
+
+(** ==== SPECIFICATION ==== *)
+
+(*
+let spec_variable_name_translate spec_variable_name = spec_variable_name
+
+let spec_const_translate spec_const = spec_const
+
+let spec_local_element_translate spec_local_element =
+  match spec_local_element_translate with 
+  | `SpecLocalElementPackage (package_name) -> SpecLocalElementPackage (package_name)
+  | `SpecLocalElementComponentType (component_type_name) -> SpecLocalElementComponentType (component_type_name)
+  | `SpecLocalElementPort (port_name) -> SpecLocalElementPort (port_name)
+
+let spec_local_expr_translate spec_local_expr =
+  match spec_local_expr_translate with 
+  | `SpecLocalExprVar (spec_variable_name) -> SpecLocalExprVar (spec_variable_name)
+  | `SpecLocalExprConst (spec_const) -> SpecLocalExprConst (spec_const)
+  | `SpecLocalExprArity (spec_local_element) -> SpecLocalExprArity (spec_local_element)
+  | `SpecLocalExprAdd ((l_spec_local_expr, r_spec_local_expr)) -> SpecLocalExprAdd ((l_spec_local_expr, r_spec_local_expr))
+  | `SpecLocalExprSub ((l_spec_local_expr, r_spec_local_expr)) -> SpecLocalExprSub ((l_spec_local_expr, r_spec_local_expr))
+  | `SpecLocalExprMul ((spec_const, spec_local_expr)) -> SpecLocalExprMul ((spec_const, spec_local_expr))
+
+let spec_op_translate spec_op =
+  match spec_op_translate with 
+  | `Lt  -> Lt 
+  | `LEq  -> LEq 
+  | `Eq  -> Eq 
+  | `GEq  -> GEq 
+  | `Gt  -> Gt 
+  | `NEq -> NEq
+
+let local_specification_translate local_specification =
+  match local_specification_translate with 
+  | `SpecLocalTrue -> SpecLocalTrue
+  | `SpecLocalOp ((spec_local_expr, spec_op, spec_local_expr)) -> SpecLocalOp ((spec_local_expr, spec_op, spec_local_expr))
+  | `SpecLocalAnd ((l_local_specification, r_local_specification)) -> SpecLocalAnd ((l_local_specification, r_local_specification))
+  | `SpecLocalOr ((l_local_specification, r_local_specification)) -> SpecLocalOr ((l_local_specification, r_local_specification))
+  | `SpecLocalImpl ((l_local_specification, r_local_specification)) -> SpecLocalImpl ((l_local_specification, r_local_specification))
+  | `SpecLocalNot (local_specification) -> SpecLocalNot (local_specification)
+
+let spec_repository_constraint_translate spec_repository_constraint = spec_repository_constraint
+
+let spec_repository_constraints_translate spec_repository_constraints =
+  List.map spec_repository_constraint_translate spec_repository_constraints
+
+let spec_resource_constraint_translate spec_resource_constraint =
+  (resource_name_translate resource_name, spec_op_translate spec_op, spec_const_translate spec_const)
+
+let spec_resource_constraints_translate spec_resource_constraints =
+  List.map spec_resource_constraint_translate spec_resource_constraints
+
+let spec_element_translate spec_element =
+  match spec_element_translate with 
+  | `SpecElementPackage (package_name) -> SpecElementPackage (package_name)
+  | `SpecElementComponentType (component_type_name) -> SpecElementComponentType (component_type_name)
+  | `SpecElementPort (port_name) -> SpecElementPort (port_name)
+  | `SpecElementLocalisation ((spec_resource_constraints, spec_repository_constraints, local_specification)) -> SpecElementLocalisation ((spec_resource_constraints, spec_repository_constraints, local_specification))
+
+let spec_expr_translate spec_expr =
+  match spec_expr_translate with 
+  | `SpecExprVar (spec_variable_name) -> SpecExprVar (spec_variable_name)
+  | `SpecExprConst (spec_const) -> SpecExprConst (spec_const)
+  | `SpecExprArity (spec_element) -> SpecExprArity (spec_element)
+  | `SpecExprAdd ((l_spec_expr, r_spec_expr)) -> SpecExprAdd ((l_spec_expr, r_spec_expr))
+  | `SpecExprSub ((l_spec_expr, r_spec_expr)) -> SpecExprSub ((l_spec_expr, r_spec_expr))
+  | `SpecExprMul ((spec_const, spec_expr)) -> SpecExprMul ((spec_const, spec_expr))
+
+let specification_translate specification =
+  match specification_translate with 
+  | `SpecTrue -> SpecTrue
+  | `SpecOp ((spec_expr, spec_op, spec_expr)) -> SpecOp ((spec_expr, spec_op, spec_expr))
+  | `SpecAnd ((l_specification, r_specification)) -> SpecAnd ((l_specification, r_specification))
+  | `SpecOr ((l_specification, r_specification)) -> SpecOr ((l_specification, r_specification))
+  | `SpecImpl ((l_specification, r_specification)) -> SpecImpl ((l_specification, r_specification))
+  | `SpecNot (specification) -> SpecNot (specification)
+
+*)

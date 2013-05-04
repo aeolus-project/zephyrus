@@ -41,6 +41,8 @@ open Configuration_generation
 
 open Configuration_output
 
+module XXX = At2
+
 
 (* === Handling the arguments === *)
 
