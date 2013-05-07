@@ -58,3 +58,14 @@ module MapOfList :
     exception DoubleKey of M.key
   	val translate : ('a -> M.key) -> ('a -> 'b) -> 'a list -> 'b M.t
   end
+
+module SetOfMapValues :
+  functor (M : Map.S) ->
+  functor (Ord : Set.OrderedType) ->
+  sig
+    exception DoubleValue of Ord.t
+
+    module Set : sig include Set.S with type elt = Ord.t end
+
+	val set_of_map_values : Set.elt M.t -> Set.t
+  end

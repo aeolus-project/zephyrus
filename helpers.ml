@@ -111,3 +111,19 @@ module MapOfList =
       let module T = MapOfAssocList(M) in
       T.translate key_translate value_translate (List.combine l l)
   end
+
+module SetOfMapValues =
+  functor (M : Map.S) ->
+  functor (Ord : Set.OrderedType) ->
+  struct
+    exception DoubleValue of Ord.t
+
+    module Set = Set.Make(Ord)
+
+    let set_of_map_values map =
+      M.fold (fun _ value set ->
+        if Set.mem value set
+        then raise (DoubleValue value)
+        else Set.add value set
+      ) map Set.empty
+  end
