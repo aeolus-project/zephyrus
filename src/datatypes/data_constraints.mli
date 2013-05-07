@@ -89,7 +89,7 @@ type binary_cstr_op =
 (** Constants *)
 type const =
   | Int of int  (** An integer constant *)
-  | Inf of bool (** A positive and negative infinity constant *)
+  | Inf of bool (** A positive and negative infinity constant *) (* could be nice if we could remove that *)
 
 (** Variables *)
 type var = 

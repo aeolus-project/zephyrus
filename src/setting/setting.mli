@@ -17,46 +17,43 @@
 (*                                                                          *)
 (****************************************************************************)
 
-module type OrderedType = Map.OrderedType
-module type Map_from_stblib = Map.S
-module type Set_from_stblib = Set.S
+(* I wonder if all these configuration options for the input should not be abstracted away with few modules in the input.mli file *)
+type input_configuration =
+ | Input_configuration_none
+ | Input_configuration_file_json of string
+
+type input_specification =
+ | Input_specification_none
+ | Input_specification_file_json of string
+ | Input_specification_file_text of string
+ | Input_specification_cmd_text of string
+
+type input_optimization =
+ | Input_optimization_none
+ | Input_optimization_file_text of string
+ | Input_optimization_cmd_text of string
+
+type input_universe =
+ | Input_universe_none
+ | Input_universe_file_json of string
+
+type input_repositories =
+ | Input_repositories_files of string list
 
 
-module Map : sig
+type model =
+ | Model_flat
+ | Model_location
+ | Model_hierarchy
 
-  module type S = sig
-    include Map_from_stblib
-    
-    val map_of_list: (key * 'a) list -> 'a t
-    val map : ('a -> 'b) -> 'a t -> 'b t
-  end
-  
-  module Make(Ord : OrderedType) : S with type key = Ord.t
+type constraints = 
+ | Constraints
 
-  module Convert(Map_origin : S) (Map_target : S) : sig
-    val convert : ((Map_origin.key * 'a) -> (Map_target.key * 'b)) -> 'a Map_origin.t -> 'b Map_target.t
-  end
-end
+type solver =
+ | Solver_facile
+ | Solver_minizinc
+ | Solver_gecode
 
-module MapInt : Map.S with key = int
-module MapString : Map.S with key = string
+...
 
-
-module Set : sig
-
-  module type S = sig
-    include Set_from_stblib
-    
-    val set_of_list: elt list -> t
-  end
-  
-  module Make(Ord : OrderedType) : S with type elt = Ord.t
-
-  module Convert(Set_origin : S) (Set_target : S) : sig
-    val convert : (Set_origin.elt -> Set_target.elt) -> Set_origin.t -> Set_target.t
-  end
-end
-
-module SetInt : Set.S with elt = int
-module SetString : Set.S with elt = string
 

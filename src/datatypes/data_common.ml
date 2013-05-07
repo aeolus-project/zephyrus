@@ -49,6 +49,9 @@ module Map = struct
 
 end
 
+module MapInt = Map.Make(struct type t = int let compare = Pervasives.compare end)
+module MapString = Map.Make(struct type t = string let compare = Pervasives.compare end)
+
 
 module Set = struct
 
@@ -69,5 +72,8 @@ module Set = struct
     let convert f s = Set_origin.fold (fun v res -> Set_target.add (f v) res) s Set_target.empty
   end
 end
+
+module SetInt = Set.Make(struct type t = int let compare = Pervasives.compare end)
+module SetString = Set.Make(struct type t = string let compare = Pervasives.compare end)
 
 
