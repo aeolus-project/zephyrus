@@ -29,7 +29,7 @@ type solver_settings = {
 
 type solve_function =
   Variables.variable list ->
-  Constraints.generated_constraints ->
+  Constraints_generation.generated_constraints ->
   Optimization_functions.optimization_function -> (* A single optimization function. *)
   solver_settings ->
   Solution.solution_with_cost (* It returns the solution and its cost. *)
@@ -41,7 +41,7 @@ module type SOLVER =
 
 type solve_lex_function =
   Variables.variable list ->
-  Constraints.generated_constraints ->
+  Constraints_generation.generated_constraints ->
   Optimization_functions.optimization_function list -> (* List of optimization functions. *)
   solver_settings ->
   Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
@@ -118,7 +118,7 @@ let standard_flatzinc_command_line_solver
   (flatzinc_solver                : in_out_program)
 
   (variables         : Variables.variable list)
-  (generated_constraints : Constraints.generated_constraints)
+  (generated_constraints : Constraints_generation.generated_constraints)
   (optimization_function : Optimization_functions.optimization_function)
   (solver_settings       : solver_settings) 
 

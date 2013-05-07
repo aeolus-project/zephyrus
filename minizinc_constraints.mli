@@ -28,7 +28,7 @@ val string_of_minizinc_variables : minizinc_variables -> string
 
 val translate_constraints : 
   minizinc_variables ->                           (* The minizinc variables to use in the translation. *)
-  Constraints.generated_constraints ->            (* The generated constraints which will be translated. *)
+  Constraints_generation.generated_constraints -> (* The generated constraints which will be translated. *)
   Optimization_functions.optimization_function -> (* The optimization expression. *)
   string
 

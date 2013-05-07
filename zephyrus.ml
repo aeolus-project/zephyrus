@@ -35,7 +35,7 @@ open Easy
 open Typing_context
 open Facile_variables
 open Facile_constraints
-open Constraints
+open Constraints_generation
 open Solution
 open Configuration_generation
 
