@@ -18,7 +18,7 @@
 (****************************************************************************)
 
 
-open At1
+open Aeolus_types
 open Variables
 
 val get_component_type                : universe -> component_type_name -> component_type

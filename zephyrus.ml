@@ -41,7 +41,7 @@ open Configuration_generation
 
 open Configuration_output
 
-module XXX = At2
+module TestCompile = Aeolus_types_translation
 
 
 (* === Handling the arguments === *)

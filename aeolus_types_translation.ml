@@ -1,7 +1,7 @@
 
 open Helpers
 
-module X = At1
+module X = Aeolus_types
 module Y = Aeolus_types_t
 
 let component_type_name_translate component_type_name = component_type_name

@@ -21,7 +21,7 @@
 module Plain =
   struct
 
-    open At1
+    open Aeolus_types
 
     let string_of_component_type_name component_type_name = component_type_name
     let string_of_port_name port_name = port_name
