@@ -212,78 +212,78 @@ let configuration_translate configuration = {
 
 (** ==== SPECIFICATION ==== *)
 
-(*
 let spec_variable_name_translate spec_variable_name = spec_variable_name
 
 let spec_const_translate spec_const = spec_const
 
 let spec_local_element_translate spec_local_element =
-  match spec_local_element_translate with 
-  | `SpecLocalElementPackage (package_name) -> SpecLocalElementPackage (package_name)
-  | `SpecLocalElementComponentType (component_type_name) -> SpecLocalElementComponentType (component_type_name)
-  | `SpecLocalElementPort (port_name) -> SpecLocalElementPort (port_name)
+  match spec_local_element with 
+  | `SpecLocalElementPackage (package_name) -> X.SpecLocalElementPackage (package_name_translate package_name)
+  | `SpecLocalElementComponentType (component_type_name) -> X.SpecLocalElementComponentType (component_type_name_translate component_type_name)
+  | `SpecLocalElementPort (port_name) -> X.SpecLocalElementPort (port_name_translate port_name)
 
-let spec_local_expr_translate spec_local_expr =
-  match spec_local_expr_translate with 
-  | `SpecLocalExprVar (spec_variable_name) -> SpecLocalExprVar (spec_variable_name)
-  | `SpecLocalExprConst (spec_const) -> SpecLocalExprConst (spec_const)
-  | `SpecLocalExprArity (spec_local_element) -> SpecLocalExprArity (spec_local_element)
-  | `SpecLocalExprAdd ((l_spec_local_expr, r_spec_local_expr)) -> SpecLocalExprAdd ((l_spec_local_expr, r_spec_local_expr))
-  | `SpecLocalExprSub ((l_spec_local_expr, r_spec_local_expr)) -> SpecLocalExprSub ((l_spec_local_expr, r_spec_local_expr))
-  | `SpecLocalExprMul ((spec_const, spec_local_expr)) -> SpecLocalExprMul ((spec_const, spec_local_expr))
+let rec spec_local_expr_translate spec_local_expr =
+  match spec_local_expr with 
+  | `SpecLocalExprVar (spec_variable_name) -> X.SpecLocalExprVar (spec_variable_name_translate spec_variable_name)
+  | `SpecLocalExprConst (spec_const) -> X.SpecLocalExprConst (spec_const_translate spec_const)
+  | `SpecLocalExprArity (spec_local_element) -> X.SpecLocalExprArity (spec_local_element_translate spec_local_element)
+  | `SpecLocalExprAdd (l_spec_local_expr, r_spec_local_expr) -> X.SpecLocalExprAdd (spec_local_expr_translate l_spec_local_expr, spec_local_expr_translate r_spec_local_expr)
+  | `SpecLocalExprSub (l_spec_local_expr, r_spec_local_expr) -> X.SpecLocalExprSub (spec_local_expr_translate l_spec_local_expr, spec_local_expr_translate r_spec_local_expr)
+  | `SpecLocalExprMul (spec_const, spec_local_expr) -> X.SpecLocalExprMul (spec_const_translate spec_const, spec_local_expr_translate spec_local_expr)
 
 let spec_op_translate spec_op =
-  match spec_op_translate with 
-  | `Lt  -> Lt 
-  | `LEq  -> LEq 
-  | `Eq  -> Eq 
-  | `GEq  -> GEq 
-  | `Gt  -> Gt 
-  | `NEq -> NEq
+  match spec_op with 
+  | `Lt   -> X.Lt 
+  | `LEq  -> X.LEq 
+  | `Eq   -> X.Eq 
+  | `GEq  -> X.GEq 
+  | `Gt   -> X.Gt 
+  | `NEq  -> X.NEq
 
-let local_specification_translate local_specification =
-  match local_specification_translate with 
-  | `SpecLocalTrue -> SpecLocalTrue
-  | `SpecLocalOp ((spec_local_expr, spec_op, spec_local_expr)) -> SpecLocalOp ((spec_local_expr, spec_op, spec_local_expr))
-  | `SpecLocalAnd ((l_local_specification, r_local_specification)) -> SpecLocalAnd ((l_local_specification, r_local_specification))
-  | `SpecLocalOr ((l_local_specification, r_local_specification)) -> SpecLocalOr ((l_local_specification, r_local_specification))
-  | `SpecLocalImpl ((l_local_specification, r_local_specification)) -> SpecLocalImpl ((l_local_specification, r_local_specification))
-  | `SpecLocalNot (local_specification) -> SpecLocalNot (local_specification)
+let rec local_specification_translate local_specification =
+  match local_specification with 
+  | `SpecLocalTrue -> X.SpecLocalTrue
+  | `SpecLocalOp (l_spec_local_expr, spec_op, r_spec_local_expr) -> X.SpecLocalOp (spec_local_expr_translate l_spec_local_expr, spec_op_translate spec_op, spec_local_expr_translate r_spec_local_expr)
+  | `SpecLocalAnd (l_local_specification, r_local_specification) -> X.SpecLocalAnd (local_specification_translate l_local_specification, local_specification_translate r_local_specification)
+  | `SpecLocalOr (l_local_specification, r_local_specification) -> X.SpecLocalOr (local_specification_translate l_local_specification, local_specification_translate r_local_specification)
+  | `SpecLocalImpl (l_local_specification, r_local_specification) -> X.SpecLocalImpl (local_specification_translate l_local_specification, local_specification_translate r_local_specification)
+  | `SpecLocalNot (local_specification) -> X.SpecLocalNot (local_specification_translate local_specification)
 
-let spec_repository_constraint_translate spec_repository_constraint = spec_repository_constraint
+let spec_repository_constraint_translate spec_repository_constraint = 
+  repository_name_translate spec_repository_constraint
 
 let spec_repository_constraints_translate spec_repository_constraints =
   List.map spec_repository_constraint_translate spec_repository_constraints
 
 let spec_resource_constraint_translate spec_resource_constraint =
+  let (resource_name, spec_op, spec_const) = spec_resource_constraint in
   (resource_name_translate resource_name, spec_op_translate spec_op, spec_const_translate spec_const)
 
 let spec_resource_constraints_translate spec_resource_constraints =
   List.map spec_resource_constraint_translate spec_resource_constraints
 
 let spec_element_translate spec_element =
-  match spec_element_translate with 
-  | `SpecElementPackage (package_name) -> SpecElementPackage (package_name)
-  | `SpecElementComponentType (component_type_name) -> SpecElementComponentType (component_type_name)
-  | `SpecElementPort (port_name) -> SpecElementPort (port_name)
-  | `SpecElementLocalisation ((spec_resource_constraints, spec_repository_constraints, local_specification)) -> SpecElementLocalisation ((spec_resource_constraints, spec_repository_constraints, local_specification))
+  match spec_element with
+  | `SpecElementPackage (package_name) -> X.SpecElementPackage (package_name_translate package_name)
+  | `SpecElementComponentType (component_type_name) -> X.SpecElementComponentType (component_type_name_translate component_type_name)
+  | `SpecElementPort (port_name) -> X.SpecElementPort (port_name_translate port_name)
+  | `SpecElementLocalisation (spec_resource_constraints, spec_repository_constraints, local_specification) -> 
+      X.SpecElementLocalisation (((spec_resource_constraints_translate spec_resource_constraints), (spec_repository_constraints_translate spec_repository_constraints), (local_specification_translate local_specification)))
 
-let spec_expr_translate spec_expr =
-  match spec_expr_translate with 
-  | `SpecExprVar (spec_variable_name) -> SpecExprVar (spec_variable_name)
-  | `SpecExprConst (spec_const) -> SpecExprConst (spec_const)
-  | `SpecExprArity (spec_element) -> SpecExprArity (spec_element)
-  | `SpecExprAdd ((l_spec_expr, r_spec_expr)) -> SpecExprAdd ((l_spec_expr, r_spec_expr))
-  | `SpecExprSub ((l_spec_expr, r_spec_expr)) -> SpecExprSub ((l_spec_expr, r_spec_expr))
-  | `SpecExprMul ((spec_const, spec_expr)) -> SpecExprMul ((spec_const, spec_expr))
+let rec spec_expr_translate spec_expr =
+  match spec_expr with 
+  | `SpecExprVar (spec_variable_name) -> X.SpecExprVar (spec_variable_name_translate spec_variable_name)
+  | `SpecExprConst (spec_const) -> X.SpecExprConst (spec_const_translate spec_const)
+  | `SpecExprArity (spec_element) -> X.SpecExprArity (spec_element_translate spec_element)
+  | `SpecExprAdd (l_spec_expr, r_spec_expr) -> X.SpecExprAdd (spec_expr_translate l_spec_expr, spec_expr_translate r_spec_expr)
+  | `SpecExprSub (l_spec_expr, r_spec_expr) -> X.SpecExprSub (spec_expr_translate l_spec_expr, spec_expr_translate r_spec_expr)
+  | `SpecExprMul (spec_const, spec_expr) -> X.SpecExprMul (spec_const_translate spec_const, spec_expr_translate spec_expr)
 
-let specification_translate specification =
-  match specification_translate with 
-  | `SpecTrue -> SpecTrue
-  | `SpecOp ((spec_expr, spec_op, spec_expr)) -> SpecOp ((spec_expr, spec_op, spec_expr))
-  | `SpecAnd ((l_specification, r_specification)) -> SpecAnd ((l_specification, r_specification))
-  | `SpecOr ((l_specification, r_specification)) -> SpecOr ((l_specification, r_specification))
-  | `SpecImpl ((l_specification, r_specification)) -> SpecImpl ((l_specification, r_specification))
-  | `SpecNot (specification) -> SpecNot (specification)
-
-*)
+let rec specification_translate specification =
+  match specification with 
+  | `SpecTrue -> X.SpecTrue
+  | `SpecOp (l_spec_expr, spec_op, r_spec_expr) -> X.SpecOp (spec_expr_translate l_spec_expr, spec_op_translate spec_op, spec_expr_translate r_spec_expr)
+  | `SpecAnd (l_specification, r_specification) -> X.SpecAnd (specification_translate l_specification, specification_translate r_specification)
+  | `SpecOr (l_specification, r_specification) -> X.SpecOr (specification_translate l_specification, specification_translate r_specification)
+  | `SpecImpl (l_specification, r_specification) -> X.SpecImpl (specification_translate l_specification, specification_translate r_specification)
+  | `SpecNot (specification) -> X.SpecNot (specification_translate specification)
