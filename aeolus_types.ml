@@ -7,10 +7,13 @@ module StringMap = Map.Make(String)
 module StringSet = Set.Make(String)
 
 type component_type_name = string
-module ComponentTypeNameMap = StringMap
+module ComponentTypeNameOrdering = String
+module ComponentTypeNameSet = Set.Make(ComponentTypeNameOrdering)
+module ComponentTypeNameMap = Map.Make(ComponentTypeNameOrdering)
 type port_name = string
-module PortNameSet = StringSet
-module PortNameMap = StringMap
+module PortNameOrdering = String
+module PortNameSet = Set.Make(PortNameOrdering)
+module PortNameMap = Map.Make(PortNameOrdering)
 
 type provide_arity = 
   | InfiniteProvide 
@@ -19,22 +22,31 @@ type provide_arity =
 type require_arity = int
 
 type repository_name = string
-module RepositoryNameMap = StringMap
+module RepositoryNameOrdering = String
+module RepositoryNameSet = Set.Make(RepositoryNameOrdering)
+module RepositoryNameMap = Map.Make(RepositoryNameOrdering)
 type package_name = string
-module PackageNameSet = StringSet
-module PackageNameMap = StringMap
+module PackageNameOrdering = String
+module PackageNameSet = Set.Make(PackageNameOrdering)
+module PackageNameMap = Map.Make(PackageNameOrdering)
 
 type resource_name = string
-module ResourceNameMap = StringMap
+module ResourceNameOrdering = String
+module ResourceNameSet = Set.Make(ResourceNameOrdering)
+module ResourceNameMap = Map.Make(ResourceNameOrdering)
 
 type resource_consumption = int
 type resource_provide_arity = int
 
 type location_name = string
-module LocationNameMap = StringMap
+module LocationNameOrdering = String
+module LocationNameSet = Set.Make(LocationNameOrdering)
+module LocationNameMap = Map.Make(LocationNameOrdering)
 
 type component_name = string
-module ComponentNameMap = StringMap
+module ComponentNameOrdering = String
+module ComponentNameMap = Map.Make(ComponentNameOrdering)
+
 
 (** Type definitions for Component Type. *)
 
@@ -51,14 +63,14 @@ type component_type = {
 
 (** Type definitions for Universe. *)
 
-module ComponentType =
+module ComponentTypeOrdering =
   struct
     type t = component_type
     let compare component_type_1 component_type_2 = 
       String.compare component_type_1.component_type_name component_type_2.component_type_name 
   end
 
-module ComponentTypeSet = Set.Make(ComponentType)
+module ComponentTypeSet = Set.Make(ComponentTypeOrdering)
 
 type component_types = ComponentTypeSet.t
 
@@ -71,14 +83,15 @@ type package = {
   package_consume  : resource_consumption ResourceNameMap.t
 }
 
-module Package =
+module PackageOrdering =
   struct
     type t = package
     let compare package_1 package_2 = 
       String.compare package_1.package_name package_2.package_name 
   end
 
-module PackageSet = Set.Make(Package)
+module PackageSet = Set.Make(PackageOrdering)
+module PackageSetSet = Set.Make(PackageSet)
 
 type packages = PackageSet.t
 
@@ -87,14 +100,14 @@ type repository = {
   repository_packages : package PackageNameMap.t
 }
 
-module Repository =
+module RepositoryOrdering =
   struct
     type t = repository
     let compare repository_1 repository_2 = 
       String.compare repository_1.repository_name repository_2.repository_name 
   end
 
-module RepositorySet = Set.Make(Repository)
+module RepositorySet = Set.Make(RepositoryOrdering)
 
 type repositories = RepositorySet.t
 
@@ -116,14 +129,14 @@ type location = {
   location_packages_installed : package_names;
 }
 
-module Location =
+module LocationOrdering =
   struct
     type t = location
     let compare location_1 location_2 = 
       String.compare location_1.location_name location_2.location_name 
   end
 
-module LocationSet = Set.Make(Location)
+module LocationSet = Set.Make(LocationOrdering)
 
 type component = {
   component_name     : component_name;
@@ -131,14 +144,14 @@ type component = {
   component_location : location_name;
 }
 
-module Component =
+module ComponentOrdering =
   struct
     type t = component
     let compare component_1 component_2 = 
       String.compare component_1.component_name component_2.component_name 
   end
 
-module ComponentSet = Set.Make(Component)
+module ComponentSet = Set.Make(ComponentOrdering)
 
 type binding = {
   binding_port     : port_name;
@@ -153,7 +166,7 @@ let lexicographic_compare (compare : 'a -> 'b -> int) (l : ('a * 'b) list) =
     else compare h1 h2
   ) 0 l
 
-module Binding =
+module BindingOrdering =
   struct
     type t = binding
     let compare binding_1 binding_2 = 
@@ -164,7 +177,7 @@ module Binding =
       ]
   end
 
-module BindingSet = Set.Make(Binding)
+module BindingSet = Set.Make(BindingOrdering)
 
 type configuration = {
   configuration_locations  : location LocationNameMap.t;

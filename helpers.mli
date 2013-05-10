@@ -61,11 +61,18 @@ module MapOfList :
 
 module SetOfMapValues :
   functor (M : Map.S) ->
-  functor (Ord : Set.OrderedType) ->
+  functor (Set : Set.S) ->
   sig
-    exception DoubleValue of Ord.t
-
-    module Set : sig include Set.S with type elt = Ord.t end
+    exception DoubleValue of Set.elt
 
 	val set_of_map_values : Set.elt M.t -> Set.t
+  end
+
+module SetOfSet :
+  functor (Set_origin : Set.S) ->
+  functor (Set_target : Set.S) -> 
+  sig
+    
+    val convert : (Set_origin.elt -> Set_target.elt) -> Set_origin.t -> Set_target.t
+  
   end

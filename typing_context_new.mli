@@ -26,24 +26,24 @@ val get_component_type_implementation : universe -> component_type_name -> Packa
 val get_repository                    : universe -> repository_name -> repository
 val get_package                       : repository -> package_name -> package
 
-val get_component_types               : universe -> component_type list
-val get_packages                      : universe -> package list
+val get_component_types               : universe -> ComponentTypeSet.t
+val get_packages                      : universe -> PackageSet.t
 
-val get_repository_package_names      : universe -> repository_name -> package_name list
+val get_repository_package_names      : universe -> repository_name -> PackageNameSet.t
 
-val get_component_type_names          : universe -> component_type_name list
-val get_port_names                    : universe -> port_name list
-val get_package_names                 : universe -> package_name list
-val get_repository_names              : universe -> repository_name list
-val get_resource_names                : universe -> resource_name list
+val get_component_type_names          : universe -> ComponentTypeSet.t
+val get_port_names                    : universe -> PortNameSet.t
+val get_package_names                 : universe -> PackageNameSet.t
+val get_repository_names              : universe -> RepositoryNameSet.t
+val get_resource_names                : universe -> ResourceNameSet.t
 
 val get_elements                      : universe -> element list
 
-val get_location_names                : configuration -> location_name list
-val get_locations                     : configuration -> location list
+val get_location_names                : configuration -> LocationNameSet.t
+val get_locations                     : configuration -> LocationSet.t
 val get_location                      : configuration -> location_name -> location
-val get_location_components           : configuration -> location_name -> component list
-val get_location_packages_installed   : configuration -> location_name -> package_name list
+val get_location_components           : configuration -> location_name -> ComponentSet.t
+val get_location_packages_installed   : configuration -> location_name -> PackageNameSet.t
 
 val get_resource_provide_arity        : location -> resource_name -> resource_provide_arity
 

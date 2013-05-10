@@ -40,10 +40,11 @@ let get_component_type_implementation universe component_type_name =
   try
     ComponentTypeNameMap.find component_type_name universe.universe_implementation
   with
-  (* If this component type is not on the universe implementation list, 
-   * this does not mean it does not exist, but that it simply does not
-   * need any packages to implement it. *)
-  | Not_found -> [] 
+  | Not_found -> 
+      failwith 
+        (Printf.sprintf 
+        "the component type %s does not exist in this universe" 
+        (string_of_component_type_name component_type_name))
 
 let get_repository universe repository_name =
   try
@@ -65,29 +66,68 @@ let get_package repository package_name =
         "the package %s does not exist in this repository" 
         (string_of_package_name package_name))
 
-let get_component_types universe = ComponentTypeNameMap.elements universe.universe_component_types
+let get_component_types universe = 
+  let module ComponentTypeSetOfComponentTypeNameMap =
+    SetOfMapValues(ComponentTypeNameMap)(ComponentTypeSet)
+  in
+    ComponentTypeSetOfComponentTypeNameMap.set_of_map_values universe.universe_component_types
+
+let package_set_of_package_name_map : 'a PackageNameMap.t -> PackageSet.t =
+  let module PackageSetOfPackageNameMap =
+    SetOfMapValues(PackageNameMap)(PackageSet)
+  in
+  PackageSetOfPackageNameMap.set_of_map_values
 
 let get_packages universe =
-  List.flatten ( 
-    List.map ( fun repository -> 
-      repository.repository_packages  
-    ) universe.universe_repositories
-  ) 
+  let module RepositorySetOfRepositoryNameMap =
+    SetOfMapValues(RepositoryNameMap)(RepositorySet)
+  in
+  let repositories : RepositorySet.t = 
+    RepositorySetOfRepositoryNameMap.set_of_map_values universe.universe_repositories
+  in
+  let module PackageSetSetOfRepositorySet =
+    SetOfSet(RepositorySet)(PackageSetSet)
+  in
+  let package_sets : PackageSetSet.t = 
+    PackageSetSetOfRepositorySet.convert (fun repository -> 
+      package_set_of_package_name_map repository.repository_packages
+    ) repositories
+  in
+  PackageSetSet.fold PackageSet.union package_sets PackageSet.empty
 
 let get_repository_package_names universe repository_name =
   let repository = get_repository universe repository_name
   in
-  List.map ( fun package ->
-    package.package_name
-  ) repository.repository_packages
-
+  let package_set : PackageSet.t = 
+    package_set_of_package_name_map repository.repository_packages
+  in
+  let module PackageNameSetOfPackageSet =
+    SetOfSet(PackageSet)(PackageNameSet)
+  in
+  PackageNameSetOfPackageSet.convert (fun package -> package.package_name) package_set
 
 let get_component_type_names universe =
-  List.map ( fun component_type -> 
-      component_type.component_type_name
-  ) universe.universe_component_types
+  let component_types : ComponentTypeSet.t = get_component_types universe
+  in
+  let module ComponentTypeNameSetOfComponentTypeSet =
+    SetOfSet(ComponentTypeSet)(ComponentTypeNameSet)
+  in
+  ComponentTypeNameSetOfComponentTypeSet.convert (fun component_type -> component_type.component_type_name) component_types
 
 let get_port_names universe =
+  let component_types : ComponentTypeSet.t = get_component_types universe
+  in
+  let module PortNameSetSetOfComponentTypeSet =
+    SetOfSet(ComponentTypeSet)(PortNameSetSet)
+  in
+  let port_name_sets : PortNameSetSet.t = PortNameSetSetOfComponentTypeSet.convert (function component_type -> 
+    component_type.component_type_provide
+  ) component_types
+  in
+  PortNameSetSet.fold PortNameSet.union port_name_sets PortNameSet.empty
+
+  (* HERE *)
+
   List.unique ( 
     List.flatten ( 
       List.map ( fun component_type -> 

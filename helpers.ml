@@ -114,11 +114,9 @@ module MapOfList =
 
 module SetOfMapValues =
   functor (M : Map.S) ->
-  functor (Ord : Set.OrderedType) ->
+  functor (Set : Set.S) ->
   struct
-    exception DoubleValue of Ord.t
-
-    module Set = Set.Make(Ord)
+    exception DoubleValue of Set.elt
 
     let set_of_map_values map =
       M.fold (fun _ value set ->
@@ -126,4 +124,13 @@ module SetOfMapValues =
         then raise (DoubleValue value)
         else Set.add value set
       ) map Set.empty
+  end
+
+module SetOfSet =
+  functor (Set_origin : Set.S) ->
+  functor (Set_target : Set.S) -> 
+  struct
+    
+    let convert f s = Set_origin.fold (fun v res -> Set_target.add (f v) res) s Set_target.empty
+  
   end

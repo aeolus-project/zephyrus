@@ -41,7 +41,8 @@ open Configuration_generation
 
 open Configuration_output
 
-module TestCompile = Aeolus_types_translation
+module TestCompile1 = Aeolus_types_translation
+(* module TestCompile2 = Typing_context_new *)
 
 
 (* === Handling the arguments === *)
