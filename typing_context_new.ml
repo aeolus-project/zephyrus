@@ -78,12 +78,14 @@ let package_set_of_package_name_map : 'a PackageNameMap.t -> PackageSet.t =
   in
   PackageSetOfPackageNameMap.set_of_map_values
 
-let get_packages universe =
+let get_repositories universe =
   let module RepositorySetOfRepositoryNameMap =
     SetOfMapValues(RepositoryNameMap)(RepositorySet)
   in
-  let repositories : RepositorySet.t = 
-    RepositorySetOfRepositoryNameMap.set_of_map_values universe.universe_repositories
+  RepositorySetOfRepositoryNameMap.set_of_map_values universe.universe_repositories
+
+let get_packages universe =
+  let repositories : RepositorySet.t = get_repositories universe
   in
   let module PackageSetSetOfRepositorySet =
     SetOfSet(RepositorySet)(PackageSetSet)
@@ -95,24 +97,44 @@ let get_packages universe =
   in
   PackageSetSet.fold PackageSet.union package_sets PackageSet.empty
 
+module type SetOfMapKeysS =
+  functor (Ord : Map.OrderedType) ->
+  sig
+  
+    module Map : Map.S with type key = Ord.t
+    module Set : Set.S with type elt = Ord.t
+
+    val set_of_map_keys : Set.elt Map.t -> Set.t
+
+  end
+
+module SetOfMapKeys =
+  functor (Ord : Map.OrderedType) ->
+  struct
+  
+    module Map = Map.Make(Ord)
+    module Set = Set.Make(Ord)
+
+    let set_of_map_keys map =
+      Map.fold (fun key _ set ->
+        Set.add key set
+      ) map Set.empty
+
+  end
+
 let get_repository_package_names universe repository_name =
   let repository = get_repository universe repository_name
   in
-  let package_set : PackageSet.t = 
-    package_set_of_package_name_map repository.repository_packages
+  let module PackageNameSetOfPackageNameMapKeys =
+    SetOfMapKeys(PackageNameOrdering)
   in
-  let module PackageNameSetOfPackageSet =
-    SetOfSet(PackageSet)(PackageNameSet)
-  in
-  PackageNameSetOfPackageSet.convert (fun package -> package.package_name) package_set
+  PackageNameSetOfPackageNameMapKeys.set_of_map_keys repository.repository_packages
 
 let get_component_type_names universe =
-  let component_types : ComponentTypeSet.t = get_component_types universe
+  let module ComponentTypeNameSetOfComponentTypeNameMapKeys =
+    SetOfMapKeys(ComponentTypeNameOrdering)
   in
-  let module ComponentTypeNameSetOfComponentTypeSet =
-    SetOfSet(ComponentTypeSet)(ComponentTypeNameSet)
-  in
-  ComponentTypeNameSetOfComponentTypeSet.convert (fun component_type -> component_type.component_type_name) component_types
+  ComponentTypeNameSetOfComponentTypeNameMapKeys.set_of_map_keys universe.universe_component_types
 
 let get_port_names universe =
   let component_types : ComponentTypeSet.t = get_component_types universe
@@ -121,60 +143,55 @@ let get_port_names universe =
     SetOfSet(ComponentTypeSet)(PortNameSetSet)
   in
   let port_name_sets : PortNameSetSet.t = PortNameSetSetOfComponentTypeSet.convert (function component_type -> 
-    component_type.component_type_provide
+    let module PortNameSetOfPortNameMapKeys =
+      SetOfMapKeys(PortNameOrdering)
+    in
+    let provide_port_set  : PortNameSet.t = PortNameSetOfPortNameMapKeys.set_of_map_keys component_type.component_type_provide
+    and require_port_set  : PortNameSet.t = PortNameSetOfPortNameMapKeys.set_of_map_keys component_type.component_type_require
+    and conflict_port_set : PortNameSet.t = component_type.component_type_conflict
+    in
+    List.fold_left PortNameSet.union PortNameSet.empty [provide_port_set; require_port_set; conflict_port_set]
+
   ) component_types
   in
   PortNameSetSet.fold PortNameSet.union port_name_sets PortNameSet.empty
 
-  (* HERE *)
-
-  List.unique ( 
-    List.flatten ( 
-      List.map ( fun component_type -> 
-        
-        (
-          List.map (fun (port_name, _) -> 
-            port_name
-          ) component_type.component_type_provide
-        )
-        @
-        (
-          List.map (fun (port_name, _) -> 
-            port_name
-          ) component_type.component_type_require
-        )
-        @
-        component_type.component_type_conflict
-    
-      ) universe.universe_component_types
-    ) 
-  )
-
 let get_repository_names universe =
-  List.map ( fun repository -> 
-      repository.repository_name
-  ) universe.universe_repositories
+  let module RepositoryNameSetOfRepositoryNameMapKeys =
+    SetOfMapKeys(RepositoryNameOrdering)
+  in
+  RepositoryNameSetOfRepositoryNameMapKeys.set_of_map_keys universe.universe_repositories
+
+let get_all_package_names_from_package package =
+  let package_name                   : PackageNameSet.t = PackageNameSet.singleton package.package_name
+  and packages_mentioned_in_depend   : PackageNameSet.t = PackageNameSetSet.fold PackageNameSet.union package.package_depend PackageNameSet.empty
+  and packages_mentioned_in_conflict : PackageNameSet.t = package.package_conflict
+  in
+  List.fold_left PackageNameSet.union package_name [packages_mentioned_in_depend; packages_mentioned_in_conflict]
 
 let get_package_names universe =
-  List.unique ( 
-    List.flatten ( 
-      List.map ( fun repository -> 
-        List.flatten ( 
-          List.map (fun package -> 
-            
-            (
-              [package.package_name]
-              @
-              (List.flatten package.package_depend)
-              @
-              (package.package_conflict)
-            )
+  let repositories : RepositorySet.t = get_repositories universe
+  in
+  let module PackageNameSetSetOfRepositorySet =
+    SetOfSet(RepositorySet)(PackageNameSetSet)
+  in
+  let package_sets : PackageNameSetSet.t =
+    PackageNameSetSetOfRepositorySet.convert (function repository ->
+      let packages : PackageSet.t = package_set_of_package_name_map repository.repository_packages
+      in
+      let module PackageNameSetSetOfPackageSet =
+        SetOfSet(PackageSet)(PackageNameSetSet)
+      in
+      let package_sets : PackageNameSetSet.t = 
+        PackageNameSetSetOfPackageSet.convert get_all_package_names_from_package packages
+      in
+      PackageNameSetSet.fold PackageNameSet.union package_sets PackageNameSet.empty
 
-          ) repository.repository_packages
-        )
-      ) universe.universe_repositories
-    ) 
-  )
+    ) repositories
+  in
+  PackageNameSetSet.fold PackageNameSet.union package_sets PackageNameSet.empty
+
+(* HERE *)
 
 let consumed_resources_of_resource_consumption_list 
   (resource_consumption_list : (resource_name * resource_consumption) list)

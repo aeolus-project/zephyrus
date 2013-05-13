@@ -15,6 +15,8 @@ module PortNameOrdering = String
 module PortNameSet = Set.Make(PortNameOrdering)
 module PortNameMap = Map.Make(PortNameOrdering)
 
+module PortNameSetSet = Set.Make(PortNameSet)
+
 type provide_arity = 
   | InfiniteProvide 
   | FiniteProvide of int
