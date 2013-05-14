@@ -85,7 +85,9 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
         in
 
         (* All the right side expressions: *)
-        let repository_package_names = get_repository_package_names universe repository_name
+        let repository = get_repository universe repository_name
+        in
+        let repository_package_names = get_repository_package_names repository
         in
 
         let right_side_exprs =

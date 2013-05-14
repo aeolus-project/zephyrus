@@ -147,7 +147,7 @@ let create_initial_configuration_resource_constraints configuration universe =
 
         (* The rights side expression: *)
         let resource_provide_arity =
-          get_resource_provide_arity location resource_name
+          get_location_resource_provide_arity location resource_name
 
         in
 

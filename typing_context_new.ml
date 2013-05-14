@@ -26,6 +26,46 @@ open ExtLib
 open Helpers
 
 
+(** handling errors when something demanded does not exist *)
+type something_does_not_exist =
+  | ComponentTypeInUniverse                of component_type_name
+  | ComponentTypeImplementationInUniverse  of component_type_name
+  | RepositoryInUniverse                   of repository_name
+  | PackageInRepository                    of package_name * repository_name
+  | LocationInTheConfiguration             of location_name
+
+let does_not_exist what = 
+  let fail_message =
+    match what with
+    | ComponentTypeInUniverse (component_type_name) -> 
+        Printf.sprintf 
+          "the component type %s does not exist in this universe" 
+          (string_of_component_type_name component_type_name)
+
+    | ComponentTypeImplementationInUniverse (component_type_name) -> 
+        Printf.sprintf 
+          "the component type %s implementation does not exist in this universe" 
+          (string_of_component_type_name component_type_name)
+
+    | RepositoryInUniverse (repository_name) ->
+        Printf.sprintf 
+          "the repository %s does not exist in this universe" 
+          (string_of_repository_name repository_name)
+
+    | PackageInRepository (package_name, repository_name) ->
+        Printf.sprintf 
+          "the package %s does not exist in the repository %s" 
+          (string_of_package_name    package_name)
+          (string_of_repository_name repository_name)
+
+    | LocationInTheConfiguration (location_name) ->
+        Printf.sprintf 
+          "the location %s does not exist in this configuration" 
+          (string_of_location_name location_name)
+  in
+  failwith fail_message
+
+
 
 (** universe *)
 
@@ -49,10 +89,7 @@ let get_component_type universe component_type_name =
     ComponentTypeNameMap.find component_type_name universe.universe_component_types
   with
   | Not_found -> 
-      failwith 
-        (Printf.sprintf 
-        "the component type %s does not exist in this universe" 
-        (string_of_component_type_name component_type_name))
+      does_not_exist (ComponentTypeInUniverse (component_type_name))
 
 
 (** port *)
@@ -144,10 +181,7 @@ let get_repository universe repository_name =
     RepositoryNameMap.find repository_name universe.universe_repositories
   with
   | Not_found -> 
-      failwith 
-        (Printf.sprintf 
-        "the repository %s does not exist in this universe" 
-        (string_of_repository_name repository_name))
+      does_not_exist (RepositoryInUniverse (repository_name))
 
 
 (** package *)
@@ -209,21 +243,19 @@ let get_repository_package repository package_name =
     PackageNameMap.find package_name repository.repository_packages
   with
   | Not_found -> 
-      failwith 
-        (Printf.sprintf 
-        "the package %s does not exist in this repository" 
-        (string_of_package_name package_name))
+      does_not_exist (PackageInRepository (package_name, repository.repository_name))
 
 let get_component_type_implementation universe component_type_name =
   try
     ComponentTypeNameMap.find component_type_name universe.universe_implementation
   with
-  | Not_found -> 
-      failwith 
-        (Printf.sprintf 
-        "the component type %s does not exist in this universe" 
-        (string_of_component_type_name component_type_name))
+  (* If this component type is not on the universe implementation list, 
+   * this does not mean it does not exist, but that it simply does not
+   * need any packages to implement it. *)
+  | Not_found -> PackageNameSet.empty
 
+  (* Alternative interpretation: *)
+  (* does_not_exist (ComponentTypeImplementationInUniverse (component_type_name)) *)
 
 (** resource *)
 
@@ -313,10 +345,7 @@ let get_location configuration location_name =
     LocationNameMap.find location_name configuration.configuration_locations
   with
   | Not_found -> 
-      failwith 
-        (Printf.sprintf 
-        "the location %s does not exist in this configuration" 
-        (string_of_location_name location_name))
+      does_not_exist (LocationInTheConfiguration (location_name))
 
 let get_location_components configuration location_name =
   let components : ComponentSet.t = get_components configuration
