@@ -22,26 +22,6 @@ module type Map_from_stblib = Map.S
 module type Set_from_stblib = Set.S
 
 
-module Map : sig
-
-  module type S = sig
-    include Map_from_stblib
-    
-    val map_of_list: (key * 'a) list -> 'a t
-    val map : ('a -> 'b) -> 'a t -> 'b t
-  end
-  
-  module Make(Ord : OrderedType) : S with type key = Ord.t
-
-  module Convert(Map_origin : S) (Map_target : S) : sig
-    val convert : ((Map_origin.key * 'a) -> (Map_target.key * 'b)) -> 'a Map_origin.t -> 'b Map_target.t
-  end
-end
-
-module MapInt : Map.S with key = int
-module MapString : Map.S with key = string
-
-
 module Set : sig
 
   module type S = sig
@@ -59,4 +39,29 @@ end
 
 module SetInt : Set.S with elt = int
 module SetString : Set.S with elt = string
+
+
+module Map : sig
+
+  module type S = sig
+    include Map_from_stblib
+    
+    val map_of_list: (key * 'a) list -> 'a t
+    val map : ('a -> 'b) -> 'a t -> 'b t
+
+    module Set_of_key(Set_target : Set.S with type Set_target.elt = key) : sig
+      (* TODO *)
+    end
+  end
+  
+  module Make(Ord : OrderedType) : S with type key = Ord.t
+
+  module Convert(Map_origin : S) (Map_target : S) : sig
+    val convert : ((Map_origin.key * 'a) -> (Map_target.key * 'b)) -> 'a Map_origin.t -> 'b Map_target.t
+  end
+end
+
+module MapInt : Map.S with key = int
+module MapString : Map.S with key = string
+
 

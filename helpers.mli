@@ -65,7 +65,17 @@ module SetOfMapValues :
   sig
     exception DoubleValue of Set.elt
 
-	val set_of_map_values : Set.elt M.t -> Set.t
+	  val set_of_map_values : Set.elt M.t -> Set.t
+
+  end
+
+module SetOfMapKeys :
+  functor (Map : Map.S) ->
+  functor (Set : Set.S with type elt = Map.key) ->
+  sig
+  
+    val set_of_map_keys : 'a Map.t -> Set.t
+
   end
 
 module SetOfSet :

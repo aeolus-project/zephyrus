@@ -26,31 +26,6 @@ open ExtLib
 open Helpers
 
 
-module type SetOfMapKeysS =
-  functor (Ord : Map.OrderedType) ->
-  sig
-  
-    module Map : Map.S with type key = Ord.t
-    module Set : Set.S with type elt = Ord.t
-
-    val set_of_map_keys : Set.elt Map.t -> Set.t
-
-  end
-
-module SetOfMapKeys =
-  functor (Ord : Map.OrderedType) ->
-  struct
-  
-    module Map = Map.Make(Ord)
-    module Set = Set.Make(Ord)
-
-    let set_of_map_keys map =
-      Map.fold (fun key _ set ->
-        Set.add key set
-      ) map Set.empty
-
-  end
-
 
 (** universe *)
 
@@ -58,10 +33,10 @@ module SetOfMapKeys =
 (** component_type *)
 
 let get_component_type_names universe =
-  let module ComponentTypeNameSetOfComponentTypeNameMapKeys =
-    SetOfMapKeys(ComponentTypeNameOrdering)
+  let module ComponentTypeNameSetOfMapKeys =
+    SetOfMapKeys(ComponentTypeNameMap)(ComponentTypeNameSet)
   in
-  ComponentTypeNameSetOfComponentTypeNameMapKeys.set_of_map_keys universe.universe_component_types
+  ComponentTypeNameSetOfMapKeys.set_of_map_keys universe.universe_component_types
 
 let get_component_types universe = 
   let module ComponentTypeSetOfComponentTypeNameMapValues =
@@ -89,11 +64,11 @@ let get_port_names universe =
     SetOfSet(ComponentTypeSet)(PortNameSetSet)
   in
   let port_name_sets : PortNameSetSet.t = PortNameSetSetOfComponentTypeSet.convert (function component_type -> 
-    let module PortNameSetOfPortNameMapKeys =
-      SetOfMapKeys(PortNameOrdering)
+    let module PortNameSetOfMapKeys =
+      SetOfMapKeys(PortNameMap)(PortNameSet)
     in
-    let provide_port_set  : PortNameSet.t = PortNameSetOfPortNameMapKeys.set_of_map_keys component_type.component_type_provide
-    and require_port_set  : PortNameSet.t = PortNameSetOfPortNameMapKeys.set_of_map_keys component_type.component_type_require
+    let provide_port_set  : PortNameSet.t = PortNameSetOfMapKeys.set_of_map_keys component_type.component_type_provide
+    and require_port_set  : PortNameSet.t = PortNameSetOfMapKeys.set_of_map_keys component_type.component_type_require
     and conflict_port_set : PortNameSet.t = component_type.component_type_conflict
     in
     List.fold_left PortNameSet.union PortNameSet.empty [provide_port_set; require_port_set; conflict_port_set]
@@ -153,10 +128,10 @@ let conflicters universe port_name =
 (** repository *)
 
 let get_repository_names universe =
-  let module RepositoryNameSetOfRepositoryNameMapKeys =
-    SetOfMapKeys(RepositoryNameOrdering)
+  let module RepositoryNameSetOfMapKeys =
+    SetOfMapKeys(RepositoryNameMap)(RepositoryNameSet)
   in
-  RepositoryNameSetOfRepositoryNameMapKeys.set_of_map_keys universe.universe_repositories
+  RepositoryNameSetOfMapKeys.set_of_map_keys universe.universe_repositories
 
 let get_repositories universe =
   let module RepositorySetOfRepositoryNameMapValues =
@@ -178,10 +153,10 @@ let get_repository universe repository_name =
 (** package *)
 
 let get_repository_package_names repository =
-  let module PackageNameSetOfPackageNameMapKeys =
-    SetOfMapKeys(PackageNameOrdering)
+  let module PackageNameSetOfMapKeys =
+    SetOfMapKeys(PackageNameMap)(PackageNameSet)
   in
-  PackageNameSetOfPackageNameMapKeys.set_of_map_keys repository.repository_packages
+  PackageNameSetOfMapKeys.set_of_map_keys repository.repository_packages
 
 let get_repository_packages repository =
   let module PackageSetOfPackageNameMapValues =
@@ -254,8 +229,8 @@ let get_component_type_implementation universe component_type_name =
 
 let get_resource_names universe =
 
-  let module ResourceNameSetOfResourceNameMapKeys =
-    SetOfMapKeys(ResourceNameOrdering)
+  let module ResourceNameSetOfMapKeys =
+    SetOfMapKeys(ResourceNameMap)(ResourceNameSet)
 
   in
 
@@ -269,7 +244,7 @@ let get_resource_names universe =
     in
     let resource_name_sets : ResourceNameSetSet.t = 
       ResourceNameSetSetOfComponentTypeSet.convert (fun component_type -> 
-        ResourceNameSetOfResourceNameMapKeys.set_of_map_keys component_type.component_type_consume
+        ResourceNameSetOfMapKeys.set_of_map_keys component_type.component_type_consume
       ) component_types
     in
     ResourceNameSetSet.fold ResourceNameSet.union resource_name_sets ResourceNameSet.empty
@@ -284,7 +259,7 @@ let get_resource_names universe =
     in
     let resource_name_sets : ResourceNameSetSet.t = 
       ResourceNameSetSetOfPackageSet.convert (fun package -> 
-        ResourceNameSetOfResourceNameMapKeys.set_of_map_keys package.package_consume
+        ResourceNameSetOfMapKeys.set_of_map_keys package.package_consume
       ) packages
     in
     ResourceNameSetSet.fold ResourceNameSet.union resource_name_sets ResourceNameSet.empty
@@ -322,10 +297,10 @@ let get_components configuration =
 (** location *)
 
 let get_location_names configuration =
-  let module LocationNameSetOfLocationNameMapKeys =
-    SetOfMapKeys(LocationNameOrdering)
+  let module LocationNameSetOfMapKeys =
+    SetOfMapKeys(LocationNameMap)(LocationNameSet)
   in
-  LocationNameSetOfLocationNameMapKeys.set_of_map_keys configuration.configuration_locations
+  LocationNameSetOfMapKeys.set_of_map_keys configuration.configuration_locations
 
 let get_locations configuration = 
   let module LocationSetOfLocationNameMapValues =
@@ -360,6 +335,7 @@ let get_location_resource_provide_arity location resource_name =
     ResourceNameMap.find resource_name location.location_provide_resources
   with
   | Not_found -> 0
+
 
 
 (*

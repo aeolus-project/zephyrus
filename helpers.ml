@@ -126,6 +126,18 @@ module SetOfMapValues =
       ) map Set.empty
   end
 
+module SetOfMapKeys =
+  functor (Map : Map.S) ->
+  functor (Set : Set.S with type elt = Map.key) ->
+  struct
+
+    let set_of_map_keys map =
+      Map.fold (fun key _ set ->
+        Set.add key set
+      ) map Set.empty
+
+  end
+
 module SetOfSet =
   functor (Set_origin : Set.S) ->
   functor (Set_target : Set.S) -> 
