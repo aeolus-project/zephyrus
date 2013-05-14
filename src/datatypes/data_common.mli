@@ -37,8 +37,8 @@ module Set : sig
   end
 end
 
-module SetInt : Set.S with elt = int
-module SetString : Set.S with elt = string
+module SetInt : Set.S with type elt = int
+module SetString : Set.S with type elt = string
 
 
 module Map : sig
@@ -46,11 +46,16 @@ module Map : sig
   module type S = sig
     include Map_from_stblib
     
-    val map_of_list: (key * 'a) list -> 'a t
+    val map_of_associated_list: (key * 'a) list -> 'a t
+    val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
-    module Set_of_key(Set_target : Set.S with type Set_target.elt = key) : sig
-      (* TODO *)
+    module Set_of_key(Set_target : Set.S with type elt = key) : sig
+      val set_of_key : 'a t -> Set_target.t
+    end
+
+    module Set_of_value(Set_target : Set.S) : sig
+      val set_of_value : Set_target.elt t -> Set_target.t
     end
   end
   
@@ -61,7 +66,7 @@ module Map : sig
   end
 end
 
-module MapInt : Map.S with key = int
-module MapString : Map.S with key = string
+module MapInt : Map.S with type key = int
+module MapString : Map.S with type key = string
 
 

@@ -26,32 +26,6 @@ module type Map_from_stblib = Map_global_from_stdlib.S
 module type Set_from_stblib = Set_global_from_stdlib.S
 
 
-module Map = struct
-
-  module type S = sig
-    include Map_from_stblib
-    
-    val map_of_list: (key * 'a) list -> 'a t
-    val map : ('a -> 'b) -> 'a t -> 'b t
-  end
-  
-  module Make(Ord : OrderedType) : S with type key = Ord.t = struct
-    module Map_tmp = Map_global_from_stdlib.Make(Ord)
-    include Map_tmp
-  
-    let map_of_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
-    let map f m = fold (fun k v res -> add k (f v) res) m empty    
-  end
-  
-  module Convert(Map_origin : S) (Map_target : S) = struct
-    let convert f m = Map_origin.fold (fun k v res -> let (k',v') = f (k,v) in Map_target.add k' v' res) m Map_target.empty
-  end
-
-end
-
-module MapInt = Map.Make(struct type t = int let compare = Pervasives.compare end)
-module MapString = Map.Make(struct type t = string let compare = Pervasives.compare end)
-
 
 module Set = struct
 
@@ -75,5 +49,52 @@ end
 
 module SetInt = Set.Make(struct type t = int let compare = Pervasives.compare end)
 module SetString = Set.Make(struct type t = string let compare = Pervasives.compare end)
+
+
+
+module Map = struct
+
+  module type S = sig
+    include Map_from_stblib
+    
+    val map_of_associated_list: (key * 'a) list -> 'a t
+    val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
+    val map : ('a -> 'b) -> 'a t -> 'b t
+
+    module Set_of_key(Set_target : Set.S with type elt = key) : sig
+      val set_of_key : 'a t -> Set_target.t
+    end
+
+    module Set_of_value(Set_target : Set.S) : sig
+      val set_of_value : Set_target.elt t -> Set_target.t
+    end
+  end
+  
+  module Make(Ord : OrderedType) : S with type key = Ord.t = struct
+    module Map_tmp = Map_global_from_stdlib.Make(Ord)
+    include Map_tmp
+  
+    let map_of_list f l = List.fold_left (fun res el -> let (k,v) = f el in add k v res) empty l
+    let map_of_associated_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
+    let map f m = fold (fun k v res -> add k (f v) res) m empty    
+
+    module Set_of_key(Set_target : Set.S with type elt = key) = struct
+      let set_of_key map = fold (fun k _ res -> Set_target.add k res) map Set_target.empty 
+    end
+
+    module Set_of_value(Set_target : Set.S) = struct
+      let set_of_value map = fold (fun _ v res -> Set_target.add v res) map Set_target.empty
+    end
+  end
+  
+  module Convert(Map_origin : S) (Map_target : S) = struct
+    let convert f m = Map_origin.fold (fun k v res -> let (k',v') = f (k,v) in Map_target.add k' v' res) m Map_target.empty
+  end
+
+
+end
+
+module MapInt = Map.Make(struct type t = int let compare = Pervasives.compare end)
+module MapString = Map.Make(struct type t = string let compare = Pervasives.compare end)
 
 
