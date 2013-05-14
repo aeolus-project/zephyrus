@@ -26,6 +26,7 @@ type require_arity = int
 type repository_name = string
 module RepositoryNameOrdering = String
 module RepositoryNameSet = Set.Make(RepositoryNameOrdering)
+module RepositoryNameSetSet = Set.Make(RepositoryNameSet)
 module RepositoryNameMap = Map.Make(RepositoryNameOrdering)
 type package_name = string
 module PackageNameOrdering = String
@@ -35,6 +36,7 @@ module PackageNameMap = Map.Make(PackageNameOrdering)
 type resource_name = string
 module ResourceNameOrdering = String
 module ResourceNameSet = Set.Make(ResourceNameOrdering)
+module ResourceNameSetSet = Set.Make(ResourceNameSet)
 module ResourceNameMap = Map.Make(ResourceNameOrdering)
 
 type resource_consumption = int
