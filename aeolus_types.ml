@@ -3,19 +3,19 @@
 
 (* Two basic modules, which are reused many times after: 
    a Map with strings as its keys and a Set with strings as its elements. *)
-module StringMap = Map.Make(String)
-module StringSet = Set.Make(String)
+module String_map = Map.Make(String)
+module String_set = Set.Make(String)
 
 type component_type_name = string
 module ComponentTypeNameOrdering = String
-module ComponentTypeNameSet = Set.Make(ComponentTypeNameOrdering)
-module ComponentTypeNameMap = Map.Make(ComponentTypeNameOrdering)
+module Component_type_name_set = Set.Make(ComponentTypeNameOrdering)
+module Component_type_name_map = Map.Make(ComponentTypeNameOrdering)
 type port_name = string
-module PortNameOrdering = String
-module PortNameSet = Set.Make(PortNameOrdering)
-module PortNameMap = Map.Make(PortNameOrdering)
+module Port_name_ordering = String
+module Port_name_set = Set.Make(Port_name_ordering)
+module Port_name_map = Map.Make(Port_name_ordering)
 
-module PortNameSetSet = Set.Make(PortNameSet)
+module Port_name_set_set = Set.Make(Port_name_set)
 
 type provide_arity = 
   | InfiniteProvide 
@@ -24,32 +24,32 @@ type provide_arity =
 type require_arity = int
 
 type repository_name = string
-module RepositoryNameOrdering = String
-module RepositoryNameSet = Set.Make(RepositoryNameOrdering)
-module RepositoryNameSetSet = Set.Make(RepositoryNameSet)
-module RepositoryNameMap = Map.Make(RepositoryNameOrdering)
+module Repository_name_ordering = String
+module Repository_name_set = Set.Make(Repository_name_ordering)
+module Repository_name_set_set = Set.Make(Repository_name_set)
+module Repository_name_map = Map.Make(Repository_name_ordering)
 type package_name = string
-module PackageNameOrdering = String
-module PackageNameSet = Set.Make(PackageNameOrdering)
-module PackageNameMap = Map.Make(PackageNameOrdering)
+module Package_name_ordering = String
+module Package_name_set = Set.Make(Package_name_ordering)
+module Package_name_map = Map.Make(Package_name_ordering)
 
 type resource_name = string
-module ResourceNameOrdering = String
-module ResourceNameSet = Set.Make(ResourceNameOrdering)
-module ResourceNameSetSet = Set.Make(ResourceNameSet)
-module ResourceNameMap = Map.Make(ResourceNameOrdering)
+module Resource_name_ordering = String
+module Resource_name_set = Set.Make(Resource_name_ordering)
+module Resource_name_set_set = Set.Make(Resource_name_set)
+module Resource_name_map = Map.Make(Resource_name_ordering)
 
 type resource_consumption = int
 type resource_provide_arity = int
 
 type location_name = string
-module LocationNameOrdering = String
-module LocationNameSet = Set.Make(LocationNameOrdering)
-module LocationNameMap = Map.Make(LocationNameOrdering)
+module Location_name_ordering = String
+module Location_name_set = Set.Make(Location_name_ordering)
+module Location_name_map = Map.Make(Location_name_ordering)
 
 type component_name = string
-module ComponentNameOrdering = String
-module ComponentNameMap = Map.Make(ComponentNameOrdering)
+module Component_name_ordering = String
+module Component_name_map = Map.Make(Component_name_ordering)
 
 
 (** Type definitions for Component Type. *)
@@ -59,72 +59,72 @@ module ComponentNameMap = Map.Make(ComponentNameOrdering)
 
 type component_type = {
   component_type_name     : component_type_name;
-  component_type_provide  : provide_arity PortNameMap.t;
-  component_type_require  : require_arity PortNameMap.t;
-  component_type_conflict : PortNameSet.t;
-  component_type_consume  : resource_consumption ResourceNameMap.t
+  component_type_provide  : provide_arity Port_name_map.t;
+  component_type_require  : require_arity Port_name_map.t;
+  component_type_conflict : Port_name_set.t;
+  component_type_consume  : resource_consumption Resource_name_map.t
 }
 
 (** Type definitions for Universe. *)
 
-module ComponentTypeOrdering =
+module Component_type_ordering =
   struct
     type t = component_type
     let compare component_type_1 component_type_2 = 
       String.compare component_type_1.component_type_name component_type_2.component_type_name 
   end
 
-module ComponentTypeSet = Set.Make(ComponentTypeOrdering)
+module Component_type_set = Set.Make(Component_type_ordering)
 
-type component_types = ComponentTypeSet.t
+type component_types = Component_type_set.t
 
-module PackageNameSetSet = Set.Make(PackageNameSet)
+module Package_name_set_set = Set.Make(Package_name_set)
 
 type package = {
   package_name     : package_name;
-  package_depend   : PackageNameSetSet.t;
-  package_conflict : PackageNameSet.t;
-  package_consume  : resource_consumption ResourceNameMap.t
+  package_depend   : Package_name_set_set.t;
+  package_conflict : Package_name_set.t;
+  package_consume  : resource_consumption Resource_name_map.t
 }
 
-module PackageOrdering =
+module Package_ordering =
   struct
     type t = package
     let compare package_1 package_2 = 
       String.compare package_1.package_name package_2.package_name 
   end
 
-module PackageSet = Set.Make(PackageOrdering)
-module PackageSetSet = Set.Make(PackageSet)
+module Package_set = Set.Make(Package_ordering)
+module Package_set_set = Set.Make(Package_set)
 
-type packages = PackageSet.t
+type packages = Package_set.t
 
 type repository = {
   repository_name     : repository_name;
-  repository_packages : package PackageNameMap.t
+  repository_packages : package Package_name_map.t
 }
 
-module RepositoryOrdering =
+module Repository_ordering =
   struct
     type t = repository
     let compare repository_1 repository_2 = 
       String.compare repository_1.repository_name repository_2.repository_name 
   end
 
-module RepositorySet = Set.Make(RepositoryOrdering)
+module Repository_set = Set.Make(Repository_ordering)
 
-type repositories = RepositorySet.t
+type repositories = Repository_set.t
 
-type package_names = PackageNameSet.t
+type package_names = Package_name_set.t
 
 (** Type definitions for Configuration. *)
 type universe = {
-  universe_component_types : component_type ComponentTypeNameMap.t;
-  universe_implementation  : PackageNameSet.t ComponentTypeNameMap.t;
-  universe_repositories    : repository RepositoryNameMap.t;
+  universe_component_types : component_type Component_type_name_map.t;
+  universe_implementation  : Package_name_set.t Component_type_name_map.t;
+  universe_repositories    : repository Repository_name_map.t;
 }
 
-type resources_provided = resource_provide_arity ResourceNameMap.t
+type resources_provided = resource_provide_arity Resource_name_map.t
 
 type location = {
   location_name               : location_name;
@@ -133,14 +133,14 @@ type location = {
   location_packages_installed : package_names;
 }
 
-module LocationOrdering =
+module Location_ordering =
   struct
     type t = location
     let compare location_1 location_2 = 
       String.compare location_1.location_name location_2.location_name 
   end
 
-module LocationSet = Set.Make(LocationOrdering)
+module Location_set = Set.Make(Location_ordering)
 
 type component = {
   component_name     : component_name;
@@ -148,14 +148,14 @@ type component = {
   component_location : location_name;
 }
 
-module ComponentOrdering =
+module Component_ordering =
   struct
     type t = component
     let compare component_1 component_2 = 
       String.compare component_1.component_name component_2.component_name 
   end
 
-module ComponentSet = Set.Make(ComponentOrdering)
+module Component_set = Set.Make(Component_ordering)
 
 type binding = {
   binding_port     : port_name;
@@ -170,7 +170,7 @@ let lexicographic_compare (compare : 'a -> 'b -> int) (l : ('a * 'b) list) =
     else compare h1 h2
   ) 0 l
 
-module BindingOrdering =
+module Binding_ordering =
   struct
     type t = binding
     let compare binding_1 binding_2 = 
@@ -181,12 +181,12 @@ module BindingOrdering =
       ]
   end
 
-module BindingSet = Set.Make(BindingOrdering)
+module Binding_set = Set.Make(Binding_ordering)
 
 type configuration = {
-  configuration_locations  : location LocationNameMap.t;
-  configuration_components : component ComponentNameMap.t;
-  configuration_bindings   : BindingSet.t
+  configuration_locations  : location Location_name_map.t;
+  configuration_components : component Component_name_map.t;
+  configuration_bindings   : Binding_set.t
 }
 
 (** Type definitions for Specification. *)

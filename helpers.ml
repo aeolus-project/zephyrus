@@ -71,25 +71,25 @@ let check_if_programs_available programs =
   ) programs
 
 
-module SetOfList =
+module Set_of_list =
   functor (S : Set.S) ->
   struct
-    exception DoubleElement of S.elt
+    exception Double_element of S.elt
 
     let translate el_translate l =
       List.fold_left (fun set el ->
         let el = el_translate el
         in
         if S.mem el set
-        then raise (DoubleElement el)
+        then raise (Double_element el)
         else S.add el set
       ) S.empty l
   end
 
-module MapOfAssocList =
+module Map_of_assoc_list =
   functor (M : Map.S) ->
   struct
-    exception DoubleKey of M.key
+    exception Double_key of M.key
 
     let translate key_translate value_translate l =
       List.fold_left (fun map (key, value) ->
@@ -97,36 +97,36 @@ module MapOfAssocList =
         and value = value_translate value
         in
         if M.mem key map
-        then raise (DoubleKey key)
+        then raise (Double_key key)
         else M.add key value map
       ) M.empty l
   end
 
-module MapOfList =
+module Map_of_list =
   functor (M : Map.S) ->
   struct
-    exception DoubleKey of M.key
+    exception Double_key of M.key
 
     let translate key_translate value_translate l =
-      let module T = MapOfAssocList(M) in
+      let module T = Map_of_assoc_list(M) in
       T.translate key_translate value_translate (List.combine l l)
   end
 
-module SetOfMapValues =
+module Set_of_map_values =
   functor (M : Map.S) ->
   functor (Set : Set.S) ->
   struct
-    exception DoubleValue of Set.elt
+    exception Double_value of Set.elt
 
     let set_of_map_values map =
       M.fold (fun _ value set ->
         if Set.mem value set
-        then raise (DoubleValue value)
+        then raise (Double_value value)
         else Set.add value set
       ) map Set.empty
   end
 
-module SetOfMapKeys =
+module Set_of_map_keys =
   functor (Map : Map.S) ->
   functor (Set : Set.S with type elt = Map.key) ->
   struct
@@ -138,7 +138,7 @@ module SetOfMapKeys =
 
   end
 
-module SetOfSet =
+module Set_of_set =
   functor (Set_origin : Set.S) ->
   functor (Set_target : Set.S) -> 
   struct

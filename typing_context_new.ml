@@ -73,20 +73,20 @@ let does_not_exist what =
 (** component_type *)
 
 let get_component_type_names universe =
-  let module ComponentTypeNameSetOfMapKeys =
-    SetOfMapKeys(ComponentTypeNameMap)(ComponentTypeNameSet)
+  let module Component_type_name_set_of_map_keys =
+    Set_of_map_keys(Component_type_name_map)(Component_type_name_set)
   in
-  ComponentTypeNameSetOfMapKeys.set_of_map_keys universe.universe_component_types
+  Component_type_name_set_of_map_keys.set_of_map_keys universe.universe_component_types
 
 let get_component_types universe = 
-  let module ComponentTypeSetOfComponentTypeNameMapValues =
-    SetOfMapValues(ComponentTypeNameMap)(ComponentTypeSet)
+  let module Component_type_set_of_component_type_name_map_values =
+    Set_of_map_values(Component_type_name_map)(Component_type_set)
   in
-    ComponentTypeSetOfComponentTypeNameMapValues.set_of_map_values universe.universe_component_types
+    Component_type_set_of_component_type_name_map_values.set_of_map_values universe.universe_component_types
 
 let get_component_type universe component_type_name =
   try
-    ComponentTypeNameMap.find component_type_name universe.universe_component_types
+    Component_type_name_map.find component_type_name universe.universe_component_types
   with
   | Not_found -> 
       does_not_exist (ComponentTypeInUniverse (component_type_name))
@@ -95,44 +95,44 @@ let get_component_type universe component_type_name =
 (** port *)
 
 let get_port_names universe =
-  let component_types : ComponentTypeSet.t = get_component_types universe
+  let component_types : Component_type_set.t = get_component_types universe
   in
-  let module PortNameSetSetOfComponentTypeSet =
-    SetOfSet(ComponentTypeSet)(PortNameSetSet)
+  let module Port_name_set_set_of_component_type_set =
+    Set_of_set(Component_type_set)(Port_name_set_set)
   in
-  let port_name_sets : PortNameSetSet.t = PortNameSetSetOfComponentTypeSet.convert (function component_type -> 
-    let module PortNameSetOfMapKeys =
-      SetOfMapKeys(PortNameMap)(PortNameSet)
+  let port_name_sets : Port_name_set_set.t = Port_name_set_set_of_component_type_set.convert (function component_type -> 
+    let module Port_name_set_of_map_keys =
+      Set_of_map_keys(Port_name_map)(Port_name_set)
     in
-    let provide_port_set  : PortNameSet.t = PortNameSetOfMapKeys.set_of_map_keys component_type.component_type_provide
-    and require_port_set  : PortNameSet.t = PortNameSetOfMapKeys.set_of_map_keys component_type.component_type_require
-    and conflict_port_set : PortNameSet.t = component_type.component_type_conflict
+    let provide_port_set  : Port_name_set.t = Port_name_set_of_map_keys.set_of_map_keys component_type.component_type_provide
+    and require_port_set  : Port_name_set.t = Port_name_set_of_map_keys.set_of_map_keys component_type.component_type_require
+    and conflict_port_set : Port_name_set.t = component_type.component_type_conflict
     in
-    List.fold_left PortNameSet.union PortNameSet.empty [provide_port_set; require_port_set; conflict_port_set]
+    List.fold_left Port_name_set.union Port_name_set.empty [provide_port_set; require_port_set; conflict_port_set]
 
   ) component_types
   in
-  PortNameSetSet.fold PortNameSet.union port_name_sets PortNameSet.empty
+  Port_name_set_set.fold Port_name_set.union port_name_sets Port_name_set.empty
 
 let get_provide_arity component_type port_name =
   try
-     PortNameMap.find port_name component_type.component_type_provide
+     Port_name_map.find port_name component_type.component_type_provide
   with
   | Not_found -> (FiniteProvide 0)
 
 let get_require_arity component_type port_name =
   try
-    PortNameMap.find port_name component_type.component_type_require
+    Port_name_map.find port_name component_type.component_type_require
   with
   | Not_found -> 0
 
 let is_in_conflict component_type port_name =
-  PortNameSet.mem port_name component_type.component_type_conflict
+  Port_name_set.mem port_name component_type.component_type_conflict
 
 let requirers universe port_name =
-  let component_type_names : ComponentTypeNameSet.t = get_component_type_names universe
+  let component_type_names : Component_type_name_set.t = get_component_type_names universe
   in
-  ComponentTypeNameSet.filter (fun component_type_name ->
+  Component_type_name_set.filter (fun component_type_name ->
     let component_type = get_component_type universe component_type_name
     in
     get_require_arity component_type port_name > 0
@@ -140,9 +140,9 @@ let requirers universe port_name =
   ) component_type_names
 
 let providers universe port_name =
-  let component_type_names : ComponentTypeNameSet.t = get_component_type_names universe
+  let component_type_names : Component_type_name_set.t = get_component_type_names universe
   in
-  ComponentTypeNameSet.filter (fun component_type_name ->
+  Component_type_name_set.filter (fun component_type_name ->
     let component_type = get_component_type universe component_type_name
     in
     match get_provide_arity component_type port_name with
@@ -152,9 +152,9 @@ let providers universe port_name =
   ) component_type_names
 
 let conflicters universe port_name =
-  let component_type_names : ComponentTypeNameSet.t = get_component_type_names universe
+  let component_type_names : Component_type_name_set.t = get_component_type_names universe
   in
-  ComponentTypeNameSet.filter (fun component_type_name ->
+  Component_type_name_set.filter (fun component_type_name ->
     let component_type = get_component_type universe component_type_name
     in
     is_in_conflict component_type port_name
@@ -165,20 +165,20 @@ let conflicters universe port_name =
 (** repository *)
 
 let get_repository_names universe =
-  let module RepositoryNameSetOfMapKeys =
-    SetOfMapKeys(RepositoryNameMap)(RepositoryNameSet)
+  let module Repository_name_set_of_map_keys =
+    Set_of_map_keys(Repository_name_map)(Repository_name_set)
   in
-  RepositoryNameSetOfMapKeys.set_of_map_keys universe.universe_repositories
+  Repository_name_set_of_map_keys.set_of_map_keys universe.universe_repositories
 
 let get_repositories universe =
-  let module RepositorySetOfRepositoryNameMapValues =
-    SetOfMapValues(RepositoryNameMap)(RepositorySet)
+  let module Repository_set_of_repository_name_map_values =
+    Set_of_map_values(Repository_name_map)(Repository_set)
   in
-  RepositorySetOfRepositoryNameMapValues.set_of_map_values universe.universe_repositories
+  Repository_set_of_repository_name_map_values.set_of_map_values universe.universe_repositories
 
 let get_repository universe repository_name =
   try
-    RepositoryNameMap.find repository_name universe.universe_repositories
+    Repository_name_map.find repository_name universe.universe_repositories
   with
   | Not_found -> 
       does_not_exist (RepositoryInUniverse (repository_name))
@@ -187,72 +187,72 @@ let get_repository universe repository_name =
 (** package *)
 
 let get_repository_package_names repository =
-  let module PackageNameSetOfMapKeys =
-    SetOfMapKeys(PackageNameMap)(PackageNameSet)
+  let module Package_name_set_of_map_keys =
+    Set_of_map_keys(Package_name_map)(Package_name_set)
   in
-  PackageNameSetOfMapKeys.set_of_map_keys repository.repository_packages
+  Package_name_set_of_map_keys.set_of_map_keys repository.repository_packages
 
 let get_repository_packages repository =
-  let module PackageSetOfPackageNameMapValues =
-    SetOfMapValues(PackageNameMap)(PackageSet)
+  let module Package_set_of_package_name_map_values =
+    Set_of_map_values(Package_name_map)(Package_set)
   in
-  PackageSetOfPackageNameMapValues.set_of_map_values repository.repository_packages
+  Package_set_of_package_name_map_values.set_of_map_values repository.repository_packages
 
 let get_package_names universe =
   let get_all_package_names_from_package package =
-    let package_name                   : PackageNameSet.t = PackageNameSet.singleton package.package_name
-    and packages_mentioned_in_depend   : PackageNameSet.t = PackageNameSetSet.fold PackageNameSet.union package.package_depend PackageNameSet.empty
-    and packages_mentioned_in_conflict : PackageNameSet.t = package.package_conflict
+    let package_name                   : Package_name_set.t = Package_name_set.singleton package.package_name
+    and packages_mentioned_in_depend   : Package_name_set.t = Package_name_set_set.fold Package_name_set.union package.package_depend Package_name_set.empty
+    and packages_mentioned_in_conflict : Package_name_set.t = package.package_conflict
     in
-    List.fold_left PackageNameSet.union package_name [packages_mentioned_in_depend; packages_mentioned_in_conflict]
+    List.fold_left Package_name_set.union package_name [packages_mentioned_in_depend; packages_mentioned_in_conflict]
   in
-  let repositories : RepositorySet.t = get_repositories universe
+  let repositories : Repository_set.t = get_repositories universe
   in
-  let module PackageNameSetSetOfRepositorySet =
-    SetOfSet(RepositorySet)(PackageNameSetSet)
+  let module Package_name_set_set_of_repository_set =
+    Set_of_set(Repository_set)(Package_name_set_set)
   in
-  let package_sets : PackageNameSetSet.t =
-    PackageNameSetSetOfRepositorySet.convert (function repository ->
-      let packages : PackageSet.t = get_repository_packages repository
+  let package_sets : Package_name_set_set.t =
+    Package_name_set_set_of_repository_set.convert (function repository ->
+      let packages : Package_set.t = get_repository_packages repository
       in
-      let module PackageNameSetSetOfPackageSet =
-        SetOfSet(PackageSet)(PackageNameSetSet)
+      let module Package_name_set_set_of_package_set =
+        Set_of_set(Package_set)(Package_name_set_set)
       in
-      let package_sets : PackageNameSetSet.t = 
-        PackageNameSetSetOfPackageSet.convert get_all_package_names_from_package packages
+      let package_sets : Package_name_set_set.t = 
+        Package_name_set_set_of_package_set.convert get_all_package_names_from_package packages
       in
-      PackageNameSetSet.fold PackageNameSet.union package_sets PackageNameSet.empty
+      Package_name_set_set.fold Package_name_set.union package_sets Package_name_set.empty
 
     ) repositories
   in
-  PackageNameSetSet.fold PackageNameSet.union package_sets PackageNameSet.empty
+  Package_name_set_set.fold Package_name_set.union package_sets Package_name_set.empty
 
 let get_packages universe =
-  let repositories : RepositorySet.t = get_repositories universe
+  let repositories : Repository_set.t = get_repositories universe
   in
-  let module PackageSetSetOfRepositorySet =
-    SetOfSet(RepositorySet)(PackageSetSet)
+  let module Package_set_set_of_repository_set =
+    Set_of_set(Repository_set)(Package_set_set)
   in
-  let package_sets : PackageSetSet.t = 
-    PackageSetSetOfRepositorySet.convert get_repository_packages repositories
+  let package_sets : Package_set_set.t = 
+    Package_set_set_of_repository_set.convert get_repository_packages repositories
   in
-  PackageSetSet.fold PackageSet.union package_sets PackageSet.empty
+  Package_set_set.fold Package_set.union package_sets Package_set.empty
 
 let get_repository_package repository package_name =
   try
-    PackageNameMap.find package_name repository.repository_packages
+    Package_name_map.find package_name repository.repository_packages
   with
   | Not_found -> 
       does_not_exist (PackageInRepository (package_name, repository.repository_name))
 
 let get_component_type_implementation universe component_type_name =
   try
-    ComponentTypeNameMap.find component_type_name universe.universe_implementation
+    Component_type_name_map.find component_type_name universe.universe_implementation
   with
   (* If this component type is not on the universe implementation list, 
    * this does not mean it does not exist, but that it simply does not
    * need any packages to implement it. *)
-  | Not_found -> PackageNameSet.empty
+  | Not_found -> Package_name_set.empty
 
   (* Alternative interpretation: *)
   (* does_not_exist (ComponentTypeImplementationInUniverse (component_type_name)) *)
@@ -261,55 +261,55 @@ let get_component_type_implementation universe component_type_name =
 
 let get_resource_names universe =
 
-  let module ResourceNameSetOfMapKeys =
-    SetOfMapKeys(ResourceNameMap)(ResourceNameSet)
+  let module Resource_name_set_of_map_keys =
+    Set_of_map_keys(Resource_name_map)(Resource_name_set)
 
   in
 
   (* Resource names mentioned in all component types. *)
-  let resource_names_from_component_types : ResourceNameSet.t = 
+  let resource_names_from_component_types : Resource_name_set.t = 
 
     let component_types = get_component_types universe
     in
-    let module ResourceNameSetSetOfComponentTypeSet =
-      SetOfSet(ComponentTypeSet)(ResourceNameSetSet)
+    let module Resource_name_set_set_of_component_type_set =
+      Set_of_set(Component_type_set)(Resource_name_set_set)
     in
-    let resource_name_sets : ResourceNameSetSet.t = 
-      ResourceNameSetSetOfComponentTypeSet.convert (fun component_type -> 
-        ResourceNameSetOfMapKeys.set_of_map_keys component_type.component_type_consume
+    let resource_name_sets : Resource_name_set_set.t = 
+      Resource_name_set_set_of_component_type_set.convert (fun component_type -> 
+        Resource_name_set_of_map_keys.set_of_map_keys component_type.component_type_consume
       ) component_types
     in
-    ResourceNameSetSet.fold ResourceNameSet.union resource_name_sets ResourceNameSet.empty
+    Resource_name_set_set.fold Resource_name_set.union resource_name_sets Resource_name_set.empty
 
   (* Resource names mentioned in all packages. *)
-  and resource_names_from_packages : ResourceNameSet.t = 
+  and resource_names_from_packages : Resource_name_set.t = 
 
     let packages = get_packages universe
     in
-    let module ResourceNameSetSetOfPackageSet =
-      SetOfSet(PackageSet)(ResourceNameSetSet)
+    let module Resource_name_set_set_of_package_set =
+      Set_of_set(Package_set)(Resource_name_set_set)
     in
-    let resource_name_sets : ResourceNameSetSet.t = 
-      ResourceNameSetSetOfPackageSet.convert (fun package -> 
-        ResourceNameSetOfMapKeys.set_of_map_keys package.package_consume
+    let resource_name_sets : Resource_name_set_set.t = 
+      Resource_name_set_set_of_package_set.convert (fun package -> 
+        Resource_name_set_of_map_keys.set_of_map_keys package.package_consume
       ) packages
     in
-    ResourceNameSetSet.fold ResourceNameSet.union resource_name_sets ResourceNameSet.empty
+    Resource_name_set_set.fold Resource_name_set.union resource_name_sets Resource_name_set.empty
 
   in
-  ResourceNameSet.union
+  Resource_name_set.union
     resource_names_from_component_types
     resource_names_from_packages
 
 let get_component_type_resource_consumption component_type resource_name =
   try
-    ResourceNameMap.find resource_name component_type.component_type_consume
+    Resource_name_map.find resource_name component_type.component_type_consume
   with
   | Not_found -> 0
 
 let get_package_resource_consumption package resource_name =
   try
-    ResourceNameMap.find resource_name package.package_consume
+    Resource_name_map.find resource_name package.package_consume
   with
   | Not_found -> 0
 
@@ -321,36 +321,36 @@ let get_package_resource_consumption package resource_name =
 (** component *)
 
 let get_components configuration =
-  let module ComponentSetOfComponentNameMapValues =
-    SetOfMapValues(ComponentNameMap)(ComponentSet)
+  let module Component_set_of_component_name_map_values =
+    Set_of_map_values(Component_name_map)(Component_set)
   in
-  ComponentSetOfComponentNameMapValues.set_of_map_values configuration.configuration_components
+  Component_set_of_component_name_map_values.set_of_map_values configuration.configuration_components
 
 (** location *)
 
 let get_location_names configuration =
-  let module LocationNameSetOfMapKeys =
-    SetOfMapKeys(LocationNameMap)(LocationNameSet)
+  let module Location_name_set_of_map_keys =
+    Set_of_map_keys(Location_name_map)(Location_name_set)
   in
-  LocationNameSetOfMapKeys.set_of_map_keys configuration.configuration_locations
+  Location_name_set_of_map_keys.set_of_map_keys configuration.configuration_locations
 
 let get_locations configuration = 
-  let module LocationSetOfLocationNameMapValues =
-    SetOfMapValues(LocationNameMap)(LocationSet)
+  let module Location_set_of_location_name_map_values =
+    Set_of_map_values(Location_name_map)(Location_set)
   in
-  LocationSetOfLocationNameMapValues.set_of_map_values configuration.configuration_locations
+  Location_set_of_location_name_map_values.set_of_map_values configuration.configuration_locations
 
 let get_location configuration location_name = 
   try
-    LocationNameMap.find location_name configuration.configuration_locations
+    Location_name_map.find location_name configuration.configuration_locations
   with
   | Not_found -> 
       does_not_exist (LocationInTheConfiguration (location_name))
 
 let get_location_components configuration location_name =
-  let components : ComponentSet.t = get_components configuration
+  let components : Component_set.t = get_components configuration
   in
-  ComponentSet.filter (fun component -> 
+  Component_set.filter (fun component -> 
     component.component_location = location_name
   ) components
 
@@ -361,7 +361,7 @@ let get_location_packages_installed configuration location_name =
 
 let get_location_resource_provide_arity location resource_name =
   try
-    ResourceNameMap.find resource_name location.location_provide_resources
+    Resource_name_map.find resource_name location.location_provide_resources
   with
   | Not_found -> 0
 

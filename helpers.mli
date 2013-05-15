@@ -38,38 +38,38 @@ val is_program_available : string -> bool
 
 val check_if_programs_available : in_out_program list -> unit
 
-module SetOfList :
+module Set_of_list :
   functor (S : Set.S) ->
   sig
-    exception DoubleElement of S.elt
+    exception Double_element of S.elt
   	val translate : ('a -> S.elt) -> 'a list -> S.t
   end
 
-module MapOfAssocList :
+module Map_of_assoc_list :
   functor (M : Map.S) ->
   sig
-    exception DoubleKey of M.key
+    exception Double_key of M.key
   	val translate : ('a -> M.key) -> ('b -> 'c) -> ('a * 'b) list -> 'c M.t
   end
 
-module MapOfList :
+module Map_of_list :
   functor (M : Map.S) ->
   sig
-    exception DoubleKey of M.key
+    exception Double_key of M.key
   	val translate : ('a -> M.key) -> ('a -> 'b) -> 'a list -> 'b M.t
   end
 
-module SetOfMapValues :
+module Set_of_map_values :
   functor (M : Map.S) ->
   functor (Set : Set.S) ->
   sig
-    exception DoubleValue of Set.elt
+    exception Double_value of Set.elt
 
 	  val set_of_map_values : Set.elt M.t -> Set.t
 
   end
 
-module SetOfMapKeys :
+module Set_of_map_keys :
   functor (Map : Map.S) ->
   functor (Set : Set.S with type elt = Map.key) ->
   sig
@@ -78,7 +78,7 @@ module SetOfMapKeys :
 
   end
 
-module SetOfSet :
+module Set_of_set :
   functor (Set_origin : Set.S) ->
   functor (Set_target : Set.S) -> 
   sig
