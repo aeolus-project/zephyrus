@@ -17,15 +17,30 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(*
+open ExtLib
+
+module List = 
+  struct
+    include ExtLib.List
+
+    let map_flatten f l = List.flatten (List.map f l)
+  end
+*)
 
 let string_of_printing_function printing_function argument =
+  (* Prepare a temporary file and open it for writing. *)
   let (tmp_file, out_channel) = Filename.open_temp_file "tmp_string_of_" "" in
+  (* Print to that file. *)
   printing_function out_channel argument;
   close_out out_channel;
+  (* Read from the file. *)
   let in_channel = open_in tmp_file in
   let s = input_line in_channel in
   close_in in_channel;
-  Sys.remove tmp_file; 
+  (* Delete the temporary file. *)
+  Sys.remove tmp_file;
+  (* Return. *)
   s
 
 let lines_of_strings strings = String.concat "\n" strings
@@ -38,16 +53,19 @@ let indent_lines lines = List.map indent_line lines
 let indent_lines_of_strings strings = lines_of_strings (indent_lines strings)
 
 let string_of_input_channel (in_channel : in_channel) =
+  (* Check if the content of the channel will fit in a single string... *)
   let in_channel_length = in_channel_length in_channel in
   if in_channel_length > Sys.max_string_length
-  then failwith "The input channel contents do not fit in a single string!"
+  then 
+    (* No it will not! *)
+    failwith "The input channel contents do not fit in a single string!"
   else
+    (* Yes, it will fit in a single string, we can proceed and read from the channel. *)
     let s = String.create in_channel_length in
     really_input in_channel s 0 in_channel_length;
     close_in in_channel;
     s
 
-(* Helper for handling errors of external commands. *)
 let did_process_exit_ok process_status =
   match process_status with 
   | Unix.WEXITED 0 -> true 
@@ -74,6 +92,7 @@ let check_if_programs_available programs =
 module Set_of_list =
   functor (S : Set.S) ->
   struct
+
     exception Double_element of S.elt
 
     let translate el_translate l =
@@ -84,11 +103,13 @@ module Set_of_list =
         then raise (Double_element el)
         else S.add el set
       ) S.empty l
+
   end
 
 module Map_of_assoc_list =
   functor (M : Map.S) ->
   struct
+
     exception Double_key of M.key
 
     let translate key_translate value_translate l =
@@ -100,22 +121,26 @@ module Map_of_assoc_list =
         then raise (Double_key key)
         else M.add key value map
       ) M.empty l
+
   end
 
 module Map_of_list =
   functor (M : Map.S) ->
   struct
+
     exception Double_key of M.key
 
     let translate key_translate value_translate l =
       let module T = Map_of_assoc_list(M) in
       T.translate key_translate value_translate (List.combine l l)
+
   end
 
 module Set_of_map_values =
   functor (M : Map.S) ->
   functor (Set : Set.S) ->
   struct
+
     exception Double_value of Set.elt
 
     let set_of_map_values map =
@@ -124,6 +149,7 @@ module Set_of_map_values =
         then raise (Double_value value)
         else Set.add value set
       ) map Set.empty
+
   end
 
 module Set_of_map_keys =

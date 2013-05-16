@@ -24,7 +24,7 @@ open Variables
 open Generic_constraints
 
 let rec translate_spec_variable_name spec_variable_name =
-  var (SpecificationVariable spec_variable_name)
+  (SpecificationVariable spec_variable_name)
 
 and translate_spec_const (spec_const : spec_const) : expr = 
   ( int2expr spec_const )
@@ -72,13 +72,13 @@ and translate_spec_expr (location_names : location_name list) (spec_expr : spec_
 and translate_spec_element  (location_names : location_name list) (spec_element : spec_element) : expr =
   match spec_element with
   | `SpecElementPackage (package_name) ->
-      ( var2expr (var (GlobalElementVariable (Package package_name))) )
+      ( var2expr ((GlobalElementVariable (Package package_name))) )
 
   | `SpecElementComponentType (component_type_name) ->
-      ( var2expr (var (GlobalElementVariable (ComponentType component_type_name))) )
+      ( var2expr ((GlobalElementVariable (ComponentType component_type_name))) )
 
   | `SpecElementPort (port_name) ->
-      ( var2expr (var (GlobalElementVariable (Port port_name))) )
+      ( var2expr ((GlobalElementVariable (Port port_name))) )
 
   | `SpecElementLocalisation (spec_resource_constraints, spec_repository_constraints, local_specification) ->
 
@@ -148,13 +148,13 @@ and translate_spec_local_expr (location_name : location_name) (spec_local_expr :
 and translate_spec_local_element (location_name : location_name) (spec_local_element : spec_local_element) : expr =
   match spec_local_element with
   | `SpecLocalElementPackage (package_name) ->
-      ( var2expr (var (LocalElementVariable (location_name, (Package package_name)))) )
+      ( var2expr ((LocalElementVariable (location_name, (Package package_name)))) )
 
   | `SpecLocalElementComponentType (component_type_name) ->
-      ( var2expr (var (LocalElementVariable (location_name, (ComponentType component_type_name)))) )
+      ( var2expr ((LocalElementVariable (location_name, (ComponentType component_type_name)))) )
 
   | `SpecLocalElementPort (port_name) ->
-      ( var2expr (var (LocalElementVariable (location_name, (Port port_name)))) )
+      ( var2expr ((LocalElementVariable (location_name, (Port port_name)))) )
 
 and translate_spec_resource_constraints (location_name : location_name) (spec_resource_constraints : spec_resource_constraints) : cstr =
   List.fold_left (fun a spec_resource_constraint -> 
@@ -164,7 +164,7 @@ and translate_spec_resource_constraints (location_name : location_name) (spec_re
 and translate_spec_resource_constraint (location_name : location_name) : (spec_resource_constraint -> cstr) =
   fun (resource_name, spec_op, spec_const) ->
     let op_function       = ( translate_spec_op spec_op )
-    and resource_var_expr = ( var2expr (var (LocalResourceVariable (location_name, resource_name))) )
+    and resource_var_expr = ( var2expr ((LocalResourceVariable (location_name, resource_name))) )
     and spec_const_expr   = ( translate_spec_const spec_const )
     in
     ( op_function resource_var_expr spec_const_expr )
@@ -184,7 +184,7 @@ and translate_spec_repository_constraints (location_name : location_name) (spec_
       List.map ( fun repository_name ->
 
         let local_repository_var = 
-          var (LocalRepositoryVariable (location_name, repository_name))
+          (LocalRepositoryVariable (location_name, repository_name))
         in
 
         (* Part of the sum: R(location_name, repository_name) *)

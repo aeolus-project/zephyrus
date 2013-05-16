@@ -39,7 +39,7 @@ let create_one_repository_per_location_constraints configuration universe : cstr
       List.map ( fun repository_name ->
 
       	let local_repository_var = 
-          var (LocalRepositoryVariable (location_name, repository_name))
+          LocalRepositoryVariable (location_name, repository_name)
         in
 
       	(* Part of the sum: R(location_name, repository_name) *)
@@ -48,7 +48,7 @@ let create_one_repository_per_location_constraints configuration universe : cstr
       ) repository_names
 
     in
-    let sum_of_repository_vars = (sum exprs_to_sum)
+    let sum_of_repository_vars = sum exprs_to_sum
 
     (* The right side expression is a constant = 1. *)
 
@@ -78,7 +78,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
         (* The left side expression: *)
         let local_repository_var = 
-            var (LocalRepositoryVariable (location_name, repository_name))
+            LocalRepositoryVariable (location_name, repository_name)
         in
 
         let left_side_expr = ( (var2expr local_repository_var) =~ (int2expr 1) )
@@ -92,7 +92,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
         let right_side_exprs =
           List.map (fun package_name ->
-          	let package_var = var (LocalElementVariable (location_name, (Package package_name)))
+          	let package_var = (LocalElementVariable (location_name, (Package package_name)))
             in
 
             (* Do package k belong to the repository r () ?*)

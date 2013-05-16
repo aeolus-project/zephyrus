@@ -88,17 +88,20 @@ and cstr =
 
 
 
-(** Printing *)
+(** Printing functions *)
 
+(** Print a variable *)
 val string_of_var  : var  -> string
+
+(** Print an expression *)
 val string_of_expr : expr -> string
+
+(** Print a constraint *)
 val string_of_cstr : cstr -> string
 
 
 
 (** Building expressions *)
-
-val var        : Variables.variable -> var
 
 val var2expr   : var   -> expr
 val const2expr : const -> expr
@@ -113,6 +116,7 @@ val falsecstr : cstr
 (** Reification *)
 
 val reify : cstr -> expr
+
 
 (** Arithmetic operators *)
 

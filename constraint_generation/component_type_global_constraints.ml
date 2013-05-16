@@ -43,22 +43,22 @@ let create_require_binding_constraints universe port_name : cstr list =
 
     (* The left side expression: *)
     let require_arity                = get_require_arity (get_component_type universe requiring_component_type_name) port_name
-    and requiring_component_type_var = var (GlobalElementVariable (ComponentType requiring_component_type_name))
+    and requiring_component_type_var = GlobalElementVariable (ComponentType requiring_component_type_name)
     in
     
     (* The right side expression: *)
     let exprs_to_sum = 
       List.map ( fun providing_component_type_name ->
         let binding_var = 
-          var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
+          BindingVariable (port_name, providing_component_type_name, requiring_component_type_name)
         in
 
         (* Part of the sum: B(port_name, providing_component_type_name, requiring_component_type_name) *)
-        (var2expr binding_var)
+        var2expr binding_var
         
       ) provider_names
     in
-    let sum_of_provided_bindings = (sum exprs_to_sum)
+    let sum_of_provided_bindings = sum exprs_to_sum
     in
     
     (* The constraint : [for each component type t_r which requires port p]  require_arity(t_r,p) x N(t_r) = sum (over all t_p from the universe which provide port p) B(t_p,t_r,p) *)
@@ -84,7 +84,7 @@ let create_provide_binding_constraints universe port_name : cstr list =
     
     (* The left side expression: *)
     let provide_arity                = get_provide_arity (get_component_type universe providing_component_type_name) port_name
-    and providing_component_type_var = var (GlobalElementVariable (ComponentType providing_component_type_name))
+    and providing_component_type_var = GlobalElementVariable (ComponentType providing_component_type_name)
     in
 
     match provide_arity with
@@ -94,27 +94,27 @@ let create_provide_binding_constraints universe port_name : cstr list =
 
     | `FiniteProvide provide_arity ->
 
-      (* The right side expression: *)
-      let exprs_to_sum =
-        List.map ( fun requiring_component_type_name ->
-          let binding_var = 
-            var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
-          in
+        (* The right side expression: *)
+        let exprs_to_sum =
+          List.map ( fun requiring_component_type_name ->
+            let binding_var = 
+              BindingVariable (port_name, providing_component_type_name, requiring_component_type_name)
+            in
 
-          (* Part of the sum: B(port_name, providing_component_type_name, requiring_component_type_name) *)
-          (var2expr binding_var)
-          
-        ) requirer_names
-      in
-      let sum_of_required_bindings = (sum exprs_to_sum)
-      in
+            (* Part of the sum: B(port_name, providing_component_type_name, requiring_component_type_name) *)
+            var2expr binding_var
+            
+          ) requirer_names
+        in
+        let sum_of_required_bindings = sum exprs_to_sum
+        in
 
-      (* The constraint : [for each component type t_p which provides port p]  provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
-      ( (int2expr provide_arity) *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
+        (* The constraint : [for each component type t_p which provides port p]  provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
+        ( (int2expr provide_arity) *~ (var2expr providing_component_type_var) ) >=~ sum_of_required_bindings
 
-      (* Name           : Components of type t providing port p. *)
-      (* Description    : There cannot exist more bindings providing port p from the components of type t than the total number of ports p they provide together. The total number of ports p provided by all the components of type t is equal or greater to the total number of bindings providing port p from these components. *)
-      (* Constraint     : N(t) multiplied by number of ports p that each component of type t provides is equal or greater to the sum of all bindings on port p where the component of type t is the providing one and any other component is the requiring one. *)
+        (* Name           : Components of type t providing port p. *)
+        (* Description    : There cannot exist more bindings providing port p from the components of type t than the total number of ports p they provide together. The total number of ports p provided by all the components of type t is equal or greater to the total number of bindings providing port p from these components. *)
+        (* Constraint     : N(t) multiplied by number of ports p that each component of type t provides is equal or greater to the sum of all bindings on port p where the component of type t is the providing one and any other component is the requiring one. *)
 
   ) provider_names
 
@@ -132,9 +132,9 @@ let create_binding_unicity_constraints universe port_name : cstr list  =
     List.map (fun providing_component_type_name ->
       List.map (fun requiring_component_type_name ->
   
-        let binding_var                  = var (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
-        and providing_component_type_var = var (GlobalElementVariable (ComponentType providing_component_type_name))  
-        and requiring_component_type_var = var (GlobalElementVariable (ComponentType requiring_component_type_name))
+        let binding_var                  = BindingVariable (port_name, providing_component_type_name, requiring_component_type_name)
+        and providing_component_type_var = GlobalElementVariable (ComponentType providing_component_type_name)
+        and requiring_component_type_var = GlobalElementVariable (ComponentType requiring_component_type_name)
         in
   
         (* The constraint : [for each component type t_p which provides port p] [for each component type t_r which requires port p]  B(t_p,t_r,p) <= N(t_p) x N(t_r) *)
@@ -155,13 +155,13 @@ let create_conflict_constraints universe port_name : cstr list  =
   let conflicter_names = conflicters universe port_name (* are in conflict with the port *)
   in
 
-  let port_var = var (GlobalElementVariable (Port port_name))
+  let port_var = GlobalElementVariable (Port port_name)
   in
 
   (* For all the component types which are in conflict with the port *)
   List.map (fun conflicting_component_type_name ->
       
-      let conflicting_component_type_var      = var (GlobalElementVariable (ComponentType conflicting_component_type_name))
+      let conflicting_component_type_var      = GlobalElementVariable (ComponentType conflicting_component_type_name)
       and conflicting_component_provide_arity = get_provide_arity (get_component_type universe conflicting_component_type_name) port_name
       in
   

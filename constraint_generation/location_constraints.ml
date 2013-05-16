@@ -46,7 +46,7 @@ let create_element_location_constraints
   List.map (fun element_name ->
 
     (* The left side expression: *)
-    let global_element_var = var (global_var_function element_name)
+    let global_element_var = global_var_function element_name
     in
 
     (* The right side expression: *)
@@ -54,15 +54,15 @@ let create_element_location_constraints
       List.map ( fun location_name ->
 
         let local_element_var = 
-          var (local_var_function location_name element_name)
+          local_var_function location_name element_name
         in
 
         (* Part of the sum: N(location_name, element_name) *)
-        (var2expr local_element_var)
+        var2expr local_element_var
           
       ) location_names
     in
-    let sum_of_local_element_vars = (sum exprs_to_sum)
+    let sum_of_local_element_vars = sum exprs_to_sum
     
     in
 
@@ -79,20 +79,20 @@ let create_element_location_constraints
 let create_component_type_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_component_type_names
-    ( fun component_type_name -> (GlobalElementVariable (ComponentType component_type_name)) )
-    ( fun location_name component_type_name -> (LocalElementVariable (location_name, (ComponentType component_type_name))) )
+    ( fun component_type_name -> GlobalElementVariable (ComponentType component_type_name) )
+    ( fun location_name component_type_name -> LocalElementVariable (location_name, (ComponentType component_type_name)) )
 
 let create_port_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_port_names
-    ( fun port_name -> (GlobalElementVariable (Port port_name)) )
-    ( fun location_name port_name -> (LocalElementVariable (location_name, (Port port_name))) )
+    ( fun port_name -> GlobalElementVariable (Port port_name) )
+    ( fun location_name port_name -> LocalElementVariable (location_name, (Port port_name)) )
 
 let create_package_location_constraints :  configuration -> universe -> cstr list =
   create_element_location_constraints
     get_package_names
-    ( fun package_name -> (GlobalElementVariable (Package package_name)) )
-    ( fun location_name package_name -> (LocalElementVariable (location_name, (Package package_name))) )
+    ( fun package_name -> GlobalElementVariable (Package package_name) )
+    ( fun location_name package_name -> LocalElementVariable (location_name, (Package package_name)) )
 
 
 
@@ -107,7 +107,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
       List.map (fun port_name ->
   
         (* The left side expression: *)
-        let local_port_var = var (LocalElementVariable (location_name, (Port port_name)))
+        let local_port_var = LocalElementVariable (location_name, (Port port_name))
         in
     
         (* The right side expression: *)
@@ -120,7 +120,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
           List.map ( fun component_type_name ->
             
             let provide_arity            = get_provide_arity (get_component_type universe component_type_name) port_name
-            and local_component_type_var = var (LocalElementVariable (location_name, (ComponentType component_type_name)))
+            and local_component_type_var = LocalElementVariable (location_name, (ComponentType component_type_name))
             in
   
             (* Part of the sum: provide_arity(location_name, component_type_name) * N(location_name, component_type_name) *)
@@ -128,7 +128,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
               
           ) provider_names
         in
-        let sum_of_local_provides = (sum exprs_to_sum)
+        let sum_of_local_provides = sum exprs_to_sum
         
         in
     

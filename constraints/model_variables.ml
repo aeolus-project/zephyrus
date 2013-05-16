@@ -36,7 +36,16 @@ let variable_kind variable =
   | SpecificationVariable   _ -> NaturalVariable
 
 
-
+let get_elements universe =
+  let open Variables in
+  let component_type_elements =
+    List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
+  and port_elements =
+    List.map (fun port_name -> Port port_name) (get_port_names universe)
+  and package_elements =
+    List.map (fun package_name -> Package package_name) (get_package_names universe)
+  in
+  (component_type_elements @ port_elements @ package_elements)
 
 let get_all_global_element_variables universe =
   List.map (fun element ->

@@ -33,7 +33,7 @@ let cost_expr_number_of_all_components universe =
   in
   sum 
     (List.map (fun component_type_name -> 
-      var2expr (var (GlobalElementVariable (ComponentType component_type_name))) 
+      var2expr ((GlobalElementVariable (ComponentType component_type_name))) 
     ) component_type_names)
 
 
@@ -46,7 +46,7 @@ let cost_expr_number_of_all_packages initial_configuration universe =
       List.map (fun location_name ->
         List.map (fun package_name ->
 
-          var2expr (var (LocalElementVariable (location_name, (Package package_name))))
+          var2expr ((LocalElementVariable (location_name, (Package package_name))))
 
         ) package_names
       ) location_names
@@ -70,7 +70,7 @@ let cost_expr_number_of_used_or_free_locations used_or_free initial_configuratio
 
           (* Components *)
           (List.map (fun component_type_name ->
-            var2expr (var (LocalElementVariable (location_name, (ComponentType component_type_name)))) 
+            var2expr ((LocalElementVariable (location_name, (ComponentType component_type_name)))) 
           ) component_type_names)
           
           @
@@ -80,7 +80,7 @@ let cost_expr_number_of_used_or_free_locations used_or_free initial_configuratio
           else
             (* Packages *)
             (List.map (fun package_name ->
-              var2expr (var (LocalElementVariable (location_name, (Package package_name)))) 
+              var2expr ((LocalElementVariable (location_name, (Package package_name)))) 
             ) package_names)
 
         )
@@ -146,7 +146,7 @@ let cost_expr_difference_of_components initial_configuration universe =
             )
 
           and number_of_components_in_final_configuration =
-            var (LocalElementVariable (location_name, (ComponentType component_type_name)))
+            (LocalElementVariable (location_name, (ComponentType component_type_name)))
 
           in
 
@@ -189,7 +189,7 @@ let cost_expr_difference_of_packages initial_configuration universe =
             List.mem package_name initial_package_names
 
           and is_package_installed_in_final_configuration = 
-            var (LocalElementVariable (location_name, (Package package_name)))
+            (LocalElementVariable (location_name, (Package package_name)))
 
           in
 

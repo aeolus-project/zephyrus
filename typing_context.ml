@@ -334,39 +334,3 @@ let get_location_resource_provide_arity location resource_name =
     List.assoc resource_name location.location_provide_resources
   with
   | Not_found -> 0
-
-
-
-
-let get_elements universe =
-  let open Variables in
-  let component_type_elements =
-    List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
-  and port_elements =
-    List.map (fun port_name -> Port port_name) (get_port_names universe)
-  and package_elements =
-    List.map (fun package_name -> Package package_name) (get_package_names universe)
-  in
-  (component_type_elements @ port_elements @ package_elements)
-
-
-(*
-let consumers universe resource_name =
-  let component_types =
-    List.filter_map (fun component_type ->
-      if List.exists (fun (consumed_resource_name, resource_consumption) ->
-           (consumed_resource_name = resource_name) && (resource_consumption > 0)
-         ) component_type.component_type_consume
-      then Some (component_type.component_type_name)
-      else None
-    ) universe.universe_component_types
-
-  and packages =
-    List.filter_map (fun component_type ->
-      if List.exists (fun (consumed_resource_name, resource_consumption) ->
-           (consumed_resource_name = resource_name) && (resource_consumption > 0)
-         ) component_type.component_type_consume
-      then Some (component_type.component_type_name)
-      else None
-    ) universe.universe_component_types
-*)

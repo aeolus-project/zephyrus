@@ -35,7 +35,7 @@ let create_package_implementation_constraints configuration universe =
 
         (* The left side expression: *)
         let local_component_type_var =
-          var (LocalElementVariable (location_name, (ComponentType component_type_name)))
+          LocalElementVariable (location_name, (ComponentType component_type_name))
         in
         let left_side_expr =
           ( (var2expr local_component_type_var) >=~ (int2expr 1) )
@@ -50,7 +50,7 @@ let create_package_implementation_constraints configuration universe =
           List.map ( fun package_name ->
     
             let local_package_var = 
-              var (LocalElementVariable (location_name, (Package package_name)))
+              LocalElementVariable (location_name, (Package package_name))
             in
     
             (* Part of the sum: N(location_name, package_name) *)
@@ -58,7 +58,7 @@ let create_package_implementation_constraints configuration universe =
               
         ) package_names 
         in
-        let sum_of_local_package_vars = (sum exprs_to_sum)
+        let sum_of_local_package_vars = sum exprs_to_sum
         in
         let right_side_expr =
           ( sum_of_local_package_vars >=~ (int2expr 1) )
@@ -94,7 +94,7 @@ let create_package_dependency_constraints configuration universe =
             
             (* The left side expression: *)
             let local_depending_package_var = 
-                var (LocalElementVariable (location_name, (Package depending_package_name)))
+                LocalElementVariable (location_name, (Package depending_package_name))
               
             in
 
@@ -103,7 +103,7 @@ let create_package_dependency_constraints configuration universe =
               List.map ( fun depended_on_package_name ->
         
                 let local_package_var = 
-                  var (LocalElementVariable (location_name, (Package depended_on_package_name)))
+                  LocalElementVariable (location_name, (Package depended_on_package_name))
                 in
         
                 (* Part of the sum: N(location_name, depended_on_package_name) *)
@@ -146,10 +146,10 @@ let create_package_conflict_constraints configuration universe =
             
             (* The left side expression: *)
             let local_conflicting_package_var_1 = 
-                var (LocalElementVariable (location_name, (Package conflicting_package_name_1)))
+                LocalElementVariable (location_name, (Package conflicting_package_name_1))
               
             and local_conflicting_package_var_2 =
-                var (LocalElementVariable (location_name, (Package conflicting_package_name_2)))
+                LocalElementVariable (location_name, (Package conflicting_package_name_2))
 
             in
 

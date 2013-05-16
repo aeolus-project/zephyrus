@@ -19,7 +19,6 @@
 
 
 open Aeolus_types
-open Aeolus_types_output_new.Plain
 
 open ExtLib
 
@@ -364,26 +363,3 @@ let get_location_resource_provide_arity location resource_name =
     Resource_name_map.find resource_name location.location_provide_resources
   with
   | Not_found -> 0
-
-
-
-(*
-let consumers universe resource_name =
-  let component_types =
-    List.filter_map (fun component_type ->
-      if List.exists (fun (consumed_resource_name, resource_consumption) ->
-           (consumed_resource_name = resource_name) && (resource_consumption > 0)
-         ) component_type.component_type_consume
-      then Some (component_type.component_type_name)
-      else None
-    ) universe.universe_component_types
-
-  and packages =
-    List.filter_map (fun component_type ->
-      if List.exists (fun (consumed_resource_name, resource_consumption) ->
-           (consumed_resource_name = resource_name) && (resource_consumption > 0)
-         ) component_type.component_type_consume
-      then Some (component_type.component_type_name)
-      else None
-    ) universe.universe_component_types
-*)
