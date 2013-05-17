@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+open Helpers
 
 open Aeolus_types_t
 open Typing_context
@@ -65,12 +66,8 @@ let create_package_implementation_constraints configuration universe =
   
         in
   
-        (* The constraint :  *)
+        (* The constraint : [for each location l] [for each component type t]  ( N(l,t) >= 1 ) implies ( sum (over all packages k which can implement the component type t) N(l,k) ) >= 1 *)
         ( left_side_expr =>~~ right_side_expr )
-        
-        (* Name        : *)
-        (* Description : *)
-        (* Constraint  : *)
   
       ) component_type_names
     ) location_names
@@ -82,51 +79,43 @@ let create_package_dependency_constraints configuration universe =
   and packages       = get_packages       universe
   in
 
-  List.flatten (
-    List.map (fun location_name ->
-      List.flatten (
-        List.map (fun package ->
-  
-          let depending_package_name = package.package_name
-          in
-  
-          List.map (fun depended_on_package_names_group ->
-            
-            (* The left side expression: *)
-            let local_depending_package_var = 
-                LocalElementVariable (location_name, (Package depending_package_name))
-              
-            in
+  List.flatten_map (fun location_name ->
+    List.flatten_map (fun package ->
 
-            (* The right side expression: *)
-            let exprs_to_sum = 
-              List.map ( fun depended_on_package_name ->
+      let depending_package_name = package.package_name
+      in
+
+      List.map (fun depended_on_package_names_group ->
         
-                let local_package_var = 
-                  LocalElementVariable (location_name, (Package depended_on_package_name))
-                in
-        
-                (* Part of the sum: N(location_name, depended_on_package_name) *)
-                (var2expr local_package_var)
-                  
-              ) depended_on_package_names_group
+        (* The left side expression: *)
+        let local_depending_package_var = 
+            LocalElementVariable (location_name, (Package depending_package_name))
+          
+        in
+
+        (* The right side expression: *)
+        let exprs_to_sum = 
+          List.map ( fun depended_on_package_name ->
+    
+            let local_package_var = 
+              LocalElementVariable (location_name, (Package depended_on_package_name))
             in
-            let sum_of_depended_on_package_vars = (sum exprs_to_sum)
-  
-            in
-  
-            (* The constraint :  *)
-            ( (var2expr local_depending_package_var) <=~ sum_of_depended_on_package_vars )
-            
-            (* Name        : *)
-            (* Description : *)
-            (* Constraint  : *)
-  
-          ) package.package_depend
-        ) packages
-      )
-    ) location_names
-  )
+    
+            (* Part of the sum: N(location_name, depended_on_package_name) *)
+            (var2expr local_package_var)
+              
+          ) depended_on_package_names_group
+        in
+        let sum_of_depended_on_package_vars = sum exprs_to_sum
+
+        in
+
+        (* The constraint : [for each location l] [for each package k] [for each set g of packages that k depends on] N(l,k) <= sum (over all packages k' from the set g) N(l,k') *)
+        ( (var2expr local_depending_package_var) <=~ sum_of_depended_on_package_vars )
+
+      ) package.package_depend
+    ) packages
+  ) location_names
 
 let create_package_conflict_constraints configuration universe =
 
@@ -134,39 +123,31 @@ let create_package_conflict_constraints configuration universe =
   and packages       = get_packages       universe
   in
 
-  List.flatten (
-    List.map (fun location_name ->
-      List.flatten (
-        List.map (fun package ->
-  
-          let conflicting_package_name_1 = package.package_name
-          in
-  
-          List.map (fun conflicting_package_name_2 ->
-            
-            (* The left side expression: *)
-            let local_conflicting_package_var_1 = 
-                LocalElementVariable (location_name, (Package conflicting_package_name_1))
-              
-            and local_conflicting_package_var_2 =
-                LocalElementVariable (location_name, (Package conflicting_package_name_2))
+  List.flatten_map (fun location_name ->
+    List.flatten_map (fun package ->
 
-            in
+      let conflicting_package_name_1 = package.package_name
+      in
 
-            (* The right side expression is a constant equal 1. *)
-  
-            (* The constraint :  *)
-            ( ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) ) <=~ (int2expr 1) )
-            
-            (* Name        : *)
-            (* Description : *)
-            (* Constraint  : *)
-  
-          ) package.package_conflict
-        ) packages
-      )
-    ) location_names
-  )
+      List.map (fun conflicting_package_name_2 ->
+        
+        (* The left side expression: *)
+        let local_conflicting_package_var_1 = 
+            LocalElementVariable (location_name, (Package conflicting_package_name_1))
+          
+        and local_conflicting_package_var_2 =
+            LocalElementVariable (location_name, (Package conflicting_package_name_2))
+
+        in
+
+        (* The right side expression is a constant equal 1. *)
+
+        (* The constraint : [for each location l] [for each package k1] [for each package k2 that k1 conflicts] N(l,k1) + N(l,k2) <= 1 *)
+        ( ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) ) <=~ (int2expr 1) )
+
+      ) package.package_conflict
+    ) packages
+  ) location_names
 
 
 
@@ -183,10 +164,9 @@ let create_package_constraints configuration universe : cstr list =
   (* Generate the constraints! *)
 
   (* For each constraint generating function *)
-  List.flatten (
-    List.map (fun create_constraints_function -> 
+  List.flatten_map (fun create_constraints_function -> 
     
     (* Create the constraint *)
     create_constraints_function configuration universe 
 
-  ) create_constraints_functions )
+  ) create_constraints_functions

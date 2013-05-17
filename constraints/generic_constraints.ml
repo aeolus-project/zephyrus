@@ -22,77 +22,66 @@ open Helpers
 open Aeolus_types_output.Plain
 
 
-(** Operator definitions *)
 
-(** Unary arithmetic operators: to perform operations on an arithmetic expression. *)
+(* Operator definitions *)
+
 type unary_arith_op =
-  | Abs (** Absolute value *)
+  | Abs 
 
-(** Binary arithmetic operators: to perform operations on two arithmetic expressions. *)
 type binary_arith_op =
-  | Add (** Addition operator *)
-  | Sub (** Substraction operator *)
-  | Mul (** Multiplication operator *)
-  | Div (** Integer division operator *)
-  | Mod (** Modulo operator *)
+  | Add 
+  | Sub 
+  | Mul 
+  | Div 
+  | Mod 
 
-(** N-ary arithmetic operators: to perform operations on multiple arithmetic expressions. *)
 type nary_arith_op =
-  | Sum (** Sum operator *)
+  | Sum 
 
-(** Binary arithmetic comparison operators: to compare two arithmetic expressions. *)
 type binary_arith_cmp_op =
-  | Lt  (** Less-than operator *)
-  | LEq (** Less-than-or-equal-to operator *)
-  | Eq  (** Equal-to operator *)
-  | GEq (** Grearter-than-or-equal-to operator *)
-  | Gt  (** Greater-than operator *)
-  | NEq (** Not-equal-to operator *)
+  | Lt  
+  | LEq 
+  | Eq  
+  | GEq 
+  | Gt  
+  | NEq 
 
-(** Unary constraint operators: to perform operations on a constraint. *)
 type unary_cstr_op =
-  | Not (** Not operator *)
+  | Not 
 
-(** Binary constraint operators: to perform operations on two constraints. *)
 type binary_cstr_op =
-  | And         (** And operator *)
-  | Or          (** Or operator *)
-  | Impl        (** Implies operator *)
-  | IfAndOnlyIf (** If-and-only-if operator *)
+  | And         
+  | Or          
+  | Impl        
+  | IfAndOnlyIf 
 
 
+(* Type definitions *)
 
-(** Type definitions *)
-
-(** Constants *)
 type const =
-  | Int of int  (** An integer constant *)
-  | Inf of bool (** A positive and negative infinity constant *)
+  | Int of int  
+  | Inf of bool 
 
-(** Variables *)
 type var = 
   Variables.variable
 
-(** Arithmetic expressions *)
 type expr =
-  | Const               of const                              (** Constant expression. *)
-  | Var                 of var                                (** Expression representing the value of a variable. *)
-  | Reified             of cstr                               (** Reified constraint: if the constraint is satisfied then this expression will evaluate to 1, if not to 0. *)
-  | UnaryArithExpr      of unary_arith_op      * expr         (** Unary arithmetic operator applied to an expression: OP (expr1). *)
-  | BinaryArithExpr     of binary_arith_op     * expr * expr  (** Binary arithmetic operator applied to a pair of expressions: expr1 OP expr2.*)
-  | NaryArithExpr       of nary_arith_op       * expr list    (** N-ary arithmetic operator applied to a list of expressions: OP (expr1, expr2, ... , expr). *)
+  | Const               of const
+  | Var                 of var  
+  | Reified             of cstr 
+  | UnaryArithExpr      of unary_arith_op      * expr         
+  | BinaryArithExpr     of binary_arith_op     * expr * expr  
+  | NaryArithExpr       of nary_arith_op       * expr list    
 
-(** Constraints *)
 and cstr =
-  | TrueCstr  (** Always satisfied constraint. *)
-  | FalseCstr (** Never satisfied constraint. *)
-  | BinaryArithCmpCstr  of binary_arith_cmp_op * expr * expr  (** Binary arithmetic comparison operator applied to two expressions. If the comparison is true, then the constraint is satisfied, if not, then not. *)
-  | UnaryCstrOpCstr     of unary_cstr_op       * cstr         (** Unary constraint operator applied to a constraint: OP (cstr1). *)
-  | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  (** Binary constraint operator applied to a pair of constraints : cstr1 OP rcstr2. *)
+  | TrueCstr  
+  | FalseCstr 
+  | BinaryArithCmpCstr  of binary_arith_cmp_op * expr * expr  
+  | UnaryCstrOpCstr     of unary_cstr_op       * cstr         
+  | BinaryCstrOpCstr    of binary_cstr_op      * cstr * cstr  
 
 
-
-(** Printing *)
+(* Printing functions *)
 
 let string_of_unary_arith_op op =
   match op with
@@ -197,26 +186,25 @@ and string_of_cstr cstr =
       (string_of_cstr cstr)
 
 
-
 (* Building expressions *)
-
-let var (variable : Variables.variable) = variable
 
 let var2expr   (var   : var)   : expr = Var var
 let const2expr (const : const) : expr = Const const
 let int2expr   (const : int)   : expr = Const (Int const)
 
-(** Building constraints *)
+
+(* Building constraints *)
 
 let truecstr  = TrueCstr
 let falsecstr = FalseCstr
 
-(** Reification *)
+
+(* Reification *)
 
 let reify cstr = Reified cstr
 
 
-(** Arithmetic operators *)
+(* Arithmetic operators *)
 
 let ( +~ )    x y  = BinaryArithExpr (Add, x, y)
 let ( -~ )    x y  = BinaryArithExpr (Sub, x, y)
@@ -225,11 +213,10 @@ let ( /~ )    x y  = BinaryArithExpr (Div, x, y)
 let ( %~ )    x y  = BinaryArithExpr (Mod, x, y)
 let abs       x    = UnaryArithExpr  (Abs, x)
 
-
 let sum exprs_to_sum = NaryArithExpr (Sum, exprs_to_sum)
 
 
-(** Arithmetic comparisons *)
+(* Arithmetic comparisons *)
 
 let (  <~ )   x y  = BinaryArithCmpCstr (Lt,  x, y)
 let ( <=~ )   x y  = BinaryArithCmpCstr (LEq, x, y)
@@ -239,7 +226,7 @@ let (  >~ )   x y  = BinaryArithCmpCstr (Gt,  x, y)
 let ( <>~ )   x y  = BinaryArithCmpCstr (NEq, x, y)
 
 
-(** Constraint operators *)
+(* Constraint operators *)
 
 let (  &&~~ ) x y  = BinaryCstrOpCstr (And,         x, y)
 let (  ||~~ ) x y  = BinaryCstrOpCstr (Or,          x, y)
@@ -248,7 +235,8 @@ let ( <=>~~ ) x y  = BinaryCstrOpCstr (IfAndOnlyIf, x, y)
 let not       x    = UnaryCstrOpCstr  (Not,         x)
 
 
-(** Extract all variable keys that appear in a constraint / expression. *)
+
+(* Extract variables *)
 
 let rec extract_variables_of_cstr cstr =
   match cstr with

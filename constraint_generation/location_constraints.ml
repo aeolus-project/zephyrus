@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+open Helpers
 
 open Aeolus_types_t
 open Typing_context
@@ -43,35 +44,33 @@ let create_element_location_constraints
   and element_names  = get_element_names_function universe
   in
   
-  List.map (fun element_name ->
+  List.map (fun element_name (* = el *) ->
 
     (* The left side expression: *)
+
+    (* = N(el) *)
     let global_element_var = global_var_function element_name
     in
 
     (* The right side expression: *)
-    let exprs_to_sum = 
-      List.map ( fun location_name ->
 
-        let local_element_var = 
-          local_var_function location_name element_name
-        in
+    (* = sum (over all location names) N(location_name, el) *)
+    let sum_of_local_element_vars =
+      let exprs_to_sum = 
+        List.map ( fun location_name ->
 
-        (* Part of the sum: N(location_name, element_name) *)
-        var2expr local_element_var
-          
-      ) location_names
-    in
-    let sum_of_local_element_vars = sum exprs_to_sum
+          (* Part of the sum:       *)
+          (* = N(location_name, el) *)
+          var2expr (local_var_function location_name element_name)
+            
+        ) location_names
+      in
+      sum exprs_to_sum
     
     in
 
-    (* The constraint :  *)
+    (* The constraint : N(el) = sum (over all location names) N(location_name, el) *)
     ( (var2expr global_element_var) =~ sum_of_local_element_vars )
-
-    (* Name        : Elements location. *)
-    (* Description : Global number of components of type t is equal to sum of local numbers of components of this type in all locations. *)
-    (* Constraint  : *)
 
   ) element_names
 
@@ -103,41 +102,45 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
   in
 
   List.flatten (
-    List.map (fun location_name ->
-      List.map (fun port_name ->
+    List.map (fun location_name (* = l *) ->
+      List.map (fun port_name (* = p *)->
   
         (* The left side expression: *)
+
+        (* = N(l,p) *)
         let local_port_var = LocalElementVariable (location_name, (Port port_name))
         in
     
         (* The right side expression: *)
   
-        (* Get all component types which: *)
-        let provider_names = providers universe port_name (* provide some quantity of the port *)
+        (* Get all component types which provide port p *)
+        let provider_names = providers universe port_name
         in
-  
-        let exprs_to_sum = 
-          List.map ( fun component_type_name ->
-            
-            let provide_arity            = get_provide_arity (get_component_type universe component_type_name) port_name
-            and local_component_type_var = LocalElementVariable (location_name, (ComponentType component_type_name))
-            in
-  
-            (* Part of the sum: provide_arity(location_name, component_type_name) * N(location_name, component_type_name) *)
-            ( (providearity2expr provide_arity) *~ (var2expr local_component_type_var) )
+
+        (* = sum (over all component types t which provide port p) provide_arity(l,p) x N(l,t) *)
+        let sum_of_local_provides =
+          let exprs_to_sum = 
+            List.map ( fun component_type_name (* = t *) ->
               
-          ) provider_names
-        in
-        let sum_of_local_provides = sum exprs_to_sum
+              (* = provide_arity(l,t) *)
+              let provide_arity            = get_provide_arity (get_component_type universe component_type_name) port_name
+
+              (* = N(l,t) *)
+              and local_component_type_var = LocalElementVariable (location_name, (ComponentType component_type_name))
+              in
+    
+              (* Part of the sum: *)
+              (* = provide_arity(l,t) * N(l,t) *)
+              ( (providearity2expr provide_arity) *~ (var2expr local_component_type_var) )
+                
+            ) provider_names
+          in
+          sum exprs_to_sum
         
         in
     
-        (* The constraint :  *)
+        (** The constraint : [for each port p] [for each location l] N(l,p) = sum (over all component types t which provide port p) provide_arity(t,p) x N(l,t) = N(l,p) *)
         ( (var2expr local_port_var) =~ sum_of_local_provides )
-    
-        (* Name        : Ports provided at location. *)
-        (* Description : Number of ports provided at location is a sum of all ports provided by components which are present at this location. *)
-        (* Constraint  : *)
   
       ) port_names
     ) location_names
@@ -158,10 +161,9 @@ let create_location_constraints configuration universe : cstr list =
   (* Generate the constraints! *)
 
   (* For each constraint generating function *)
-  List.flatten (
-    List.map (fun create_constraints_function -> 
+  List.flatten_map (fun create_constraints_function -> 
     
     (* Create the constraint *)
     create_constraints_function configuration universe 
 
-  ) create_constraints_functions )
+  ) create_constraints_functions

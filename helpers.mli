@@ -17,16 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(*
 open ExtLib
 
 module List :
   sig
     include module type of List
     
-    val map_flatten : ('a -> 'b list) -> 'a list -> 'b list
+    val flatten_map : ('a -> 'b list) -> 'a list -> 'b list
   end
-*)
 
 (** Printing helpers. *)
 

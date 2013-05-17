@@ -17,16 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(*
 open ExtLib
 
 module List = 
   struct
     include ExtLib.List
 
-    let map_flatten f l = List.flatten (List.map f l)
+    let flatten_map f l = List.flatten (List.map f l)
   end
-*)
 
 let string_of_printing_function printing_function argument =
   (* Prepare a temporary file and open it for writing. *)

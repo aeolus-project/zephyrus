@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+open Helpers
 
 open Aeolus_types_t
 open Typing_context

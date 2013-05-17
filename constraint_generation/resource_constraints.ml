@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+open Helpers
 
 open Aeolus_types_t
 open Typing_context
@@ -105,12 +106,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
 
           (* The constraint :  *)
           ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components) )
-
-  
-        (* Name        : *)
-        (* Description : *)
-        (* Constraint  : *)
-  
+          
       ) resource_names
     ) location_names
   )
@@ -154,10 +150,6 @@ let create_initial_configuration_resource_constraints configuration universe =
         (* The constraint :  *)
         ( (var2expr local_resource_var) =~ (int2expr resource_provide_arity) )
 
-        (* Name        : *)
-        (* Description : *)
-        (* Constraint  : *)
-
       ) resource_names
     ) locations
   )
@@ -175,10 +167,9 @@ let create_resource_constraints configuration universe : cstr list =
   (* Generate the constraints! *)
 
   (* For each constraint generating function *)
-  List.flatten (
-    List.map (fun create_constraints_function -> 
+  List.flatten_map (fun create_constraints_function -> 
     
     (* Create the constraint *)
     create_constraints_function configuration universe 
 
-  ) create_constraints_functions )
+  ) create_constraints_functions

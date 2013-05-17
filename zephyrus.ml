@@ -42,7 +42,7 @@ open Configuration_generation
 open Configuration_output
 
 module TestCompile1 = Aeolus_types_translation
-(* module TestCompile2 = Typing_context_new *)
+module TestCompile2 = Typing_context_new
 
 
 (* === Handling the arguments === *)
@@ -252,7 +252,7 @@ let prefix_repository repository =
 (* Import the repositories. *)
 let imported_repositories =
   try
-    List.rev_map2 (fun repository_name repository_filename -> 
+    List.rev (List.map2 (fun repository_name repository_filename -> 
       let open Aeolus_types_output.Plain 
       in
       Printf.printf "Importing repository %s from file %s...\n" (string_of_repository_name repository_name) repository_filename;
@@ -278,7 +278,7 @@ let imported_repositories =
       then prefix_repository repository
       else repository
 
-    ) !import_repository_names !import_repository_filenames
+    ) !import_repository_names !import_repository_filenames)
   with
   Invalid_argument s -> 
     failwith (Printf.sprintf "Number of imported repository names does not match the number of imported repository filenames! %s" s)
