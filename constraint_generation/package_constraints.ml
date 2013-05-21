@@ -26,48 +26,56 @@ open Generic_constraints
 
 let create_package_implementation_constraints configuration universe =
 
+  (* Get all the location names from the configuration *)
   let location_names       = get_location_names configuration
+
+  (* Get all the component type names from the universe *)
   and component_type_names = get_component_type_names universe
   in
 
   List.flatten (
-    List.map (fun location_name ->
-      List.map (fun component_type_name ->
+
+    (* For all the available locations *)
+    List.map (fun location_name (* = l *)->
+
+      (* For all the available component types *)
+      List.map (fun component_type_name (* = t *) ->
 
         (* The left side expression: *)
+
+        (* = N(l,t) *)
         let local_component_type_var =
-          LocalElementVariable (location_name, (ComponentType component_type_name))
-        in
-        let left_side_expr =
-          ( (var2expr local_component_type_var) >=~ (int2expr 1) )
+          var2expr (LocalElementVariable (location_name, (ComponentType component_type_name)))
         in
   
         (* The right side expression: *)
+
+        (* Get the names of all packages which can implement the component type t *)
         let package_names =
           get_component_type_implementation universe component_type_name 
         in
   
-        let exprs_to_sum = 
-          List.map ( fun package_name ->
-    
-            let local_package_var = 
-              LocalElementVariable (location_name, (Package package_name))
-            in
-    
-            (* Part of the sum: N(location_name, package_name) *)
-            (var2expr local_package_var)
-              
-        ) package_names 
-        in
-        let sum_of_local_package_vars = sum exprs_to_sum
-        in
-        let right_side_expr =
-          ( sum_of_local_package_vars >=~ (int2expr 1) )
+        (* = sum (over all packages k which can implement the component type t) N(l,k) *)
+        let sum_of_local_package_vars =
+          let exprs_to_sum = 
+            List.map ( fun package_name (* = k *) ->
+      
+              (* Part of the sum: *)
+              (* = N(l,k)         *)
+              var2expr (LocalElementVariable (location_name, (Package package_name)))
+                
+          ) package_names 
+          in
+          sum exprs_to_sum
   
         in
   
-        (* The constraint : [for each location l] [for each component type t]  ( N(l,t) >= 1 ) implies ( sum (over all packages k which can implement the component type t) N(l,k) ) >= 1 *)
-        ( left_side_expr =>~~ right_side_expr )
+        (* The constraint : 
+             [for each location l]
+             [for each component type t]
+               ( N(l,t) >= 1 )  implies  ( sum (over all packages k which can implement the component type t) N(l,k) ) >= 1 
+        *)
+        ( local_component_type_var >=~ (int2expr 1) ) =>~~ ( sum_of_local_package_vars >=~ (int2expr 1) )
   
       ) component_type_names
     ) location_names
@@ -75,77 +83,109 @@ let create_package_implementation_constraints configuration universe =
 
 let create_package_dependency_constraints configuration universe =
 
+  (* Get all the location names from the configuration *)
   let location_names = get_location_names configuration
+
+  (* Get all the package names from the universe *)
   and packages       = get_packages       universe
   in
 
-  List.flatten_map (fun location_name ->
-    List.flatten_map (fun package ->
+  (* For all the available locations *)
+  List.flatten_map (fun location_name (* = l *) ->
 
-      let depending_package_name = package.package_name
+    (* For all the available packages *)
+    List.flatten_map (fun package (* = k *) ->
+
+      let depending_package_name         = package.package_name
+      and depended_on_package_names_sets = package.package_depend
+
       in
 
-      List.map (fun depended_on_package_names_group ->
+      (* For all the sets of packages on which package k depends *)
+      List.map (fun depended_on_package_names_set (* = g *) ->
         
         (* The left side expression: *)
+
+        (* = N(l,k) *)
         let local_depending_package_var = 
-            LocalElementVariable (location_name, (Package depending_package_name))
+            var2expr (LocalElementVariable (location_name, (Package depending_package_name)))
           
         in
 
         (* The right side expression: *)
-        let exprs_to_sum = 
-          List.map ( fun depended_on_package_name ->
-    
-            let local_package_var = 
-              LocalElementVariable (location_name, (Package depended_on_package_name))
-            in
-    
-            (* Part of the sum: N(location_name, depended_on_package_name) *)
-            (var2expr local_package_var)
-              
-          ) depended_on_package_names_group
-        in
-        let sum_of_depended_on_package_vars = sum exprs_to_sum
+
+        (* = sum (over all packages k' from the set g) N(l,k') *)
+        let sum_of_depended_on_package_vars =
+          let exprs_to_sum = 
+            List.map ( fun depended_on_package_name (* = k' *) ->
+      
+              (* Part of the sum: *)
+              (* = N(l,k')        *)
+              var2expr (LocalElementVariable (location_name, (Package depended_on_package_name)))
+                
+            ) depended_on_package_names_set
+          in
+          sum exprs_to_sum
 
         in
 
-        (* The constraint : [for each location l] [for each package k] [for each set g of packages that k depends on] N(l,k) <= sum (over all packages k' from the set g) N(l,k') *)
-        ( (var2expr local_depending_package_var) <=~ sum_of_depended_on_package_vars )
+        (* The constraint : 
+             [for each location l]
+             [for each package k] 
+             [for each set g of packages that k depends on] 
+               N(l,k) <= sum (over all packages k' from the set g) N(l,k') 
+        *)
+        local_depending_package_var <=~ sum_of_depended_on_package_vars
 
-      ) package.package_depend
+      ) depended_on_package_names_sets
     ) packages
   ) location_names
 
 let create_package_conflict_constraints configuration universe =
 
+  (* Get all the location names from the configuration *)
   let location_names = get_location_names configuration
+
+  (* Get all the package names from the universe *)
   and packages       = get_packages       universe
   in
 
-  List.flatten_map (fun location_name ->
-    List.flatten_map (fun package ->
+  (* For all the available locations *)
+  List.flatten_map (fun location_name (* = l *)->
 
-      let conflicting_package_name_1 = package.package_name
+    (* For all the available packages *)
+    List.flatten_map (fun package (* = k1 *) ->
+
+      let conflicting_package_name_1  = package.package_name
+      and conflicting_package_names_2 = package.package_conflict
       in
 
-      List.map (fun conflicting_package_name_2 ->
+      (* For all the packages conflicting with k1 *)
+      List.map (fun conflicting_package_name_2 (* = k2 *) ->
         
         (* The left side expression: *)
+
+        (* = N(l,k1) *)
         let local_conflicting_package_var_1 = 
-            LocalElementVariable (location_name, (Package conflicting_package_name_1))
+            var2expr (LocalElementVariable (location_name, (Package conflicting_package_name_1)))
           
+        (* = N(l,k2) *)
         and local_conflicting_package_var_2 =
-            LocalElementVariable (location_name, (Package conflicting_package_name_2))
+            var2expr (LocalElementVariable (location_name, (Package conflicting_package_name_2)))
 
         in
 
         (* The right side expression is a constant equal 1. *)
 
-        (* The constraint : [for each location l] [for each package k1] [for each package k2 that k1 conflicts] N(l,k1) + N(l,k2) <= 1 *)
-        ( ( (var2expr local_conflicting_package_var_1) +~ (var2expr local_conflicting_package_var_2) ) <=~ (int2expr 1) )
+        (* The constraint :
+             [for each location l] 
+             [for each package k1]
+             [for each package k2 that k1 conflicts] 
+               N(l,k1) + N(l,k2) <= 1 
+        *)
+        ( local_conflicting_package_var_1 +~ local_conflicting_package_var_2 ) <=~ (int2expr 1)
 
-      ) package.package_conflict
+      ) conflicting_package_names_2
     ) packages
   ) location_names
 

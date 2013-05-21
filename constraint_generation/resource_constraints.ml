@@ -24,57 +24,76 @@ open Typing_context
 open Variables
 open Generic_constraints
 
-let element_exprs_to_sum
+let elements_resource_consumption_sum
   ( get_element_resource_consumption_funtion : 'a -> resource_consumption ) 
   ( local_element_variable_function      : 'a -> variable )
   ( elements : 'a list )
-  : expr list = 
+  : expr = 
   
-  List.map ( fun element ->
-    
-    let consume_arity     = get_element_resource_consumption_funtion element
-    and local_element_var = local_element_variable_function element
-    in
-
-    (* Part of the sum: consumes(element_name, resource_name) * N(location_name, element_name) *)
-    ( (int2expr consume_arity) *~ (var2expr local_element_var) )
+  let exprs_to_sum =
+    List.map ( fun element (* = el *) ->
       
-  ) elements
+      (* = resource_consumption(el,o) *)
+      let consume_arity     = int2expr (get_element_resource_consumption_funtion element)
+
+      (* = N(l,el) *)
+      and local_element_var = var2expr (local_element_variable_function element)
+      in
+
+      (* Part of the sum:                       *)
+      (* = resource_consumption(el,o) * N(l,el) *)
+      consume_arity *~ local_element_var
+        
+    ) elements
+  
+  in
+
+  (* = sum (over all elements el) resource_consumption(el,o) *)
+  sum exprs_to_sum
 
 
 
 let create_local_resource_constraints_with_or_without_packages (include_packages_resource_consumption : bool) configuration universe =
 
+  (* Get all the location names from the configuration *)
   let location_names       = get_location_names  configuration
+
+  (* Get all the resource names from the universe *)
   and resource_names       = get_resource_names  universe
   
+  (* Get all the component types from the universe *)
   and component_types      = get_component_types universe
+
+  (* Get all the packages from the universe *)
   and packages             = get_packages        universe
   
   in
   
   List.flatten (
-    List.map (fun location_name ->
-      List.map (fun resource_name ->
-  
+
+    (* For all the available locations *)
+    List.map (fun location_name (* = l *)->
+
+      (* For all the available resources *)
+      List.map (fun resource_name (* = o *) ->
+
         (* The left side expression: *)
+
+        (* = N(l,o) *)
         let local_resource_var =
-          (LocalResourceVariable (location_name, resource_name))
+          var2expr (LocalResourceVariable (location_name, resource_name))
   
         in
   
-        (* The rights side expression: *)
+        (* The right side expression: *)
   
-        (* First part of the sum: component types *)
+        (* First part of the sum: resources consumed by component types *)
+        (* = sum (over all component types t) resource_consumption(t,o) *)
         let sum_of_local_consumption_by_components = 
-          
-          let component_type_exprs_to_sum = 
-            element_exprs_to_sum
-              (fun (component_type : component_type) -> get_component_type_resource_consumption component_type resource_name)
-              (fun (component_type : component_type) -> LocalElementVariable (location_name, (ComponentType component_type.component_type_name)))
-              component_types
-          in
-          sum component_type_exprs_to_sum
+          elements_resource_consumption_sum
+            (fun (component_type : component_type) -> get_component_type_resource_consumption component_type resource_name)
+            (fun (component_type : component_type) -> LocalElementVariable (location_name, (ComponentType component_type.component_type_name)))
+            component_types
         
         in
         
@@ -84,28 +103,33 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
 
           (* We count in the resources consumed by packages. *)
 
-          (* Second part of the sum: packages *)
+          (* Second part of the sum: resources consumed by packages *)
+          (* = sum (over all packages k) resource_consumption(k,o) *)
           let sum_of_local_consumption_by_packages = 
-            
-            let package_exprs_to_sum = 
-              element_exprs_to_sum
-                (fun (package : package) -> get_package_resource_consumption package resource_name)
-                (fun (package : package) -> LocalElementVariable (location_name, (Package package.package_name)))
-                (packages : package list)
-            in
-            sum package_exprs_to_sum
+            elements_resource_consumption_sum
+            (fun (package : package) -> get_package_resource_consumption package resource_name)
+            (fun (package : package) -> LocalElementVariable (location_name, (Package package.package_name)))
+            packages
           
           in
           
-          (* The constraint :  *)
-          ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components +~ sum_of_local_consumption_by_packages) )
+          (* The constraint :
+              [for each location l]
+              [for each resource o] 
+                N(l,o) >= ( sum (over all component types t) resource_consumption(t,o) ) + ( sum (over all packages k) resource_consumption(k,o) ) 
+          *)
+          local_resource_var >=~ (sum_of_local_consumption_by_components +~ sum_of_local_consumption_by_packages)
 
         else
 
           (* We don't count in the resources consumed by packages. *)
 
-          (* The constraint :  *)
-          ( (var2expr local_resource_var) >=~ (sum_of_local_consumption_by_components) )
+          (* The constraint :
+              [for each location l]
+              [for each resource o] 
+                N(l,o) >= sum (over all component types t) resource_consumption(t,o)
+          *)
+          local_resource_var >=~ sum_of_local_consumption_by_components
           
       ) resource_names
     ) location_names
@@ -117,38 +141,49 @@ let create_local_component_resource_constraints = create_local_resource_constrai
 (* 
   Note: 
     The "components + packages" constraints are strictly stronger (or equal) to the "components only" constraints.
-    Therefore we can safely use both of these types in the same problem and we will have the same effect as if we used only the stronger ones.
+    Therefore we can safely use both of these constraint versions in the same problem and we will have the same effect as if we used only the stronger ones.
 *)
 
 
 let create_initial_configuration_resource_constraints configuration universe =
 
+  (* Get all the location names from the configuration *)
   let locations       = get_locations      configuration
+
+  (* Get all the resource names from the universe *)
   and resource_names  = get_resource_names universe
   in
 
   List.flatten (
+
+    (* For all the available locations *)
     List.map (fun location ->
 
-      let location_name = location.location_name
-      in
-
+      (* For all the available resources *)
       List.map (fun resource_name ->
 
         (* The left side expression: *)
+
+        (* = O(l,o) *)
         let local_resource_var =
-          LocalResourceVariable (location_name, resource_name)
+          var2expr (LocalResourceVariable (location.location_name, resource_name))
   
         in
 
-        (* The rights side expression: *)
+        (* The right side expression: *)
+
+        (* = resource_provide_arity(l,o) *)
         let resource_provide_arity =
-          get_location_resource_provide_arity location resource_name
+          int2expr (get_location_resource_provide_arity location resource_name)
 
         in
 
-        (* The constraint :  *)
-        ( (var2expr local_resource_var) =~ (int2expr resource_provide_arity) )
+        (* The constraint : 
+            [for each location l]
+            [for each resource o] 
+              O(l,o) = resource_provide_arity(l,o) 
+        *)
+        ( local_resource_var =~ resource_provide_arity )
 
       ) resource_names
     ) locations
