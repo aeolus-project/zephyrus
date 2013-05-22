@@ -18,43 +18,8 @@
 (****************************************************************************)
 
 {
-  open Specification_parser        (* The type token is defined in specification_parser.mli *)
+  open Specification_parser (* The type token is defined in specification_parser.mli *)
   exception Eof
-
-  open Aeolus_types_t
-  open Typing_context
-
-  (*
-  type element = CT | Pkg | Prt
-
-  let names_table = Hashtbl.create 50000
-
-  (* We only need to keep track of names of component types, ports and packages,
-     because when one of these three appears in the specification we have no way
-     to guess from the parsing context if it is a name of a component type,
-     a port or a package. *)
-  let initialize_names_table (universe : universe) =
-    List.iter (fun component_type_name -> Hashtbl.add names_table component_type_name CT  ) (get_component_type_names universe);
-    List.iter (fun port_name           -> Hashtbl.add names_table port_name           Prt )           (get_port_names universe);
-    List.iter (fun package_name        -> Hashtbl.add names_table package_name        Pkg )        (get_package_names universe);
-    ()
-
-  
-  let name_token lxm =
-    try
-      (* Does a name used in the specification corresponds to a name
-         of a component type, a port or a package present in the universe? *)
-      match Hashtbl.find names_table lxm with
-      | CT  -> COMPONENT_TYPE_NAME(lxm)
-      | Prt -> PORT_NAME(lxm)
-      | Pkg -> PACKAGE_NAME(lxm)
-      
-    with Not_found ->
-      (* If not, then it must be a name of a resource or a repository or 
-         a specification variable. *)
-      NAME(lxm)
-    *)
-  
 }
 
 rule token = parse
@@ -115,18 +80,22 @@ rule token = parse
 
   (* Names *)
   
+  (* Naming convention for component types: if first character is a capital letter, then it is a component type name. *)
   |      (['A'-'Z'] ['a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { COMPONENT_TYPE_NAME(lxm) }
   | '"'  (['A'-'Z'] ['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { COMPONENT_TYPE_NAME(lxm) }
   | '\'' (['A'-'Z'] ['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { COMPONENT_TYPE_NAME(lxm) }
   
+  (* Naming convention for ports: if first character is the '@' symbol, then it is a port name. *)
   |      ('@'       ['a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { PORT_NAME(lxm)           }
   | '"'  ('@'       ['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { PORT_NAME(lxm)           }
   | '\'' ('@'       ['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { PORT_NAME(lxm)           }
 
+  (* Naming convention for packages: if first character is a non-capital letter, then it is a package name. *)
   |      (['a'-'z'] ['a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm)      { PACKAGE_NAME(lxm) }
   | '"'  (['a'-'z'] ['a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm) '"'  { PACKAGE_NAME(lxm) }
   | '\'' (['a'-'z'] ['a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm) '\'' { PACKAGE_NAME(lxm) }
 
+  (* Other names *)
   |      (['a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { NAME(lxm) }
   | '"'  (['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { NAME(lxm) }
   | '\'' (['a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { NAME(lxm) }
