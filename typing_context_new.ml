@@ -81,7 +81,7 @@ let get_component_types universe =
   let module Component_type_set_of_component_type_name_map_values =
     Set_of_map_values(Component_type_name_map)(Component_type_set)
   in
-    Component_type_set_of_component_type_name_map_values.set_of_map_values universe.universe_component_types
+  Component_type_set_of_component_type_name_map_values.set_of_map_values universe.universe_component_types
 
 let get_component_type universe component_type_name =
   try
@@ -129,36 +129,27 @@ let is_in_conflict component_type port_name =
   Port_name_set.mem port_name component_type.component_type_conflict
 
 let requirers universe port_name =
-  let component_type_names : Component_type_name_set.t = get_component_type_names universe
+  let component_types : Component_type_set.t = get_component_types universe
   in
-  Component_type_name_set.filter (fun component_type_name ->
-    let component_type = get_component_type universe component_type_name
-    in
+  Component_type_set.filter (fun component_type ->
     get_require_arity component_type port_name > 0
-
-  ) component_type_names
+  ) component_types
 
 let providers universe port_name =
-  let component_type_names : Component_type_name_set.t = get_component_type_names universe
+  let component_types : Component_type_set.t = get_component_types universe
   in
-  Component_type_name_set.filter (fun component_type_name ->
-    let component_type = get_component_type universe component_type_name
-    in
+  Component_type_set.filter (fun component_type ->
     match get_provide_arity component_type port_name with
     | FiniteProvide i -> i > 0
     | InfiniteProvide -> true
-
-  ) component_type_names
+  ) component_types
 
 let conflicters universe port_name =
-  let component_type_names : Component_type_name_set.t = get_component_type_names universe
+  let component_types : Component_type_set.t = get_component_types universe
   in
-  Component_type_name_set.filter (fun component_type_name ->
-    let component_type = get_component_type universe component_type_name
-    in
+  Component_type_set.filter (fun component_type ->
     is_in_conflict component_type port_name
-
-  ) component_type_names
+  ) component_types
 
 
 (** repository *)

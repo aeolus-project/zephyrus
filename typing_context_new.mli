@@ -56,14 +56,14 @@ val get_require_arity                       : component_type -> port_name -> req
 val is_in_conflict                          : component_type -> port_name -> bool
 
 
-(** Given a universe and a port name returns the names of all component types available in this universe which require this port (require arity is greater than zero). *)
-val requirers                               : universe -> port_name -> Set.Make(Component_type_name).t
+(** Given a universe and a port name returns all the component types available in this universe which require this port (require arity is greater than zero). *)
+val requirers                               : universe -> port_name -> Set.Make(Component_type).t
 
-(** Given a universe and a port name returns the names of all component types available in this universe which provide this port (require arity is greater than zero). *)
-val providers                               : universe -> port_name -> Set.Make(Component_type_name).t
+(** Given a universe and a port name returns all the component types available in this universe which provide this port (require arity is greater than zero). *)
+val providers                               : universe -> port_name -> Set.Make(Component_type).t
 
-(** Given a universe and a port name returns the names of all component types available in this universe which are in conflict with this port. *)
-val conflicters                             : universe -> port_name -> Set.Make(Component_type_name).t
+(** Given a universe and a port name returns all the component types available in this universe which are in conflict with this port. *)
+val conflicters                             : universe -> port_name -> Set.Make(Component_type).t
 
 
 
