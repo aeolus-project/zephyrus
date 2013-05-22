@@ -98,9 +98,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
 
       (* All the right side expressions: *)
-      let repository_packages = get_repository_packages repository
-      in
-
+      
       let right_side_exprs =
         List.map (fun package (* = k *) ->
 
@@ -110,8 +108,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
           in
 
           (* Does package k belong to the repository r ?*)
-        	if List.mem package.package_name (List.map (fun package -> package.package_name) repository_packages)
-          (* TODO: add a "does a package belong to a repository" function in typing context. *)
+        	if is_package_in_the_repository repository package
 
         	then 
         	  (* If the package k belongs to the repository r, 

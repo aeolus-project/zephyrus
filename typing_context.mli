@@ -94,6 +94,10 @@ val get_repository_package_names            : repository -> package_name list
 (** Given a repository returns all the packages available in this repository. *)
 val get_repository_packages                 : repository -> package list
 
+(** Given a repository and a package returns true 
+    if this package is available in this repository and false otherwise. *)
+val is_package_in_the_repository            : repository -> package -> bool
+
 (** Given a repository and a package name returns the corresponding package from this repository. 
     Fails if there is no package with this name in this repository. *)
 val get_package                             : repository -> package_name -> package

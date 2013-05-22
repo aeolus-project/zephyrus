@@ -227,6 +227,10 @@ let get_package repository package_name =
   | Not_found ->
       does_not_exist (PackageInRepository (package_name, repository.repository_name))
 
+let is_package_in_the_repository repository package =
+  List.mem package.package_name (get_repository_package_names repository)
+
+
 let get_component_type_implementation universe component_type_name =
   try
     List.assoc component_type_name universe.universe_implementation
