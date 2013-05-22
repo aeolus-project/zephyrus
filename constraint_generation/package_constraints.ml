@@ -26,33 +26,33 @@ open Generic_constraints
 
 let create_package_implementation_constraints configuration universe =
 
-  (* Get all the location names from the configuration *)
-  let location_names       = get_location_names configuration
+  (* Get all the locations from the configuration *)
+  let locations       = get_locations configuration
 
-  (* Get all the component type names from the universe *)
-  and component_type_names = get_component_type_names universe
+  (* Get all the component types from the universe *)
+  and component_types = get_component_types universe
   in
 
   List.flatten (
 
     (* For all the available locations *)
-    List.map (fun location_name (* = l *)->
+    List.map (fun location (* = l *)->
 
       (* For all the available component types *)
-      List.map (fun component_type_name (* = t *) ->
+      List.map (fun component_type (* = t *) ->
 
         (* The left side expression: *)
 
         (* = N(l,t) *)
         let local_component_type_var =
-          var2expr (LocalElementVariable (location_name, (ComponentType component_type_name)))
+          var2expr (LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))
         in
   
         (* The right side expression: *)
 
         (* Get the names of all packages which can implement the component type t *)
         let package_names =
-          get_component_type_implementation universe component_type_name 
+          get_component_type_implementation universe component_type.component_type_name 
         in
   
         (* = sum (over all packages k which can implement the component type t) N(l,k) *)
@@ -62,7 +62,7 @@ let create_package_implementation_constraints configuration universe =
       
               (* Part of the sum: *)
               (* = N(l,k)         *)
-              var2expr (LocalElementVariable (location_name, (Package package_name)))
+              var2expr (LocalElementVariable (location.location_name, (Package package_name)))
                 
           ) package_names 
           in
@@ -77,21 +77,21 @@ let create_package_implementation_constraints configuration universe =
         *)
         ( local_component_type_var >=~ (int2expr 1) ) =>~~ ( sum_of_local_package_vars >=~ (int2expr 1) )
   
-      ) component_type_names
-    ) location_names
+      ) component_types
+    ) locations
   )
 
 let create_package_dependency_constraints configuration universe =
 
-  (* Get all the location names from the configuration *)
-  let location_names = get_location_names configuration
+  (* Get all the locations from the configuration *)
+  let locations = get_locations configuration
 
-  (* Get all the package names from the universe *)
-  and packages       = get_packages       universe
+  (* Get all the packages from the universe *)
+  and packages  = get_packages universe
   in
 
   (* For all the available locations *)
-  List.flatten_map (fun location_name (* = l *) ->
+  List.flatten_map (fun location (* = l *) ->
 
     (* For all the available packages *)
     List.flatten_map (fun package (* = k *) ->
@@ -108,7 +108,7 @@ let create_package_dependency_constraints configuration universe =
 
         (* = N(l,k) *)
         let local_depending_package_var = 
-            var2expr (LocalElementVariable (location_name, (Package depending_package_name)))
+            var2expr (LocalElementVariable (location.location_name, (Package depending_package_name)))
           
         in
 
@@ -121,7 +121,7 @@ let create_package_dependency_constraints configuration universe =
       
               (* Part of the sum: *)
               (* = N(l,k')        *)
-              var2expr (LocalElementVariable (location_name, (Package depended_on_package_name)))
+              var2expr (LocalElementVariable (location.location_name, (Package depended_on_package_name)))
                 
             ) depended_on_package_names_set
           in
@@ -139,19 +139,19 @@ let create_package_dependency_constraints configuration universe =
 
       ) depended_on_package_names_sets
     ) packages
-  ) location_names
+  ) locations
 
 let create_package_conflict_constraints configuration universe =
 
-  (* Get all the location names from the configuration *)
-  let location_names = get_location_names configuration
+  (* Get all the locations from the configuration *)
+  let locations = get_locations configuration
 
-  (* Get all the package names from the universe *)
-  and packages       = get_packages       universe
+  (* Get all the packages from the universe *)
+  and packages  = get_packages universe
   in
 
   (* For all the available locations *)
-  List.flatten_map (fun location_name (* = l *)->
+  List.flatten_map (fun location (* = l *)->
 
     (* For all the available packages *)
     List.flatten_map (fun package (* = k1 *) ->
@@ -167,11 +167,11 @@ let create_package_conflict_constraints configuration universe =
 
         (* = N(l,k1) *)
         let local_conflicting_package_var_1 = 
-            var2expr (LocalElementVariable (location_name, (Package conflicting_package_name_1)))
+            var2expr (LocalElementVariable (location.location_name, (Package conflicting_package_name_1)))
           
         (* = N(l,k2) *)
         and local_conflicting_package_var_2 =
-            var2expr (LocalElementVariable (location_name, (Package conflicting_package_name_2)))
+            var2expr (LocalElementVariable (location.location_name, (Package conflicting_package_name_2)))
 
         in
 
@@ -187,7 +187,7 @@ let create_package_conflict_constraints configuration universe =
 
       ) conflicting_package_names_2
     ) packages
-  ) location_names
+  ) locations
 
 
 

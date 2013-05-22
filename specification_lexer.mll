@@ -24,6 +24,7 @@
   open Aeolus_types_t
   open Typing_context
 
+  (*
   type element = CT | Pkg | Prt
 
   let names_table = Hashtbl.create 50000
@@ -52,6 +53,7 @@
       (* If not, then it must be a name of a resource or a repository or 
          a specification variable. *)
       NAME(lxm)
+    *)
   
 }
 

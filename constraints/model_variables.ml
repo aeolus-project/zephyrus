@@ -39,11 +39,11 @@ let variable_kind variable =
 let get_elements universe =
   let open Variables in
   let component_type_elements =
-    List.map (fun component_type_name -> ComponentType component_type_name) (get_component_type_names universe)
+    List.map (fun component_type -> ComponentType component_type.component_type_name) (get_component_types universe)
   and port_elements =
-    List.map (fun port_name -> Port port_name) (get_port_names universe)
+    List.map (fun port_name      -> Port port_name)                                   (get_port_names universe)
   and package_elements =
-    List.map (fun package_name -> Package package_name) (get_package_names universe)
+    List.map (fun package        -> Package package.package_name)                     (get_packages universe)
   in
   (component_type_elements @ port_elements @ package_elements)
 
@@ -54,19 +54,19 @@ let get_all_global_element_variables universe =
 
 let get_all_local_element_variables universe configuration =
   List.flatten (
-    List.map (fun location_name ->
+    List.map (fun location ->
       List.map (fun element ->
-        (LocalElementVariable (location_name, element))
+        (LocalElementVariable (location.location_name, element))
       ) (get_elements universe)
-    ) (get_location_names configuration)
+    ) (get_locations configuration)
   )
 
 let get_all_binding_variables universe =
   List.flatten ( List.flatten (
     List.map (fun port_name ->
-      List.map (fun providing_component_type_name ->
-        List.map (fun requiring_component_type_name ->
-          (BindingVariable (port_name, providing_component_type_name, requiring_component_type_name))
+      List.map (fun providing_component_type ->
+        List.map (fun requiring_component_type ->
+          (BindingVariable (port_name, providing_component_type.component_type_name, requiring_component_type.component_type_name))
         ) (requirers universe port_name)
       ) (providers universe port_name)
     ) (get_port_names universe)
@@ -74,20 +74,20 @@ let get_all_binding_variables universe =
 
 let get_all_local_repository_variables universe configuration =
   List.flatten (
-    List.map (fun location_name ->
-      List.map (fun repository_name ->
-        (LocalRepositoryVariable (location_name, repository_name))
-      ) (get_repository_names universe)
-    ) (get_location_names configuration)
+    List.map (fun location ->
+      List.map (fun repository ->
+        (LocalRepositoryVariable (location.location_name, repository.repository_name))
+      ) (get_repositories universe)
+    ) (get_locations configuration)
   )
 
 let get_all_local_resource_variables universe configuration =
   List.flatten (
-    List.map (fun location_name ->
+    List.map (fun location ->
       List.map (fun resource_name ->
-        (LocalResourceVariable (location_name, resource_name))
+        (LocalResourceVariable (location.location_name, resource_name))
       ) (get_resource_names universe)
-    ) (get_location_names configuration)
+    ) (get_locations configuration)
   )
 
 let pred_specification_variable variable =

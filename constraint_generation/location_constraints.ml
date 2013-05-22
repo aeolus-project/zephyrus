@@ -35,13 +35,13 @@ let providearity2expr (provide_arity : provide_arity) : expr =
 let create_element_location_constraints
   (get_element_names_function : universe -> 'a list)
   (global_var_function : 'a -> variable)
-  (local_var_function : location_name -> 'a -> variable)
+  (local_var_function : location -> 'a -> variable)
   configuration
   universe 
   : cstr list =
 
-  (* Get all the location names from the configuration *)
-  let location_names = get_location_names configuration
+  (* Get all the locations from the configuration *)
+  let locations = get_locations configuration
 
   (* Get all the element names from the universe *)
   and element_names  = get_element_names_function universe
@@ -63,13 +63,13 @@ let create_element_location_constraints
     (* = sum (over all location names l) N(l,el) *)
     let sum_of_local_element_vars =
       let exprs_to_sum = 
-        List.map ( fun location_name ->
+        List.map ( fun location ->
 
           (* Part of the sum: *)
           (* = N(l,el)        *)
-          var2expr (local_var_function location_name element_name)
+          var2expr (local_var_function location element_name)
             
-        ) location_names
+        ) locations
       in
       sum exprs_to_sum
     
@@ -86,39 +86,39 @@ let create_element_location_constraints
 let create_component_type_location_constraints :  configuration -> universe -> cstr list =
   (* Use the general function for component type elements *)
   create_element_location_constraints
-    get_component_type_names (* get element names function *)
+    ( fun universe -> List.map (fun component_type -> component_type.component_type_name) (get_component_types universe) ) (* get element names function *)
     ( fun component_type_name -> GlobalElementVariable (ComponentType component_type_name) ) (* element name -> global element variable *)
-    ( fun location_name component_type_name -> LocalElementVariable (location_name, (ComponentType component_type_name)) ) (* location name, element name -> local element variable*)
+    ( fun location component_type_name -> LocalElementVariable (location.location_name, (ComponentType component_type_name)) ) (* location, element name -> local element variable*)
 
 let create_port_location_constraints :  configuration -> universe -> cstr list =
   (* Use the general function for port elements *)
   create_element_location_constraints
     get_port_names (* get element names function *)
     ( fun port_name -> GlobalElementVariable (Port port_name) ) (* element name -> global element variable *)
-    ( fun location_name port_name -> LocalElementVariable (location_name, (Port port_name)) ) (* location name, element name -> local element variable*)
+    ( fun location port_name -> LocalElementVariable (location.location_name, (Port port_name)) ) (* location, element name -> local element variable*)
 
 let create_package_location_constraints :  configuration -> universe -> cstr list =
   (* Use the general function for package elements *)
   create_element_location_constraints
     get_package_names (* get element names function *)
     ( fun package_name -> GlobalElementVariable (Package package_name) ) (* element name -> global element variable *)
-    ( fun location_name package_name -> LocalElementVariable (location_name, (Package package_name)) ) (* location name, element name -> local element variable*)
+    ( fun location package_name -> LocalElementVariable (location.location_name, (Package package_name)) ) (* location, element name -> local element variable*)
 
 
 
 let create_port_provided_at_location_constraints configuration universe : cstr list =
 
   (* Get all the location names from the configuration *)
-  let location_names = get_location_names configuration
+  let locations  = get_locations configuration
 
   (* Get all the port names mentioned in the universe *)
-  and port_names     = get_port_names universe
+  and port_names = get_port_names universe
   in
 
   List.flatten (
     
     (* For all the available locations *)
-    List.map (fun location_name (* = l *) ->
+    List.map (fun location (* = l *) ->
 
       (* For all the available ports *)
       List.map (fun port_name (* = p *)->
@@ -127,27 +127,27 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
 
         (* = N(l,p) *)
         let local_port_var = 
-          var2expr (LocalElementVariable (location_name, (Port port_name)))
+          var2expr (LocalElementVariable (location.location_name, (Port port_name)))
         in
     
         (* The right side expression: *)
   
         (* Get all component types which provide port p *)
-        let provider_names = providers universe port_name
+        let providers = providers universe port_name
         in
 
         (* = sum (over all component types t which provide port p) provide_arity(l,p) x N(l,t) *)
         let sum_of_local_provides =
           let exprs_to_sum = 
-            List.map ( fun component_type_name (* = t *) ->
+            List.map ( fun component_type (* = t *) ->
               
               (* = provide_arity(l,t) *)
               let provide_arity = 
-                providearity2expr (get_provide_arity (get_component_type universe component_type_name) port_name)
+                providearity2expr (get_provide_arity component_type port_name)
 
               (* = N(l,t) *)
               and local_component_type_var = 
-                var2expr (LocalElementVariable (location_name, (ComponentType component_type_name)))
+                var2expr (LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))
 
               in
     
@@ -155,7 +155,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
               (* = provide_arity(l,t) * N(l,t) *)
               provide_arity *~ local_component_type_var
                 
-            ) provider_names
+            ) providers
           in
           sum exprs_to_sum
         
@@ -169,7 +169,7 @@ let create_port_provided_at_location_constraints configuration universe : cstr l
         local_port_var =~ sum_of_local_provides
   
       ) port_names
-    ) location_names
+    ) locations
   )
 
 

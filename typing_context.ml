@@ -134,7 +134,7 @@ let requirers universe port_name =
     if List.exists (fun (required_port_name, require_arity) ->
          (required_port_name = port_name) && (require_arity > 0)
        ) component_type.component_type_require
-    then Some (component_type.component_type_name)
+    then Some (component_type)
     else None
   ) universe.universe_component_types
 
@@ -147,7 +147,7 @@ let providers universe port_name =
           | `FiniteProvide i -> i > 0
           | `InfiniteProvide -> true )
        ) component_type.component_type_provide
-    then Some (component_type.component_type_name)
+    then Some (component_type)
     else None
   ) universe.universe_component_types
 
@@ -156,7 +156,7 @@ let conflicters universe port_name =
     if List.exists (fun conflicted_port_name ->
          conflicted_port_name = port_name
        ) component_type.component_type_conflict
-    then Some (component_type.component_type_name)
+    then Some (component_type)
     else None
   ) universe.universe_component_types
 

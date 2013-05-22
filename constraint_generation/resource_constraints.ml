@@ -56,23 +56,23 @@ let elements_resource_consumption_sum
 let create_local_resource_constraints_with_or_without_packages (include_packages_resource_consumption : bool) configuration universe =
 
   (* Get all the location names from the configuration *)
-  let location_names       = get_location_names  configuration
+  let locations       = get_locations       configuration
 
   (* Get all the resource names from the universe *)
-  and resource_names       = get_resource_names  universe
+  and resource_names  = get_resource_names  universe
   
   (* Get all the component types from the universe *)
-  and component_types      = get_component_types universe
+  and component_types = get_component_types universe
 
   (* Get all the packages from the universe *)
-  and packages             = get_packages        universe
+  and packages        = get_packages        universe
   
   in
   
   List.flatten (
 
     (* For all the available locations *)
-    List.map (fun location_name (* = l *)->
+    List.map (fun location (* = l *)->
 
       (* For all the available resources *)
       List.map (fun resource_name (* = o *) ->
@@ -81,7 +81,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
 
         (* = N(l,o) *)
         let local_resource_var =
-          var2expr (LocalResourceVariable (location_name, resource_name))
+          var2expr (LocalResourceVariable (location.location_name, resource_name))
   
         in
   
@@ -92,7 +92,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
         let sum_of_local_consumption_by_components = 
           elements_resource_consumption_sum
             (fun (component_type : component_type) -> get_component_type_resource_consumption component_type resource_name)
-            (fun (component_type : component_type) -> LocalElementVariable (location_name, (ComponentType component_type.component_type_name)))
+            (fun (component_type : component_type) -> LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))
             component_types
         
         in
@@ -108,7 +108,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
           let sum_of_local_consumption_by_packages = 
             elements_resource_consumption_sum
             (fun (package : package) -> get_package_resource_consumption package resource_name)
-            (fun (package : package) -> LocalElementVariable (location_name, (Package package.package_name)))
+            (fun (package : package) -> LocalElementVariable (location.location_name, (Package package.package_name)))
             packages
           
           in
@@ -132,7 +132,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
           local_resource_var >=~ sum_of_local_consumption_by_components
           
       ) resource_names
-    ) location_names
+    ) locations
   )
 
 let create_local_resource_constraints           = create_local_resource_constraints_with_or_without_packages true  (* Count the resources consumed by both the components and the packages. *)

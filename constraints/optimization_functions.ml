@@ -29,27 +29,27 @@ type optimization_function =
   | Minimize of expr (* Search for the solution that minimizes the given expression. *)
 
 let cost_expr_number_of_all_components universe = 
-  let component_type_names = get_component_type_names universe
+  let component_types = get_component_types universe
   in
   sum 
-    (List.map (fun component_type_name -> 
-      var2expr ((GlobalElementVariable (ComponentType component_type_name))) 
-    ) component_type_names)
+    (List.map (fun component_type -> 
+      var2expr ((GlobalElementVariable (ComponentType component_type.component_type_name))) 
+    ) component_types)
 
 
 let cost_expr_number_of_all_packages initial_configuration universe =
-  let location_names = get_location_names initial_configuration
-  and package_names  = get_package_names  universe
+  let locations = get_locations initial_configuration
+  and packages  = get_packages  universe
   in
   sum (
     List.flatten (
-      List.map (fun location_name ->
-        List.map (fun package_name ->
+      List.map (fun location ->
+        List.map (fun package ->
 
-          var2expr ((LocalElementVariable (location_name, (Package package_name))))
+          var2expr ((LocalElementVariable (location.location_name, (Package package.package_name))))
 
-        ) package_names
-      ) location_names
+        ) packages
+      ) locations
     )
   )
 
@@ -57,21 +57,21 @@ let cost_expr_number_of_all_packages initial_configuration universe =
 type used_or_free = Used | Free
 
 let cost_expr_number_of_used_or_free_locations used_or_free initial_configuration universe only_components_count =
-  let component_type_names = get_component_type_names universe
-  and package_names        = get_package_names        universe
-  and location_names       = get_location_names       initial_configuration
+  let component_types = get_component_types universe
+  and packages        = get_packages        universe
+  and locations       = get_locations       initial_configuration
   in
 
   let used_locations =
-    List.map (fun location_name ->
+    List.map (fun location ->
       
       let local_components_and_packages =
         sum (
 
           (* Components *)
-          (List.map (fun component_type_name ->
-            var2expr ((LocalElementVariable (location_name, (ComponentType component_type_name)))) 
-          ) component_type_names)
+          (List.map (fun component_type ->
+            var2expr ((LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))) 
+          ) component_types)
           
           @
           
@@ -79,9 +79,9 @@ let cost_expr_number_of_used_or_free_locations used_or_free initial_configuratio
           then []
           else
             (* Packages *)
-            (List.map (fun package_name ->
-              var2expr ((LocalElementVariable (location_name, (Package package_name)))) 
-            ) package_names)
+            (List.map (fun package ->
+              var2expr ((LocalElementVariable (location.location_name, (Package package.package_name)))) 
+            ) packages)
 
         )
       
@@ -90,7 +90,7 @@ let cost_expr_number_of_used_or_free_locations used_or_free initial_configuratio
       | Used -> reify ( local_components_and_packages >~ (int2expr 0) )
       | Free -> reify ( local_components_and_packages =~ (int2expr 0) )
 
-    ) location_names
+    ) locations
 
   in
   let total_number_of_used_locations = (sum used_locations)
@@ -128,25 +128,25 @@ let spread initial_configuration universe =
 
 
 let cost_expr_difference_of_components initial_configuration universe =
-  let component_type_names = get_component_type_names universe
-  and location_names       = get_location_names       initial_configuration
+  let component_types = get_component_types universe
+  and locations       = get_locations  initial_configuration
   in
 
   let local_differences_of_number_of_components = 
     
     List.flatten (
-      List.map (fun location_name ->
-        List.map (fun component_type_name ->
+      List.map (fun location ->
+        List.map (fun component_type ->
           
           let number_of_components_in_initial_configuration =
             List.length (
               List.filter (fun component -> 
-                (component.component_type = component_type_name) && (component.component_location = location_name)
+                (component.component_type = component_type.component_type_name) && (component.component_location = location.location_name)
               ) initial_configuration.configuration_components
             )
 
           and number_of_components_in_final_configuration =
-            (LocalElementVariable (location_name, (ComponentType component_type_name)))
+            (LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))
 
           in
 
@@ -160,8 +160,8 @@ let cost_expr_difference_of_components initial_configuration universe =
           in
           local_difference_of_number_of_components
 
-        ) component_type_names
-      ) location_names
+        ) component_types
+      ) locations
     )
     
   in
@@ -171,25 +171,25 @@ let cost_expr_difference_of_components initial_configuration universe =
 
 
 let cost_expr_difference_of_packages initial_configuration universe =
-  let package_names  = get_package_names  universe
-  and location_names = get_location_names initial_configuration
+  let packages  = get_packages  universe
+  and locations = get_locations initial_configuration
   in
 
   let local_differences_of_package_installation = 
     
     List.flatten (
-      List.map (fun location_name ->
+      List.map (fun location ->
 
-        let initial_package_names = get_location_packages_installed initial_configuration location_name
+        let initial_package_names = get_location_packages_installed initial_configuration location.location_name
         in
 
-        List.map (fun package_name ->
+        List.map (fun package ->
 
           let is_package_installed_in_initial_configuration =
-            List.mem package_name initial_package_names
+            List.mem package.package_name initial_package_names
 
           and is_package_installed_in_final_configuration = 
-            (LocalElementVariable (location_name, (Package package_name)))
+            (LocalElementVariable (location.location_name, (Package package.package_name)))
 
           in
 
@@ -205,8 +205,8 @@ let cost_expr_difference_of_packages initial_configuration universe =
 
           local_difference_of_package_installation
             
-        ) package_names
-      ) location_names
+        ) packages
+      ) locations
     )
 
   in

@@ -28,27 +28,27 @@ open Generic_constraints
 
 let create_one_repository_per_location_constraints configuration universe : cstr list =
 
-  (* Get all the location names from the configuration *)
-  let location_names   = get_location_names configuration
+  (* Get all the locations from the configuration *)
+  let locations    = get_locations configuration
 
-  (* Get all the package repository names from the universe *)
-  and repository_names = get_repository_names universe
+  (* Get all the package repositories from the universe *)
+  and repositories = get_repositories universe
   in
 
   (* For all the available locations *)
-  List.map (fun location_name (* = l *) ->
+  List.map (fun location (* = l *) ->
 
     (* The left side expression: *)
 
     (* = sum (over all repositories r) R(l,r) *)
   	let sum_of_repository_vars =
       let exprs_to_sum = 
-        List.map ( fun repository_name (* = r *) ->
+        List.map ( fun repository (* = r *) ->
   
         	(* Part of the sum: R(l,r) *)
-          var2expr (LocalRepositoryVariable (location_name, repository_name))
+          var2expr (LocalRepositoryVariable (location.location_name, repository.repository_name))
           
-        ) repository_names
+        ) repositories
       in
       sum exprs_to_sum
 
@@ -63,33 +63,33 @@ let create_one_repository_per_location_constraints configuration universe : cstr
     *)
     sum_of_repository_vars =~ (int2expr 1)
 
-  ) location_names
+  ) locations
 
 
 
 let create_packages_in_location_must_come_from_its_repository_contraints configuration universe : cstr list =
 
   (* Get all the location names from the configuration *)
-  let location_names   = get_location_names configuration
+  let locations    = get_locations configuration
   
   (* Get all the package repository names from the universe *)
-  and repository_names = get_repository_names universe
+  and repositories = get_repositories universe
 
   (* Get all the package names from the universe *)
-  and package_names    = get_package_names universe
+  and packages     = get_packages universe
   in
 
   (* For all the available locations *)
-  List.flatten_map (fun location_name (* = l *) ->
+  List.flatten_map (fun location (* = l *) ->
 
     (* For all the available repositories *)
-    List.flatten_map ( fun repository_name (* = r *)->
+    List.flatten_map ( fun repository (* = r *)->
 
       (* The left side expression: *)
 
       (* = R(l,r) *)
       let local_repository_var = 
-          var2expr (LocalRepositoryVariable (location_name, repository_name))
+          var2expr (LocalRepositoryVariable (location.location_name, repository.repository_name))
       in
 
       (* Left side expression is always the same:  R(l,r) = 1 *)
@@ -98,21 +98,20 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
 
       (* All the right side expressions: *)
-      let repository = get_repository universe repository_name
-      in
-      let repository_package_names = get_repository_package_names repository
+      let repository_packages = get_repository_packages repository
       in
 
       let right_side_exprs =
-        List.map (fun package_name (* = k *) ->
+        List.map (fun package (* = k *) ->
 
           (* = N(l,k) *)
         	let package_var = 
-            var2expr (LocalElementVariable (location_name, (Package package_name)))
+            var2expr (LocalElementVariable (location.location_name, (Package package.package_name)))
           in
 
           (* Does package k belong to the repository r ?*)
-        	if List.mem package_name repository_package_names
+        	if List.mem package.package_name (List.map (fun package -> package.package_name) repository_packages)
+          (* TODO: add a "does a package belong to a repository" function in typing context. *)
 
         	then 
         	  (* If the package k belongs to the repository r, 
@@ -124,7 +123,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
               then the right side expression is:  N(l,k) = 0 *)
             package_var  =~ ( int2expr 0 )
 
-        ) package_names
+        ) packages
   
       in
   
@@ -147,8 +146,8 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
          For now we stick with this version, because it's more lisible.
       *)
 
-    ) repository_names
-  ) location_names
+    ) repositories
+  ) locations
 
 
 
