@@ -157,14 +157,14 @@ let create_package_conflict_constraints configuration universe =
     List.flatten_map (fun package (* = k1 *) ->
 
       let conflicting_package_name_1  = package.package_name
+
+      (* Get all the names of packages conflicting with k1 *)
       and conflicting_package_names_2 = package.package_conflict
       in
 
       (* For all the packages conflicting with k1 *)
       List.map (fun conflicting_package_name_2 (* = k2 *) ->
         
-        (* The left side expression: *)
-
         (* = N(l,k1) *)
         let local_conflicting_package_var_1 = 
             var2expr (LocalElementVariable (location.location_name, (Package conflicting_package_name_1)))
@@ -174,8 +174,6 @@ let create_package_conflict_constraints configuration universe =
             var2expr (LocalElementVariable (location.location_name, (Package conflicting_package_name_2)))
 
         in
-
-        (* The right side expression is a constant equal 1. *)
 
         (* The constraint :
              [for each location l] 

@@ -19,9 +19,9 @@
 
 
 open Aeolus_types_t
-open Typing_context
-open Variables
 open Generic_constraints
+
+(** This module generates constraints encoding the proprieties of repositories and their packages. *)
 
 (** The constraint : One repository on each location. *)
 (** Description    : On each location there must be exactly one repository installed. *)

@@ -24,20 +24,26 @@ open Typing_context
 open Variables
 open Generic_constraints
 
-let const_of_provide_arity (provide_arity : provide_arity) : const =
-  match provide_arity with
-  | `FiniteProvide   (const) -> Int const
-  | `InfiniteProvide         -> Inf true
-  
+(* Helper function converting a provide_arity to an expression. *)
 let providearity2expr (provide_arity : provide_arity) : expr =
+  let const_of_provide_arity (provide_arity : provide_arity) : const =
+    match provide_arity with
+    | `FiniteProvide   (const) -> Int const
+    | `InfiniteProvide         -> Inf true
+  in
   const2expr (const_of_provide_arity provide_arity)
+  
 
+
+(* Generic function generating certain location constraints for a given type of "elements". *)
+(* These location constraint tie the "global element constraint" (how many instances of that element are there in the whole configuration)
+   to a sum of "local element constraints" (how many instances of that element are there at the given location). *)
 let create_element_location_constraints
-  (get_element_names_function : universe -> 'a list)
-  (global_var_function : 'a -> variable)
-  (local_var_function : location -> 'a -> variable)
-  configuration
-  universe 
+  (get_element_names_function : universe -> 'a list) (* Gets the list of all available elements. *)
+  (global_var_function : 'a -> variable)             (* Converts an element to a "global element variable" (how many instances of that element are there in the whole configuration). *)
+  (local_var_function : location -> 'a -> variable)  (* Takes a location and an element, returns a "local element variable" (how many instances of that element are there at the given location). *)
+  configuration                                      (* The initial configuration. *)
+  universe                                           (* The universe. *)
   : cstr list =
 
   (* Get all the locations from the configuration *)
@@ -83,20 +89,21 @@ let create_element_location_constraints
   ) element_names
 
 
+(* Apply aur generic "elements location constraints" function for components. *)
 let create_component_type_location_constraints :  configuration -> universe -> cstr list =
-  (* Use the general function for component type elements *)
   create_element_location_constraints
     ( fun universe -> List.map (fun component_type -> component_type.component_type_name) (get_component_types universe) ) (* get element names function *)
     ( fun component_type_name -> GlobalElementVariable (ComponentType component_type_name) ) (* element name -> global element variable *)
-    ( fun location component_type_name -> LocalElementVariable (location.location_name, (ComponentType component_type_name)) ) (* location, element name -> local element variable*)
+    ( fun location component_type_name -> LocalElementVariable (location.location_name, (ComponentType component_type_name)) ) (* location, element name -> local element variable *)
 
+(* Apply aur generic "elements location constraints" function for ports. *)
 let create_port_location_constraints :  configuration -> universe -> cstr list =
-  (* Use the general function for port elements *)
   create_element_location_constraints
     get_port_names (* get element names function *)
     ( fun port_name -> GlobalElementVariable (Port port_name) ) (* element name -> global element variable *)
-    ( fun location port_name -> LocalElementVariable (location.location_name, (Port port_name)) ) (* location, element name -> local element variable*)
+    ( fun location port_name -> LocalElementVariable (location.location_name, (Port port_name)) ) (* location, element name -> local element variable *)
 
+(* Apply aur generic "elements location constraints" function for packages. *)
 let create_package_location_constraints :  configuration -> universe -> cstr list =
   (* Use the general function for package elements *)
   create_element_location_constraints
@@ -108,7 +115,7 @@ let create_package_location_constraints :  configuration -> universe -> cstr lis
 
 let create_port_provided_at_location_constraints configuration universe : cstr list =
 
-  (* Get all the location names from the configuration *)
+  (* Get all the locationfrom the configuration *)
   let locations  = get_locations configuration
 
   (* Get all the port names mentioned in the universe *)

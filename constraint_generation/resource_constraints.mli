@@ -19,20 +19,20 @@
 
 
 open Aeolus_types_t
-open Typing_context
-open Variables
 open Generic_constraints
 
-(** The constraint : Resources consumed by component types and packages. *)
-(** Description    : *)
-(** The constraint : *)
-(** Explanation    : *)
+(** This module generates constraints encoding the proprieties of resources. *)
+
+(** The constraint : Resources consumed by components and packages. *)
+(** Description    : Resources consumed at a given location (by components and packages) cannot exceed the resources provided by that location. *)
+(** The constraint : [for each location l] [for each resource o]  N(l,o) >= ( sum (over all component types t) resource_consumption(t,o) ) + ( sum (over all packages k) resource_consumption(k,o) ) *)
+(** Explanation    : N(l,o) must be greater or equal to the sum of resource o consumed by all the components and packages which are installed at that location. *)
 val create_local_resource_constraints                 : configuration -> universe -> cstr list
 
-(** The constraint : Resources consumed by component types. *)
-(** Description    : *)
-(** The constraint : *)
-(** Explanation    : *)
+(** The constraint : Resources consumed by components. *)
+(** Description    : Resources consumed at a given location (by components) cannot exceed the resources provided by that location. *)
+(** The constraint : [for each location l] [for each resource o]  N(l,o) >= sum (over all component types t) resource_consumption(t,o) *)
+(** Explanation    : N(l,o) must be greater or equal to the sum of resource o consumed by all the components which are installed at that location. *)
 val create_local_component_resource_constraints       : configuration -> universe -> cstr list
 
 (** The constraint : Resources provided by locations. *)

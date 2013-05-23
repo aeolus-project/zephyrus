@@ -38,22 +38,18 @@ let create_one_repository_per_location_constraints configuration universe : cstr
   (* For all the available locations *)
   List.map (fun location (* = l *) ->
 
-    (* The left side expression: *)
-
     (* = sum (over all repositories r) R(l,r) *)
   	let sum_of_repository_vars =
       let exprs_to_sum = 
         List.map ( fun repository (* = r *) ->
   
-        	(* Part of the sum: R(l,r) *)
+        	(* Part of the sum: *)
+          (* = R(l,r)         *)
           var2expr (LocalRepositoryVariable (location.location_name, repository.repository_name))
           
         ) repositories
       in
       sum exprs_to_sum
-
-
-    (* The right side expression is a constant = 1. *)
 
     in
 
@@ -98,7 +94,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
 
 
       (* All the right side expressions: *)
-      
+
       let right_side_exprs =
         List.map (fun package (* = k *) ->
 
@@ -140,7 +136,7 @@ let create_packages_in_location_must_come_from_its_repository_contraints configu
       (* TODO: 
          We can easily transform this list of constraints into a single constraint 
          with a big logic sum, question is: which one has a better performance? 
-         For now we stick with this version, because it's more lisible.
+         For now we stick with this version, because it seems more lisible.
       *)
 
     ) repositories

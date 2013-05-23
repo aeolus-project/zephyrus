@@ -24,15 +24,18 @@ open Typing_context
 open Variables
 open Generic_constraints
 
-let const_of_provide_arity (provide_arity : provide_arity) : const =
-  match provide_arity with
-  | `FiniteProvide   (const) -> Int const
-  | `InfiniteProvide         -> Inf true
-  
+(* Helper function converting a provide_arity to an expression. *)
 let providearity2expr (provide_arity : provide_arity) : expr =
+  let const_of_provide_arity (provide_arity : provide_arity) : const =
+    match provide_arity with
+    | `FiniteProvide   (const) -> Int const
+    | `InfiniteProvide         -> Inf true
+  in
   const2expr (const_of_provide_arity provide_arity)
 
-let create_require_binding_constraints universe port_name : cstr list =
+
+
+let create_require_binding_constraints universe port_name=
 
   (* Get all component types which: *)
   let providers = providers universe port_name (* provide port p *)
@@ -86,7 +89,7 @@ let create_require_binding_constraints universe port_name : cstr list =
 
 
 
-let create_provide_binding_constraints universe port_name : cstr list =
+let create_provide_binding_constraints universe port_name=
   
   (* Get all component types which: *)
   let providers = providers universe port_name (* provide port p *)
@@ -96,9 +99,8 @@ let create_provide_binding_constraints universe port_name : cstr list =
   (* For all the component types which provide port p *)
   List.map (fun providing_component_type (* = t_p *)->
 
-    (* Get the provide arity just to check if it is finite or not. *)
-    let provide_arity =
-      get_provide_arity providing_component_type port_name
+    (* Get the provide arity just to check if it is finite or not *)
+    let provide_arity = get_provide_arity providing_component_type port_name
 
     in
 
@@ -120,6 +122,7 @@ let create_provide_binding_constraints universe port_name : cstr list =
           var2expr (GlobalElementVariable (ComponentType providing_component_type.component_type_name))
         in
       
+
         (* The right side expression: *)
 
         (* = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p) *)
@@ -141,6 +144,7 @@ let create_provide_binding_constraints universe port_name : cstr list =
 
         in
 
+
         (* The constraint : 
             [for each component type t_p which provides port p]
               provide_arity(t_p,p) x N(t_p) = sum (over all t_r from the universe which provide port p) B(t_p,t_r,p)
@@ -151,7 +155,7 @@ let create_provide_binding_constraints universe port_name : cstr list =
 
 
 
-let create_binding_unicity_constraints universe port_name : cstr list  =
+let create_binding_unicity_constraints universe port_name =
   
   (* Get all component types which: *)
   let providers = providers universe port_name (* provide port p *)
@@ -192,7 +196,7 @@ let create_binding_unicity_constraints universe port_name : cstr list  =
 
 
 
-let create_conflict_constraints universe port_name : cstr list  =
+let create_conflict_constraints universe port_name =
   
   (* Get all component types which are in conflict with port p *)
   let conflicter_names = conflicters universe port_name
@@ -225,7 +229,7 @@ let create_conflict_constraints universe port_name : cstr list  =
 
 
 
-let create_component_type_global_constraints universe : cstr list =
+let create_component_type_global_constraints universe =
 
   (* A list of constraint generating functions to use with each port. *)
   let create_component_type_global_constraints_functions =

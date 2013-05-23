@@ -19,11 +19,11 @@
 
 
 open Aeolus_types_t
-open Typing_context
-open Variables
 open Generic_constraints
 
-(** The constraint : Component types implemented by packages. *)
+(** This module generates constraints encoding the proprieties of packages: their dependencies and conflits and how they implement components. *)
+
+(** The constraint : Components implemented by packages. *)
 (** Description    : Each component must be implemented by a package. So on a location where there is at least one component of type t there must be installed at least one of the packages implementing component type t. *)
 (** The constraint : [for each location l] [for each component type t]  ( N(l,t) >= 1 ) implies ( sum (over all packages k which can implement the component type t) N(l,k) >= 1 ) *)
 (** Explanation    : If N(l,t) is greater than zero, then the sum of all packages that can implement component type t which are installed on the location l must be also greater than zero. *)

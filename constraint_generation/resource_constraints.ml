@@ -24,20 +24,23 @@ open Typing_context
 open Variables
 open Generic_constraints
 
+(* Generic function computing total consumption of a given resource on a given location by a given list of "elements" (of type 'a). *)
 let elements_resource_consumption_sum
-  ( get_element_resource_consumption_funtion : 'a -> resource_consumption ) 
-  ( local_element_variable_function      : 'a -> variable )
-  ( elements : 'a list )
+  ( get_element_resource_consumption_funtion : resource_name -> 'a -> resource_consumption ) (* Takes a resource name and an element, returns how much of that resource does this element consume. *)
+  ( local_element_variable_function : location -> 'a -> expr )                               (* Takes a location and an element, returns an expression saying how many instances of that element are present at that location. *)
+  ( location : location )                                                                    (* The location. *)
+  ( resource_name : resource_name )                                                          (* The resource name. *)
+  ( elements : 'a list )                                                                     (* A list of elements. *)
   : expr = 
   
   let exprs_to_sum =
     List.map ( fun element (* = el *) ->
       
       (* = resource_consumption(el,o) *)
-      let consume_arity     = int2expr (get_element_resource_consumption_funtion element)
+      let consume_arity     = int2expr (get_element_resource_consumption_funtion resource_name element)
 
       (* = N(l,el) *)
-      and local_element_var = var2expr (local_element_variable_function element)
+      and local_element_var = local_element_variable_function location element
       in
 
       (* Part of the sum:                       *)
@@ -51,6 +54,19 @@ let elements_resource_consumption_sum
   (* = sum (over all elements el) resource_consumption(el,o) *)
   sum exprs_to_sum
 
+
+(* Apply our generic resource consumption computing function to components. *)
+let sum_of_local_consumption_by_components = 
+  elements_resource_consumption_sum
+    (fun (resource_name : resource_name) (component_type : component_type) -> get_component_type_resource_consumption component_type resource_name)
+    (fun (location : location) (component_type : component_type) -> var2expr (LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name))))
+
+
+(* Apply our generic resource consumption computing function to packages. *)
+let sum_of_local_consumption_by_packages = 
+  elements_resource_consumption_sum
+    (fun (resource_name : resource_name) (package : package) -> get_package_resource_consumption package resource_name)
+    (fun (location : location) (package : package) -> var2expr (LocalElementVariable (location.location_name, (Package package.package_name))))
 
 
 let create_local_resource_constraints_with_or_without_packages (include_packages_resource_consumption : bool) configuration universe =
@@ -90,10 +106,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
         (* First part of the sum: resources consumed by component types *)
         (* = sum (over all component types t) resource_consumption(t,o) *)
         let sum_of_local_consumption_by_components = 
-          elements_resource_consumption_sum
-            (fun (component_type : component_type) -> get_component_type_resource_consumption component_type resource_name)
-            (fun (component_type : component_type) -> LocalElementVariable (location.location_name, (ComponentType component_type.component_type_name)))
-            component_types
+          sum_of_local_consumption_by_components location resource_name component_types
         
         in
         
@@ -106,10 +119,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
           (* Second part of the sum: resources consumed by packages *)
           (* = sum (over all packages k) resource_consumption(k,o) *)
           let sum_of_local_consumption_by_packages = 
-            elements_resource_consumption_sum
-            (fun (package : package) -> get_package_resource_consumption package resource_name)
-            (fun (package : package) -> LocalElementVariable (location.location_name, (Package package.package_name)))
-            packages
+            sum_of_local_consumption_by_packages location resource_name packages
           
           in
           
@@ -122,7 +132,7 @@ let create_local_resource_constraints_with_or_without_packages (include_packages
 
         else
 
-          (* We don't count in the resources consumed by packages. *)
+          (* We do not count in the resources consumed by packages. *)
 
           (* The constraint :
               [for each location l]
