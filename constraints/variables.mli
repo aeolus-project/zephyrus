@@ -20,11 +20,18 @@
 
 open Aeolus_types_t
 
+(** Component types, ports and packages are "elements". *)
+(** What they have is common is that all three are a kind of objects in the configuration and 
+    we often need to express their quantity in various contexts. Thanks to this type we can do it
+    in a uniform fashion (for example: we have just a GlobalElementVariable representing the 
+    quantity of a given element in the whole configuration, instead of having three different 
+    variables: GlobalComponentTypeVariable, GlobalPortVariable and GlobalPackageVariable). *)
 type element =
   | ComponentType of component_type_name
   | Port          of port_name
   | Package       of package_name
 
+(** Variables used in our constraints. *)
 type variable =
   | GlobalElementVariable    of element
   (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
@@ -48,8 +55,12 @@ type variable =
 val string_of_variable : variable -> string
 val descr_of_variable  : variable -> string
 
+
+(** A hint for translating variables for solvers: what range of values can this variable have? *)
+(** (It is implicitly introduces a constraint on the variable, so it is a little redundant, 
+    but corresponds more directly to solver declarations.) *)
 type variable_kind =
-  | BooleanVariable
-  | NaturalVariable
+  | BooleanVariable (** The variable is representing a boolean value: 0 or 1. For example a repository can either be installed on a location or not, we cannot have two instances of a repository on the same location. *)
+  | NaturalVariable (** The variable is representing a natural value: 0 to some max_int. *)
 
 val variable_kind : variable -> variable_kind

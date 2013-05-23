@@ -108,9 +108,10 @@ type variable_kind =
 
 let variable_kind variable =
   match variable with
-  | GlobalElementVariable   _ -> NaturalVariable
-  | LocalElementVariable    _ -> NaturalVariable
-  | BindingVariable         _ -> NaturalVariable
-  | LocalRepositoryVariable _ -> BooleanVariable
-  | LocalResourceVariable   _ -> NaturalVariable
-  | SpecificationVariable   _ -> NaturalVariable
+  | GlobalElementVariable   _              -> NaturalVariable
+  | LocalElementVariable    (_, Package _) -> BooleanVariable
+  | LocalElementVariable    _              -> NaturalVariable
+  | BindingVariable         _              -> NaturalVariable
+  | LocalRepositoryVariable _              -> BooleanVariable
+  | LocalResourceVariable   _              -> NaturalVariable
+  | SpecificationVariable   _              -> NaturalVariable
