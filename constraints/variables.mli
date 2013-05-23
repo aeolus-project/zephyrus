@@ -47,3 +47,9 @@ type variable =
 
 val string_of_variable : variable -> string
 val descr_of_variable  : variable -> string
+
+type variable_kind =
+  | BooleanVariable
+  | NaturalVariable
+
+val variable_kind : variable -> variable_kind

@@ -27,7 +27,6 @@ open Helpers
 open Typing_context
 
 open Variables
-open Model_variables
 open Solution
 
 (* Types *)

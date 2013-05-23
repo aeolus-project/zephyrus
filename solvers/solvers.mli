@@ -28,7 +28,6 @@ module type SOLVER =
   sig
     
     val solve : 
-      Variables.variable list ->
       Constraints_generation.generated_constraints ->
       Optimization_functions.optimization_function -> (* A single optimization function. *)
       solver_settings ->
@@ -41,7 +40,6 @@ module type SOLVER_LEX =
     include SOLVER
 
     val solve_lex : 
-      Variables.variable list ->
       Constraints_generation.generated_constraints ->
       Optimization_functions.optimization_function list -> (* List of optimization functions. *)
       solver_settings ->

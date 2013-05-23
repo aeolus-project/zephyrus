@@ -22,6 +22,8 @@ open Generic_constraints
 
 type generated_constraints = (string * (cstr list)) list
 
+val constraints_of_generated_constraints : generated_constraints -> cstr list
+
 val translate_universe_and_initial_configuration : universe -> configuration -> generated_constraints
 
 val translate_specification : specification -> configuration -> generated_constraints

@@ -43,6 +43,7 @@ open Configuration_output
 
 module TestCompile1 = Aeolus_types_translation
 module TestCompile2 = Typing_context_new
+(* module TestCompile3 = Component_type_global_constraints_new *)
 
 
 (* === Handling the arguments === *)
@@ -429,16 +430,11 @@ let solution =
   }
   in
 
-  let variables = 
-    Model_variables.get_all_variables my_universe my_initial_configuration my_specification
-  in
-
   match solver_choice with
 
   | G12Solver ->
     fst (
       G12.solve_lex
-        variables 
         my_generated_constraints
         optimization_exprs
         solver_settings
@@ -447,7 +443,6 @@ let solution =
   | GeCodeSolver ->
     fst (
       GeCode.solve_lex
-        variables 
         my_generated_constraints
         optimization_exprs
         solver_settings
@@ -456,7 +451,6 @@ let solution =
   | FaCiLeSolver ->
       fst (
         FaCiLe.solve
-          variables 
           my_generated_constraints
           (List.hd optimization_exprs)
           solver_settings

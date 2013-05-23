@@ -20,6 +20,29 @@
 open Helpers
 open Optimization_functions
 
+let get_all_variables 
+  (generated_constraints : Constraints_generation.generated_constraints)
+  (optimization_function : Optimization_functions.optimization_function)
+  : Variables.variable list
+  =
+
+  (* Extract variables from all constraints *)
+  let constraints_vars =
+    List.flatten_map Generic_constraints.extract_variables_of_cstr (Constraints_generation.constraints_of_generated_constraints generated_constraints)
+
+  (* Extract variables from the optimization function *)
+  and optimization_function_vars =
+    match optimization_function with
+    | Satisfy -> []
+    | Maximize (expr)
+    | Minimize (expr) -> Generic_constraints.extract_variables_of_expr expr
+
+  in
+
+  (* Put all the variables together, remove doubles *)
+  List.unique (constraints_vars @ optimization_function_vars)
+
+
 type solver_settings = {
   print_solver_vars            : bool;
   print_solver_cstrs           : bool;
@@ -28,7 +51,6 @@ type solver_settings = {
 }
 
 type solve_function =
-  Variables.variable list ->
   Constraints_generation.generated_constraints ->
   Optimization_functions.optimization_function -> (* A single optimization function. *)
   solver_settings ->
@@ -40,7 +62,6 @@ module type SOLVER =
   end
 
 type solve_lex_function =
-  Variables.variable list ->
   Constraints_generation.generated_constraints ->
   Optimization_functions.optimization_function list -> (* List of optimization functions. *)
   solver_settings ->
@@ -54,7 +75,6 @@ module type SOLVER_LEX =
 
 let solve_lex 
   (solve_function : solve_function) 
-  variables 
   generated_constraints
   optimization_functions
   solver_settings
@@ -81,7 +101,6 @@ let solve_lex
         (* Solve the problem using the current optimization function. *)
         let (solution, cost) =
           solve_function
-            variables 
             constraints           (* Our generated constraints + previous optimizations constraints. *)
             optimization_function (* The current optimization function. *)
             solver_settings
@@ -117,7 +136,6 @@ let standard_flatzinc_command_line_solver
   (minizinc_to_flatzinc_converter : in_out_program)
   (flatzinc_solver                : in_out_program)
 
-  (variables         : Variables.variable list)
   (generated_constraints : Constraints_generation.generated_constraints)
   (optimization_function : Optimization_functions.optimization_function)
   (solver_settings       : solver_settings) 
@@ -125,6 +143,8 @@ let standard_flatzinc_command_line_solver
   : Solution.solution_with_cost
   
   =
+
+  let variables = get_all_variables generated_constraints optimization_function in
 
   let open Minizinc_constraints in
 
@@ -267,12 +287,13 @@ module FaCiLe : SOLVER =
   struct
 
     let solve 
-      variables 
       generated_constraints
       optimization_function
       solver_settings
 
       =
+
+      let variables = get_all_variables generated_constraints optimization_function in
 
       let open Facile_variables in
       let open Facile_constraints in

@@ -153,3 +153,4 @@ val not       : cstr -> cstr
 (** Extract all variables that appear in a constraint / expression. *)
 
 val extract_variables_of_cstr : cstr -> Variables.variable list
+val extract_variables_of_expr : expr -> Variables.variable list

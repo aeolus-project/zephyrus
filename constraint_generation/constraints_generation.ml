@@ -29,6 +29,9 @@ open Generic_constraints
 
 type generated_constraints = (string * (cstr list)) list
 
+let constraints_of_generated_constraints generated_constraints =
+  List.flatten_map snd generated_constraints
+
 (* Translating the universe *)
 
 let translate_universe_and_initial_configuration universe initial_configuration =

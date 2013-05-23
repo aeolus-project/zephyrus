@@ -100,3 +100,17 @@ let descr_of_variable variable =
   | LocalRepositoryVariable _ -> "local repository variable"
   | LocalResourceVariable   _ -> "local resource variable"
   | SpecificationVariable   _ -> "specification variable"
+
+
+type variable_kind =
+  | BooleanVariable
+  | NaturalVariable
+
+let variable_kind variable =
+  match variable with
+  | GlobalElementVariable   _ -> NaturalVariable
+  | LocalElementVariable    _ -> NaturalVariable
+  | BindingVariable         _ -> NaturalVariable
+  | LocalRepositoryVariable _ -> BooleanVariable
+  | LocalResourceVariable   _ -> NaturalVariable
+  | SpecificationVariable   _ -> NaturalVariable
