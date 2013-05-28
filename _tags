@@ -1,6 +1,9 @@
 <*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 true: use_menhir
 
+<data/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<data>: include
+
 <constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <constraints>: include
 
@@ -15,3 +18,6 @@ true: use_menhir
 
 <solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <solvers/minizinc>: include
+
+<configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<configuration_generation>: include
