@@ -20,4 +20,9 @@
 open Aeolus_types_t
 open Solution
 
+(** Convert a solution of constraint problem to a final configuration. 
+    
+    Takes a universe, an initial configuration an a solution (the solution should have
+    been found for the same universe and initial configuration for this to make sense)
+    and return the final configuration. *)
 val configuration_of_solution : universe -> configuration -> solution -> configuration

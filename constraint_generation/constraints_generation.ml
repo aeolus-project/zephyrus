@@ -29,36 +29,6 @@ open Generic_constraints
 
 type generated_constraints = (string * (cstr list)) list
 
-let constraints_of_generated_constraints generated_constraints =
-  List.flatten_map snd generated_constraints
-
-(* Translating the universe *)
-
-let translate_universe_and_initial_configuration universe initial_configuration =
-  let create_constraints_functions = [
-    ("component types",  Component_type_global_constraints. create_component_type_global_constraints);
-    ("location",         Location_constraints.   create_location_constraints   initial_configuration);
-    ("repository",       Repository_constraints. create_repository_constraints initial_configuration);
-    ("package",          Package_constraints.    create_package_constraints    initial_configuration);
-    ("resource",         Resource_constraints.   create_resource_constraints   initial_configuration)
-  ]
-  in
-  List.map (fun (constraints_group_name, create_constraints_function) ->
-    let constraints = create_constraints_function universe
-    in
-    (constraints_group_name, constraints)
-  ) create_constraints_functions
-
-
-
-(* Translating the specification *)
-
-let translate_specification specification initial_configuration =
-  [("specification", Specification_constraints.create_specification_constraints initial_configuration specification)]
-  
-(* TODO: generate a specific message if specification is using non-existing names. *)
-
-
 
 (* Printing *)
 
@@ -82,3 +52,31 @@ let string_of_generated_constraints constraints =
   Printf.sprintf
     "\n%s\n"
     (lines_of_strings strings)
+
+
+(* Converting *)
+
+let constraints_of_generated_constraints generated_constraints =
+  List.flatten_map snd generated_constraints
+
+
+(* Translating *)
+
+let translate_universe_and_initial_configuration universe initial_configuration =
+  let create_constraints_functions = [
+    ("component types",  Component_type_global_constraints. create_component_type_global_constraints);
+    ("location",         Location_constraints.   create_location_constraints   initial_configuration);
+    ("repository",       Repository_constraints. create_repository_constraints initial_configuration);
+    ("package",          Package_constraints.    create_package_constraints    initial_configuration);
+    ("resource",         Resource_constraints.   create_resource_constraints   initial_configuration)
+  ]
+  in
+  List.map (fun (constraints_group_name, create_constraints_function) ->
+    let constraints = create_constraints_function universe
+    in
+    (constraints_group_name, constraints)
+  ) create_constraints_functions
+
+let translate_specification specification initial_configuration =
+  [("specification", Specification_constraints.create_specification_constraints initial_configuration specification)]
+(* TODO: generate a specific message if specification is using names which don't exist in the universe or initial configuration. *)

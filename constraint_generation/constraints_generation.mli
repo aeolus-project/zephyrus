@@ -20,12 +20,25 @@
 open Aeolus_types_t
 open Generic_constraints
 
-type generated_constraints = (string * (cstr list)) list
 
+(** Generated constraints type. *)
+
+(** Generated constraints type is simply a list of constraints arranged in groups, 
+    which reflect where do a certain subset of constraints come from. *)
+type generated_constraints = (string * (cstr list)) list
+(* TODO: We should have some kind of a more abstract type here. *)
+
+(** Priniting. *)
+val string_of_generated_constraints : generated_constraints -> string
+
+(** Extract a list of constraints from the "generated constraints". *)
 val constraints_of_generated_constraints : generated_constraints -> cstr list
 
+
+(** Translation *)
+
+(** Takes a universe and an initial configuration, translates them into a constraint problem. *)
 val translate_universe_and_initial_configuration : universe -> configuration -> generated_constraints
 
+(** Takes a specification and an initial configuration, translates in into constraints. *)
 val translate_specification : specification -> configuration -> generated_constraints
-
-val string_of_generated_constraints : generated_constraints -> string

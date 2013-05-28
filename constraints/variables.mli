@@ -20,12 +20,15 @@
 
 open Aeolus_types_t
 
-(** Component types, ports and packages are "elements". *)
-(** What they have is common is that all three are a kind of objects in the configuration and 
-    we often need to express their quantity in various contexts. Thanks to this type we can do it
-    in a uniform fashion (for example: we have just a GlobalElementVariable representing the 
-    quantity of a given element in the whole configuration, instead of having three different 
-    variables: GlobalComponentTypeVariable, GlobalPortVariable and GlobalPackageVariable). *)
+(** Component types, ports and packages are "elements".
+
+    What these three have is common is that they are kind of objects in our configuration and 
+    we often need to express their quantity in at least two different contexts (global and local quantity).
+    Thanks to the concept of "element" we can do it in a uniform fashion for all three of them.
+
+    For example we need just a GlobalElementVariable representing the quantity of a given element
+    in the whole configuration, instead of needing three different variables: GlobalComponentTypeVariable,
+    GlobalPortVariable and GlobalPackageVariable). *)
 type element =
   | ComponentType of component_type_name
   | Port          of port_name
@@ -52,13 +55,17 @@ type variable =
   (** Specifiaction variable *)
 
 
+(** Print a variable. *)
 val string_of_variable : variable -> string
+
+(** Print a more verbose desctiption of a variable. *)
 val descr_of_variable  : variable -> string
 
 
 (** A hint for translating variables for solvers: what range of values can this variable have? *)
-(** (It is implicitly introduces a constraint on the variable, so it is a little redundant, 
-    but corresponds more directly to solver declarations.) *)
+(** (In fact as declaring a variable (for example as boolean) is equivalent to introducing a new constraint
+    on the variable (boolean variable is simply <= 1), so it is a little redundant, but corresponds more
+    directly to solver declarations.) *)
 type variable_kind =
   | BooleanVariable (** The variable is representing a boolean value: 0 or 1. For example a repository can either be installed on a location or not, we cannot have two instances of a repository on the same location. *)
   | NaturalVariable (** The variable is representing a natural value: 0 to some max_int. *)

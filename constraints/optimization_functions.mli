@@ -19,24 +19,23 @@
 
 
 open Aeolus_types_t
-open Typing_context
-open Variables
 open Generic_constraints
 
+(** The optimization function for constraint problems. *)
 type optimization_function =
-  | Satisfy          (* Output the first solution found that satisfies the constraints. *)
-  | Maximize of expr (* Search for the solution that maximizes the given expression. *)
-  | Minimize of expr (* Search for the solution that minimizes the given expression. *)
+  | Satisfy          (** Output the first solution found that satisfies the constraints. *)
+  | Maximize of expr (** Search for the solution that maximizes the given expression. *)
+  | Minimize of expr (** Search for the solution that minimizes the given expression. *)
 
-(* Ingredients of optimization function expressions. *)
-val cost_expr_number_of_all_components          :                  universe         -> expr
-val cost_expr_number_of_all_packages            : configuration -> universe         -> expr
-val cost_expr_number_of_used_locations          : configuration -> universe -> bool -> expr
-val cost_expr_number_of_free_locations          : configuration -> universe -> bool -> expr
-val cost_expr_difference_of_components          : configuration -> universe         -> expr
-val cost_expr_difference_of_packages            : configuration -> universe         -> expr
+(** Ingredients of optimization function expressions. *)
+val cost_expr_number_of_all_components :                  universe         -> expr
+val cost_expr_number_of_all_packages   : configuration -> universe         -> expr
+val cost_expr_number_of_used_locations : configuration -> universe -> bool -> expr
+val cost_expr_number_of_free_locations : configuration -> universe -> bool -> expr
+val cost_expr_difference_of_components : configuration -> universe         -> expr
+val cost_expr_difference_of_packages   : configuration -> universe         -> expr
 
-(* Full optimization function expressions. *)
+(** Full optimization function expressions. *)
 val compact      : configuration -> universe -> optimization_function list
 val conservative : configuration -> universe -> optimization_function list
 val spread       : configuration -> universe -> optimization_function list

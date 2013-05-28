@@ -20,8 +20,16 @@
 
 open Variables
 
+(** Constraint problem solution: variables bound to values. *)
 type solution = (variable * int) list 
+
+(** Solution of a constraint problem with a single minimize/maximize criterium,
+    with additional information about the value of optimization function for this solution. *)
 type solution_with_cost  = solution * int
+
+(** Solution of a constraint problem with multiple lexicographic minimize/maximize criteris,
+    with addutional information about the value of all the optimization functions for this solution. *)
 type solution_with_costs = solution * int list
 
+(** Printing *)
 val string_of_solution : solution -> string

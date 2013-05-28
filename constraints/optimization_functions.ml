@@ -24,9 +24,12 @@ open Variables
 open Generic_constraints
 
 type optimization_function =
-  | Satisfy          (* Output the first solution found that satisfies the constraints. *)
-  | Maximize of expr (* Search for the solution that maximizes the given expression. *)
-  | Minimize of expr (* Search for the solution that minimizes the given expression. *)
+  | Satisfy
+  | Maximize of expr
+  | Minimize of expr
+
+
+(* Ingredients of optimization function expressions. *)
 
 let cost_expr_number_of_all_components universe = 
   let component_types = get_component_types universe
@@ -100,6 +103,9 @@ let cost_expr_number_of_used_or_free_locations used_or_free initial_configuratio
 let cost_expr_number_of_used_locations = cost_expr_number_of_used_or_free_locations Used
 let cost_expr_number_of_free_locations = cost_expr_number_of_used_or_free_locations Free
 
+
+
+(* Full optimization function expressions. *)
 
 let compact initial_configuration universe =
   (* 
