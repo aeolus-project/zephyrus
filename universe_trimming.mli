@@ -20,5 +20,24 @@
 
 open Aeolus_types_t
 
+(** Trim the universe: simplify the universe by stripping it the universe of all
+    the information which is not necessary in context of the given configuration
+    and specification. This is done in order to reduce the size and complexity 
+    of constraints generated from this universe. 
+
+	Trimming involves three steps:
+
+	1. Trimming component types: we need only a transitive closure of the component
+	   types mentioned in the configuration and specification.
+
+	2. Trimming the component implementation information: we only need the information
+	   about implementation of these component types which are still available after
+	   the component type trimming.
+
+	2. Trimming the package repositories: as package information is important only if
+	   package conflicts can potentially cause conflicts between components, we can
+	   remove all these packages which cannot cause conflicts in the context of our
+	   available (i.e. available after trimming) component types.
+*)
 val trim : universe -> configuration -> specification -> universe
  

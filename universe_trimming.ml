@@ -68,13 +68,21 @@ let dependency_transitive_closure (initial_package_names : package_name list) (p
     
   done;
 
+  (* Finished! List in_the_closure contains exactly the packages which are in the closure. *)
+
+  (* Helper function: takes a list of package names and returns only these which belong to our closure. *)
+  let filter_package_names : (package_name list -> package_name list) = 
+    List.filter (fun package_name -> List.mem package_name !in_the_closure)
+  in
+
+  (* Filter out all the other packages from the package list (and from their dependencies and conflicts). *)
   List.filter_map (fun package ->
     if List.mem package.package_name !in_the_closure
     then Some (
       {
         package_name     = package.package_name; 
-        package_depend   = package.package_depend;
-        package_conflict = List.filter (fun package_name -> List.mem package_name !in_the_closure) package.package_conflict;
+        package_depend   = package.package_depend; (* All these packages have to be in the closure, hence no filtering needed. *)
+        package_conflict = filter_package_names package.package_conflict; (* However we need to filter the conflict packages. *)
         package_consume  = package.package_consume;
       }
     )
@@ -84,6 +92,9 @@ let dependency_transitive_closure (initial_package_names : package_name list) (p
 
 let trim universe initial_configuration specification =
   
+  (* Component types. *)
+
+  (* TODO: *)
   (* We don't trim component types for now. *)
   (* We should keep only a transitive closure of these which appear
      in the specification or in the initial configuration. *)
@@ -91,18 +102,31 @@ let trim universe initial_configuration specification =
     universe.universe_component_types
   in
   
-  (* We don't trim the implementation for now. *)
-  (* We should keep just these which are related to component types
-     present in the trimmed component types. *)
+
+  (* Implementation. *)
+
+  (* We trim the implementation information: we keep only the information
+     related to component types still present in the trimmed universe. *)
   let trimmed_implementation =
-    universe.universe_implementation
+    (* Get all the names of all component types of the trimmed universe. *)
+    let trimmed_component_type_names =
+      List.map (fun component_type -> component_type.component_type_name) trimmed_component_types
+    in
+    (* Filter out the implementation info about component types absent in the trimmed universe. *)
+    List.filter (fun (component_type_name, package_names) ->
+      List.mem component_type_name trimmed_component_type_names
+    ) universe.universe_implementation
+
   in
 
-  (* We trim the repositories: we leave only a transitive closure of
+
+  (* Repositories. *)  
+
+  (* We trim the repositories: we keep only a transitive closure of
      the packages mentioned in the implementation. *)
   let trimmed_repositories =
     
-    (* List of packages which are implementing one of the component types. *)
+    (* List of packages which are implementing one of the component types available in the universe. *)
     let implementing_packages =
       List.unique ( List.flatten (
         List.map ( fun (component_type_name, package_names) ->
@@ -111,13 +135,21 @@ let trim universe initial_configuration specification =
       ))
     in
 
+    (* Function trimming packages of a repository. *)
+    let trim_repository_packages repository =
+      dependency_transitive_closure implementing_packages repository.repository_packages
+
+    in
+
+    (* Apply package trimming to every repository. *)
     List.map (fun repository -> {
         repository_name     = repository.repository_name;
-        repository_packages = dependency_transitive_closure implementing_packages repository.repository_packages;
+        repository_packages = trim_repository_packages repository;
       }
     ) universe.universe_repositories
 
   in
+
 
   (* The trimmed universe. *)
   {
