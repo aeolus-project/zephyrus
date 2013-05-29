@@ -1,23 +1,29 @@
 <*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 true: use_menhir
 
-<data/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<data>: include
+<src/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src>: include
 
-<constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<constraints>: include
+<src/datatypes/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/datatypes>: include
 
-<constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<constraint_generation>: include
+<src/constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/constraints>: include
 
-<solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<solvers>: include
+<src/engine/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine>: include
 
-<solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<solvers/facile>: include
+<src/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/constraint_generation>: include
 
-<solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<solvers/minizinc>: include
+<src/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers>: include
 
-<configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<configuration_generation>: include
+<src/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers/facile>: include
+
+<src/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers/minizinc>: include
+
+<src/engine/configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/configuration_generation>: include
