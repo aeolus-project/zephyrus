@@ -99,7 +99,6 @@ credits:
 
 doc:
 	$(OCAMLBUILD) $(OBFLAGS) zephyrus.docdir/index.html
-	(cd doc && $(MAKE) all)
 
 man:
 #	cd doc/manpages && $(MAKE)
