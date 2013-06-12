@@ -17,43 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(* I wonder if all these configuration options for the input should not be abstracted away with few modules in the input.mli file *)
-type input_configuration =
- | Input_configuration_none
- | Input_configuration_file_json of string
 
-type input_specification =
- | Input_specification_none
- | Input_specification_file_json of string
- | Input_specification_file_text of string
- | Input_specification_cmd_text of string
+(* Depends on 
+ - Sys (from ocaml standard library)
+ - Arg (from ocaml standard library)
+ - Lexing (from ocaml standard library)
+ - input/Settings
+ - input/Settings_parser
+ - input/Setgings_lexer
+*)
 
-type input_optimization =
- | Input_optimization_none
- | Input_optimization_file_text of string
- | Input_optimization_cmd_text of string
-
-type input_universe =
- | Input_universe_none
- | Input_universe_file_json of string
-
-type input_repositories =
- | Input_repositories_files of string list
-
-
-type model =
- | Model_flat
- | Model_location
- | Model_hierarchy
-
-type constraints = 
- | Constraints
-
-type solver =
- | Solver_facile
- | Solver_minizinc
- | Solver_gecode
-
-...
-
-
+val load_settings : unit -> unit

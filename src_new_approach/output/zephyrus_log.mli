@@ -17,10 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* Depends on
+    - input/Settings (to know what to log)
+    - Printf (standard library, for logging of course)
+*)
 
-type solution = ... (* Mapping between the special variables and positive integers. The domain of the mapping must be equal to the domain of the input problem *)
-type error = ...
+val log_input_file_error : string -> string -> unit
+val log_setting_not_set : string -> unit
 
-val is_valid : solution -> Data_input.domain -> error list
+val log_missing_data : string -> string -> string -> unit
 
-val string_of_solution : solution -> string
+

@@ -1,0 +1,35 @@
+<*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+true: use_menhir
+
+<src_new_approach/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach>: include
+
+<src_new_approach/atd/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/atd>: include
+
+<src_new_approach/datatypes/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/datatypes>: include
+
+<src_new_approach/input/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/input>: include
+
+<src_new_approach/constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/constraints>: include
+
+<src_new_approach/engine/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine>: include
+
+<src_new_approach/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/constraint_generation>: include
+
+<src_new_approach/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/solvers>: include
+
+<src_new_approach/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/solvers/facile>: include
+
+<src_new_approach/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/solvers/minizinc>: include
+
+<src_new_approach/engine/configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/configuration_generation>: include
