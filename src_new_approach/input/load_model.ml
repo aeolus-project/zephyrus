@@ -186,10 +186,10 @@ let load_universe _ =
   let get_repository name filename = repository_name := Some(name); repository_filename := Some(filename);
     Input_helper.input_and_set ("Repository \"" ^ name ^ "\"") repository_filename repository repository_of_string in
   let repositories = List.map (fun (n,r) -> get_repository n r; (n,!repository)) (!Settings.input_file_repositories) in
-  Input_helper.input_and_set "Universe" Settings.input_file_universe All_data.universe_full universe_of_string;
-  match !All_data.universe_full with
+  Input_helper.input_and_set "Universe" Settings.input_file_universe Data_state.universe_full universe_of_string;
+  match !Data_state.universe_full with
   | None -> ()
-  | Some(u) -> All_data.universe_full := Some ({
+  | Some(u) -> Data_state.universe_full := Some ({
       universe_component_types = u.universe_component_types;
       universe_implementation = u.universe_implementation;
       universe_repositories = List.fold_left (fun m (n,r) -> match r with None -> m | Some(r') -> Repository_name_map.add n r' m) u.universe_repositories repositories })
@@ -198,14 +198,14 @@ let load_universe _ =
 let load_universe_flat _ = () (* TODO: implement that function *)
 
 let load_configuration _ = Input_helper.input_and_set "Initial Configuration"
-    Settings.input_file_initial_configuration All_data.configuration_init_full configuration_of_string
+    Settings.input_file_initial_configuration Data_state.configuration_init_full configuration_of_string
 
 let load_specification _ = Input_helper.input_and_set "Specification"
-    Settings.input_file_specification All_data.specification_full specification_of_string
+    Settings.input_file_specification Data_state.specification_full specification_of_string
 
 let load_optimization_function _ = match !Settings.input_optimization_function with
   | None -> Zephyrus_log.log_setting_not_set "Optimization function"
-  | Some(opt) -> All_data.optimization_function := Some( match opt with
+  | Some(opt) -> Data_state.optimization_function := Some( match opt with
     | Settings.Optim_none         -> Optimization_function_none
     | Settings.Optim_simple       -> Optimization_function_simple
     | Settings.Optim_compact      -> Optimization_function_compact

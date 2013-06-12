@@ -21,13 +21,14 @@ module type OrderedType = Map.OrderedType
 module type Map_from_stblib = Map.S
 module type Set_from_stblib = Set.S
 
-
+(** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set : sig
 
   module type S = sig
     include Set_from_stblib
     
-    val set_of_list: elt list -> t
+    val set_of_direct_list: elt list -> t
+    val set_of_list: ('a -> elt) -> 'a list -> t
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t
@@ -41,6 +42,7 @@ module SetInt : Set.S with type elt = int
 module SetString : Set.S with type elt = string
 
 
+(** Extension of the Map module from the standard library with Construction, Conversion and Extraction **)
 module Map : sig
 
   module type S = sig

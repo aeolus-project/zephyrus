@@ -32,14 +32,16 @@ module Set = struct
   module type S = sig
     include Set_from_stblib
     
-    val set_of_list: elt list -> t
+    val set_of_direct_list: elt list -> t
+    val set_of_list: ('a -> elt) -> 'a list -> t
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t = struct
     module Set_tmp = Set_global_from_stdlib.Make(Ord)
     include Set_tmp
     
-    let set_of_list l = List.fold_left (fun res v -> add v res) empty l
+    let set_of_direct_list l = List.fold_left (fun res v -> add v res) empty l
+    let set_of_list f l = List.fold_left (fun res v -> add (f v) res) empty l
   end
 
   module Convert(Set_origin : S) (Set_target : S) = struct

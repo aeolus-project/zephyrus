@@ -27,7 +27,7 @@
     - input/Input_helper (for input file manipulation)
 *)
 
-open Data_odel
+open Data_model
 
 (* 1. Universe of string *)
 

@@ -13,6 +13,9 @@ true: use_menhir
 <src_new_approach/input/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/input>: include
 
+<src_new_approach/output/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/output>: include
+
 <src_new_approach/constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/constraints>: include
 

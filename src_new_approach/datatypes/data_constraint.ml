@@ -50,7 +50,7 @@ type variable =
   | LocalResourceVariable    of location_name * resource_name
   (** How many resources of the given type are provided by the given location. *)
 
-module Variable = struct t = variable let compare = Pervasives.compare end
+module Variable = struct type t = variable let compare = Pervasives.compare end
 module Variable_set = Data_common.Set.Make(Variable)
 module Variable_map = Data_common.Map.Make(Variable)
 
