@@ -29,7 +29,7 @@ open Data_model
     - U_dp : set of ports                                    => implemented by "get_port_names"
     - U_dr : set of repository names                         => implemented by "get_repository_names"
     - U_dk : set of package names                            => implemented by "get_package_names"
-    - U_i  : U_dt |-> P(U_dk) implementation of components   => implemented by ""
+    - U_i  : U_dt |-> P(U_dk) implementation of components   => implemented by "get_component_type_implementation"
     - U_w  : U_dk |-> Pi packages of all package names       => NOT IMPLEMENTED
     - UR   : P |-> P(U_dt) components names requiring a port => implemented by "requirers"
     - UP   : P |-> P(U_dt) components names providing a port => implemented by "providers"
@@ -48,7 +48,7 @@ open Data_model
 *)
 
 
-
+module Plain : sig
 (** Fetching universe data. *)
 
 
@@ -178,6 +178,6 @@ val get_location_packages_installed         : configuration -> location_name -> 
 (** Given a location and a resource name returns how much of that resource this location provides. *)
 val get_location_resource_provide_arity     : location -> resource_name -> resource_provide_arity
 
-
+end
 
 

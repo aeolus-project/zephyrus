@@ -80,6 +80,7 @@ module Location_name_map = MapString
 type component_name = string
 let string_of_component_name component_name = component_name
 module Component_name = String
+module Component_name_set = SetString
 module Component_name_map = MapString
 
 (** Assertion: all the component names in the configuration must be different. *)
