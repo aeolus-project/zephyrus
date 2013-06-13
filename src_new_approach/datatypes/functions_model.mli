@@ -38,14 +38,90 @@ open Data_model
     - U(r)                                                   => implemented by "get_repository"
     - U(k)                                                   => NOT IMPLEMENTED
 
-    - C_l       : set of location                       => implemented by "get_locations"
-    - C_c       : set of component                      => NOT IMPLEMENTED
+    - C_l       : set of location                       => implemented by "get_location_names"
+    - C_c       : set of component                      => implemented by "get_component_names"
     - C.type(c) : the type of the component name c in C => NOT IMPLEMENTED
     - C(l,t)    : the set of component of type t in l   => NOT IMPLEMENTED
     - C(l,k)    : true if k is installed on l           => NOT IMPLEMENTED
 
  The other functions are there, what for?
 *)
+
+module Core : sig
+  (** 1. universe *)
+  (** 1.1. component_type *)
+
+  val get_component_type_names : component_type Component_type_name_map.t -> Component_type_name_set.t
+  val get_component_types : component_type Component_type_name_map.t -> Component_type_set.t
+
+  val get_component_type : component_type Component_type_name_map.t -> component_type_name -> component_type
+
+
+  (** 1.2. port *)
+
+  val port_is_provide_strict : provide_arity -> bool
+
+  val get_port_names : Component_type_set.t -> Port_name_set.t
+
+  val get_provide_arity : component_type -> port_name -> provide_arity
+  val get_require_arity : component_type -> port_name -> require_arity
+  val is_in_conflict : component_type -> port_name -> bool
+
+  val requirers : Component_type_set.t -> port_name -> Component_type_set.t
+  val providers : Component_type_set.t -> port_name -> Component_type_set.t
+  val conflicters : Component_type_set.t -> port_name -> Component_type_set.t
+
+
+  (** 1.3. repository *)
+
+  val get_repository_names : repository Repository_name_map.t -> Repository_name_set.t
+  val get_repositories : repository Repository_name_map.t -> Repository_set.t
+
+  val get_repository : repository Repository_name_map.t -> repository_name -> repository
+
+
+  (** 1.4. package *)
+
+  val get_repository_package_names : repository -> Package_name_set.t
+  val get_repository_packages : repository -> Package_set.t
+
+  val get_package_names : Repository_set.t -> Package_name_set.t
+  val get_packages : Repository_set.t -> Package_set.t
+
+  val is_package_in_repository : repository -> package -> bool
+  val get_repository_package : repository -> package_name -> package
+
+  val get_component_type_implementation : Package_name_set.t Component_type_name_map.t -> component_type_name -> Package_name_set.t
+
+
+  (** 1.5. resource *)
+
+  val get_resource_names : Component_type_set.t -> Package_set.t -> Resource_name_set.t
+
+  val get_component_type_resource_consumption : component_type -> resource_name -> resource_consumption
+  val get_package_resource_consumption : package -> resource_name -> resource_provide_arity
+
+
+  (** 2. configuration *)
+  (** 2.1. component *)
+
+  val get_component_names : component Component_name_map.t -> Component_name_set.t
+  val get_components : component Component_name_map.t -> Component_set.t
+
+  val get_local_component : location_name -> component_type_name -> component Component_name_map.t -> Component_name_set.t
+
+  (** 2.2. location *)
+
+  val get_location_names : location Location_name_map.t -> Location_name_set.t
+  val get_locations : location Location_name_map.t -> Location_set.t
+
+  val get_location : location Location_name_map.t -> location_name -> location
+  val get_location_components : Component_set.t -> location_name -> Component_set.t
+  val get_location_packages_installed : location -> Package_name_set.t
+  val get_local_package : location_name -> package_name -> location Location_name_map.t -> bool
+
+  val get_location_resource_provide_arity : location -> resource_name -> resource_provide_arity
+end
 
 
 module Plain : sig

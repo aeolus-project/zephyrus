@@ -138,9 +138,15 @@ module Core = struct (** Core module with all functionalities partially defined 
 
   (** 2.1. component *)
 
+  module Component_name_map_to_key_set = Component_name_map.Set_of_key(Component_name_set)
   module Component_name_map_to_value_component_set = Component_name_map.Set_of_value(Component_set)
 
+  let get_component_names configuration_components = Component_name_map_to_key_set.set_of_key configuration_components
   let get_components configuration_components = Component_name_map_to_value_component_set.set_of_value configuration_components
+
+  let get_local_component l t map = 
+    let tmp = Component_name_map.filter (fun _ c -> (c.component_location = l) & (c.component_type = t)) map in
+    Component_name_map_to_key_set.set_of_key tmp
 
   (** 2.2. location *)
 
@@ -161,6 +167,10 @@ module Core = struct (** Core module with all functionalities partially defined 
   let get_location_resource_provide_arity location resource_name =
     try Resource_name_map.find resource_name location.location_provide_resources with
     | Not_found -> 0
+
+  let get_local_package l k map = try let l' = Location_name_map.find l map in Package_name_set.mem k l'.location_packages_installed with
+   | Not_found -> false
+     
 
 end
 
