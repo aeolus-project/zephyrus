@@ -25,11 +25,13 @@
    Zephyrus : one of the Anemoi and the Greek god of the west wind.
 *)
 
-let _ =
-  Load_settings.load_settings ();
-  Load_model.load_model ()
+(* for now, I just trigger the compilation of all files with the opening of the different key modules *)
 
+open Load_settings
+open Load_model
 open Functions_model
+open Data_model_improved
+open Constraint_of
 
 (* 
 open Model_t

@@ -127,7 +127,7 @@ class configuration c =  object(self)
            | None -> let tmp = Core.get_location_names (self#configuration_locations) in implem_c_l <- Some(tmp); tmp);
     method c_c = (fun () -> match implem_c_c with
            | Some(set) -> set
-           | None -> let tmp = Core.get_component_names (self#configuration_locations) in implem_c_l <- Some(tmp); tmp);
+           | None -> let tmp = Core.get_component_names (self#configuration_components) in implem_c_l <- Some(tmp); tmp);
     method c_type = (fun n -> try (Data_model.Component_name_map.find n self#configuration_components).Data_model.component_type with
            | Not_found -> Zephyrus_log.log_missing_data "component" n "configuration"; exit(-1));
 
@@ -135,7 +135,7 @@ class configuration c =  object(self)
            | Not_found -> let tmp = Core.get_local_component l t self#configuration_components in
              implem_get_local_component <- Location_component_type_map.add (l,t) tmp implem_get_local_component; tmp);
     method get_local_package = (fun l k -> try Location_package_map.find (l,k) implem_get_local_package with
-           | Not_found -> let tmp = Core.get_local_package l t self#configuration_locations in
+           | Not_found -> let tmp = Core.get_local_package l k self#configuration_locations in
              implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
 end
 

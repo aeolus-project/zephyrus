@@ -22,6 +22,10 @@ true: use_menhir
 <src_new_approach/engine/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine>: include
 
+<src_new_approach/engine/translation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/translation>: include
+
+
 <src_new_approach/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine/constraint_generation>: include
 

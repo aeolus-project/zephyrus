@@ -23,6 +23,8 @@
     - datatypes/Data_functions
 *)
 
+
+(*
 module Plain : sig
   val universe : Data_model.Location_name_set.t -> Data_model.Resource_name_set.t -> Data_model.universe -> Data_constraint.t
   val configuration : Data_model.Resource_name_set.t -> Data_model.configuration -> Data_constraint.t
@@ -31,7 +33,16 @@ module Plain : sig
 
   val universe_flat : Data_model.universe -> Data_constraint.t
 end
+*)
 
+(*
 module Improved : sig
+  val universe : Data_model.Location_name_set.t -> Data_model.Resource_name_set.t -> Data_model_improved.universe -> Data_constraint.t
+  val configuration : Data_model.Resource_name_set.t -> Data_model_improved.configuration -> Data_constraint.t
+  val specification : Data_model.specification -> Data_constraint.t
+  val optimization_function :
 
+  val universe_flat : Data_model_improved.universe -> Data_constraint.t
 end
+
+*)

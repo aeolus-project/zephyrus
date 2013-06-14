@@ -23,7 +23,7 @@
 
 open Data_common
 
-(* TODO: use (id = int) instead of names in the mappings, for efficiency. This maybe requires temporary mappings to replace all name references by ints *)
+(* TODO: use (id = int) instead of names in the mappings, for efficiency. This will require annex mappings to replace all name references by ints. This would also somve some bugs comming from name clash *)
 
 (** Types of names and basic values for Zephyrus data. *)
 
@@ -55,9 +55,9 @@ module Port_name_map = MapString
 (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
 type provide_arity = 
-  | FiniteProvide of int
-  | InfiniteProvide 
-let string_of_provide_arity provide_arity = match provide_arity with | InfiniteProvide -> "infinite" | FiniteProvide i -> string_of_int i
+  | Finite_provide of int
+  | Infinite_provide 
+let string_of_provide_arity provide_arity = match provide_arity with | Infinite_provide -> "infinite" | Finite_provide i -> string_of_int i
 
 
 (** A quantity describing how many bindings with different components providing a port are required by this component type. 

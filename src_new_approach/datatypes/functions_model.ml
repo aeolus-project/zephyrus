@@ -45,8 +45,8 @@ module Core = struct (** Core module with all functionalities partially defined 
   module Port_name_map_to_key_set = Port_name_map.Set_of_key(Port_name_set)
 
   let port_is_provide_strict prov = match prov with
-    | FiniteProvide i -> i > 0
-    | InfiniteProvide -> true
+    | Finite_provide i -> i > 0
+    | Infinite_provide -> true
 
   let get_port_names component_types =
     Component_type_set.fold (fun t res ->
