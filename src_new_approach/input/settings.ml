@@ -23,6 +23,11 @@
 
 
 (* 00. DataTypes *)
+type mode = 
+ | Mode_classic
+ | Mode_flat
+ | Mode_bin_packing
+ 
 
 type optim =     (* the different kind of optimization in zephyrus *)
   | Optim_none
@@ -37,16 +42,17 @@ type solver =    (* the different kind of solver available in zephyrus *)
   | Solver_g12
   | Solver_facile
 
-type const_gen = (* the different kind of constraint zephyrus can generate *)
-  | Const_gen_none
-  | Const_gen_paper
-  | Const_gen_linear
-  | Const_gen_bin_packing
+type solver_bin_packing = 
+  | Solver_bin_packing_unknown
 
-type conf_gen =  (* the different mean we have to generate the final configuration *)
-  | Conf_gen_none
-  | Conf_gen_candy
-  | Conf_gen_constraint
+type conf_gen_bindings =  (* the different mean we have to generate the final configuration *)
+  | Conf_gen_bindings_none
+  | Conf_gen_bindings_candy
+  | Conf_gen_bindings_constraint
+
+type conf_gen_packages = (* the different mean we have to generate the packages we need to install *)
+  | Conf_gen_packages_none
+  | Conf_gen_packages_universe
 
 type out_file = 
   | Out_file_plain
@@ -56,6 +62,9 @@ type out_file =
   | Out_file_graph_components
   | Out_file_graph_packages
 
+(* No Need For A Number: Essencial *)
+
+let zephyrus_mode : mode option ref = ref None
 
 (* 01. Input Files *)
 
@@ -67,147 +76,140 @@ let input_optimization_function      : optim option ref           = ref None (* 
 
 let input_file_settings              : string option ref          = ref None 
 
-(* Add options for the syntax of files ? *)
+(* TODO: Add options for the syntax of files ? *)
 
 
-(* 02. Data Generation *)
+(* 02. Which initial Data to Generate *)
 
-let data_generation_full : bool option ref = ref None
-let data_generation_flat : bool option ref = ref None
+let data_generation_universe              : bool option ref = ref None
+let data_generation_repositories          : bool option ref = ref None
+let data_generation_initial_configuration : bool option ref = ref None
+let data_generation_specification         : bool option ref = ref None
+let data_generation_optimization_function : bool option ref = ref None
 
-let data_generation_universe_check      : bool option ref = ref None
-let data_generation_configuration_check : bool option ref = ref None
-let data_generation_specification_check : bool option ref = ref None
+let data_check_universe              : bool option ref = ref None
+let data_check_repositories          : bool option ref = ref None
+let data_check_initial_configuration : bool option ref = ref None
+let data_check_universe_full         : bool option ref = ref None
+let data_check_specification         : bool option ref = ref None
+
+let data_check_settings : bool option ref = ref None
+
 
 (* 03. Pre Processing *)
 
-let pre_process_with_wf_spec_detection           : bool option ref = ref None
-let pre_process_with_empty_spec_detection        : bool option ref = ref None
-let pre_process_empty_spec_detection_solver      : solver option ref = ref None
-let pre_process_empty_spec_detection_input       : string option ref = ref None
-let pre_process_empty_spec_detection_output      : string option ref = ref None
-let pre_process_empty_spec_detection_input_keep  : bool option ref = ref None
-let pre_process_empty_spec_detection_output_keep : bool option ref = ref None
+let pre_process_spec_wf_detection           : bool option ref = ref None
+let pre_process_spec_empty_detection        : bool option ref = ref None
+let pre_process_spec_empty_detection_solver : solver option ref = ref None
 
-let pre_process_with_loop_detection         : bool option ref = ref None
-let pre_process_with_bound_computation      : bool option ref = ref None
-let pre_process_with_flat_model_solving     : bool option ref = ref None
-let pre_process_flat_model_solver           : solver option ref = ref None
-let pre_process_flat_model_input            : string option ref = ref None
-let pre_process_flat_model_output           : string option ref = ref None
-let pre_process_flat_model_input_keep       : bool option ref = ref None
-let pre_process_flat_model_output_keep      : bool option ref = ref None
+let pre_process_universe_loop_detection     : bool option ref = ref None
+let pre_process_universe_bound_computation  : bool option ref = ref None
 
-let pre_process_using_coinst           : bool option ref = ref None
-let pre_process_with_trim_package      : bool option ref = ref None
-let pre_process_with_trim_package_full : bool option ref = ref None (* second trimming pass, deleting implementation dependencies *)
+let pre_process_package_coinst              : bool option ref = ref None
+let pre_process_package_trim_package        : bool option ref = ref None
+let pre_process_component_types_trim        : bool option ref = ref None
 
 
-(* 04. Constrains Generation *)
+(* 04. Constraint Solver *)
 
-let constraint_generation_linear      : bool option ref = ref None
-let constraint_generation_bin_packing : bool option ref = ref None
-
-
-(* 05. Constraint Solver *)
-
-let constraint_solver_classic          : bool option ref = ref None
+let constraint_solver_classic_linear   : bool option ref = ref None
 let constraint_solver_classic_kind     : solver option ref = ref None
 
-let constraint_solver_input_file       : string option ref = ref None
-let constraint_solver_output_file      : string option ref = ref None
-let constraint_solver_input_file_keep  : bool option ref = ref None
-let constraint_solver_output_file_keep : bool option ref = ref None
+let constraint_solver_bin_packing_kind : solver_bin_packing option ref = ref None
 
 
-(* 06. Post Processing *)
+(* 05. Temporary Files *)
 
-  (* => Empty for now *)
+let pre_process_spec_empty_detection_input_file       : string option ref = ref None
+let pre_process_spec_empty_detection_output_file      : string option ref = ref None
+let pre_process_spec_empty_detection_input_file_keep  : bool option ref = ref None
+let pre_process_spec_empty_detection_output_file_keep : bool option ref = ref None
+
+let constraint_solver_flat_input_file       : string option ref = ref None
+let constraint_solver_flat_output_file      : string option ref = ref None
+let constraint_solver_flat_input_file_keep  : bool option ref = ref None
+let constraint_solver_flat_output_file_keep : bool option ref = ref None
+
+let constraint_solver_classic_input_file       : string option ref = ref None
+let constraint_solver_classic_output_file      : string option ref = ref None
+let constraint_solver_classic_input_file_keep  : bool option ref = ref None
+let constraint_solver_classic_output_file_keep : bool option ref = ref None
 
 
-(* 07. Configuration Generation *)
+(* 06. Configuration Generation *)
 
-let configuration_generation : conf_gen option ref = ref None
+let configuration_generation_bindings : conf_gen_bindings option ref = ref None
+let configuration_generation_packages : conf_gen_packages option ref = ref None
 
 
-(* 08. Output Configuration *)
+(* 07. Output Configuration *)
 
 let output_file                  : (out_file * string) list ref = ref []
 let output_package_name_extended : bool option ref = ref None
 
 
-(* 09. Verbose Options *)
+(* 08. Verbose Options *)
 
-let verbose_warning_setting_not_set               :  bool ref = ref false
-let verbose_warning_not_possible                  :  bool ref = ref false
+let verbose_stage : bool option ref = ref None
 
-let verbose_input_error_full                      :  bool ref = ref false (* full description of error in an input data *)
-let verbose_output_error_full                     :  bool ref = ref false (* full description of why we don't have a solution *)
+(* settings *)
+
+let verbose_settings_check_warning : bool option ref = ref None
+let verbose_settings_check_error   : bool option ref = ref None
+let verbose_settings_non_set       : bool option ref = ref None
+
+(* 08.1. inputs *)
+
+let verbose_input_warning : bool option ref = ref None
+let verbose_input_error   : bool option ref = ref None
+
+let verbose_input_universe              : bool option ref = ref None
+let verbose_input_repositories          : bool option ref = ref None
+let verbose_input_universe_full         : bool option ref = ref None
+let verbose_input_initial_configuration : bool option ref = ref None
+let verbose_input_specification         : bool option ref = ref None
+let verbose_input_optimization_function : bool option ref = ref None
+
+let verbose_input_universe_check              : bool option ref = ref None
+let verbose_input_repositories_check          : bool option ref = ref None
+let verbose_input_initial_configuration_check : bool option ref = ref None
+let verbose_input_specification_check         : bool option ref = ref None
+
+(* 08.2. pre-processs *)
+
+let verbose_spec_fw_detection                        : bool option ref = ref None
+let verbose_spec_empty_detection                     : bool option ref = ref None
+let verbose_spec_fw_detection_activities             : bool option ref = ref None
+let verbose_spec_empty_detection_activities          : bool option ref = ref None
+
+let verbose_universe_graph                           : bool option ref = ref None
+let verbose_universe_loop_detection                  : bool option ref = ref None
+let verbose_universe_bound_detection                 : bool option ref = ref None
+let verbose_universe_loop_detection_activities       : bool option ref = ref None
+let verbose_universe_bound_detection_activities      : bool option ref = ref None
+
+let verbose_universe_package_trim_package            : bool option ref = ref None
+let verbose_universe_component_types_trim            : bool option ref = ref None
+let verbose_universe_package_trim_package_activities : bool option ref = ref None
+let verbose_universe_component_types_trim_activities : bool option ref = ref None
+
+(* 08.3. constraints *)
+
+let verbose_constraint                   : bool option ref = ref None
+let verbose_constraint_solver_activities : bool option ref = ref None
+let verbose_solution                     : bool option ref = ref None
+
+(* 08.4. configuration generation *)
+
+let verbose_gen_configuration_init    : bool option ref = ref None
+let verbose_gen_configuration_package : bool option ref = ref None
+let verbose_gen_configuration_full    : bool option ref = ref None
 
 
-let verbose_universe_init                         :  bool ref = ref false
-let verbose_universe_component_trimmed            :  bool ref = ref false
-let verbose_universe_component_graph              :  bool ref = ref false
-let verbose_universe_component_bounds             :  bool ref = ref false
-let verbose_universe_flat                         :  bool ref = ref false
-let verbose_universe_flat_constraint              :  bool ref = ref false
-let verbose_universe_flat_solver_internal         :  bool ref = ref false
-let verbose_universe_flat_solver_execution        :  bool ref = ref false
-let verbose_universe_flat_solution                :  bool ref = ref false
 
-let verbose_universe_package_trimmed              :  bool ref = ref false
-let verbose_universe_package_trimmed_full         :  bool ref = ref false
-let verbose_universe_constraint                   :  bool ref = ref false
+(* 09. Post Processing *)
 
+let generate_plan : bool option ref = ref None (* for instance. TODO: must be expanded when we know more. *)
 
-let verbose_configuration_init                    :  bool ref = ref false
-let verbose_configuration_final_no_binding        :  bool ref = ref false
-let verbose_configuration_final_full              :  bool ref = ref false
-
-
-let verbose_specification                         :  bool ref = ref false
-let verbose_specification_global                  :  bool ref = ref false
-let verbose_specification_global_constraint       :  bool ref = ref false
-let verbose_specification_global_solver_internal  :  bool ref = ref false
-let verbose_specification_global_solver_execution :  bool ref = ref false
-let verbose_specification_global_solution         :  bool ref = ref false
-let verbose_specification_local                   :  bool ref = ref false
-
-
-let verbose_constraint                            :  bool ref = ref false
-let verbose_constraint_variables                  :  bool ref = ref false
-let verbose_constraint_solver_internal            :  bool ref = ref false
-let verbose_constraint_solver_execution           :  bool ref = ref false
-let verbose_constraint_solver_solutions           :  bool ref = ref false
-
-
-let verbose_solution                              :  bool ref = ref false
-
-let verbose_binding_generation_constraint         :  bool ref = ref false
-let verbose_binding_generation_solver_internal    :  bool ref = ref false
-let verbose_binding_generation_solver_execution   :  bool ref = ref false
-
-
-(* 10. Annex function *)
-
-let optimization_function_of_string str = match str with
-  | "Simple"       -> Optim_simple
-  | "compact"      -> Optim_compact
-  | "spread"       -> Optim_spread
-  | "conservative" -> Optim_conservative
-  | _ -> Optim_none
-
-let solver_kind_of_string str =  match str with
-  | "facile" -> Solver_facile
-  | "g12"    -> Solver_g12
-  | _        -> Solver_gcode
-
-let output_file_kind_of_string kind = match kind with
-    | "plain"                       -> Out_file_plain
-    | "json"                        -> Out_file_json
-    | "simplified-deployment-graph" -> Out_file_graph_simplified
-    | "components-graph"            -> Out_file_graph_components
-    | "packages-graph"              -> Out_file_graph_packages
-    | _                             -> Out_file_graph_deployment
 
 

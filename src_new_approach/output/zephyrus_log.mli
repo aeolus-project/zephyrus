@@ -23,6 +23,10 @@
 *)
 
 val log_input_file_error : string -> string -> unit
+
+val log_input_settings_unknown_setting : string -> unit
+val log_input_settings_wrong_value : string -> unit
+
 val log_setting_not_set : string -> unit
 
 val log_missing_data : string -> string -> string -> unit

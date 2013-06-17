@@ -27,15 +27,6 @@
   exception Eof
 
   let keywords = [
-    ("input_file_universe", Input_file_universe);
-    ("input_file_repositories", Input_file_repositories);
-    ("input_file_initial_configuration", Input_file_initial_configuration);
-    ("input_file_specification", Input_file_specification);
-    ("input_optimization_function", Input_optimization_function);
-
-    ("verbose_warning_setting_not_set", Verbose_warning_setting_not_set);
-
-
     ("true", Bool(true)); ("yes", Bool(true)); ("y", Bool(true));
     ("false", Bool(false)); ("no", Bool(false)); ("n", Bool(false));
   ]
@@ -49,24 +40,28 @@
 let blanks = [' ' '\t' '\n']
 let digits = ['0'-'9']
 let alpha  = ['a'-'z' 'A'-'Z']
-let lines  = ['-' '_']
+let lines  = ['-' '+' '_' '.' '/']
+let other_caracters = ['[' '{' '(' ';' ':' ',' '\'' ')' '}' ']']
 
 rule token = parse
-  | blanks                           { token lexbuf        }     (* skip blanks and new lines *)
-  | '"'                              { token_string lexbuf } (* enter string mode *)
-  | ((alpha digits lines)+ as lxm) { check_string lxm    }
-  | "="                              { Equals              }
-  | '['                              { Left_bracket        }
-  | ']'                              { Right_bracket       }
-  | '('                              { Left_paren          }
-  | ')'                              { Right_paren         }
-  | ','                              { Comma               }
-  | ';'                              { Semicolon           }
-  | eof                              { EOF                 }
+  | blanks                                   { token lexbuf         }     (* skip blanks and new lines *)
+  | '"'                                      { token_string lexbuf  }     (* enter string mode *)
+  | '#'                                      { token_comment lexbuf }     (* enter comment mode *)
+  | (((alpha) (alpha digits lines)+) as lxm) { check_string lxm     }
+  | "="                                      { Equals               }
+  | '['                                      { Left_bracket         }
+  | ']'                                      { Right_bracket        }
+  | '('                                      { Left_paren           }
+  | ')'                                      { Right_paren          }
+  | ','                                      { Comma                }
+  | ';'                                      { Semicolon            }
+  | eof                                      { EOF                  }
 
 and token_string = parse
-  | ((blanks digits alpha lines '(' ')')+ as lxm) { check_string lxm }
+  | ((blanks digits alpha lines other_caracters)+ as lxm) { check_string lxm }
   | '"'                                           { token lexbuf     }
 
-
+and token_comment = parse
+  | '\n'                            { token lexbuf         }
+  | _                               { token_comment lexbuf } 
 

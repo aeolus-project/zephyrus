@@ -20,9 +20,7 @@
 
 (* Depends on 
  - Sys (from ocaml standard library)
- - Arg (from ocaml standard library)
  - Lexing (from ocaml standard library)
- - input/Settings
  - input/Settings_parser
  - input/Setgings_lexer
 *)

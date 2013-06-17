@@ -22,8 +22,22 @@
     - Printf (standard library, for logging of course)
 *)
 
+(* 1. extracting informations from input/Settings *)
+
+let get_bool_of_setting r = match !r with
+  | None    -> false
+  | Some(b) -> b
+
+
+(* 2. logging functions *)
+
+(*   2.1. parse settings *)
+let log_input_settings_unknown_setting str = Printf.printf "Error in settings: the setting \"%s\" is unknown. Skiping its definition" str
+let log_input_settings_wrong_value str = Printf.printf "Error in settings: the key \"%s\" has an unexpected value. Skipping its definition" str
+
 let log_input_file_error filename str = Printf.printf "Error: file \"%s\" => %s" filename str
-let log_setting_not_set str = if !Settings.verbose_warning_setting_not_set then Printf.printf "Warning: the %s is not set" str else ()
+
+let log_setting_not_set str = if get_bool_of_setting Settings.verbose_settings_non_set then Printf.printf "Warning: the %s is not set" str else ()
 let log_missing_data kind what where = Printf.printf "Error: the %s \"%s\" is missing from the %s" kind what where
 
 let log_common str  = Printf.printf "Normal:  %s"  str

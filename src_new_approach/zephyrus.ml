@@ -32,6 +32,7 @@ open Load_model
 open Functions_model
 open Data_model_improved
 open Constraint_of
+open Settings_lexer
 
 (* 
 open Model_t

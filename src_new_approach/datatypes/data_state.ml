@@ -24,7 +24,6 @@
 *)
 
 open Data_model
-open Data_constraint
 
 (*
 open Constraints
@@ -65,6 +64,8 @@ let optimization_function      : optimization_function option ref = ref None
 
 (*
 (* 2. constraints *)
+
+open Data_constraint
 
 let constraint_classic_universe      : constraint_ option ref = ref None
 let constraint_classic_configuration : constraint_ option ref = ref None
