@@ -22,7 +22,20 @@
     - datatypes/Data_state (for storing. Maybe a better aternative can be found)
 *)
 
+
 open Data_model
+
+(*
+val get_provide_arity : component_type -> port_id -> provide_arity
+val get_require_arity : component_type -> port_id -> require_arity
+val is_in_conflict : component_type -> port_id -> bool
+*)
+val requirers   : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
+val providers   : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
+val conflicters : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
+
+
+
 
 (* Functions and data defined in the Zephyrus paper
     - U_dt : set of component type names                     => implemented by "get_component_type_names"
@@ -47,6 +60,7 @@ open Data_model
  The other functions are there, what for?
 *)
 
+(*
 module Core : sig
   (** 1. universe *)
   (** 1.1. component_type *)
@@ -67,9 +81,9 @@ module Core : sig
   val get_require_arity : component_type -> port_name -> require_arity
   val is_in_conflict : component_type -> port_name -> bool
 
-  val requirers : Component_type_set.t -> port_name -> Component_type_set.t
-  val providers : Component_type_set.t -> port_name -> Component_type_set.t
-  val conflicters : Component_type_set.t -> port_name -> Component_type_set.t
+  val requirers : Component_type_id_map.t -> port_name -> Component_type_id_set.t
+  val providers : Component_type_id_map.t -> port_name -> Component_type_id_set.t
+  val conflicters : Component_type_id_map.t -> port_name -> Component_type_id_set.t
 
 
   (** 1.3. repository *)
@@ -122,8 +136,9 @@ module Core : sig
 
   val get_location_resource_provide_arity : location -> resource_name -> resource_provide_arity
 end
+*)
 
-
+(*
 module Plain : sig
 (** Fetching universe data. *)
 
@@ -255,5 +270,5 @@ val get_location_packages_installed         : configuration -> location_name -> 
 val get_location_resource_provide_arity     : location -> resource_name -> resource_provide_arity
 
 end
-
+*)
 

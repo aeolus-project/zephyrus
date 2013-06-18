@@ -18,30 +18,16 @@
 (****************************************************************************)
 
 
-(* Depends on 
- - Sys (from ocaml standard library)
- - Lexing (from ocaml standard library)
- - input/Settings_parser
- - input/Settings_lexer
+(* Depends on
+  MUST DEPEND ON NOTHING !!
+    - Str (ocaml standard library, for pattern matching)
+    - Printf
 *)
 
 
-(* for now, keep the same semantics as before *)
-(* TODO: change everything *)
+val extend_indent_stage  : unit -> unit
+val shorten_indent_stage : unit -> unit
+val get_current_indent   : unit -> string (** deprecated *)
 
-let usage =  "usage "
-    ^ Sys.argv.(0)
-    ^ "settings-file"
-    ^ "[settings-file]*"
-
-
-let load_settings _ = for i=1 to (Array.length Sys.argv) - 1 do
-    let filename =  Sys.argv.(i) in
-    let file = Pervasives.open_in filename in
-      Settings_parser.main Settings_lexer.token (Lexing.from_channel file)
-  done
-
-
-let check_settings _ = (* TODO *)
-  ()
-
+val print : out_channel -> string -> unit
+val print_capo : out_channel -> string -> unit

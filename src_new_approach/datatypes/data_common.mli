@@ -17,9 +17,18 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* Depends on
+    - Map
+    - Set
+    - String
+*)
+
 module type OrderedType = Map.OrderedType
 module type Map_from_stblib = Map.S
 module type Set_from_stblib = Set.S
+
+module Int : sig type t = int val compare : t -> t -> int end
+module String : sig type t = string val compare : t -> t -> int end
 
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set : sig
@@ -38,8 +47,10 @@ module Set : sig
   end
 end
 
-module SetInt : Set.S with type elt = int
-module SetString : Set.S with type elt = string
+module SetInt       : Set.S with type elt = int
+module SetSetInt    : Set.S with type elt = SetInt.t
+module SetString    : Set.S with type elt = string
+module SetSetString : Set.S with type elt = SetString.t
 
 
 (** Extension of the Map module from the standard library with Construction, Conversion and Extraction **)
@@ -52,12 +63,12 @@ module Map : sig
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
-    module Set_of_key(Set_target : Set.S with type elt = key) : sig
-      val set_of_key : 'a t -> Set_target.t
+    module Set_of_keys(Set_target : Set.S with type elt = key) : sig
+      val set_of_keys : 'a t -> Set_target.t
     end
 
-    module Set_of_value(Set_target : Set.S) : sig
-      val set_of_value : Set_target.elt t -> Set_target.t
+    module Set_of_values(Set_target : Set.S) : sig
+      val set_of_values : Set_target.elt t -> Set_target.t
     end
   end
   
@@ -70,5 +81,8 @@ end
 
 module MapInt : Map.S with type key = int
 module MapString : Map.S with type key = string
+
+module Keys_of_MapInt    : sig val set_of_keys : 'a MapInt.t -> SetInt.t end
+module Keys_of_MapString : sig val set_of_keys : 'a MapString.t -> SetString.t end
 
 

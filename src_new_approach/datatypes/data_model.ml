@@ -23,194 +23,235 @@
 
 open Data_common
 
-(* TODO: use (id = int) instead of names in the mappings, for efficiency. This will require annex mappings to replace all name references by ints. This would also somve some bugs comming from name clash *)
 
-(** Types of names and basic values for Zephyrus data. *)
-
-(** Generally all names are implemented as strings, but we keep them as separate types
-    in case if we want to change implementation in the future. *)
+(** Types for main values for Zephyrus data. *)
+(** For efficiency and to avoid name clash, all names are paired with identifiers *)
 
 
-(** A name of a component type in the universe. *)
+(************************************)
+(** 1. Resources                    *)
+(************************************)
+
+  (** A name of a resource provided by a location or consumed by a component type or a package. *)
+type resource_name = string
+module Resource_name = String
+module Resource_name_set     = SetString
+module Resource_name_set_set = SetSetString
+module Resource_name_map     = MapString
+
+type resource_id = int
+module Resource_id = Int
+module Resource_id_set     = SetInt
+module Resource_id_set_set = SetSetInt
+module Resource_id_map     = MapInt
+module Resource_id_map_extract_key = Keys_of_MapInt
+
+  (** A quantity describing how much units of a resource is provided by a location. *)
+type resource_provide_arity = int
+  (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
+type resource_consume_arity = int
+
+  (** Resource set *)
+class type resources = object
+  method resource_names : Resource_name_set.t
+  method resource_ids   : Resource_id_set.t
+  method get_name       : resource_id -> resource_name
+  method get_id         : resource_name -> resource_id
+end
+
+
+(************************************)
+(** 2. Universe                     *)
+(************************************)
+  (** 2.1. Component types *)
+
+  (** The name of a component type in the universe. *)
 type component_type_name = string
-let string_of_component_type_name component_type_name = component_type_name
-module Component_type_name = String
+module Component_type_name     = String
 module Component_type_name_set = SetString
 module Component_type_name_map = MapString
 
-(** Assertion: all the component type names in the universe must be different. *)
+type component_type_id = int
+module Component_type_id     = Int
+module Component_type_id_set = SetInt
+module Component_type_id_map = MapInt
+module Component_type_id_map_extract_key = Keys_of_MapInt
 
-
-(** A name of a port in provided or required or conflicted by a component type. *)
+  (** The name of a port in provided or required or conflicted by a component type. *)
 type port_name = string
-let string_of_port_name port_name = port_name
-module Port_name = String
-module Port_name_set = SetString
-module Port_name_set_set = Set.Make(Port_name_set)
-module Port_name_map = MapString
+module Port_name         = String
+module Port_name_set     = SetString
+module Port_name_set_set = SetSetString
+module Port_name_map     = MapString
 
-(** Assertion: all the port names in the universe must be different. *)
+type port_id = int
+module Port_id         = Int
+module Port_id_set     = SetInt
+module Port_id_set_set = SetSetInt
+module Port_id_map     = MapInt
 
-
-(** A quantity describing to how many other components this component type can provide a port.
+  (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
 type provide_arity = 
   | Finite_provide of int
   | Infinite_provide 
-let string_of_provide_arity provide_arity = match provide_arity with | Infinite_provide -> "infinite" | Finite_provide i -> string_of_int i
 
-
-(** A quantity describing how many bindings with different components providing a port are required by this component type. 
+  (** A quantity describing how many bindings with different components providing a port are required by this component type. 
     Note: it is always finite, because an infinite require arity would be simply insatiable. *)
 type require_arity = int
-let string_of_require_arity require_arity = string_of_int require_arity
+
+  (** Component type. *)
+
+class type component_type = object
+  method name           : component_type_name                     (** The name of this component type. *)
+  method provide        : port_id -> provide_arity                (** Which ports does this component provide and with what arities. *)
+  method provide_domain : Port_id_set.t
+  method require        : port_id -> require_arity                (** Which ports does this component require and with what arities. *)
+  method require_domain : Port_id_set.t
+  method conflict       : Port_id_set.t                           (** With which ports is this component type in conflict. *)
+  method consume        : resource_id -> resource_consume_arity   (** Which resources does this component consume and in what amounts. *)
+end
+
+module Component_type = struct
+  type t = component_type
+  let compare t1 t2 = String.compare t1#name t2#name 
+end module Component_type_set = Set.Make(Component_type)
 
 
-(** A name of a location in the configuration. *)
+  (** 2.2. Packages *)
+
+  (** A name of a package in a repository. *)
+type package_name = string
+module Package_name         = String
+module Package_name_set     = SetString
+module Package_name_set_set = SetSetString
+module Package_name_map     = MapString
+
+type package_id = int
+module Package_id         = Int
+module Package_id_set     = SetInt
+module Package_id_set_set = SetSetInt
+module Package_id_map     = MapInt
+
+  (** Package. *)
+class type package = object
+  method name     : package_name                              (** The name of this package. *)
+  method depend   : Package_id_set_set.t                      (** Which packages does this package depend on (a disjunction of conjunctions). *)
+  method conflict : Package_id_set.t                          (** Which packages is this package is in conflict with. *)
+  method consume  : resource_id -> resource_consume_arity     (** Which resources does this package consume and in what amounts. *)
+end
+
+module Package = struct
+  type t = package
+  let compare k1 k2 = String.compare k1#name k2#name 
+end module Package_set = Set.Make(Package) module Package_set_set = Set.Make(Package_set)
+
+
+  (** 2.3. Repositories *)
+
+  (** A name of a repository in the universe. *)
+type repository_name = string
+module Repository_name = String
+module Repository_name_set     = SetString
+module Repository_name_set_set = SetSetString
+module Repository_name_map     = MapString
+
+type repository_id = int
+module Repository_id = Int
+module Repository_id_set     = SetInt
+module Repository_id_set_set = SetSetInt
+module Repository_id_map     = MapInt
+
+  (** Repository. *)
+class type repository = object
+  method name     : repository_name         (** The name of this repository. *)
+  method packages : package_id -> package   (** Which packages does this repository contain. *)
+end
+
+module Repository = struct
+  type t = repository
+  let compare r1 r2 = String.compare r1#name r2#name 
+end module Repository_set = Set.Make(Repository)
+
+
+  (** 3.3. Universes *)
+class type universe = object
+  (* basic methods *)
+  method get_component_type : component_type_id -> component_type      (** Component types available in this universe. *)
+  method get_implementation  : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
+  method get_repository    : repository_id -> repository               (** Package repositories available in this universe. *)
+  method get_package        : package_id -> package
+
+  method get_component_types : Component_type_set.t
+  method get_repositories    : Repository_set.t
+  method get_packages        : Package_set.t
+
+  method get_port_ids           : Port_id_set.t
+  method get_component_type_ids : Component_type_id_set.t
+  method get_repository_ids     : Repository_id_set.t
+  method get_package_ids        : Package_id_set.t
+
+  method get_port_names           : Port_name_set.t
+  method get_component_type_names : Component_type_name_set.t
+  method get_repository_names     : Repository_name_set.t
+  method get_package_names        : Package_name_set.t
+
+  (* methods coming from the paper. Usually, aliases for well-named functions *)
+  method u_dt : Component_type_id_set.t
+  method u_dp : Port_id_set.t
+  method u_dr : Repository_id_set.t
+  method u_dk : Package_id_set.t
+    
+  method u_i : component_type_id -> Package_id_set.t
+  method u_w : package_id -> package
+
+  method ur : port_id -> Component_type_id_set.t
+  method up : port_id -> Component_type_id_set.t
+  method uc : port_id -> Component_type_id_set.t
+
+  (* methods for naming *)
+  method get_port_id           : port_name -> port_id
+  method get_component_type_id : component_type_name -> component_type_id
+  method get_repository_id     : repository_name -> repository_id
+  method get_package_id        : repository_id -> package_name -> package_id
+
+  method get_port_name           : port_id -> port_name
+  method get_component_type_name : component_type_id -> component_type_name
+  method get_repository_name     : repository_id -> repository_name
+  method get_package_name        : package_id -> package_name
+end
+
+
+
+
+(************************************)
+(** 4. Configuration                *)
+(************************************)
+
+  (** 4.1. Locations *)
+  (** A name of a location in the configuration. *)
 type location_name = string
-let string_of_location_name location_name = location_name
 module Location_name = String
 module Location_name_set = SetString
 module Location_name_map = MapString
 
-(** Assertion: all the location names in the configuration must be different. *)
+type location_id = int
+module Location_id = Int
+module Location_id_set = SetInt
+module Location_id_map = MapInt
 
+  (** Location. *)
+class type location = object
+  method name               : location_name                            (** The name of this location. *)
+  method repository         : repository_id                            (** The name of the package repository used by this location. *)
+  method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
+  method provide_resources  : resource_id -> resource_provide_arity    (** Which resources does this location provide and in what amounts. *)
+end
 
-(** A name of a component in the configuration. *)
-type component_name = string
-let string_of_component_name component_name = component_name
-module Component_name = String
-module Component_name_set = SetString
-module Component_name_map = MapString
-
-(** Assertion: all the component names in the configuration must be different. *)
-
-
-(** A name of a repository in the universe. *)
-type repository_name = string
-let string_of_repository_name repository_name = repository_name
-module Repository_name = String
-module Repository_name_set     = SetString
-module Repository_name_set_set = Set.Make(Repository_name_set)
-module Repository_name_map     = MapString
-
-(** Assertion: all the repository names in the universe must be different. *)
-
-
-(** A name of a package in a repository. *)
-type package_name = string
-let string_of_package_name package_name = package_name
-module Package_name = String
-module Package_name_set     = SetString
-module Package_name_set_set = Set.Make(Package_name_set)
-module Package_name_map     = MapString
-
-(** Assertion: all the package names in the universe must be different. *)
-
-
-(** A name of a resource provided by a location or consumed by a component type or a package. *)
-type resource_name = string
-let string_of_resource_name resource_name = resource_name
-module Resource_name = String
-module Resource_name_set     = SetString
-module Resource_name_set_set = Set.Make(Resource_name_set)
-module Resource_name_map     = MapString
-
-(** Assertion: all the resource names in the universe must be different. *)
-
-
-(** A quantity describing how much units of a resource is provided by a location. *)
-type resource_provide_arity = int
-let string_of_resource_provide_arity resource_provide_arity = string_of_int resource_provide_arity
-
-
-(** A quantity describing how much units of a resource is consumed by a component type or a package. *)
-type resource_consumption = int
-let string_of_resource_consumption resource_consumption = string_of_int resource_consumption
-
-
-
-(** Component type. *)
-
-type component_type = {
-  component_type_name     : component_type_name;                     (** The name of this component type. *)
-  component_type_provide  : provide_arity Port_name_map.t;           (** Which ports does this component provide and with what arities. *)
-  component_type_require  : require_arity Port_name_map.t;           (** Which ports does this component require and with what arities. *)
-  component_type_conflict : Port_name_set.t;                         (** With which ports is this component type in conflict. *)
-  component_type_consume  : resource_consumption Resource_name_map.t (** Which resources does this component consume and in what amounts. *)
-}
-
-module Component_type =
-  struct
-    type t = component_type
-    let compare component_type_1 component_type_2 = 
-      String.compare component_type_1.component_type_name component_type_2.component_type_name 
-  end
-
-module Component_type_set = Set.Make(Component_type)
-
-
-
-(** Package. *)
-
-type package = {
-  package_name     : package_name;                            (** The name of this package. *)
-  package_depend   : Package_name_set_set.t;                  (** Which packages does this package depend on (a disjunction of conjunctions). *)
-  package_conflict : Package_name_set.t;                      (** Which packages is this package is in conflict with. *)
-  package_consume  : resource_consumption Resource_name_map.t (** Which resources does this package consume and in what amounts. *)
-}
-
-module Package =
-  struct
-    type t = package
-    let compare package_1 package_2 = 
-      String.compare package_1.package_name package_2.package_name 
-  end
-
-module Package_set = Set.Make(Package)
-module Package_set_set = Set.Make(Package_set)
-
-
-
-(** Repository. *)
-
-type repository = {
-  repository_name     : repository_name;           (** The name of this repository. *)
-  repository_packages : package Package_name_map.t (** Which packages does this repository contain. *)
-}
-
-module Repository =
-  struct
-    type t = repository
-    let compare repository_1 repository_2 = 
-      String.compare repository_1.repository_name repository_2.repository_name 
-  end
-
-module Repository_set = Set.Make(Repository)
-
-
-
-(** Universe. *)
-type universe = {
-  universe_component_types : component_type Component_type_name_map.t;     (** Component types available in this universe. *)
-  universe_implementation  : Package_name_set.t Component_type_name_map.t; (** Which packages can implement the component types of this universe. *)
-  universe_repositories    : repository Repository_name_map.t;             (** Package repositories available in this universe. *)
-}
-
-(** Conventions: 
-    {ul
-    {- If a component type is not mentioned in the implementation at all it means that it cannot be implemented (there is no package implementing it). }
-    } *)
-
-
-
-(** Location. *)
-type location = {
-  location_name               : location_name;                              (** The name of this location. *)
-  location_repository         : repository_name;                            (** The name of the package repository used by this location. *)
-  location_packages_installed : Package_name_set.t;                         (** Names of packages installed at this location. *)
-  location_provide_resources  : resource_provide_arity Resource_name_map.t; (** Which resources does this location provide and in what amounts. *)
-}
+module Location = struct
+  type t = location
+  let compare l1 l2 = String.compare l1#name l2#name 
+end module Location_set = Set.Make(Location)
 
 (** Assertions:
     {ul
@@ -219,48 +260,55 @@ type location = {
     {- All the packages installed in a location must be available in the package repository which is used by this location. }
     } *)
 
-module Location =
-  struct
-    type t = location
-    let compare location_1 location_2 = 
-      String.compare location_1.location_name location_2.location_name 
-  end
 
-module Location_set = Set.Make(Location)
+  (** 4.2. Component. *)
+  (** A name of a component in the configuration. *)
+type component_name = string
+module Component_name = String
+module Component_name_set = SetString
+module Component_name_map = MapString
 
+type component_id = int
+module Component_id = Int
+module Component_id_set = SetInt
+module Component_id_map = MapInt
 
+  (** Components *)
+class type component = object
+  method name     : component_name
+  method my_type  : component_type_id
+  method location : location_id
+end
 
-(** Component. *)
-
-type component = {
-  component_name     : component_name;
-  component_type     : component_type_name;
-  component_location : location_name;
-}
+module Component = struct
+  type t = component
+  let compare c1 c2 = String.compare c1#name c2#name 
+end module Component_set = Set.Make(Component)
 
 (** Assertions:
     {ul
-    {- The component type name mentioned by a location must correspond to a component type from the universe. }
+    {- The component type name mentioned by a location must correspond to a component type from the universe. <- NO}
     {- The location name mentioned by a component must correspond to a location from the configuration. }
     } *)
 
-module Component =
-  struct
-    type t = component
-    let compare component_1 component_2 = 
-      String.compare component_1.component_name component_2.component_name 
-  end
-
-module Component_set = Set.Make(Component)
 
 
-(** Binding. *)
+  (** 4.3. Binding. *)
+class type binding = object
+  method port     : port_id
+  method requirer : component_id
+  method provider : component_id
+end
 
-type binding = {
-  binding_port     : port_name;
-  binding_requirer : component_name;
-  binding_provider : component_name
-}
+module Binding = struct
+  type t = binding
+  let compare b1 b2 =
+    let r1 = b1#port - b2#port in if r1 = 0 then
+      let r2 = Component_id.compare b1#requirer b2#requirer in if r2 = 0 then
+        Component_id.compare b1#provider b2#provider
+      else r2
+    else r1
+end module Binding_set = Set.Make(Binding)
 
 (** Assertions:
     {ul
@@ -268,58 +316,54 @@ type binding = {
     {- The port mentioned by a binding must be required by the requirer component and provided by the provider component. }
     } *)
 
-let lexicographic_compare (compare : 'a -> 'b -> int) (l : ('a * 'b) list) =
-  List.fold_left (fun (a : int) ( (h1, h2) : ('a * 'b) ) -> 
-    if a != 0
-    then a
-    else compare h1 h2
-  ) 0 l
 
-module Binding =
-  struct
-    type t = binding
-    let compare binding_1 binding_2 = 
-      lexicographic_compare String.compare [
-        (binding_1.binding_port,     binding_2.binding_port);
-        (binding_1.binding_requirer, binding_2.binding_requirer);
-        (binding_1.binding_provider, binding_2.binding_provider)
-      ]
-  end
+  (** 4.4. Configuration. *)
+class type configuration = object
+  (* basic methods *)
+  method get_location  : location_id -> location
+  method get_component : component_id -> component
 
-module Binding_set = Set.Make(Binding)
+  method get_locations  : Location_id_set.t
+  method get_components : Component_id_set.t
+  method get_bindings   : Binding_set.t
 
+  (* methods coming from the paper. Usually, aliases for well-named functions *)
+  method c_l : Location_id_set.t
+  method c_c : Component_id_set.t
+  method c_type : component_id -> component_type_id
 
-(** Configuration. *)
+  method get_local_component : location_id -> component_type_id -> Component_id_set.t
+  method get_local_package : location_id -> package_id -> bool
 
-type configuration = {
-  configuration_locations  : location Location_name_map.t;
-  configuration_components : component Component_name_map.t;
-  configuration_bindings   : Binding_set.t
-}
+  (* methods for naming *)
+  method get_location_id  : location_name -> location_id
+  method get_component_id : component_name -> component_id
+
+  method get_location_name  : location_id -> location_name
+  method get_component_name : component_id -> component_name
+end
 
 
 
-
-(** Type definitions for Specification. *)
+(************************************)
+(** 5. Specification.               *)
+(************************************)
 
 type spec_variable_name = string
-let string_of_spec_variable_name spec_variable_name = spec_variable_name
-
 type spec_const = int
-let string_of_spec_const spec_const = string_of_int spec_const
 
 type spec_local_element = 
-  | SpecLocalElementPackage of package_name
-  | SpecLocalElementComponentType of component_type_name
-  | SpecLocalElementPort of port_name
+  | Spec_local_element_package        of package_id
+  | Spec_local_element_component_type of component_type_id
+  | Spec_local_element_port           of port_id
 
 type spec_local_expr = 
-  | SpecLocalExprVar of spec_variable_name
-  | SpecLocalExprConst of spec_const
-  | SpecLocalExprArity of spec_local_element
-  | SpecLocalExprAdd of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprSub of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprMul of (spec_const * spec_local_expr)
+  | Spec_local_expr_var   of spec_variable_name
+  | Spec_local_expr_Const of spec_const
+  | Spec_local_expr_crity of spec_local_element
+  | Spec_local_expr_add   of (spec_local_expr * spec_local_expr)
+  | Spec_local_expr_sub   of (spec_local_expr * spec_local_expr)
+  | Spec_local_expr_mul   of (spec_const * spec_local_expr)
 
 type spec_op = 
   | Lt  (** Less-than operator *)
@@ -330,44 +374,42 @@ type spec_op =
   | NEq (** Not-equal-to operator *)
 
 type local_specification = 
-  | SpecLocalTrue
-  | SpecLocalOp of (spec_local_expr * spec_op * spec_local_expr)
-  | SpecLocalAnd of (local_specification * local_specification)
-  | SpecLocalOr of (local_specification * local_specification)
-  | SpecLocalImpl of (local_specification * local_specification)
-  | SpecLocalNot of local_specification
+  | Spec_local_true
+  | Spec_local_op of (spec_local_expr * spec_op * spec_local_expr)
+  | Spec_local_and of (local_specification * local_specification)
+  | Spec_local_or of (local_specification * local_specification)
+  | Spec_local_impl of (local_specification * local_specification)
+  | Spec_local_not of local_specification
 
-type spec_repository_constraint = repository_name
-
-type spec_repository_constraints = spec_repository_constraint list
-
-type spec_resource_constraint = (resource_name * spec_op * spec_const)
-
-type spec_resource_constraints = spec_resource_constraint list
+type spec_repository_constraint = repository_name list
+type spec_resource_constraint = (resource_name * spec_op * spec_const) list
 
 type spec_element = 
-  | SpecElementPackage of package_name
-  | SpecElementComponentType of component_type_name
-  | SpecElementPort of port_name
-  | SpecElementLocalisation of (spec_resource_constraints * spec_repository_constraints * local_specification)
+  | Spec_element_package of package_name
+  | Spec_element_component_type of component_type_name
+  | Spec_element_port of port_name
+  | Spec_element_location of (spec_resource_constraint * spec_repository_constraint * local_specification)
 
 type spec_expr = 
-  | SpecExprVar of spec_variable_name
-  | SpecExprConst of spec_const
-  | SpecExprArity of spec_element
-  | SpecExprAdd of (spec_expr * spec_expr)
-  | SpecExprSub of (spec_expr * spec_expr)
-  | SpecExprMul of (spec_const * spec_expr)
+  | Spec_expr_var of spec_variable_name
+  | Spec_expr_const of spec_const
+  | Spec_expr_arity of spec_element
+  | Spec_expr_add of (spec_expr * spec_expr)
+  | Spec_expr_sub of (spec_expr * spec_expr)
+  | Spec_expr_mul of (spec_const * spec_expr)
 
 type specification = 
-  | SpecTrue
-  | SpecOp of (spec_expr * spec_op * spec_expr)
-  | SpecAnd of (specification * specification)
-  | SpecOr of (specification * specification)
-  | SpecImpl of (specification * specification)
-  | SpecNot of specification
+  | Spec_true
+  | Spec_op of (spec_expr * spec_op * spec_expr)
+  | Spec_and of (specification * specification)
+  | Spec_or of (specification * specification)
+  | Spec_impl of (specification * specification)
+  | Spec_not of specification
 
 
+(************************************)
+(** 6. Optimization function        *)
+(************************************)
 
 type optimization_function = 
   | Optimization_function_simple

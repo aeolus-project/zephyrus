@@ -22,6 +22,37 @@
     - datatypes/Data_state (for storing. Maybe a better aternative can be found)
 *)
 
+open Data_model
+
+
+(*  let get_provide_arity component_type port_name =
+    try Port_name_map.find port_name component_type.component_type_provide with
+    | Not_found -> Zephyrus_log.log_missing_data "provided port" port_name ("component \"" ^ component_type.component_type_name ^ "\""); exit(-1)
+
+  let get_require_arity component_type port_name =
+    try Port_name_map.find port_name component_type.component_type_require  with
+    | Not_found -> Zephyrus_log.log_missing_data "required port" port_name ("component \"" ^ component_type.component_type_name ^ "\""); exit(-1)
+
+  let is_in_conflict component_type port_name = Port_name_set.mem port_name component_type.component_type_conflict
+*)
+
+  let port_is_provide_strict prov = match prov with
+    | Finite_provide i -> i > 0
+    | Infinite_provide -> true
+
+
+  let requirers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false) component_types)
+
+  let providers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false) component_types)
+
+  let conflicters component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types)
+
+
+(*
+
 
 module Core = struct (** Core module with all functionalities partially defined *)
   open Data_model
@@ -65,13 +96,14 @@ module Core = struct (** Core module with all functionalities partially defined 
 
   let is_in_conflict component_type port_name = Port_name_set.mem port_name component_type.component_type_conflict
 
-  let requirers component_types port_name = Component_type_set.filter
-      (fun t -> if Port_name_map.mem port_name t.component_type_require then get_require_arity t port_name > 0 else false) component_types
+  let requirers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> if Port_id_map.mem port_id t.component_type_require then get_require_arity t port_id > 0 else false) component_types)
 
-  let providers component_types port_name = Component_type_set.filter
-      (fun t -> if Port_name_map.mem port_name t.component_type_provide then port_is_provide_strict (get_provide_arity t port_name) else false) component_types
+  let providers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> if Port_id_map.mem port_id t.component_type_provide then port_is_provide_strict (get_provide_id t port_name) else false) component_types)
 
-  let conflicters component_types port_name = Component_type_set.filter (fun component_type -> is_in_conflict component_type port_name) component_types
+  let conflicters component_types port_name = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+    (fun id t -> is_in_conflict component_type port_id) component_types)
 
 
 
@@ -479,4 +511,4 @@ module Improved = struct
 
 
 end
-
+*)

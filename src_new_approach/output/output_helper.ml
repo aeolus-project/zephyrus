@@ -18,30 +18,24 @@
 (****************************************************************************)
 
 
-(* Depends on 
- - Sys (from ocaml standard library)
- - Lexing (from ocaml standard library)
- - input/Settings_parser
- - input/Settings_lexer
+(* Depends on
+  MUST DEPEND ON NOTHING !!
+    - Str (ocaml standard library, for pattern matching)
+    - Printf
 *)
 
 
-(* for now, keep the same semantics as before *)
-(* TODO: change everything *)
+(* 1. For indentation *) 
 
-let usage =  "usage "
-    ^ Sys.argv.(0)
-    ^ "settings-file"
-    ^ "[settings-file]*"
+let indent_stage = ref ""
+let extend_indent_stage () = indent_stage := "  " ^ (!indent_stage)
+let shorten_indent_stage () = indent_stage := String.sub (!indent_stage) 0 ((String.length (!indent_stage)) -2)
 
-
-let load_settings _ = for i=1 to (Array.length Sys.argv) - 1 do
-    let filename =  Sys.argv.(i) in
-    let file = Pervasives.open_in filename in
-      Settings_parser.main Settings_lexer.token (Lexing.from_channel file)
-  done
+let get_current_indent () = !indent_stage
 
 
-let check_settings _ = (* TODO *)
-  ()
+(* 2. for printing *)
 
+let new_line_regexp = Str.regexp "\n"
+let print file s = Printf.fprintf file "%s%s\n" (!indent_stage) (Str.global_replace new_line_regexp ("\n" ^ (!indent_stage)) s)
+let print_capo file s = Printf.fprintf file "%s\n" s

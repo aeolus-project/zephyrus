@@ -18,30 +18,3 @@
 (****************************************************************************)
 
 
-(* Depends on 
- - Sys (from ocaml standard library)
- - Lexing (from ocaml standard library)
- - input/Settings_parser
- - input/Settings_lexer
-*)
-
-
-(* for now, keep the same semantics as before *)
-(* TODO: change everything *)
-
-let usage =  "usage "
-    ^ Sys.argv.(0)
-    ^ "settings-file"
-    ^ "[settings-file]*"
-
-
-let load_settings _ = for i=1 to (Array.length Sys.argv) - 1 do
-    let filename =  Sys.argv.(i) in
-    let file = Pervasives.open_in filename in
-      Settings_parser.main Settings_lexer.token (Lexing.from_channel file)
-  done
-
-
-let check_settings _ = (* TODO *)
-  ()
-

@@ -19,25 +19,46 @@
 
 (* Depends on
     - input/Settings (to know what to log)
-    - Printf (standard library, for logging of course)
+    - output/Output_helper
 *)
 
 (* 1. extracting informations from input/Settings *)
 
-let get_bool_of_setting r = match !r with
-  | None    -> false
-  | Some(b) -> b
+(* TODO: replace printfs by functions in output_helper.ml *)
 
+let out_channel = stdout
+
+let log_panic str = Output_helper.print_capo out_channel ("Zephyrus panic: " ^ str ^ "\nExiting"); exit(-1)
+let log_missing_data kind what where = log_panic ("the " ^ kind ^ " \"" ^ what ^ "\" is missing from the " ^ where)
 
 (* 2. logging functions *)
 
-(*   2.1. parse settings *)
+(*    2.1. Logging stage *)
+
+let current_stages : (string list) ref = ref []
+
+let log_stage_new str = if Settings.get_bool_basic Settings.verbose_stage then
+    Output_helper.print out_channel ("+++++++++++++\nNew Stage: \"" ^ str ^ "\"\n+++++++++++++");
+    Output_helper.extend_indent_stage ()
+
+let log_stage_end () =  if Settings.get_bool_basic Settings.verbose_stage then
+    let str = List.hd (!current_stages) in current_stages := List.tl (!current_stages);
+    Output_helper.print out_channel ("-------------\nEnd Stage: \"" ^ str ^ "\"\n-------------");
+    Output_helper.shorten_indent_stage ()
+
+
+(*    2.2. parse settings *)
 let log_input_settings_unknown_setting str = Printf.printf "Error in settings: the setting \"%s\" is unknown. Skiping its definition" str
 let log_input_settings_wrong_value str = Printf.printf "Error in settings: the key \"%s\" has an unexpected value. Skipping its definition" str
 
+
+(*    2.3. input *)
 let log_input_file_error filename str = Printf.printf "Error: file \"%s\" => %s" filename str
 
-let log_setting_not_set str = if get_bool_of_setting Settings.verbose_settings_non_set then Printf.printf "Warning: the %s is not set" str else ()
-let log_missing_data kind what where = Printf.printf "Error: the %s \"%s\" is missing from the %s" kind what where
+let log_setting_not_set str = if Settings.get_bool_basic Settings.verbose_settings_non_set then Printf.printf "Warning: the %s is not set" str else ()
 
 let log_common str  = Printf.printf "Normal:  %s"  str
+
+
+
+

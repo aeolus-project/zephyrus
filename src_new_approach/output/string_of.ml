@@ -18,30 +18,33 @@
 (****************************************************************************)
 
 
-(* Depends on 
- - Sys (from ocaml standard library)
- - Lexing (from ocaml standard library)
- - input/Settings_parser
- - input/Settings_lexer
-*)
+module Model = struct
+  (** 1. Resources *)
+  let string_of_resource_name resource_name = resource_name
+  let string_of_resource_provide_arity resource_provide_arity = string_of_int resource_provide_arity
+  let string_of_resource_consumption resource_consumption = string_of_int resource_consumption
+
+  (** 2. Component types *)
+  let string_of_component_type_name component_type_name = component_type_name
+  let string_of_port_name port_name = port_name
+  let string_of_provide_arity provide_arity = match provide_arity with | Infinite_provide -> "infinite" | Finite_provide i -> string_of_int i
+  let string_of_require_arity require_arity = string_of_int require_arity
+
+  (** 3. Packages *)
+  let string_of_package_name package_name = package_name
+
+  (** 4. Repositories *)
+  let string_of_repository_name repository_name = repository_name
+
+  (** 5. Location *)
+  let string_of_location_name location_name = location_name
+let string_of_component_name component_name = component_name
+
+let string_of_spec_variable_name spec_variable_name = spec_variable_name
+let string_of_spec_const spec_const = string_of_int spec_const
+
+end
 
 
-(* for now, keep the same semantics as before *)
-(* TODO: change everything *)
 
-let usage =  "usage "
-    ^ Sys.argv.(0)
-    ^ "settings-file"
-    ^ "[settings-file]*"
-
-
-let load_settings _ = for i=1 to (Array.length Sys.argv) - 1 do
-    let filename =  Sys.argv.(i) in
-    let file = Pervasives.open_in filename in
-      Settings_parser.main Settings_lexer.token (Lexing.from_channel file)
-  done
-
-
-let check_settings _ = (* TODO *)
-  ()
 

@@ -28,15 +28,15 @@ open Data_model
 
 type element = 
   | Component_type of component_type_name
-  | Port          of port_name
-  | Package       of package_name
+  | Port           of port_name
+  | Package        of package_name
 
 type variable = 
-  | Simple_variable    of spec_variable_name  (** Specifiaction variable *)
-  | Global_variable    of element             (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
-  | Local_variable     of location_name * element (** Number of instances of a given component_type / port / package installed on a given location. *)
-  | Binding_variable          of port_name * component_type_name * component_type_name
-  (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
+  | Simple_variable            of spec_variable_name  (** Specifiaction variable *)
+  | Global_variable            of element             (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
+  | Local_variable             of location_name * element (** Number of instances of a given component_type / port / package installed on a given location. *)
+  | Binding_variable           of port_name * component_type_name * component_type_name
+    (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
   | Local_repository_variable  of location_name * repository_name  (** Is the given repository installed on the given location? (boolean variable) *)
   | Local_resource_variable    of location_name * resource_name    (** How many resources of the given type are provided by the given location. *)
 
@@ -46,7 +46,7 @@ module Variable_map = Data_common.Map.Make(Variable)
 
 (* 2. Constraints *)
 
-(* TODO: replace all And and Sum by operations on lists, to remove the need to add true and 0 everywhere *)
+(* Remark: all associative and commutative operators have lists in arguement, for more efficient encoding *)
 
 type op = 
   | Lt  (** Less-than operator *)
@@ -66,14 +66,14 @@ type expression =
   | Constant of value
   | Variable of variable
   | Reified  of t
-  | Plus     of expression * expression (** Addition operator *)
+  | Plus     of expression list (** Addition operator *)
   | Minus    of expression * expression (** Substraction operator *)
-  | Times    of expression * expression (** Multiplication operator *)
+  | Times    of expression list (** Multiplication operator *)
 and t = 
   | True              (** Always satisfied constraint. *)
   | Arith_constraint of expression * op * expression
-  | And of t * t      (** And operator *)
-  | Or of t * t       (** Or operator *)
+  | And of t list      (** And operator *)
+  | Or of t list       (** Or operator *)
   | Implies of t * t  (** Implies operator *)
   | Not of t          (** Not operator *)
 
@@ -92,5 +92,5 @@ type variable_bound = variable -> bound  (** Function that gives for each variab
 
 (* 5. Solutions *)
 
-type solution = int Variable_map.t (** solution of a constraint *)
+type solution = variable -> int (** solution of a constraint, can be implemented with a [Variable_map.t] *)
 

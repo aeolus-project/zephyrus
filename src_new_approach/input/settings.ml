@@ -87,6 +87,8 @@ let data_generation_initial_configuration : bool option ref = ref None
 let data_generation_specification         : bool option ref = ref None
 let data_generation_optimization_function : bool option ref = ref None
 
+let data_package_name_extended : bool option ref = ref None
+
 let data_check_universe              : bool option ref = ref None
 let data_check_repositories          : bool option ref = ref None
 let data_check_initial_configuration : bool option ref = ref None
@@ -145,7 +147,6 @@ let configuration_generation_packages : conf_gen_packages option ref = ref None
 (* 07. Output Configuration *)
 
 let output_file                  : (out_file * string) list ref = ref []
-let output_package_name_extended : bool option ref = ref None
 
 
 (* 08. Verbose Options *)
@@ -211,5 +212,14 @@ let verbose_gen_configuration_full    : bool option ref = ref None
 
 let generate_plan : bool option ref = ref None (* for instance. TODO: must be expanded when we know more. *)
 
+
+
+
+(* 10. Very Simple functions *)
+
+
+let get_bool_basic r = match !r with
+  | None    -> false
+  | Some(b) -> b
 
 

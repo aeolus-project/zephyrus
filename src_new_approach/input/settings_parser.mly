@@ -160,7 +160,7 @@ let functions: (string * (value -> unit)) list = [
 
   ( "results"                           , fun v -> List.iter 
     (fun v' -> let (v1,v2) = get_pair v' in Settings.output_file := (out_file_of_string (get_ident v1), get_ident v2)::!Settings.output_file) (get_list v));
-  ( "append-repository-to-package-name" , fun v -> Settings.output_package_name_extended := Some(get_bool v));
+  ( "append-repository-to-package-name" , fun v -> Settings.data_package_name_extended := Some(get_bool v));
 
 
 (* 08. Verbose Options *)

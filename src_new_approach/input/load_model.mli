@@ -29,6 +29,7 @@
 
 open Data_model
 
+(*
 (* 1. Universe of string *)
 
 val component_type_name_of_string    : string -> component_type_name
@@ -73,5 +74,5 @@ val load_specification         : unit -> unit
 val load_optimization_function : unit -> unit
 
 val load_model : unit -> unit
-
+*)
 

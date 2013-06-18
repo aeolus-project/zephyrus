@@ -21,6 +21,8 @@ import-initial-configuration = true
 import-specification         = YEs
 import-optimization-function = y
 
+append-repository-to-package-name = y
+
 check-universe              = y
 check-repositories          = y
 check-initial-configuration = y
@@ -77,7 +79,6 @@ generate-packages = none
 # 07. Output Configuration
 
 results                           = [(plain,out-plain.zep);(graph-deployment, out-graph-deployment.zep)]
-append-repository-to-package-name = y
 
 
 # 08. Verbose Options

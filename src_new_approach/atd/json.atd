@@ -69,7 +69,8 @@ type repository = {
 
 type repositories = repository list
 
-type package_names = package_name list (* This definition is useless, but ATD won't swallow the next one with a type which has nested lists and tuples in the same type. WHY? *)
+type package_names = (repository_name * package_name) list
+  (* This definition is useless, but ATD won't swallow the next one with a type which has nested lists and tuples in the same type. WHY? *)
 
 type universe = {
   ~component_types <ocaml default="[]"> : component_types;
