@@ -1,0 +1,53 @@
+{
+	"component_types": [
+		{
+			"name": "Provider",
+			"provide": [["@port", ["FiniteProvide", 3]]],
+			"consume": [["resource", 5]]
+		},
+		{
+			"name": "Requirer",
+			"require": [["@port", 2]],
+			"consume": [["resource", 3]]
+		},
+		{
+			"name": "Conflicter",
+			"conflict": ["@port"],
+			"consume": [["resource", 7]]
+		}
+	],
+	"implementation": [
+		[
+			"Provider",
+			[["repository", "provider_package"]]
+		],
+		[
+			"Requirer",
+			[["repository", "requirer_package"]]
+		]
+	],
+	"repositories": [
+		{
+			"name": "repository",
+			"packages": [
+				{
+					"name": "provider_package",
+					"depend": [["common_package"]],
+					"consume": [["resource", 1]]
+				},
+				{
+					"name": "requirer_package",
+					"depend": [["common_package"]],
+					"consume": [["resource", 1]]
+				},
+				{
+					"name": "common_package"
+				},
+				{
+					"name": "conflicting_package",
+					"conflict": ["common_package"]
+				}
+			]
+		}
+	]
+}
