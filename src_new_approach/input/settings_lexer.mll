@@ -27,14 +27,21 @@
   exception Eof
 
   let keywords = [
-    ("true", Bool(true)); ("yes", Bool(true)); ("y", Bool(true));
-    ("false", Bool(false)); ("no", Bool(false)); ("n", Bool(false));
+    ("true",  Bool(true));
+    ("yes",   Bool(true));
+    ("y",     Bool(true));
+    ("false", Bool(false));
+    ("no",    Bool(false)); 
+    ("n",     Bool(false));
   ]
 
   let keyword_map = Data_common.MapString.map_of_associated_list keywords
 
-  let check_string id = try Data_common.MapString.find (String.lowercase id) keyword_map with
-    | Not_found -> Ident(id)
+  let process_string s = 
+    try 
+      Data_common.MapString.find (String.lowercase s) keyword_map
+    with
+    | Not_found -> Ident(s)
 }
 
 let blanks = [' ' '\t' '\n']
@@ -43,11 +50,18 @@ let alpha  = ['a'-'z' 'A'-'Z']
 let lines  = ['-' '+' '_' '.' '/']
 let other_caracters = ['[' '{' '(' ';' ':' ',' '\'' ')' '}' ']']
 
+(* Strings which are not quoted *)
+let ident  = (alpha | digits | lines)* (alpha | digits) (alpha | digits | lines)*
+
+(* Strings which are quoted *)
+let string = (blanks | digits | alpha | lines | other_caracters)*
+
 rule token = parse
   | blanks                                   { token lexbuf         }     (* skip blanks and new lines *)
-  | '"'                                      { token_string lexbuf  }     (* enter string mode *)
   | '#'                                      { token_comment lexbuf }     (* enter comment mode *)
-  | (((alpha) (alpha digits lines)+) as lxm) { check_string lxm     }
+  | ('"'  (string as lxm) '"' )              { process_string lxm   }
+  | ('\'' (string as lxm) '\'')              { process_string lxm   }
+  | (ident as lxm)                           { process_string lxm   }
   | "="                                      { Equals               }
   | '['                                      { Left_bracket         }
   | ']'                                      { Right_bracket        }
@@ -56,10 +70,6 @@ rule token = parse
   | ','                                      { Comma                }
   | ';'                                      { Semicolon            }
   | eof                                      { EOF                  }
-
-and token_string = parse
-  | ((blanks digits alpha lines other_caracters)+ as lxm) { check_string lxm }
-  | '"'                                           { token lexbuf     }
 
 and token_comment = parse
   | '\n'                            { token lexbuf         }

@@ -23,17 +23,24 @@
 *)
 
 type value =
-  | B of bool
-  | I of string
-  | P of value * value
-  | L of value list
+  | BoolValue  of bool
+  | IdentValue of string
+  | PairValue  of value * value
+  | ListValue  of value list
+
+let rec string_of_value value = 
+  match value with
+  | BoolValue  b        -> if b then "true" else "false"
+  | IdentValue s        -> Printf.sprintf "\"%s\"" s
+  | PairValue  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
+  | ListValue  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
 
 exception Wrong_value
 
-let get_bool  v = match v with | B(b)     -> b       | _ -> raise Wrong_value
-let get_ident v = match v with | I(s)     -> s       | _ -> raise Wrong_value
-let get_pair  v = match v with | P(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
-let get_list  v = match v with | L(l)     -> l       | _ -> raise Wrong_value
+let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise Wrong_value
+let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise Wrong_value
+let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
+let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise Wrong_value
 
 (* Here are where you define your functions, and put them in the [functions] list *)
 
@@ -85,7 +92,7 @@ let out_file_of_string kind = match kind with
 
 
 
-let functions: (string * (value -> unit)) list = [
+let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "zephyrus-mode" , fun v -> Settings.zephyrus_mode := Some(mode_of_string (get_ident v)));
 
 (* 01. Input Files *)
@@ -127,7 +134,7 @@ let functions: (string * (value -> unit)) list = [
 
 (* 04. Constraint Solver *)
   ( "weight-locations"        , fun v -> Settings.constraint_weight_locations := Some(int_of_string (get_ident v)));
-  ( "weight-componnent-types" , fun v -> Settings.constraint_weight_component_types := Some(int_of_string (get_ident v)));
+  ( "weight-component-types"  , fun v -> Settings.constraint_weight_component_types := Some(int_of_string (get_ident v)));
   ( "weight-packages"         , fun v -> Settings.constraint_weight_packages := Some(int_of_string (get_ident v)));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
@@ -226,10 +233,18 @@ let functions: (string * (value -> unit)) list = [
 ]
 
 
-let map = Data_common.MapString.map_of_associated_list functions
-let manage_element s v = try (Data_common.MapString.find (String.lowercase s) map) v with
-  | Not_found -> Zephyrus_log.log_input_settings_unknown_setting s
-  | Wrong_value -> Zephyrus_log.log_input_settings_wrong_value s
+let map = Data_common.MapString.map_of_associated_list assign_values_to_settings_functions
+
+let manage_element ident value = 
+  try 
+    let ident = String.lowercase ident in
+    let assign_value_to_setting_function = Data_common.MapString.find ident map 
+    in
+    Printf.printf "setting %s = %s\n" ident (string_of_value value);
+    assign_value_to_setting_function value
+  with
+  | Not_found   -> Zephyrus_log.log_input_settings_unknown_setting ident
+  | Wrong_value -> Zephyrus_log.log_input_settings_wrong_value     ident
 
 %}
 
@@ -245,21 +260,21 @@ let manage_element s v = try (Data_common.MapString.find (String.lowercase s) ma
 %%
 
 main:
-  | EOF   { () }
   | element main { () }
+  | EOF   { () }
 
 element:
-  | Ident Equals value {  }
+  | Ident Equals value { manage_element $1 $3 }
 
 value:
-  | Bool                                      { B($1) }
-  | Ident                                     { I($1) }
-  | Left_paren value Comma value Right_paren  { P($2,$4) }
-  | Left_bracket Right_bracket                { L([]) }
-  | Left_bracket list Right_bracket           { L($2) }
+  | Bool                                      { BoolValue($1) }
+  | Ident                                     { IdentValue($1) }
+  | Left_paren value Comma value Right_paren  { PairValue($2,$4) }
+  | Left_bracket Right_bracket                { ListValue([]) }
+  | Left_bracket list Right_bracket           { ListValue($2) }
 
 list:
   | value                { [$1] }
-  | value Semicolon list { $1::$3 }
+  | value Semicolon list { $1 :: $3 }
 
 

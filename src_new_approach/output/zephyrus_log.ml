@@ -48,8 +48,8 @@ let log_stage_end () =  if Settings.get_bool_basic Settings.verbose_stage then
 
 
 (*    2.2. parse settings *)
-let log_input_settings_unknown_setting str = Printf.printf "Error in settings: the setting \"%s\" is unknown. Skiping its definition" str
-let log_input_settings_wrong_value str = Printf.printf "Error in settings: the key \"%s\" has an unexpected value. Skipping its definition" str
+let log_input_settings_unknown_setting str = Printf.printf "Error in settings: the setting \"%s\" is unknown. Skiping its definition\n" str
+let log_input_settings_wrong_value str = Printf.printf "Error in settings: the key \"%s\" has an unexpected value. Skipping its definition\n" str
 
 
 (*    2.3. input *)

@@ -37,8 +37,10 @@ open Constraint_of
 
 (* === Default settings === *)
 let () =
-  Settings.input_file_settings := Some("./src_new_approach/zephyrus-settings.example");
-  Settings.input_file_universe := Some("./tests/u_1_new.json")
+  Settings.input_file_settings      := Some("./src_new_approach/zephyrus-settings.example");
+  Settings.input_file_universe      := Some("./tests/u_1_new.json");
+  Settings.input_file_specification := Some("./tests/spec_1.spec")
+
 
 (* === Handling the arguments === *)
 
@@ -52,7 +54,7 @@ let usage =
 let speclist = 
   Arg.align [
     (* Input arguments *)
-    ("-s", Arg.String (fun filename -> Settings.input_file_settings := Some(filename)), " The settings file");
+    ("-settings", Arg.String (fun filename -> Settings.input_file_settings := Some(filename)), " The settings file");
   ]
 
 (* Read the arguments *)
@@ -76,6 +78,14 @@ let string_of_string_option_ref string_option_ref =
   | Some s -> s
 
 (* just a test! *)
+let my_universe =
+  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
+
+(* just a test! *)
+let my_specification =
+  Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification
+
+(* just a test! *)
 let my_settings =
   Printf.printf "Reading settings from file %s...\n" (string_of_string_option_ref Settings.input_file_settings);
   flush stdout;
@@ -86,6 +96,4 @@ let my_settings =
   | None -> failwith "No settings were found!"
   | Some settings -> settings
 
-(* just a test! *)
-let my_universe =
-  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
+
