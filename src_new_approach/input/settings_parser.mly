@@ -126,6 +126,9 @@ let functions: (string * (value -> unit)) list = [
 
 
 (* 04. Constraint Solver *)
+  ( "weight-locations"        , fun v -> Settings.constraint_weight_locations := Some(int_of_string (get_ident v)));
+  ( "weight-componnent-types" , fun v -> Settings.constraint_weight_component_types := Some(int_of_string (get_ident v)));
+  ( "weight-packages"         , fun v -> Settings.constraint_weight_packages := Some(int_of_string (get_ident v)));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
   ( "solver"                       , fun v -> Settings.constraint_solver_classic_kind     := Some(solver_kind_of_string (get_ident v)));

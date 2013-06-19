@@ -67,7 +67,7 @@ let specification_is_fw        : bool option ref = ref None
 
 (* 2. constraints *)
 
-open Data_constraint
+open Data_constraint (* warning, type name clash with optimization_function coming from Data_model *)
 
 let constraint_universe_component_type_require        : (konstraint list) ref = ref []
 let constraint_universe_component_type_provide        : (konstraint list) ref = ref []
@@ -87,6 +87,9 @@ let constraint_universe_deprecated_element            : (konstraint list) ref = 
 
 let constraint_specification_full : konstraint option ref = ref None
 let constraint_configuration_full : (konstraint list) ref = ref []
+
+let constraint_optimization_function : optimization_function option ref = ref None
+let constraint_variable_bounds       : variable_bound option ref = ref None
 
 (* let constraint_bin_packing           : konstraintbin_packing option ref = ref None *)
 (*

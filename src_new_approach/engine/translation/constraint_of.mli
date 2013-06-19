@@ -22,12 +22,12 @@
     - datatypes/Data_model
 *)
 
-val universe_full : unit -> unit (* set the universe-related constraints in Data_state using what is provided in Data_state *)
+val universe_full : unit -> unit      (* set the universe-related constraints in Data_state using what is provided in Data_state *)
 val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)
 val configuration_full : unit -> unit (* set the configuration-related constraints in Data_state using what is provided in Data_state *)
 
-
-
+val optimization_function : unit -> unit (* conversion of the optimization function, and storage in Data_state *)
+val basic_bounds : unit -> unit          (* set the bounds in Data_state to their most basic values *)
 
 
 

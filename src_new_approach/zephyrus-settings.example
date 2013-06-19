@@ -46,6 +46,11 @@ component-types-trim             = n
 
 # 04. Constraint Solver
 
+weight-component-types = 5
+weight-packages        = 1
+weight-locations       = 100
+
+
 solver-use-linear-constraint = n
 solver                       = gcode
 solver-bin-packing           = unknown # for now, no solver are implemented

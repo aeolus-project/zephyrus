@@ -25,9 +25,9 @@
 
 open Data_constraint
 
-(************************************)
-(** 1. Helper functions             *)
-(************************************)
+(*******************************************)
+(** 1. Helper functions                    *)
+(*******************************************)
 
 let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
 let value_of_require_arity a = Finite_value(a)
@@ -86,9 +86,9 @@ let eO l o = Variable(Local_resource_variable(l,o))
 
 
 
-(************************************)
-(** 2. Universe Translation         *) (* using naming conventions from the paper *)
-(************************************)
+(*******************************************)
+(** 2. Universe Translation                *) (* using naming conventions from the paper *)
+(*******************************************)
 
 (* flat model *)
 let require u_dp ur up get_component_type = 
@@ -229,9 +229,9 @@ let universe_full () =
     | _ -> ()
 
 
-(************************************)
-(** 3. Specification Translation    *) (* using naming conventions from the paper *)
-(************************************)
+(*******************************************)
+(** 3. Specification Translation           *) (* using naming conventions from the paper *)
+(*******************************************)
 
 let spec_variable_name v = Variable(Simple_variable(v))
 let spec_const = constant
@@ -293,9 +293,9 @@ let specification_full () = match (!Data_state.specification_full, !Data_state.i
   | _  -> ()
 
 
-(************************************)
-(** 4. Configuration Translation    *) (* using naming conventions from the paper *)
-(************************************)
+(*******************************************)
+(** 4. Configuration Translation           *) (* using naming conventions from the paper *)
+(*******************************************)
 
 let configuration resources c_l get_location = 
   Data_model.Location_id_set.fold (fun l res ->
@@ -309,15 +309,84 @@ let configuration_full () = match (!Data_state.initial_configuration_full, !Data
     | _ -> ()
 
 
-(************************************)
-(** 5. Miscancellous Translation    *)
-(************************************)
+(*******************************************)
+(** 5. Optimisation function Translation   *)
+(*******************************************)
+
+(* preliminary definitions for costs *)
+let cost_all_components u_dt = (Data_model.Component_type_id_set.fold (fun t res -> (eNt t)::res) u_dt [])
+let cost_all_packages   u_dk = (Data_model.Package_id_set.fold (fun k res -> (eNk k)::res) u_dk [])
+
+let cost_local_components l u_dt = (Data_model.Component_type_id_set.fold (fun t res -> (eNlt l t)::res) u_dt [])
+let cost_local_packages   l u_dk = (Data_model.Package_id_set.fold (fun k res -> (eNlk l k)::res) u_dk [])
+
+type used_or_free_location = Used_locations | Free_locations
+let cost_locations switch c_l u_dt u_dk count_components_only =
+  Data_model.Location_id_set.fold (fun l res ->
+    (reify ((if switch = Used_locations then (>~) else (=~) ) (sum (if count_components_only then cost_local_components l u_dt
+              else List.rev_append (cost_local_components l u_dt) (cost_local_packages l u_dk))) (constant 0)))::res
+  ) c_l []
+
+let cost_used_locations = cost_locations Used_locations
+let cost_free_locations = cost_locations Free_locations
+
+let cost_difference_components c_l u_dt get_local_component = 
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Component_type_id_set.fold (fun t res ->
+      (abs((eNlt l t) -~ (constant (Data_model.Component_id_set.cardinal (get_local_component l t))) ))::res
+    ) u_dt res) c_l []
+
+let cost_difference_packages c_l u_dk get_local_package = 
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Package_id_set.fold (fun k res ->
+      (if get_local_package l k then abs((eNlk l k) -~ (constant 1)) else (eNlk l k))::res
+    ) u_dk res) c_l []
+
+(* translation functions *)
+let compact_slow c_l u_dt u_dk =
+  Lexicographic ([
+    Minimize (sum (cost_used_locations c_l u_dt u_dk false)); (* First minimize the number of used locations *)
+    Minimize (sum (cost_all_components u_dt));                (* then minimize the number of components *)
+    Minimize (sum (cost_all_packages u_dk)) ])                (* finally minimize the number of packages. (so we do not have useless packages) *)
+let compact_fast c_l u_dt u_dk = Minimize (sum (List.rev_append (List.rev_append (cost_all_components u_dt) (cost_used_locations c_l u_dt u_dk false))
+                                                                        (cost_all_packages u_dk)))
+let spread_slow c_l u_dt u_dk =
+  Lexicographic ([
+    Minimize (sum (cost_all_components u_dt));               (* First minimize the number of components *)
+    Maximize (sum (cost_used_locations c_l u_dt u_dk true)); (* then maximize the number of used locations, (counting only locations with at least one component) *)
+    Minimize (sum (cost_all_packages u_dk)) ])               (* finally minimize the number of packages. *)
+let spread_fast c_l u_dt u_dk = Maximize ((sum (cost_used_locations c_l u_dt u_dk true)) -~ (sum (cost_all_components u_dt)))
+
+let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
+  Lexicographic ([
+    Minimize (sum (cost_difference_components c_l u_dt get_local_component)); (* First minimize the number of changed components *)
+    Minimize (sum (cost_used_locations c_l u_dt u_dk false));                 (* then minimize the number of used locations *)
+    Minimize (sum (cost_difference_packages c_l u_dk get_local_package)) ])   (* finally minimize the number of changed packages *)
+
+(* set the optimization function in Data_state *)
+
+let optimization_function () = match !Data_state.optimization_function with
+  | None -> () | Some(o) -> match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+    | (Some(u), Some(c)) -> (let (c_l, u_dt, u_dk, get_local_component, get_local_package) = (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package) in
+      Data_state.constraint_optimization_function := Some(match o with
+      | Data_model.Optimization_function_simple       -> Minimize (sum (cost_all_components u_dt))
+      | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk
+      | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
+      | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
+      | Data_model.Optimization_function_none         -> Lexicographic([])))
 
 
-  (* bounds *)
-  let basic_bounds v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
-    let big   = { min = value 0; max = infinite_value } in
-    let small = { min = value 0; max = value 1 } in match v with
+
+
+
+
+(*******************************************)
+(** 6. Very Simple Bounds Definition       *)
+(*******************************************)
+
+let basic_bounds_function v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
+  let big   = { min = value 0; max = infinite_value } in
+  let small = { min = value 0; max = value 1 } in match v with
   | Simple_variable         _ -> big
   | Global_variable         _ -> big
   | Local_variable     (_, e) -> (match e with | Package(_) -> small | _ -> big)
@@ -325,6 +394,7 @@ let configuration_full () = match (!Data_state.initial_configuration_full, !Data
   | Local_repository_variable _ -> small
   | Local_resource_variable   _ -> big
 
+let basic_bounds () = Data_state.constraint_variable_bounds := Some(basic_bounds_function)
 
   (* Optimization function *)
 

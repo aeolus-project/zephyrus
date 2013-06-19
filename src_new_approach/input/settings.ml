@@ -64,7 +64,7 @@ type out_file =
 
 (* No Need For A Number: Essencial *)
 
-let zephyrus_mode : mode option ref = ref None
+let zephyrus_mode : mode option ref = ref None (* NotUsedYet *)
 
 (* 01. Input Files *)
 
@@ -74,7 +74,7 @@ let input_file_initial_configuration : string option ref          = ref None (* 
 let input_file_specification         : string option ref          = ref None (* specification file *)
 let input_optimization_function      : optim option ref           = ref None (* Optimization function *)
 
-let input_file_settings              : string option ref          = ref None 
+let input_file_settings              : string option ref          = ref None  (* NotUsedYet *)
 
 (* TODO: Add options for the syntax of files ? *)
 
@@ -89,69 +89,73 @@ let data_generation_optimization_function : bool option ref = ref None
 
 let data_package_name_extended : bool option ref = ref None
 
-let data_check_universe              : bool option ref = ref None
-let data_check_repositories          : bool option ref = ref None
-let data_check_initial_configuration : bool option ref = ref None
-let data_check_universe_full         : bool option ref = ref None
-let data_check_specification         : bool option ref = ref None
+let data_check_universe              : bool option ref = ref None (* NotUsedYet *)
+let data_check_repositories          : bool option ref = ref None (* NotUsedYet *)
+let data_check_initial_configuration : bool option ref = ref None (* NotUsedYet *)
+let data_check_universe_full         : bool option ref = ref None (* NotUsedYet *)
+let data_check_specification         : bool option ref = ref None (* NotUsedYet *)
 
-let data_check_settings : bool option ref = ref None
+let data_check_settings : bool option ref = ref None (* NotUsedYet *)
 
 
 (* 03. Pre Processing *)
 
-let pre_process_spec_wf_detection           : bool option ref = ref None
-let pre_process_spec_empty_detection        : bool option ref = ref None
-let pre_process_spec_empty_detection_solver : solver option ref = ref None
+let pre_process_spec_wf_detection           : bool option ref = ref None (* NotUsedYet *)
+let pre_process_spec_empty_detection        : bool option ref = ref None (* NotUsedYet *)
+let pre_process_spec_empty_detection_solver : solver option ref = ref None (* NotUsedYet *)
 
-let pre_process_universe_loop_detection     : bool option ref = ref None
-let pre_process_universe_bound_computation  : bool option ref = ref None
+let pre_process_universe_loop_detection     : bool option ref = ref None (* NotUsedYet *)
+let pre_process_universe_bound_computation  : bool option ref = ref None (* NotUsedYet *)
 
-let pre_process_package_coinst              : bool option ref = ref None
-let pre_process_package_trim_package        : bool option ref = ref None
-let pre_process_component_types_trim        : bool option ref = ref None
+let pre_process_package_coinst              : bool option ref = ref None (* NotUsedYet *)
+let pre_process_package_trim_package        : bool option ref = ref None (* NotUsedYet *)
+let pre_process_component_types_trim        : bool option ref = ref None (* NotUsedYet *)
 
 
 (* 04. Constraint Solver *)
 
-let constraint_solver_classic_linear   : bool option ref = ref None
-let constraint_solver_classic_kind     : solver option ref = ref None
+let constraint_weight_locations        : int option ref = ref None (* NotUsedYet *)
+let constraint_weight_component_types  : int option ref = ref None (* NotUsedYet *)
+let constraint_weight_packages         : int option ref = ref None (* NotUsedYet *)
 
-let constraint_solver_bin_packing_kind : solver_bin_packing option ref = ref None
+let constraint_solver_classic_linear   : bool option ref = ref None (* NotUsedYet *)
+let constraint_solver_classic_kind     : solver option ref = ref None (* NotUsedYet *)
+
+let constraint_solver_bin_packing_kind : solver_bin_packing option ref = ref None (* NotUsedYet *)
 
 
 (* 05. Temporary Files *)
 
-let pre_process_spec_empty_detection_input_file       : string option ref = ref None
-let pre_process_spec_empty_detection_output_file      : string option ref = ref None
-let pre_process_spec_empty_detection_input_file_keep  : bool option ref = ref None
-let pre_process_spec_empty_detection_output_file_keep : bool option ref = ref None
+let pre_process_spec_empty_detection_input_file       : string option ref = ref None (* NotUsedYet *)
+let pre_process_spec_empty_detection_output_file      : string option ref = ref None (* NotUsedYet *)
+let pre_process_spec_empty_detection_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
+let pre_process_spec_empty_detection_output_file_keep : bool option ref = ref None (* NotUsedYet *)
 
-let constraint_solver_flat_input_file       : string option ref = ref None
-let constraint_solver_flat_output_file      : string option ref = ref None
-let constraint_solver_flat_input_file_keep  : bool option ref = ref None
-let constraint_solver_flat_output_file_keep : bool option ref = ref None
+let constraint_solver_flat_input_file       : string option ref = ref None (* NotUsedYet *)
+let constraint_solver_flat_output_file      : string option ref = ref None (* NotUsedYet *)
+let constraint_solver_flat_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
+let constraint_solver_flat_output_file_keep : bool option ref = ref None (* NotUsedYet *)
 
-let constraint_solver_classic_input_file       : string option ref = ref None
-let constraint_solver_classic_output_file      : string option ref = ref None
-let constraint_solver_classic_input_file_keep  : bool option ref = ref None
-let constraint_solver_classic_output_file_keep : bool option ref = ref None
+let constraint_solver_classic_input_file       : string option ref = ref None (* NotUsedYet *)
+let constraint_solver_classic_output_file      : string option ref = ref None (* NotUsedYet *)
+let constraint_solver_classic_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
+let constraint_solver_classic_output_file_keep : bool option ref = ref None (* NotUsedYet *)
 
 
 (* 06. Configuration Generation *)
 
-let configuration_generation_bindings : conf_gen_bindings option ref = ref None
-let configuration_generation_packages : conf_gen_packages option ref = ref None
+let configuration_generation_bindings : conf_gen_bindings option ref = ref None (* NotUsedYet *)
+let configuration_generation_packages : conf_gen_packages option ref = ref None (* NotUsedYet *)
 
 
 (* 07. Output Configuration *)
 
-let output_file                  : (out_file * string) list ref = ref []
+let output_file                  : (out_file * string) list ref = ref [] (* NotUsedYet *)
 
 
 (* 08. Verbose Options *)
 
-let verbose_stage : bool option ref = ref None
+let verbose_stage : bool option ref = ref None (* NotUsedYet *)
 
 (* settings *)
 
@@ -176,7 +180,7 @@ let verbose_input_repositories_check          : bool option ref = ref None
 let verbose_input_initial_configuration_check : bool option ref = ref None
 let verbose_input_specification_check         : bool option ref = ref None
 
-(* 08.2. pre-processs *)
+(* 08.2. pre-process *)
 
 let verbose_spec_fw_detection                        : bool option ref = ref None
 let verbose_spec_empty_detection                     : bool option ref = ref None
@@ -218,8 +222,6 @@ let generate_plan : bool option ref = ref None (* for instance. TODO: must be ex
 (* 10. Very Simple functions *)
 
 
-let get_bool_basic r = match !r with
-  | None    -> false
-  | Some(b) -> b
-
+let get_bool_basic r = match !r with | None -> false | Some(b) -> b
+let get_weight w = match !w with | None -> 1 | Some(i) -> i
 
