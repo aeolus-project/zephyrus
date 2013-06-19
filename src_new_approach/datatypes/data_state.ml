@@ -32,8 +32,12 @@ open Bin_packing
 
 (* 1. the different variant of inputs *)
 let resources_full             : resources option ref = ref None
-
 let universe_full              : universe option ref = ref None
+let initial_configuration_full : configuration option ref = ref None
+let specification_full         : specification option ref = ref None
+let optimization_function      : optimization_function option ref = ref None
+
+
 let universe_trim_component    : universe option ref = ref None
 let universe_trim_package      : universe option ref = ref None
 let universe_trim_package_full : universe option ref = ref None
@@ -50,10 +54,8 @@ let universe_flat_constraint   : universe_flat option ref = ref None
 let universe_flat_solution     : universe_flat option ref = ref None
 *)
 
-let initial_configuration_full    : configuration option ref = ref None
 
 
-let specification_full         : specification option ref = ref None
 let specification_local        : specification option ref = ref None
 let specification_global       : specification option ref = ref None
 let specification_constraint   : specification option ref = ref None
@@ -61,19 +63,33 @@ let specification_solution     : specification option ref = ref None
 
 let specification_is_fw        : bool option ref = ref None
 
-let optimization_function      : optimization_function option ref = ref None
 
-(*
+
 (* 2. constraints *)
 
 open Data_constraint
 
-let constraint_classic_universe      : constraint_ option ref = ref None
-let constraint_classic_configuration : constraint_ option ref = ref None
-let constraint_classic_specification : constraint_ option ref = ref None
+let constraint_universe_component_type_require        : (konstraint list) ref = ref []
+let constraint_universe_component_type_provide        : (konstraint list) ref = ref []
+let constraint_universe_component_type_conflict       : (konstraint list) ref = ref []
+let constraint_universe_component_type_implementation : (konstraint list) ref = ref []
+let constraint_universe_binding_unicity               : (konstraint list) ref = ref []
+let constraint_universe_location_component_type       : (konstraint list) ref = ref []
+let constraint_universe_location_package              : (konstraint list) ref = ref []
+let constraint_universe_location_port                 : (konstraint list) ref = ref []
+let constraint_universe_definition_port               : (konstraint list) ref = ref []
+let constraint_universe_repository_unicity            : (konstraint list) ref = ref []
+let constraint_universe_repository_package            : (konstraint list) ref = ref []
+let constraint_universe_package_dependency            : (konstraint list) ref = ref []
+let constraint_universe_package_conflict              : (konstraint list) ref = ref []
+let constraint_universe_resource_consumption          : (konstraint list) ref = ref []
+let constraint_universe_deprecated_element            : (konstraint list) ref = ref []
 
-let constraint_bin_packing           : constraint_bin_packing option ref = ref None
+let constraint_specification_full : konstraint option ref = ref None
+let constraint_configuration_full : (konstraint list) ref = ref []
 
+(* let constraint_bin_packing           : konstraintbin_packing option ref = ref None *)
+(*
 
 (* 3. solutions *)
 

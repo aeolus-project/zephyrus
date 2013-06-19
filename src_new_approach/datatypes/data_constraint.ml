@@ -27,18 +27,18 @@ open Data_model
 (* 1. Variables *)
 
 type element = 
-  | Component_type of component_type_name
-  | Port           of port_name
-  | Package        of package_name
+  | Component_type of component_type_id
+  | Port           of port_id
+  | Package        of package_id
 
 type variable = 
-  | Simple_variable            of spec_variable_name  (** Specifiaction variable *)
-  | Global_variable            of element             (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
-  | Local_variable             of location_name * element (** Number of instances of a given component_type / port / package installed on a given location. *)
-  | Binding_variable           of port_name * component_type_name * component_type_name
+  | Simple_variable            of spec_variable_name           (** Specifiaction variable *)
+  | Global_variable            of element                      (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
+  | Local_variable             of location_id * element        (** Number of instances of a given component_type / port / package installed on a given location. *)
+  | Binding_variable           of port_id * component_type_id * component_type_id
     (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
-  | Local_repository_variable  of location_name * repository_name  (** Is the given repository installed on the given location? (boolean variable) *)
-  | Local_resource_variable    of location_name * resource_name    (** How many resources of the given type are provided by the given location. *)
+  | Local_repository_variable  of location_id * repository_id  (** Is the given repository installed on the given location? (boolean variable) *)
+  | Local_resource_variable    of location_id * resource_id    (** How many resources of the given type are provided by the given location. *)
 
 module Variable = struct type t = variable let compare = Pervasives.compare end
 module Variable_set = Data_common.Set.Make(Variable)
@@ -56,26 +56,25 @@ type op =
   | Gt  (** Greater-than operator *)
   | NEq (** Not-equal-to operator *)
 
-type value = provide_arity
-let value_of_provide_arity = fun x -> x
-let value_of_require_arity = fun x -> Finite_provide(x)
-let value i = Finite_provide(i)
-let infinite_value = Infinite_provide
+type value = Finite_value of int | Infinite_value
 
 type expression = 
   | Constant of value
   | Variable of variable
-  | Reified  of t
-  | Plus     of expression list (** Addition operator *)
-  | Minus    of expression * expression (** Substraction operator *)
-  | Times    of expression list (** Multiplication operator *)
-and t = 
-  | True              (** Always satisfied constraint. *)
-  | Arith_constraint of expression * op * expression
-  | And of t list      (** And operator *)
-  | Or of t list       (** Or operator *)
-  | Implies of t * t  (** Implies operator *)
-  | Not of t          (** Not operator *)
+  | Reified  of konstraint
+  | Add      of expression list         (** Addition operator *)
+  | Sub      of expression * expression (** Substraction operator *)
+  | Mul      of expression list         (** Multiplication operator *)
+  | Abs      of expression
+  | Mod      of expression * expression
+  | Div      of expression * expression
+and konstraint = 
+  | True                                  (** Always satisfied constraint. *)
+  | Arith of expression * op * expression
+  | And of konstraint list                (** And operator *)
+  | Or of konstraint list                 (** Or operator *)
+  | Implies of konstraint * konstraint    (** Implies operator *)
+  | Not of konstraint                     (** Not operator *)
 
 (* 3. Optimization Function *)
 

@@ -132,23 +132,27 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
         component_type_get_name := Component_type_id_map.add id name (!component_type_get_name); id in
 
     (* package *)
-  let packages         : Package_set.t ref      = ref Package_set.empty in
-  let package_names    : Package_name_set.t ref = ref Package_name_set.empty in
-  let package_ids      : Package_id_set.t ref   = ref Package_id_set.empty in
-  let package_get      : (package Package_id_map.t) ref                    = ref Package_id_map.empty in
-  let package_get_id   : (package_id Repository_id_Package_name_map.t) ref = ref Repository_id_Package_name_map.empty in
-  let package_get_name : (package_name Package_id_map.t) ref               = ref Package_id_map.empty in
+  let packages          : Package_set.t ref      = ref Package_set.empty in
+  let package_names     : Package_name_set.t ref = ref Package_name_set.empty in
+  let package_ids       : Package_id_set.t ref   = ref Package_id_set.empty in
+  let package_get       : (package Package_id_map.t) ref                    = ref Package_id_map.empty in
+  let package_get_id    : (package_id Repository_id_Package_name_map.t) ref = ref Repository_id_Package_name_map.empty in
+  let package_get_name  : (package_name Package_id_map.t) ref               = ref Package_id_map.empty in
+  let local_packages    : Package_set.t ref      = ref Package_set.empty in
+  let local_package_ids : Package_id_set.t ref   = ref Package_id_set.empty in
   let add_package r name id = 
-    package_names    := Package_name_set.add name (!package_names);
-    package_ids      := Package_id_set.add id (!package_ids);
-    package_get_id   := Repository_id_Package_name_map.add (r,name) id (!package_get_id);
-    package_get_name := Package_id_map.add id name (!package_get_name) in
+    package_names     := Package_name_set.add name (!package_names);
+    package_ids       := Package_id_set.add id (!package_ids);
+    local_package_ids := Package_id_set.add id (!package_ids);
+    package_get_id    := Repository_id_Package_name_map.add (r,name) id (!package_get_id);
+    package_get_name  := Package_id_map.add id name (!package_get_name) in
   let package_current_id = ref 0 in
   let find_package r name = try Repository_id_Package_name_map.find (r,name) !package_get_id with
     | Not_found -> let id = !package_current_id in package_current_id := (!package_current_id) + 1; add_package r name id; id in
   let new_package r k = let id = find_package r k#name in
-    packages    := Package_set.add k (!packages);
-    package_get := Package_id_map.add id k (!package_get); (id,k) in
+    packages       := Package_set.add k (!packages);
+    local_packages := Package_set.add k (!packages);
+    package_get    := Package_id_map.add id k (!package_get); (id,k) in
 
     (* repositories *)
   let repositories        : Repository_set.t ref      = ref Repository_set.empty in
@@ -212,14 +216,17 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
 
     (* repositories *)
   let convert_repository r = let id = get_current_repository_id () in
+    local_package_ids := Package_id_set.empty; local_packages := Package_set.empty;
     let implem_name = convert_repository_name r.Json_t.repository_name in
     let implem_packages = Package_id_map.map_of_list
       (fun k -> convert_package id implem_name k) r.Json_t.repository_packages in
     new_repository (object(self) 
-      method name       = implem_name
-      method packages k = try Package_id_map.find k implem_packages with
+      method name          = implem_name
+      method get_package k = try Package_id_map.find k implem_packages with
         | Not_found -> let package_desc = "(" ^ (string_of_int k) ^ "," ^ (try Package_id_map.find k (!package_get_name) with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "package" package_desc ("package of the repository \"" ^ (self#name) ^ "\"")
+      method packages = !local_packages
+      method package_ids = !local_package_ids
     end) in
 
     (* universe *)
@@ -288,15 +295,15 @@ object(self)
            | Not_found -> let tmp = (conflicters implem_get_component_type p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
 
   (* methods for naming *)
-  method get_port_id           n = Port_name_map.find n implem_get_port_id
-  method get_component_type_id n = try Component_type_name_map.find n implem_get_component_type_id with Not_found -> -1 (* to deal with initial configurations *)
+  method get_port_id           n = try Port_name_map.find n implem_get_port_id with Not_found -> deprecated_package_id (* to deal with initial configurations *)
+  method get_component_type_id n = try Component_type_name_map.find n implem_get_component_type_id with Not_found -> deprecated_component_type_id (* to deal with initial configurations *)
   method get_repository_id     n = Repository_name_map.find n implem_get_repository_id
   method get_package_id      r n = Repository_id_Package_name_map.find (r,n) implem_get_package_id
 
   method get_port_name           id = Port_id_map.find id implem_get_port_name
-  method get_component_type_name id = if id = -1 then "_unvalid_component_" else Component_type_id_map.find id implem_get_component_type_name
+  method get_component_type_name id = if id = deprecated_component_type_id then "!!deprecated_component!!" else Component_type_id_map.find id implem_get_component_type_name
   method get_repository_name     id = Repository_id_map.find id implem_get_repository_name
-  method get_package_name        id = Package_id_map.find id implem_get_package_name
+  method get_package_name        id = if id = deprecated_package_id then "!!deprecated_package!!" else Package_id_map.find id implem_get_package_name
 end
 
 (* Possible inconsistencies not detected during generation:

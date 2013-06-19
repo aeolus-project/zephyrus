@@ -25,138 +25,293 @@
 
 open Data_constraint
 
-module Core = struct
-  let get_provide_arity c p = Constant(value_of_provide_arity (Functions_model.Core.get_provide_arity c p))
-  let get_require_arity c p = Constant(value_of_require_arity (Functions_model.Core.get_require_arity c p))
+(************************************)
+(** 1. Helper functions             *)
+(************************************)
 
-  let eNt t = Variable(Global_variable(Component_type(t)))
-  let eNp p = Variable(Global_variable(Port(p)))
-  let eNk k = Variable(Global_variable(Package(k)))
-  let eNlt l t = Variable(Local_variable(l, Component_type(t)))
-  let eNlp l p = Variable(Local_variable(l, Port(p)))
-  let eNlk l k = Variable(Local_variable(l, Package(k)))
+let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
+let value_of_require_arity a = Finite_value(a)
+let value i = Finite_value(i)
+let infinite_value = Infinite_value
 
-  let eB p tp tr = Variable(Binding_variable(p,tp,tr))
+let constant i = Constant(Finite_value(i))
+let constant_of_provide_arity a = Constant(value_of_provide_arity a)
+let constant_of_require_arity a = Constant(value_of_require_arity a)
 
-  let eR l r = Variable(Local_repository_variable(l,r))
-end
+let var2expr   v = Variable v
+let const2expr c = Constant c
+let int2expr   i = Constant (Finite_value i)
+
+let ( +~ )    x y  = Add([x; y])
+let ( -~ )    x y  = Sub(x, y)
+let ( *~ )    x y  = Mul([x; y])
+let ( /~ )    x y  = Div(x, y)
+let ( %~ )    x y  = Mod(x, y)
+let abs       x    = Abs(x)
+let sum       l    = Add(l)
+let reify     cstr = Reified(cstr)
+
+let (  <~ )   x y  = Arith (x, Lt,  y)
+let ( <=~ )   x y  = Arith (x, LEq, y)
+let (  =~ )   x y  = Arith (x, Eq,  y)
+let ( >=~ )   x y  = Arith (x, GEq, y)
+let (  >~ )   x y  = Arith (x, Gt,  y)
+let ( <>~ )   x y  = Arith (x, NEq, y)
+
+let truecstr   = True
+
+let (  &&~~ ) x y  = And([x; y])
+let (  ||~~ ) x y  = Or([x; y])
+let (  =>~~ ) x y  = Implies(x, y)
+let not       x    = Not(x)
 
 
-module Improved = struct
 
-  (* flat model *)
-  let require u_dp ur get_component_type up = 
-    Data_model.Port_name_set.fold (fun p res ->
-      Data_model.Component_type_name_set.fold (fun tr res ->
-        And(res, 
-          Arith_constraint(
-            Times((Core.get_provide_arity (get_component_type(tr)) p), Core.eNt tr),
-            LEq,
-            Data_model.Component_name_set.fold (fun tp res -> Plus(res, Core.eB p tp tr)) (up p) (Constant(value 0))
-          )
-        )
-      ) (ur p) res
-    ) u_dp Data_constraint.True
+let get_provide_arity t p = constant_of_provide_arity (t#provide p)
+let get_require_arity t p = constant_of_require_arity (t#require p)
+let get_consume x o = constant (x#consume o)
 
-  let provide u_dp up get_component_type ur = 
-    Data_model.Port_name_set.fold (fun p res ->
-      Data_model.Component_type_name_set.fold (fun tp res ->
-        And(res, 
-          Arith_constraint(
-            Times((Core.get_require_arity (get_component_type(tp)) p), Core.eNt tp),
-            GEq,
-            Data_model.Component_name_set.fold (fun tr res -> Plus(res, Core.eB p tp tr)) (ur p) (Constant(value 0))
-          )
-        )
+(* naming convention from the paper *)
+let eNt t = Variable(Global_variable(Component_type(t)))
+let eNp p = Variable(Global_variable(Port(p)))
+let eNk k = Variable(Global_variable(Package(k)))
+let eNlt l t = Variable(Local_variable(l, Component_type(t)))
+let eNlp l p = Variable(Local_variable(l, Port(p)))
+let eNlk l k = Variable(Local_variable(l, Package(k)))
+
+let eB p tp tr = Variable(Binding_variable(p,tp,tr))
+let eR l r = Variable(Local_repository_variable(l,r))
+let eO l o = Variable(Local_resource_variable(l,o))
+
+
+
+
+(************************************)
+(** 2. Universe Translation         *) (* using naming conventions from the paper *)
+(************************************)
+
+(* flat model *)
+let require u_dp ur up get_component_type = 
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Component_type_id_set.fold (fun tr res -> (
+        ((get_require_arity (get_component_type tr) p) *~ (eNt tr))
+          <=~ (sum (Data_model.Component_id_set.fold (fun tp res -> (eB p tp tr)::res) (up p) [])))::res
+    ) (ur p) res
+  ) u_dp []
+
+let provide u_dp up ur get_component_type = 
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Component_type_id_set.fold (fun tp res -> (
+          ((get_provide_arity (get_component_type tp) p) *~ (eNt tp))
+          >=~ (sum (Data_model.Component_id_set.fold (fun tr res -> (eB p tp tr)::res) (ur p) [])))::res
+    ) (up p) res
+  ) u_dp []
+
+let binding u_dp ur up = 
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Component_type_id_set.fold (fun tr res ->
+      Data_model.Component_type_id_set.fold (fun tp res ->
+        ((eB p tp tr) <=~ ((eNt tr) *~ (eNt tr)))::res
       ) (up p) res
-    ) u_dp Data_constraint.True
-
-  let binding u_dp ur up = 
-    Data_model.Port_name_set.fold (fun p res ->
-      Data_model.Component_type_name_set.fold (fun tr res ->
-        Data_model.Component_type_name_set.fold (fun tp res ->
-          And(res, Arith_constraint(Variable(Binding_variable(p,tp,tr)), LEq, Times(Core.eNt tr, Core.eNt tr)))
-        ) (up p) res
-      ) (ur p) res
-    ) u_dp Data_constraint.True
+    ) (ur p) res
+  ) u_dp []
 
 
-  let conflict u_dp uc get_component_type =
-    Data_model.Port_name_set.fold (fun p res ->
-      Data_model.Component_type_name_set.fold (fun t res ->
-        And(res,
-          Implies(Arith_constraint(Core.eNt t, GEq, Constant(value 1)), Arith_constraint(Core.eNp p, Eq, (Core.get_provide_arity (get_component_type(t)) p)))
-        )
-      ) (uc p) res
-    ) u_dp Data_constraint.True
+let conflict u_dp uc get_component_type =
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Component_type_id_set.fold (fun t res ->
+      (((eNt t) >=~ (constant 1)) =>~~ ((eNp p) =~ (get_provide_arity (get_component_type t) p)))::res
+    ) (uc p) res
+  ) u_dp []
 
+(* location val *)
+let location_component_type u_dt c_l =
+  Data_model.Component_type_id_set.fold (fun t res ->
+    ((eNt t) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlt l t)::res) c_l [])))::res
+  ) u_dt []
+  
+let location_package u_dk c_l =
+  Data_model.Package_id_set.fold (fun k res ->
+    ((eNk k) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlk l k)::res) c_l [])))::res
+  ) u_dk []
 
-  (* location val *)
-  let location_component_type u_dt c_l =
-    Data_model.Component_type_name_set.fold (fun t res ->
-      And(res, Arith_constraint(Core.eNt t, Eq,
-        Data_model.Location_name_set.fold (fun l res ->
-          Plus(res, Core.eNlt l t)
-        ) c_l (Constant(value 0)))
-      )
-    ) u_dt Data_constraint.True
-    
-  let location_package u_dk c_l =
-    Data_model.Package_name_set.fold (fun k res ->
-      And(res, Arith_constraint(Core.eNk k, Eq,
-        Data_model.Location_name_set.fold (fun l res ->
-          Plus(res, Core.eNlk l k)
-        ) c_l (Constant(value 0)))
-      )
-    ) u_dk Data_constraint.True
+let location_port u_dp c_l =
+  Data_model.Port_id_set.fold (fun p res ->
+    ((eNp p) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlp l p)::res) c_l [])))::res
+  ) u_dp []
 
-  let location_port u_dp c_l =
-    Data_model.Port_name_set.fold (fun p res ->
-      And(res, Arith_constraint(Core.eNp p, Eq,
-        Data_model.Location_name_set.fold (fun l res ->
-          Plus(res, Core.eNlp l p)
-        ) c_l (Constant(value 0)))
-      )
-    ) u_dp Data_constraint.True
-
-  let location_port_equation u_dp c_l up get_component_type = 
-    Data_model.Port_name_set.fold (fun p res ->
-      Data_model.Location_name_set.fold (fun l res ->
-        And(res, Arith_constraint(Core.eNlp l p, Eq, 
-          Data_model.Component_type_name_set.fold (fun t res ->
-            Plus(res, Times(Core.get_provide_arity (get_component_type t) p, Core.eNlt l t))
-          ) (up p) (Constant(value 0)))
-        )
-      ) c_l res
-    ) u_dp Data_constraint.True
+let location_port_equation u_dp c_l up get_component_type = 
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Location_id_set.fold (fun l res ->
+      ((eNlp l p) =~ (sum (Data_model.Component_type_id_set.fold
+                       (fun t res -> ((get_provide_arity (get_component_type t) p) *~ (eNlt l t))::res) (up p) [])))::res
+    ) c_l res
+  ) u_dp []
 
 
   (* Repositories *)
-  let repository_unique c_l u_dr =
-    Data_model.Location_name_set.fold (fun l res ->
-      And(res, Arith_constraint(Constant(value 1), Eq, Data_model.Repository_name_set.fold (fun r res -> Plus(res, Core.eR l r)) u_dr (Constant(value 0))))
-    ) c_l Data_constraint.True
+let repository_unique c_l u_dr =
+  Data_model.Location_id_set.fold (fun l res ->
+    ((constant 1) =~ (sum (Data_model.Repository_id_set.fold (fun r res -> (eR l r)::res) u_dr [])))::res
+  ) c_l []
 
-  let repository_package c_l u_dr u_dk get_packages =
-    Data_model.Location_name_set.fold (fun l res ->
-      Data_model.Repository_name_set.fold (fun r res ->
-        And(res, Implies(Arith_constraint(Core.eR l r, Eq, Constant(value 1)),
-          Data_model.Package_name_set.fold (fun k res -> And(res, Arith_constraint(Core.eNlk l k, Eq, Constant(value 0))))
-            (Data_model.Package_name_set.diff u_dk (get_packages r)) Data_constraint.True)
-        )
-      ) u_dr res
-    ) c_l Data_constraint.True
+let repository_package c_l u_dr u_dk get_packages =
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Repository_id_set.fold (fun r res ->
+      (((eR l r) =~ (constant 1)) =>~~
+        (And (Data_model.Package_id_set.fold (fun k res -> ((eNlk l k) =~ (constant 0))::res) (Data_model.Package_id_set.diff u_dk (get_packages r)) [])))::res
+    ) u_dr res
+  ) c_l []
 
   (* Package dependencies *)
-  (* TODO *)
+let component_type_implementation c_l u_dt u_i =
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Component_type_id_set.fold (fun t res ->
+      (((eNlt l t) >=~ (constant 1)) =>~~ ((sum (Data_model.Package_id_set.fold (fun k res -> (eNlk l k)::res) (u_i t) [])) >=~ (constant 1)))::res
+    ) u_dt res
+  ) c_l []
+
+let package_dependency c_l u_dk get_package =
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Package_id_set.fold (fun k1 res ->
+      Data_model.Package_id_set_set.fold (fun ks res ->
+        ((eNlk l k1) <=~ (sum (Data_model.Package_id_set.fold (fun k2 res -> (eNlk l k2)::res) ks [])))::res
+      ) ((get_package k1)#depend) res
+    ) u_dk res
+  ) c_l []
+
+let package_conflict c_l u_dk get_package =
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Package_id_set.fold (fun k1 res ->
+      Data_model.Package_id_set.fold (fun k2 res ->
+        (((eNlk l k1) +~ (eNlk l k2)) <=~ (constant 1))::res
+      ) ((get_package k1)#conflict) res
+    ) u_dk res
+  ) c_l []
+
 
   (* Resource consumptions *)
-  (* TODO *)
+let resource_consumption c_l resources u_dt u_dk get_component_type get_package =
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Resource_id_set.fold (fun o res ->
+      ((sum (Data_model.Package_id_set.fold (fun k res -> ((get_consume (get_package k) o) *~ (eNlk l k))::res) u_dk
+              (Data_model.Component_type_id_set.fold (fun t res -> ((get_consume (get_component_type t) o) *~ (eNlt l t))::res) u_dt []))) <=~ (eO l o))::res
+    ) resources res
+  ) c_l []
 
   (* Deprecated packages and component types *)
-  (* TODO *)
+let deprecated_component_types_and_packages c_l =
+  Data_model.Location_id_set.fold (fun l res ->
+    ((eNlt l Data_model.deprecated_component_type_id) =~ (constant 0))::((eNlk l Data_model.deprecated_package_id) =~ (constant 0))::res
+  ) c_l []
+
+let universe_full () =
+  let f (universe: Data_model.universe) configuration resources=
+    Data_state.constraint_universe_component_type_require        := require universe#u_dp universe#ur universe#up universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide universe#u_dp universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_conflict       := conflict universe#u_dp universe#uc universe#get_component_type;
+    Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#c_l universe#u_dt universe#u_i;
+    Data_state.constraint_universe_binding_unicity               := binding universe#u_dp universe#ur universe#up;
+    Data_state.constraint_universe_location_component_type       := location_component_type universe#u_dt configuration#c_l;
+    Data_state.constraint_universe_location_package              := location_package universe#u_dk configuration#c_l;
+    Data_state.constraint_universe_location_port                 := location_port universe#u_dp configuration#c_l;
+    Data_state.constraint_universe_definition_port               := location_port_equation universe#u_dp configuration#c_l universe#up universe#get_component_type;
+    Data_state.constraint_universe_repository_unicity            := repository_unique configuration#c_l universe#u_dr;
+    Data_state.constraint_universe_repository_package            :=
+      repository_package configuration#c_l universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids);
+    Data_state.constraint_universe_package_dependency            := package_dependency configuration#c_l universe#u_dk universe#get_package;
+    Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#u_dk universe#get_package;
+    Data_state.constraint_universe_resource_consumption          :=
+      resource_consumption configuration#c_l resources#resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package;
+    Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l
+  in match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.resources_full) with
+    | (Some(u), Some(c), Some(r)) -> f u c r
+    | _ -> ()
 
 
+(************************************)
+(** 3. Specification Translation    *) (* using naming conventions from the paper *)
+(************************************)
+
+let spec_variable_name v = Variable(Simple_variable(v))
+let spec_const = constant
+
+let spec_local_element l e = match e with
+  | Data_model.Spec_local_element_package (package_id) -> eNlk l package_id
+  | Data_model.Spec_local_element_component_type (component_type_id) -> eNlt l component_type_id
+  | Data_model.Spec_local_element_port (port_id) -> eNlp l port_id
+
+let rec spec_local_expr l e = match e with
+  | Data_model.Spec_local_expr_var v -> spec_variable_name v
+  | Data_model.Spec_local_expr_const c -> spec_const c
+  | Data_model.Spec_local_expr_arity e -> spec_local_element l e
+  | Data_model.Spec_local_expr_add (e1, e2) -> (spec_local_expr l e1) +~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_sub (e1, e2) -> (spec_local_expr l e1) -~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_local_expr l e2)
+
+let spec_op o = match o with
+  | Data_model.Lt  -> (<~) | Data_model.LEq -> (<=~) | Data_model.Eq  -> (=~)
+  | Data_model.GEq -> (>=~) | Data_model.Gt  -> (>~) | Data_model.NEq -> (<>~)
+
+let rec local_specification l s = match s with
+  | Data_model.Spec_local_true -> True
+  | Data_model.Spec_local_op (e1, op, e2) -> (spec_op op) (spec_local_expr l e1) (spec_local_expr l e2)
+  | Data_model.Spec_local_and (s1, s2) -> (local_specification l s1) &&~~ (local_specification l s2)
+  | Data_model.Spec_local_or (s1, s2) -> (local_specification l s1) ||~~ (local_specification l s2)
+  | Data_model.Spec_local_impl (s1, s2) -> (local_specification l s1) =>~~ (local_specification l s2)
+  | Data_model.Spec_local_not (s') -> not (local_specification l s')
+
+let spec_resource_constraint l co = List.fold_left (fun res (o, op, i) -> ((spec_op op) (eO l o) (constant i))::res) [] co
+let spec_repository_constraint l cr = (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
+
+let spec_element location_ids e = match e with
+  | Data_model.Spec_element_package (package_id) -> eNk package_id
+  | Data_model.Spec_element_component_type (component_type_id) -> eNt component_type_id
+  | Data_model.Spec_element_port (port_id) -> eNp port_id
+  | Data_model.Spec_element_location (co, cr, ls) -> sum (Data_model.Location_id_set.fold
+     (fun l res -> (reify (And((local_specification l ls)::(spec_repository_constraint l cr)::(spec_resource_constraint l co))))::res ) location_ids [])
+
+let rec spec_expr location_ids e = match e with
+  | Data_model.Spec_expr_var v -> spec_variable_name v
+  | Data_model.Spec_expr_const c -> spec_const c
+  | Data_model.Spec_expr_arity e -> spec_element location_ids e
+  | Data_model.Spec_expr_add (e1, e2) -> (spec_expr location_ids e1) +~ (spec_expr location_ids e2)
+  | Data_model.Spec_expr_sub (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
+  | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_expr location_ids e2)
+
+let rec specification location_ids s = match s with
+  | Data_model.Spec_true -> True
+  | Data_model.Spec_op (e1, op, e2) -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
+  | Data_model.Spec_and (s1, s2) -> (specification location_ids s1) &&~~ (specification location_ids s2)
+  | Data_model.Spec_or  (s1, s2) -> (specification location_ids s1) ||~~ (specification location_ids s2)
+  | Data_model.Spec_impl (s1, s2) -> (specification location_ids s1) =>~~ (specification location_ids s2)
+  | Data_model.Spec_not (s') -> not (specification location_ids s')
+
+
+let specification_full () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with
+  | (Some(s), Some(c)) -> Data_state.constraint_specification_full := Some(specification c#get_location_ids s)
+  | _  -> ()
+
+
+(************************************)
+(** 4. Configuration Translation    *) (* using naming conventions from the paper *)
+(************************************)
+
+let configuration resources c_l get_location = 
+  Data_model.Location_id_set.fold (fun l res ->
+    Data_model.Resource_id_set.fold (fun o res ->
+      ((eO l o) =~ (constant ((get_location l)#provide_resources o)))::res
+    ) resources res
+  ) c_l []
+
+let configuration_full () = match (!Data_state.initial_configuration_full, !Data_state.resources_full) with
+    | (Some(c), Some(r)) -> Data_state.constraint_configuration_full := configuration r#resource_ids c#get_location_ids c#get_location
+    | _ -> ()
+
+
+(************************************)
+(** 5. Miscancellous Translation    *)
+(************************************)
 
 
   (* bounds *)
@@ -182,4 +337,4 @@ module Improved = struct
 
   val universe_flat universe =
 *)
-end
+

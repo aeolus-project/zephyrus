@@ -20,8 +20,18 @@
 (* Depends on
     - datatypes/Data_constraint
     - datatypes/Data_model
-    - datatypes/Data_functions
 *)
+
+val universe_full : unit -> unit (* set the universe-related constraints in Data_state using what is provided in Data_state *)
+val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)
+val configuration_full : unit -> unit (* set the configuration-related constraints in Data_state using what is provided in Data_state *)
+
+
+
+
+
+
+
 
 
 (*

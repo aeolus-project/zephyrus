@@ -72,6 +72,7 @@ module Component_type_name_set = SetString
 module Component_type_name_map = MapString
 
 type component_type_id = int
+let deprecated_component_type_id = -1
 module Component_type_id     = Int
 module Component_type_id_set = SetInt
 module Component_type_id_map = MapInt
@@ -129,6 +130,7 @@ module Package_name_set_set = SetSetString
 module Package_name_map     = MapString
 
 type package_id = int
+let deprecated_package_id = -1
 module Package_id         = Int
 module Package_id_set     = SetInt
 module Package_id_set_set = SetSetInt
@@ -166,7 +168,10 @@ module Repository_id_map     = MapInt
   (** Repository. *)
 class type repository = object
   method name     : repository_name         (** The name of this repository. *)
-  method packages : package_id -> package   (** Which packages does this repository contain. *)
+  method get_package : package_id -> package   (** Which packages does this repository contain. *)
+
+  method packages    : Package_set.t
+  method package_ids : Package_id_set.t
 end
 
 module Repository = struct
