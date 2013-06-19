@@ -32,7 +32,7 @@
 %token AND OR IMPL NOT
 %token LT LEQ EQ GEQ GT NEQ
 %token HASH
-%token COLON SEMICOLON UNDERSCORE
+%token COMMA COLON SEMICOLON UNDERSCORE
 %token LCURLY RCURLY
 %token LPAREN RPAREN
 %token EOF
@@ -104,7 +104,7 @@ spec_expr:
   | LPAREN spec_expr RPAREN     { $2 }
 
 spec_element:
-  | package_name        { `SpecElementPackage       ($1) }
+  | LPAREN repository_name COMMA package_name RPAREN       { `SpecElementPackage       ($2,$4) }
   | component_type_name { `SpecElementComponentType ($1) }
   | port_name           { `SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
@@ -132,7 +132,7 @@ spec_local_expr:
   | LPAREN spec_local_expr RPAREN           { $2 }
 
 spec_local_element:
-  | package_name        { `SpecLocalElementPackage       ($1) }
+  | LPAREN repository_name COMMA package_name RPAREN       { `SpecLocalElementPackage       ($2,$4) }
   | component_type_name { `SpecLocalElementComponentType ($1) }
   | port_name           { `SpecLocalElementPort          ($1) }
   | LPAREN spec_local_element RPAREN { $2 }

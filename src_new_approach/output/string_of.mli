@@ -17,4 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+val resource_name : Data_model.resource_name -> string
+val resource_id   : Data_model.resource_id   -> string
+
 

@@ -18,32 +18,32 @@
 (****************************************************************************)
 
 
-module Model = struct
-  (** 1. Resources *)
-  let string_of_resource_name resource_name = resource_name
-  let string_of_resource_provide_arity resource_provide_arity = string_of_int resource_provide_arity
-  let string_of_resource_consumption resource_consumption = string_of_int resource_consumption
+(** 1. Resources *)
+let resource_name name = name
+let resource_id id     = string_of_int id
 
-  (** 2. Component types *)
-  let string_of_component_type_name component_type_name = component_type_name
-  let string_of_port_name port_name = port_name
-  let string_of_provide_arity provide_arity = match provide_arity with | Infinite_provide -> "infinite" | Finite_provide i -> string_of_int i
-  let string_of_require_arity require_arity = string_of_int require_arity
+let string_of_resource_provide_arity resource_provide_arity = string_of_int resource_provide_arity
+let string_of_resource_consume_arity resource_consumption = string_of_int resource_consumption
 
-  (** 3. Packages *)
-  let string_of_package_name package_name = package_name
+(** 2. Component types *)
+let string_of_component_type_name component_type_name = component_type_name
+let string_of_port_name port_name = port_name
+let string_of_provide_arity provide_arity = match provide_arity with | Data_model.Infinite_provide -> "infinite" | Data_model.Finite_provide i -> string_of_int i
+let string_of_require_arity require_arity = string_of_int require_arity
 
-  (** 4. Repositories *)
-  let string_of_repository_name repository_name = repository_name
+(** 3. Packages *)
+let string_of_package_name package_name = package_name
 
-  (** 5. Location *)
-  let string_of_location_name location_name = location_name
+(** 4. Repositories *)
+let string_of_repository_name repository_name = repository_name
+
+(** 5. Location *)
+let string_of_location_name location_name = location_name
 let string_of_component_name component_name = component_name
 
 let string_of_spec_variable_name spec_variable_name = spec_variable_name
 let string_of_spec_const spec_const = string_of_int spec_const
 
-end
 
 
 

@@ -24,22 +24,32 @@
     - output/Zephyrus_log (for logging)
 *)
 
-
-type t_file = | Input_file of in_channel | Input_file_error
-type t_string =  | Input_string of string | Input_string_error
-
-let input_open filename =
-  try (Input_file (open_in filename)) with
-  | Sys_error e -> (Zephyrus_log.log_input_file_error e; Input_file_error)
+let input_open filename = match !filename with
+  | None -> None
+  | Some(filename) -> try Some (filename, open_in filename) with
+    | Sys_error e -> (Zephyrus_log.log_input_file_error e; None)
 
 
-let string_of_input_channel filename file =
-  let length = in_channel_length file in
+let parse_json parser filename = match input_open filename with
+  | None -> None
+  | Some(filename, file) -> try Some (parser (Yojson.Safe.init_lexer ())  (Lexing.from_channel file)) with
+    | Yojson.Json_error e -> (Zephyrus_log.log_input_file_error filename e; None)
+
+let parse_standard parser lexer filename = match input_open filename with
+  | None -> None
+  | Some(filename, file) -> try Some (parser lexer (Lexing.from_channel file)) with
+    | Parsing.Parse_error -> (Zephyrus_log.log_input_file_error filename "does not have a valid syntax"; None)
+
+
+(*
+let string_of_file filename =
+  let file' = open_in filename in match file with None -> None | Some(file) -> let length = in_channel_length file in
   if length > Sys.max_string_length then (* Check if the content of the channel will fit in a single string... *)
-    (Zephyrus_log.log_input_file_error filename  "too big to be parsed"; Input_string_error)
-  else let s = String.create length in
-    really_input file s 0 length;
-    close_in file; (Input_string(s))
+    (Zephyrus_log.log_input_file_error filename  "too big to be parsed"; None)
+  else let s = String.create length in really_input file s 0 length; close_in file; (Some(s))
+
+
+
 
 let input_and_set desc input output fun_set = match !input with
   | None           -> Zephyrus_log.log_setting_not_set ("input file for \"" ^ desc ^ "\"")
@@ -49,5 +59,5 @@ let input_and_set desc input output fun_set = match !input with
       | Input_string_error -> ()
       | Input_string(str)  -> try output := (Some (fun_set str)) with
         | Parsing.Parse_error -> Zephyrus_log.log_input_file_error filename  "does not have a valid syntax"
-
+*)
 

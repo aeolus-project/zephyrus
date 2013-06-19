@@ -19,20 +19,15 @@
 
 (* Depends on
     - Pervasives (standard library: files, opening and closing)
-    - String     (standard library)
     - input/Settings (for configuration)
     - output/Zephyrus_log (for logging)
 *)
 
-type t_file = | Input_file of in_channel | Input_file_error
 
-val input_open : string -> t_file
+val input_open : string option ref -> (string * in_channel) option
 
-val input_and_set : string -> string option ref -> 'a option ref -> (string -> 'a) -> unit
-(* parameters 
-  - description of what to load (for the warning message)
-  - the pointer to the file name, coming from input/Settings
-  - the pointer to the object to set, coming from datatypes/All_data
-  - the parsing function
-*)
+val parse_json : (Yojson.Safe.lexer_state -> Lexing.lexbuf -> 'a) -> string option ref -> 'a option
+
+val parse_standard : ((Lexing.lexbuf -> 'b) -> Lexing.lexbuf -> 'a) -> (Lexing.lexbuf -> 'b) -> string option ref -> 'a option
+
 

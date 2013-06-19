@@ -27,7 +27,8 @@
     - input/Input_helper (for input file manipulation)
 *)
 
-open Data_model
+val load_model : unit -> unit (** load all data from input files and store everything in [Data_state]  *)
+
 
 (*
 (* 1. Universe of string *)

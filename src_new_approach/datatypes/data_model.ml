@@ -89,6 +89,7 @@ module Port_id         = Int
 module Port_id_set     = SetInt
 module Port_id_set_set = SetSetInt
 module Port_id_map     = MapInt
+module Port_id_map_extract_key = Keys_of_MapInt
 
   (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
@@ -239,6 +240,7 @@ type location_id = int
 module Location_id = Int
 module Location_id_set = SetInt
 module Location_id_map = MapInt
+module Location_id_map_extract_key = Keys_of_MapInt
 
   (** Location. *)
 class type location = object
@@ -272,11 +274,12 @@ type component_id = int
 module Component_id = Int
 module Component_id_set = SetInt
 module Component_id_map = MapInt
+module Component_id_map_extract_key = Keys_of_MapInt
 
   (** Components *)
 class type component = object
   method name     : component_name
-  method my_type  : component_type_id
+  method typ      : component_type_id
   method location : location_id
 end
 
@@ -323,9 +326,15 @@ class type configuration = object
   method get_location  : location_id -> location
   method get_component : component_id -> component
 
-  method get_locations  : Location_id_set.t
-  method get_components : Component_id_set.t
+  method get_locations  : Location_set.t
+  method get_components : Component_set.t
   method get_bindings   : Binding_set.t
+
+  method get_location_ids  : Location_id_set.t
+  method get_component_ids : Component_id_set.t
+
+  method get_location_names  : Location_name_set.t
+  method get_component_names : Component_name_set.t
 
   (* methods coming from the paper. Usually, aliases for well-named functions *)
   method c_l : Location_id_set.t
@@ -359,8 +368,8 @@ type spec_local_element =
 
 type spec_local_expr = 
   | Spec_local_expr_var   of spec_variable_name
-  | Spec_local_expr_Const of spec_const
-  | Spec_local_expr_crity of spec_local_element
+  | Spec_local_expr_const of spec_const
+  | Spec_local_expr_arity of spec_local_element
   | Spec_local_expr_add   of (spec_local_expr * spec_local_expr)
   | Spec_local_expr_sub   of (spec_local_expr * spec_local_expr)
   | Spec_local_expr_mul   of (spec_const * spec_local_expr)
@@ -381,13 +390,13 @@ type local_specification =
   | Spec_local_impl of (local_specification * local_specification)
   | Spec_local_not of local_specification
 
-type spec_repository_constraint = repository_name list
-type spec_resource_constraint = (resource_name * spec_op * spec_const) list
+type spec_repository_constraint = repository_id list
+type spec_resource_constraint = (resource_id * spec_op * spec_const) list
 
 type spec_element = 
-  | Spec_element_package of package_name
-  | Spec_element_component_type of component_type_name
-  | Spec_element_port of port_name
+  | Spec_element_package of package_id
+  | Spec_element_component_type of component_type_id
+  | Spec_element_port of port_id
   | Spec_element_location of (spec_resource_constraint * spec_repository_constraint * local_specification)
 
 type spec_expr = 

@@ -73,6 +73,7 @@ rule token = parse
   | '#'                                  { HASH }
 
   (* Other *)
+  | ','                                  { COMMA }
   | ':'                                  { COLON }
   | ';'                                  { SEMICOLON }
   | '_'                                  { UNDERSCORE }

@@ -31,6 +31,7 @@ open Bin_packing
 *)
 
 (* 1. the different variant of inputs *)
+let resources_full             : resources option ref = ref None
 
 let universe_full              : universe option ref = ref None
 let universe_trim_component    : universe option ref = ref None
@@ -49,7 +50,7 @@ let universe_flat_constraint   : universe_flat option ref = ref None
 let universe_flat_solution     : universe_flat option ref = ref None
 *)
 
-let configuration_init_full    : configuration option ref = ref None
+let initial_configuration_full    : configuration option ref = ref None
 
 
 let specification_full         : specification option ref = ref None
