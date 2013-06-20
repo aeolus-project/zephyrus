@@ -51,17 +51,20 @@ let lines  = ['-' '+' '_' '.' '/']
 let other_caracters = ['[' '{' '(' ';' ':' ',' '\'' ')' '}' ']']
 
 (* Strings which are not quoted *)
-let ident  = (alpha | digits | lines)* (alpha | digits) (alpha | digits | lines)*
+let ident  = (alpha | lines)+ (alpha | digits | lines)*
 
 (* Strings which are quoted *)
 let string = (blanks | digits | alpha | lines | other_caracters)*
 
+let int = (digits)+
+
 rule token = parse
   | blanks                                   { token lexbuf         }     (* skip blanks and new lines *)
   | '#'                                      { token_comment lexbuf }     (* enter comment mode *)
-  | ('"'  (string as lxm) '"' )              { process_string lxm   }
-  | ('\'' (string as lxm) '\'')              { process_string lxm   }
+  | ('"'  (string as lxm) '"' )              { Ident(lxm)   }
+  | ('\'' (string as lxm) '\'')              { Ident(lxm)   }
   | (ident as lxm)                           { process_string lxm   }
+  | (int as lxm)                             { Int(int_of_string lxm) }
   | "="                                      { Equals               }
   | '['                                      { Left_bracket         }
   | ']'                                      { Right_bracket        }

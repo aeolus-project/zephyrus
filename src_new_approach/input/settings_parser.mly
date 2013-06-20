@@ -23,24 +23,27 @@
 *)
 
 type value =
-  | BoolValue  of bool
-  | IdentValue of string
-  | PairValue  of value * value
-  | ListValue  of value list
+  | Bool_value  of bool
+  | Int_value   of int
+  | Ident_value of string
+  | Pair_value  of value * value
+  | List_value  of value list
 
 let rec string_of_value value = 
   match value with
-  | BoolValue  b        -> if b then "true" else "false"
-  | IdentValue s        -> Printf.sprintf "\"%s\"" s
-  | PairValue  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
-  | ListValue  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
+  | Bool_value  b        -> if b then "true" else "false"
+  | Int_value i          -> string_of_int i
+  | Ident_value s        -> Printf.sprintf "\"%s\"" s
+  | Pair_value  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
+  | List_value  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
 
 exception Wrong_value
 
-let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise Wrong_value
-let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise Wrong_value
-let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
-let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise Wrong_value
+let get_bool  v = match v with | Bool_value(b)     -> b       | _ -> raise Wrong_value
+let get_int   v = match v with | Int_value(i)      -> i       | _ -> raise Wrong_value
+let get_ident v = match v with | Ident_value(s)    -> s       | _ -> raise Wrong_value
+let get_pair  v = match v with | Pair_value(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
+let get_list  v = match v with | List_value(l)     -> l       | _ -> raise Wrong_value
 
 (* Here are where you define your functions, and put them in the [functions] list *)
 
@@ -133,9 +136,9 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
 
 
 (* 04. Constraint Solver *)
-  ( "weight-locations"        , fun v -> Settings.constraint_weight_locations := Some(int_of_string (get_ident v)));
-  ( "weight-component-types"  , fun v -> Settings.constraint_weight_component_types := Some(int_of_string (get_ident v)));
-  ( "weight-packages"         , fun v -> Settings.constraint_weight_packages := Some(int_of_string (get_ident v)));
+  ( "weight-locations"        , fun v -> Settings.constraint_weight_locations := Some(get_int v));
+  ( "weight-component-types"  , fun v -> Settings.constraint_weight_component_types := Some(get_int v));
+  ( "weight-packages"         , fun v -> Settings.constraint_weight_packages := Some(get_int v));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
   ( "solver"                       , fun v -> Settings.constraint_solver_classic_kind     := Some(solver_kind_of_string (get_ident v)));
@@ -251,6 +254,7 @@ let manage_element ident value =
 %token Equals Left_bracket Right_bracket Left_paren Right_paren Comma Semicolon EOF
 %token<bool> Bool
 %token<string> Ident
+%token<int> Int
 
 
 %start main
@@ -267,11 +271,12 @@ element:
   | Ident Equals value { manage_element $1 $3 }
 
 value:
-  | Bool                                      { BoolValue($1) }
-  | Ident                                     { IdentValue($1) }
-  | Left_paren value Comma value Right_paren  { PairValue($2,$4) }
-  | Left_bracket Right_bracket                { ListValue([]) }
-  | Left_bracket list Right_bracket           { ListValue($2) }
+  | Bool                                      { Bool_value($1) }
+  | Int                                       { Int_value($1) }
+  | Ident                                     { Ident_value($1) }
+  | Left_paren value Comma value Right_paren  { Pair_value($2,$4) }
+  | Left_bracket Right_bracket                { List_value([]) }
+  | Left_bracket list Right_bracket           { List_value($2) }
 
 list:
   | value                { [$1] }
