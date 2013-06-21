@@ -86,7 +86,7 @@ type optimization_function =
 (* 4. Bounds *)
 
 type bound = { min : value; max : value }    (** Each variable has a given search space in between [min] and [max]  *)
-type variable_bound = variable -> bound  (** Function that gives for each variable its bound. Can be implemented with a map. *)
+type variable_bounds = variable -> bound  (** Function that gives for each variable its bound. Can be implemented with a map. *)
 
 
 (* 5. Solutions *)

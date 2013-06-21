@@ -18,6 +18,7 @@
 (****************************************************************************)
 
 (* Depends on
+    - datatypes/Data_common
     - datatypes/Data_constraint
 *)
 
@@ -34,17 +35,27 @@ type minizinc = string
      3.2. apply [extra_constraint] to the result, to add informations about the minimal cost, so we can iterate again
  *)
 
-type named_variables = string Variable_map.t
+type name = string
+module Name_set : Data_common.Set.S with type elt = name
+module Name_map : Data_common.Map.S with type key = name
+
+class type named_variables = object
+  method variables : Variable_set.t
+  method names     : Name_set.t
+  method get_variable : name -> variable
+  method get_name : variable -> name
+end
+
 type structured_minizinc = { mzn_variables : named_variables; mzn_declaration : string; mzn_main_constraint : string; mzn_extra_constraint : string; mzn_output : string}
 
 exception Wrong_optimization_function
+val cost_variable_name : string
 
+val get_named_variables : (string * konstraint) list -> optimization_function -> named_variables
+val core_translation : named_variables -> variable_bounds -> (string * konstraint) list -> structured_minizinc
 
-let variables : (string * konstraint) list -> optimization_function -> named_variables
-let core : named_variables -> variable_bound -> (string * konstraint) list -> structured_minizinc
-
-let optimization_goal : structured_minizinc -> optimization_function -> string
-let extra_constraint : structured_minizinc -> expression -> int -> structured_minizinc
+val add_optimization_goal : structured_minizinc -> optimization_function -> minizinc
+val add_extra_constraint : structured_minizinc -> expression -> int -> structured_minizinc
 
 
 

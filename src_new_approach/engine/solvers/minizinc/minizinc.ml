@@ -20,10 +20,22 @@
 
 open Data_constraint
 
-type named_variables = string Variable_map.t
+type name = string
+module Name_set = Data_common.SetString
+module Name_map = Data_common.MapString
+
+class type named_variables = object
+  method variables : Variable_set.t
+  method names     : Name_set.t
+  method get_variable : string -> variable
+  method get_name : variable -> string
+end
 type structured_minizinc = { mzn_variables : named_variables; mzn_declaration : string; mzn_main_constraint : string; mzn_extra_constraint : string; mzn_output : string}
 
 exception Wrong_optimization_function
+
+type minizinc = string
+
 
 (* 1. create names for the variables *)
 
@@ -36,13 +48,13 @@ let name_of_l l = (sanitize_name (String_of.location_id l))
 let name_of_element element = match element with
   | Component_type (t) -> "component_type_" ^ (name_of_t t)
   | Port           (p) -> "port_"           ^ (name_of_p p)
-  | Package        (k) -> "package_"        ^ (name_of_l l)
+  | Package        (k) -> "package_"        ^ (name_of_k k)
 let name_of_variable_unsafe v = match v with 
-  | Simple_variable(v)             -> "spec_var_" ^ (sanitize_name (String_of.specification_variable v))
+  | Simple_variable(v)             -> "spec_var_" ^ (sanitize_name (String_of.spec_variable_name v))
   | Global_variable(e)             -> "global_element_" ^ (name_of_element e)
-  | Local_variable(l,e)            -> "local_element_" ^  ^ "_" ^ (name_of_element e)
+  | Local_variable(l,e)            -> "local_element_" ^ (name_of_l l) ^ "_" ^ (name_of_element e)
   | Binding_variable(p,t1,t2)      -> "binding_" ^ (name_of_p p) ^ "_" ^ (name_of_t t1) ^ "_" ^ (name_of_t t2)
-  | Local_repository_variable(l,r) -> "local_repository_" ^  ^ "_" ^ (sanitize_name (String_of.repository_id r))
+  | Local_repository_variable(l,r) -> "local_repository_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.repository_id r))
   | Local_resource_variable(l,r)   -> "local_resource_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.resource_id r))
 
   (* safe name creation *)
@@ -52,39 +64,56 @@ let name_of_variable_safe v = let id = !name_var_id in name_var_id := id + 1; "v
 
 (* 2. get all the variables in the constraint and optimization function *)
 
-let rec variables_from_expression e = 
+let rec variables_from_expression e = match e with
   | Constant(v)  -> Variable_set.empty
   | Variable(v)  -> Variable_set.singleton v
   | Reified(c)   -> variables_from_konstraint c
-  | Add(l)       -> List.fold (fun e res -> Variable_set.union (variables_from_expression e) res) l Variable_set.empty
-  | Sub(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e12)
-  | Mul(l)       -> List.fold (fun e res -> Variable_set.union (variables_from_expression e) res) l Variable_set.empty
+  | Add(l)       -> List.fold_left (fun res e -> Variable_set.union (variables_from_expression e) res) Variable_set.empty l
+  | Sub(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | Mul(l)       -> List.fold_left (fun res e -> Variable_set.union (variables_from_expression e) res) Variable_set.empty l
   | Abs(e')      -> variables_from_expression e'
-  | Mod(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e12)
-  | Div(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e12)
+  | Mod(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | Div(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
 and variables_from_konstraint c = match c with
   | True            -> Variable_set.empty
-  | Arith(e1,o,e2)  -> Variable_set.union (variables_from_expression e1) (variables_from_expression e12)
-  | And(l)          -> List.fold (fun e res -> Variable_set.union (variables_from_konstraint e) res) l Variable_set.empty
-  | Or(l)           -> List.fold (fun e res -> Variable_set.union (variables_from_konstraint e) res) l Variable_set.empty
-  | Implies(c1,c2)  -> Variable_set.union (variables_from_konstraint e1) (variables_from_konstraint e12)
-  | Not(c')         -> variables_from_konstraint e'
+  | Arith(e1,o,e2)  -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | And(l)          -> List.fold_left (fun res e -> Variable_set.union (variables_from_konstraint e) res) Variable_set.empty l
+  | Or(l)           -> List.fold_left (fun res e -> Variable_set.union (variables_from_konstraint e) res) Variable_set.empty l
+  | Implies(c1,c2)  -> Variable_set.union (variables_from_konstraint c1) (variables_from_konstraint c2)
+  | Not(c')         -> variables_from_konstraint c'
 
 let rec variables_from_optimization_function f = match f with
   | Minimize (e) -> variables_from_expression e
   | Maximize (e) -> variables_from_expression e
-  | Lexicographic (l) -> List.fold (fun f res -> Variable_set.union (variables_from_optimization_function f) res) l Variable_set.empty
+  | Lexicographic (l) -> List.fold_left (fun res f -> Variable_set.union (variables_from_optimization_function f) res) Variable_set.empty l
 
-let variables cs f =
+let get_named_variables cs f =
   let vs = List.fold_left (fun res (_, c) -> Variable_set.union (variables_from_konstraint c) res) (variables_from_optimization_function f) cs in
-  Variable_set.fold (fun v res -> Variable_map.add v (name_of_variable_unsafe v) res) vs Variable_map.empty
+  let variables_tmp = ref Variable_set.empty in
+  let names_tmp = ref Name_set.empty in
+  let get_name_tmp = ref Variable_map.empty in
+  let get_variable_tmp = ref Name_map.empty in
+  let add v n = 
+    variables_tmp := Variable_set.add v !variables_tmp;
+    names_tmp := Name_set.add n !names_tmp;
+    get_name_tmp := Variable_map.add v n !get_name_tmp;
+    get_variable_tmp := Name_map.add n v !get_variable_tmp in
+  Variable_set.iter (fun v -> add v (name_of_variable_unsafe v)) vs; object (* <- here, we can switch to safe name creation *)
+    method variables = !variables_tmp
+    method names     = !names_tmp
+    method get_variable n = Name_map.find n !get_variable_tmp
+    method get_name     v = Variable_map.find v !get_name_tmp
+  end
 
 
 (* 3. variable declaration *)
+let cost_variable_name = "cost_var"
 
 let variable_declaration v_map f_bound =
-  Variable_map.fold (fun v n res -> let (min,max) = f_bound v in res ^ ("var " ^ n ^ " : " ^ (Data_helper.int_of_value min)  ^ ".." ^ (Data_helper.int_of_value max) ^ ";\n")) 
-    v_map ("var cost_var : 0.." ^ (string_of_int (Data_helper.int_of_value Data_constraint.Infinite_value)) ^ ";\n")
+  Variable_set.fold (fun v res -> let bound = f_bound v in
+      let (min, max) = (string_of_int (Data_helper.int_of_value bound.min), string_of_int (Data_helper.int_of_value bound.max)) in
+      res ^ ("var " ^ (v_map#get_name v) ^ " : " ^ min  ^ ".." ^ max ^ ";\n")) 
+    v_map#variables ("var " ^ cost_variable_name ^ " : 0.." ^ (string_of_int (Data_helper.int_of_value Data_constraint.Infinite_value)) ^ ";\n")
 
 (* 4. core *)
 
@@ -92,12 +121,12 @@ let minizinc_of_op op = match op with
   | Lt  -> "<" | LEq -> "<=" | Eq  -> "=" | GEq -> ">=" | Gt  -> ">" | NEq -> "<>"
 
 let rec minizinc_of_expression v_map e = match e with
-  | Constant(v)  -> int_of_value v
-  | Variable(v)  -> Variable_map.find v v_map
-  | Reified(c)   -> "(bool2int " ^ (variables_from_konstraint v_map c) ^ ")"
+  | Constant(v)  -> "(" ^ (string_of_int (Data_helper.int_of_value v)) ^ ")"
+  | Variable(v)  -> v_map#get_name v
+  | Reified(c)   -> "(bool2int " ^ (minizinc_of_konstraint v_map c) ^ ")"
   | Add(l)       -> "(" ^ (Data_helper.parse_nary_op  "0" (minizinc_of_expression v_map) (fun s1 s2 -> s1 ^ " + " ^ s2) l) ^ ")"
   | Sub(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " - " ^ (minizinc_of_expression v_map e2) ^ ")"
-  | Mul(l)       -> "(" ^ (Data_helper.parse_nary_op "1" expression (fun s1 s2 -> s1 ^ " * " ^ s2) l) ^ ")"
+  | Mul(l)       -> "(" ^ (Data_helper.parse_nary_op "1" (minizinc_of_expression v_map) (fun s1 s2 -> s1 ^ " * " ^ s2) l) ^ ")"
   | Abs(e')      -> "(abs(" ^ (minizinc_of_expression v_map e') ^ "))"
   | Mod(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " % " ^ (minizinc_of_expression v_map e2) ^ ")"
   | Div(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " / " ^ (minizinc_of_expression v_map e2) ^ ")"
@@ -113,9 +142,10 @@ let minizinc_of_konstraints v_map cs =
   List.fold_left (fun res (s,c) -> ("%% " ^ s ^ "\n") ^ ("constraint " ^ (minizinc_of_konstraint v_map c) ^ ";") ^ res) "" cs
 
 let output_of_variable v_map = 
-  (Variable_map.fold (fun _ v res -> "  \"" ^ v ^ " = \", show(" ^ v ^ "), \";\\n\"") v_map "output [\\n  \"cost_var = \", show(cost_var), \";\\n\"") ^ "];"
+  (Name_set.fold (fun n res -> "  \"" ^ n ^ " = \", show(" ^ n ^ "), \";\\n\"") v_map#names
+    "output [\\n  \"" ^ cost_variable_name ^ " = \", show(" ^ cost_variable_name ^ "), \";\\n\"") ^ "];"
 
-let core v_map f_bound cs = {
+let core_translation v_map f_bound cs = {
   mzn_variables        = v_map;
   mzn_declaration      = variable_declaration v_map f_bound;
   mzn_main_constraint  = minizinc_of_konstraints v_map cs;
@@ -124,7 +154,7 @@ let core v_map f_bound cs = {
 
 (* 5. extra constraint *)
 
-let extra_constraint smzn e i = {
+let add_extra_constraint smzn e i = {
   mzn_variables        = smzn.mzn_variables;
   mzn_declaration      = smzn.mzn_declaration;
   mzn_main_constraint  = smzn.mzn_main_constraint;
@@ -135,20 +165,20 @@ let extra_constraint smzn e i = {
 (* 6. finish *)
 
 let rec goal_of_optimization_function v_map f = match f with
-  | Maximize(e) -> "solve maximize (cost_var)"
-  | Minimize(e) -> "solve minimize (cost_var)"
+  | Maximize(e) -> (Some(e), "solve maximize (" ^ cost_variable_name ^ ")")
+  | Minimize(e) -> (Some(e), "solve minimize (" ^ cost_variable_name ^ ")")
   | Lexicographic(l) -> match l with
-    | [] -> "solve satisfy"
-    | [f'] -> goal_of_optimization_function f'
+    | [] -> (None, "solve satisfy")
+    | [f'] -> goal_of_optimization_function v_map f'
     | _ -> raise Wrong_optimization_function
 
-let optimization_goal smzn f = 
+let add_optimization_goal smzn f = let (eo,s) = goal_of_optimization_function smzn.mzn_variables f in
     "%% ======= MiniZinc file automatically generated by Zephyrus =======\n\n"
   ^ "%% === Variables ===\n" ^ smzn.mzn_declaration ^ "\n\n"
   ^ "%% === Main Constraints ===\n" ^ smzn.mzn_main_constraint ^ "\n\n"
   ^ "%% === Extra Constraints ===" ^ smzn.mzn_extra_constraint ^ "\n" ^ ("") ^ "\n\n"
-  ^ "%% === Optimization function ===\n" ^ ("constraint cost_var = " ^ (minizinc_of_expression v_map e) ^ ";")
-                                ^ (goal_of_optimization_function smzn.mzn_variables f) ^ "\n\n\n"
+  ^ "%% === Optimization function ===\n"
+    ^ (match eo with None -> "" | Some(e) ->"constraint " ^ cost_variable_name ^ " = " ^ (minizinc_of_expression smzn.mzn_variables e) ^ ";") ^ s ^ "\n\n\n"
   ^ "%% === Output definition ===\n" ^ smzn.mzn_output ^ "\n" 
 
 

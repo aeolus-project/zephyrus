@@ -33,7 +33,7 @@ open Load_settings
 open Data_model
 open Load_model
 open Constraint_of
-
+open Solvers
 
 let () =
   Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
