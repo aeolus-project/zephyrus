@@ -1,0 +1,145 @@
+
+# Everything, except file names, is case insensitive
+
+# Main option
+
+zephyrus-mode = classic # flat / bin-packing
+
+# 01. Input Files
+
+input-file-universe         = "./tests/u_1_new.json"
+input-file-configuration    = initial_configuration.zep
+input-file-specification    = "./tests/spec_1.spec"
+input-file-repositories     = [(debian, ../toto/debian.coinst)] # list of pairs
+input-optimization-function = compact # simple / conservative / spread / none
+
+# 02. Which initial Data to Generate
+
+import-universe              = yes
+import-repositories          = Y
+import-initial-configuration = true
+import-specification         = YEs
+import-optimization-function = y
+
+append-repository-to-package-name = y
+
+check-universe              = y
+check-repositories          = y
+check-initial-configuration = y
+check-universe_full         = y
+check-specification         = y
+
+check-settings              = y
+
+# 03. Pre Processing
+
+detect-spec-well-formedness      = false
+detect-spec-is-empty             = no
+detect-spec-solver               = gcode
+
+detect-component-types-have-loop = N
+detect-component-types-bounds    = n
+
+package-coinst                   = y
+package-trim                     = y
+component-types-trim             = n
+
+# 04. Constraint Solver
+
+weight-component-types = 5
+weight-packages        = 1
+weight-locations       = 100
+
+
+solver-use-linear-constraint = n
+solver                       = gcode
+solver-bin-packing           = unknown # for now, no solver are implemented
+
+
+# 05. Temporary Files
+
+detect-spec-is-empty-constraint-file      = detect-spec-is-empty-constraint-file.mzn
+detect-spec-is-empty-solution-file        = detect-spec-is-empty-solution-file.sol
+detect-spec-is-empty-keep-constraint-file = n
+detect-spec-is-empty-keep-solution-file   = n
+
+solver-flat-constraint-file      = solver-flat-constraint-file.mzn
+solver-flat-solution-file        = solver-flat-solution-file.sol
+solver-flat-keep-constraint-file = n
+solver-flat-keep-solution-file   = n
+
+
+solver-constraint-file      = "solver-constraint-file.mzn"
+solver-solution-file        = "solver-solution-file.sol"
+solver-keep-constraint-file = n
+solver-keep-solution-file   = n
+
+
+# 06. Configuration Generation
+
+generate-bindings = none
+generate-packages = none
+
+
+# 07. Output Configuration
+
+results                           = [(plain,out-plain.zep);(graph-deployment, out-graph-deployment.zep)]
+
+
+# 08. Verbose Options
+
+verbose-stage = y
+
+# settings
+
+verbose-settings-check-warning         = y
+verbose-settings-check-error           = y
+verbose-settings-check-setting-non-set = y
+
+# 08.1. inputs
+
+verbose-input-warning = y
+verbose-input-error   = y
+
+print-input-universe        = y
+print-input-repositories    = y
+print-full-universe         = y
+print-initial-configuration = y
+print-specification         = y
+print-optimization-function = y
+
+extra-log-universe-check              = y
+extra-log-repositories-check          = y
+extra-log-initial-configuration-check = y
+extra-log-specification-check         = y
+
+# 08.2. pre-processs
+
+print-is-spec-well-formed     = y
+print-is-spec-empty           = y
+extra-log-is-spec-well-formed = y
+extra-log-is-spec-empty       = y
+ 
+print-universe-graph               = y
+print-has-component-types-loop     = y
+print-component-types-bounds       = y
+extra-log-has-component-types-loop = y
+extra-log-component-types-bounds   = y 
+
+print-packages-trimmed            = y
+print-component-types-trimmed     = y
+extra-log-packages-trimmed        = y
+extra-log-component-types-trimmed = y
+
+# 08.3. constraints
+
+print-main-constraint             = y
+print-main-solution               = y
+extra-log-main-constraint-solving = y
+
+# 08.4. configuration generation
+
+print-result-location+components        = y
+print-result-location+components+pakage = y
+print-result-full                       = y
+
