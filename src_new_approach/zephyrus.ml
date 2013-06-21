@@ -35,6 +35,9 @@ open Load_model
 open Constraint_of
 
 
+let () =
+  Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
+
 (* === Default settings === *)
 let () =
   Settings.input_file_settings      := Some("./src_new_approach/zephyrus-settings.example");
@@ -97,3 +100,6 @@ let my_settings =
   | Some settings -> settings
 
 
+let () =
+  Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
+  

@@ -44,37 +44,38 @@
     | Not_found -> Ident(s)
 }
 
-let blanks = [' ' '\t' '\n']
-let digits = ['0'-'9']
-let alpha  = ['a'-'z' 'A'-'Z']
-let lines  = ['-' '+' '_' '.' '/']
+let blanks          = [' ' '\t' '\n']
+let digits          = ['0'-'9']
+let alpha           = ['a'-'z' 'A'-'Z']
+let lines           = ['-' '+' '_' '.' '/']
 let other_caracters = ['[' '{' '(' ';' ':' ',' '\'' ')' '}' ']']
 
 (* Strings which are not quoted *)
-let ident  = (alpha | lines)+ (alpha | digits | lines)*
+let ident  = (alpha | digits | lines)* (alpha | lines)+ (alpha | digits | lines)*
 
 (* Strings which are quoted *)
 let string = (blanks | digits | alpha | lines | other_caracters)*
 
+(* Integers *)
 let int = (digits)+
 
 rule token = parse
-  | blanks                                   { token lexbuf         }     (* skip blanks and new lines *)
-  | '#'                                      { token_comment lexbuf }     (* enter comment mode *)
-  | ('"'  (string as lxm) '"' )              { Ident(lxm)   }
-  | ('\'' (string as lxm) '\'')              { Ident(lxm)   }
-  | (ident as lxm)                           { process_string lxm   }
-  | (int as lxm)                             { Int(int_of_string lxm) }
-  | "="                                      { Equals               }
-  | '['                                      { Left_bracket         }
-  | ']'                                      { Right_bracket        }
-  | '('                                      { Left_paren           }
-  | ')'                                      { Right_paren          }
-  | ','                                      { Comma                }
-  | ';'                                      { Semicolon            }
-  | eof                                      { EOF                  }
+  | blanks                       { token lexbuf           }  (* skip blanks and new lines *)
+  | '#'                          { token_comment lexbuf   }  (* enter comment mode *)
+  | ('"'  (string as lxm) '"' )  { Ident(lxm)             }
+  | ('\'' (string as lxm) '\'')  { Ident(lxm)             }
+  | (int   as lxm)               { Int(int_of_string lxm) }
+  | (ident as lxm)               { process_string lxm     }
+  | "="                          { Equals                 }
+  | '['                          { Left_bracket           }
+  | ']'                          { Right_bracket          }
+  | '('                          { Left_paren             }
+  | ')'                          { Right_paren            }
+  | ','                          { Comma                  }
+  | ';'                          { Semicolon              }
+  | eof                          { EOF                    }
 
 and token_comment = parse
-  | '\n'                            { token lexbuf         }
-  | _                               { token_comment lexbuf } 
+  | '\n'                         { token lexbuf         }
+  | _                            { token_comment lexbuf } 
 

@@ -23,27 +23,27 @@
 *)
 
 type value =
-  | Bool_value  of bool
-  | Int_value   of int
-  | Ident_value of string
-  | Pair_value  of value * value
-  | List_value  of value list
+  | BoolValue  of bool
+  | IntValue   of int
+  | IdentValue of string
+  | PairValue  of value * value
+  | ListValue  of value list
 
 let rec string_of_value value = 
   match value with
-  | Bool_value  b        -> if b then "true" else "false"
-  | Int_value i          -> string_of_int i
-  | Ident_value s        -> Printf.sprintf "\"%s\"" s
-  | Pair_value  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
-  | List_value  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
+  | BoolValue  b        -> if b then "true" else "false"
+  | IntValue   i        -> Printf.sprintf "%d" i
+  | IdentValue s        -> Printf.sprintf "\"%s\"" s
+  | PairValue  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
+  | ListValue  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
 
 exception Wrong_value
 
-let get_bool  v = match v with | Bool_value(b)     -> b       | _ -> raise Wrong_value
-let get_int   v = match v with | Int_value(i)      -> i       | _ -> raise Wrong_value
-let get_ident v = match v with | Ident_value(s)    -> s       | _ -> raise Wrong_value
-let get_pair  v = match v with | Pair_value(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
-let get_list  v = match v with | List_value(l)     -> l       | _ -> raise Wrong_value
+let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise Wrong_value
+let get_int   v = match v with | IntValue(i)      -> i       | _ -> raise Wrong_value
+let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise Wrong_value
+let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
+let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise Wrong_value
 
 (* Here are where you define your functions, and put them in the [functions] list *)
 
@@ -99,46 +99,46 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "zephyrus-mode" , fun v -> Settings.zephyrus_mode := Some(mode_of_string (get_ident v)));
 
 (* 01. Input Files *)
-  ("input-file-universe"         , fun v -> Settings.input_file_universe := Some(get_ident v));
+  ("input-file-universe"         , fun v -> Settings.input_file_universe              := Some(get_ident v));
   ("input-file-configuration"    , fun v -> Settings.input_file_initial_configuration := Some(get_ident v));
-  ("input-file-specification"    , fun v -> Settings.input_file_specification := Some(get_ident v));
+  ("input-file-specification"    , fun v -> Settings.input_file_specification         := Some(get_ident v));
   ("input-file-repositories"     , fun v -> List.iter 
     (fun v' -> let (v1,v2) = get_pair v' in Settings.input_file_repositories := (get_ident v1, get_ident v2)::!Settings.input_file_repositories) (get_list v));
   ("input-optimization-function" , fun v -> Settings.input_optimization_function := Some(optim_of_string (get_ident v)));
 
 (* 02. Which initial Data to Generate *)
-  ("import-universe"              , fun v -> Settings.data_generation_universe := Some(get_bool v));
-  ("import-repositories"          , fun v -> Settings.data_generation_repositories := Some(get_bool v));
+  ("import-universe"              , fun v -> Settings.data_generation_universe              := Some(get_bool v));
+  ("import-repositories"          , fun v -> Settings.data_generation_repositories          := Some(get_bool v));
   ("import-initial-configuration" , fun v -> Settings.data_generation_initial_configuration := Some(get_bool v));
-  ("import-specification"         , fun v -> Settings.data_generation_specification := Some(get_bool v));
+  ("import-specification"         , fun v -> Settings.data_generation_specification         := Some(get_bool v));
   ("import-optimization-function" , fun v -> Settings.data_generation_optimization_function := Some(get_bool v));
 
-  ("check-universe"              , fun v -> Settings.data_check_universe := Some(get_bool v));
-  ("check-repositories"          , fun v -> Settings.data_check_repositories := Some(get_bool v));
+  ("check-universe"              , fun v -> Settings.data_check_universe              := Some(get_bool v));
+  ("check-repositories"          , fun v -> Settings.data_check_repositories          := Some(get_bool v));
   ("check-initial-configuration" , fun v -> Settings.data_check_initial_configuration := Some(get_bool v));
-  ("check-universe_full"         , fun v -> Settings.data_check_universe_full := Some(get_bool v));
-  ("check-specification"         , fun v -> Settings.data_check_specification := Some(get_bool v));
+  ("check-universe_full"         , fun v -> Settings.data_check_universe_full         := Some(get_bool v));
+  ("check-specification"         , fun v -> Settings.data_check_specification         := Some(get_bool v));
 
   ("check-settings" , fun v -> Settings.data_check_settings := Some(get_bool v));
 
 (* 03. Pre Processing *)
 
-  ( "detect-spec-well-formedness"      , fun v -> Settings.pre_process_spec_wf_detection := Some(get_bool v));
-  ( "detect-spec-is-empty"             , fun v -> Settings.pre_process_spec_empty_detection := Some(get_bool v));
+  ( "detect-spec-well-formedness"      , fun v -> Settings.pre_process_spec_wf_detection           := Some(get_bool v));
+  ( "detect-spec-is-empty"             , fun v -> Settings.pre_process_spec_empty_detection        := Some(get_bool v));
   ( "detect-spec-solver"               , fun v -> Settings.pre_process_spec_empty_detection_solver := Some(solver_kind_of_string (get_ident v)));
 
-  ( "detect-component-types-have-loop" , fun v -> Settings.pre_process_universe_loop_detection := Some(get_bool v));
+  ( "detect-component-types-have-loop" , fun v -> Settings.pre_process_universe_loop_detection    := Some(get_bool v));
   ( "detect-component-types-bounds"    , fun v -> Settings.pre_process_universe_bound_computation := Some(get_bool v));
 
-  ( "package-coinst"                   , fun v -> Settings.pre_process_package_coinst := Some(get_bool v));
+  ( "package-coinst"                   , fun v -> Settings.pre_process_package_coinst       := Some(get_bool v));
   ( "package-trim"                     , fun v -> Settings.pre_process_package_trim_package := Some(get_bool v));
   ( "component-types-trim"             , fun v -> Settings.pre_process_component_types_trim := Some(get_bool v));
 
 
 (* 04. Constraint Solver *)
-  ( "weight-locations"        , fun v -> Settings.constraint_weight_locations := Some(get_int v));
+  ( "weight-locations"        , fun v -> Settings.constraint_weight_locations       := Some(get_int v));
   ( "weight-component-types"  , fun v -> Settings.constraint_weight_component_types := Some(get_int v));
-  ( "weight-packages"         , fun v -> Settings.constraint_weight_packages := Some(get_int v));
+  ( "weight-packages"         , fun v -> Settings.constraint_weight_packages        := Some(get_int v));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
   ( "solver"                       , fun v -> Settings.constraint_solver_classic_kind     := Some(solver_kind_of_string (get_ident v)));
@@ -229,9 +229,9 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
 
 (* 08.4. configuration generation *)
 
-  ( "print-result-location+components" , fun v -> Settings.verbose_gen_configuration_init    := Some(get_bool v));
+  ( "print-result-location+components"        , fun v -> Settings.verbose_gen_configuration_init    := Some(get_bool v));
   ( "print-result-location+components+pakage" , fun v -> Settings.verbose_gen_configuration_package := Some(get_bool v));
-  ( "print-result-full" , fun v -> Settings.verbose_gen_configuration_full    := Some(get_bool v))
+  ( "print-result-full"                       , fun v -> Settings.verbose_gen_configuration_full    := Some(get_bool v))
 
 ]
 
@@ -243,7 +243,7 @@ let manage_element ident value =
     let ident = String.lowercase ident in
     let assign_value_to_setting_function = Data_common.MapString.find ident map 
     in
-    Printf.printf "setting %s = %s\n" ident (string_of_value value);
+    Printf.printf "setting %-45s := %s\n" ident (string_of_value value);
     assign_value_to_setting_function value
   with
   | Not_found   -> Zephyrus_log.log_input_settings_unknown_setting ident
@@ -265,18 +265,18 @@ let manage_element ident value =
 
 main:
   | element main { () }
-  | EOF   { () }
+  | EOF          { () }
 
 element:
   | Ident Equals value { manage_element $1 $3 }
 
 value:
-  | Bool                                      { Bool_value($1) }
-  | Int                                       { Int_value($1) }
-  | Ident                                     { Ident_value($1) }
-  | Left_paren value Comma value Right_paren  { Pair_value($2,$4) }
-  | Left_bracket Right_bracket                { List_value([]) }
-  | Left_bracket list Right_bracket           { List_value($2) }
+  | Bool                                      { BoolValue($1) }
+  | Int                                       { IntValue($1) }
+  | Ident                                     { IdentValue($1) }
+  | Left_paren value Comma value Right_paren  { PairValue($2,$4) }
+  | Left_bracket Right_bracket                { ListValue([]) }
+  | Left_bracket list Right_bracket           { ListValue($2) }
 
 list:
   | value                { [$1] }
