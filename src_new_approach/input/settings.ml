@@ -281,6 +281,22 @@ let string_of_out_file = function
   | Out_file_graph_components -> "Out_file_graph_components"
   | Out_file_graph_packages   -> "Out_file_graph_packages"
 
+let string_of_file_repositories (file_repositories : (string * string) list) =
+  let repositories_strings =
+    List.map (fun (repository_name, file) ->
+      Printf.sprintf "%s : \"%s\"" repository_name file
+    ) file_repositories
+  in
+  Printf.sprintf "[%s]" (String.concat ", " repositories_strings)
+
+let string_of_out_files (out_files : (out_file * string) list) =
+  let out_files_strings =
+    List.map (fun (out_file, file) ->
+      Printf.sprintf "%s : \"%s\"" (string_of_out_file out_file) file
+    ) out_files
+  in
+  Printf.sprintf "[%s]" (String.concat ", " out_files_strings)
+
 let string_of_setting = 
   let none_or x string_of_x = 
     match x with
@@ -291,14 +307,14 @@ let string_of_setting =
   | StringSetting               x -> none_or x (fun s -> Printf.sprintf "\"%s\"" s)
   | BoolSetting                 x -> none_or x (fun b -> if b then "true" else "false")
   | IntSetting                  x -> none_or x (fun i -> Printf.sprintf "\"%d\"" i)
-  | FileRepositoriesSetting     l -> "TODO" (* (string * string) list *)
+  | FileRepositoriesSetting     l -> string_of_file_repositories l
   | ModeSetting                 x -> none_or x string_of_mode
   | OptimizationFunctionSetting x -> none_or x string_of_optim
   | SolverKindSetting           x -> none_or x string_of_solver
   | SolverBinPackingKindSetting x -> none_or x string_of_solver_bin_packing
   | ConfGenBindingsSetting      x -> none_or x string_of_conf_gen_bindings
   | ConfGenPackagesSetting      x -> none_or x string_of_conf_gen_packages
-  | OutputFileSetting           o -> "TODO" (* (out_file * string) list *)
+  | OutputFileSetting           l -> string_of_out_files l
 
 let settings_printing_functions : (string * (unit -> setting)) list = [
   ("zephyrus-mode"                , fun () -> ModeSetting(!zephyrus_mode));
@@ -340,9 +356,9 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
 
 
 (* 04. Constraint Solver *)
-  ( "weight-locations"        , fun () -> IntSetting(!constraint_weight_locations)      );
-  ( "weight-component-types"  , fun () -> IntSetting(!constraint_weight_component_types));
-  ( "weight-packages"         , fun () -> IntSetting(!constraint_weight_packages)       );
+  ( "weight-locations"             , fun () -> IntSetting(!constraint_weight_locations)      );
+  ( "weight-component-types"       , fun () -> IntSetting(!constraint_weight_component_types));
+  ( "weight-packages"              , fun () -> IntSetting(!constraint_weight_packages)       );
 
   ( "solver-use-linear-constraint" , fun () -> BoolSetting                (!constraint_solver_classic_linear)  );
   ( "solver"                       , fun () -> SolverKindSetting          (!constraint_solver_classic_kind)    );
@@ -356,15 +372,15 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
   ( "detect-spec-is-empty-keep-constraint-file" , fun () -> BoolSetting(!pre_process_spec_empty_detection_input_file_keep) );
   ( "detect-spec-is-empty-keep-solution-file"   , fun () -> BoolSetting(!pre_process_spec_empty_detection_output_file_keep));
 
-  ( "solver-flat-constraint-file"      , fun () -> StringSetting(!constraint_solver_flat_input_file)    );
-  ( "solver-flat-solution-file"        , fun () -> StringSetting(!constraint_solver_flat_output_file)   );
-  ( "solver-flat-keep-constraint-file" , fun () -> BoolSetting(!constraint_solver_flat_input_file_keep) );
-  ( "solver-flat-keep-solution-file"   , fun () -> BoolSetting(!constraint_solver_flat_output_file_keep));
+  ( "solver-flat-constraint-file"               , fun () -> StringSetting(!constraint_solver_flat_input_file)    );
+  ( "solver-flat-solution-file"                 , fun () -> StringSetting(!constraint_solver_flat_output_file)   );
+  ( "solver-flat-keep-constraint-file"          , fun () -> BoolSetting(!constraint_solver_flat_input_file_keep) );
+  ( "solver-flat-keep-solution-file"            , fun () -> BoolSetting(!constraint_solver_flat_output_file_keep));
 
-  ( "solver-constraint-file"      , fun () -> StringSetting(!constraint_solver_classic_input_file)    );
-  ( "solver-solution-file"        , fun () -> StringSetting(!constraint_solver_classic_output_file)   );
-  ( "solver-keep-constraint-file" , fun () -> BoolSetting(!constraint_solver_classic_input_file_keep) );
-  ( "solver-keep-solution-file"   , fun () -> BoolSetting(!constraint_solver_classic_output_file_keep));
+  ( "solver-constraint-file"                    , fun () -> StringSetting(!constraint_solver_classic_input_file)    );
+  ( "solver-solution-file"                      , fun () -> StringSetting(!constraint_solver_classic_output_file)   );
+  ( "solver-keep-constraint-file"               , fun () -> BoolSetting(!constraint_solver_classic_input_file_keep) );
+  ( "solver-keep-solution-file"                 , fun () -> BoolSetting(!constraint_solver_classic_output_file_keep));
 
 
 (* 06. Configuration Generation *)
@@ -391,15 +407,15 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
 
 (* 08.1. inputs *)
 
-  ( "verbose-input-warning" , fun () -> BoolSetting(!verbose_input_warning));
-  ( "verbose-input-error"   , fun () -> BoolSetting(!verbose_input_error)  );
+  ( "verbose-input-warning"                 , fun () -> BoolSetting(!verbose_input_warning));
+  ( "verbose-input-error"                   , fun () -> BoolSetting(!verbose_input_error)  );
 
-  ( "print-input-universe"        , fun () -> BoolSetting(!verbose_input_universe)             );
-  ( "print-input-repositories"    , fun () -> BoolSetting(!verbose_input_repositories)         );
-  ( "print-full-universe"         , fun () -> BoolSetting(!verbose_input_universe_full)        );
-  ( "print-initial-configuration" , fun () -> BoolSetting(!verbose_input_initial_configuration));
-  ( "print-specification"         , fun () -> BoolSetting(!verbose_input_specification)        );
-  ( "print-optimization-function" , fun () -> BoolSetting(!verbose_input_optimization_function));
+  ( "print-input-universe"                  , fun () -> BoolSetting(!verbose_input_universe)             );
+  ( "print-input-repositories"              , fun () -> BoolSetting(!verbose_input_repositories)         );
+  ( "print-full-universe"                   , fun () -> BoolSetting(!verbose_input_universe_full)        );
+  ( "print-initial-configuration"           , fun () -> BoolSetting(!verbose_input_initial_configuration));
+  ( "print-specification"                   , fun () -> BoolSetting(!verbose_input_specification)        );
+  ( "print-optimization-function"           , fun () -> BoolSetting(!verbose_input_optimization_function));
 
   ( "extra-log-universe-check"              , fun () -> BoolSetting(!verbose_input_universe_check)             );
   ( "extra-log-repositories-check"          , fun () -> BoolSetting(!verbose_input_repositories_check)         );
@@ -408,10 +424,10 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
 
 (* 08.2. pre-processs *)
 
-  ( "print-is-spec-well-formed"     , fun () -> BoolSetting(!verbose_spec_fw_detection)                       );
-  ( "print-is-spec-empty"           , fun () -> BoolSetting(!verbose_spec_empty_detection)                    );
-  ( "extra-log-is-spec-well-formed" , fun () -> BoolSetting(!verbose_spec_fw_detection_activities)            );
-  ( "extra-log-is-spec-empty"       , fun () -> BoolSetting(!verbose_spec_empty_detection_activities)         );
+  ( "print-is-spec-well-formed"          , fun () -> BoolSetting(!verbose_spec_fw_detection)                       );
+  ( "print-is-spec-empty"                , fun () -> BoolSetting(!verbose_spec_empty_detection)                    );
+  ( "extra-log-is-spec-well-formed"      , fun () -> BoolSetting(!verbose_spec_fw_detection_activities)            );
+  ( "extra-log-is-spec-empty"            , fun () -> BoolSetting(!verbose_spec_empty_detection_activities)         );
 
   ( "print-universe-graph"               , fun () -> BoolSetting(!verbose_universe_graph)                          );
   ( "print-has-component-types-loop"     , fun () -> BoolSetting(!verbose_universe_loop_detection)                 );
@@ -419,16 +435,16 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
   ( "extra-log-has-component-types-loop" , fun () -> BoolSetting(!verbose_universe_loop_detection_activities)      );
   ( "extra-log-component-types-bounds"   , fun () -> BoolSetting(!verbose_universe_bound_detection_activities)     );
 
-  ( "print-packages-trimmed"            , fun () -> BoolSetting(!verbose_universe_package_trim_package)           );
-  ( "print-component-types-trimmed"     , fun () -> BoolSetting(!verbose_universe_component_types_trim)           );
-  ( "extra-log-packages-trimmed"        , fun () -> BoolSetting(!verbose_universe_package_trim_package_activities));
-  ( "extra-log-component-types-trimmed" , fun () -> BoolSetting(!verbose_universe_component_types_trim_activities));
+  ( "print-packages-trimmed"             , fun () -> BoolSetting(!verbose_universe_package_trim_package)           );
+  ( "print-component-types-trimmed"      , fun () -> BoolSetting(!verbose_universe_component_types_trim)           );
+  ( "extra-log-packages-trimmed"         , fun () -> BoolSetting(!verbose_universe_package_trim_package_activities));
+  ( "extra-log-component-types-trimmed"  , fun () -> BoolSetting(!verbose_universe_component_types_trim_activities));
 
 (* 08.3. constraints *)
 
-  ( "print-main-constraint"             , fun () -> BoolSetting(!verbose_constraint)                  );
-  ( "print-main-solution"               , fun () -> BoolSetting(!verbose_constraint_solver_activities));
-  ( "extra-log-main-constraint-solving" , fun () -> BoolSetting(!verbose_solution)                    );
+  ( "print-main-constraint"              , fun () -> BoolSetting(!verbose_constraint)                  );
+  ( "print-main-solution"                , fun () -> BoolSetting(!verbose_constraint_solver_activities));
+  ( "extra-log-main-constraint-solving"  , fun () -> BoolSetting(!verbose_solution)                    );
 
 (* 08.4. configuration generation *)
 
