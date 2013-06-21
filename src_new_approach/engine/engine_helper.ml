@@ -17,156 +17,102 @@
 (*                                                                          *)
 (****************************************************************************)
 
-open ExtLib
+(* Depends on
+    - Unix
+    - Filename
+    - String
+*)
 
-module List = 
-  struct
-    include ExtLib.List
 
-    let flatten_map f l = List.flatten (List.map f l)
-  end
+(** 1. helpers on external commands. *)
 
-let string_of_printing_function printing_function argument =
-  (* Prepare a temporary file and open it for writing. *)
-  let (tmp_file, out_channel) = Filename.open_temp_file "tmp_string_of_" "" in
-  (* Print to that file. *)
-  printing_function out_channel argument;
-  close_out out_channel;
-  (* Read from the file. *)
-  let in_channel = open_in tmp_file in
-  let s = input_line in_channel in
-  close_in in_channel;
-  (* Delete the temporary file. *)
-  Sys.remove tmp_file;
-  (* Return. *)
-  s
+exception Wrong_argument_number
 
-let lines_of_strings strings = String.concat "\n" strings
+type program = {
+  name     : string;
+  commands : string list;
+  exe      : string list -> string; }
+type pid = int
 
-let ident = "  "
-
-let indent_line  line  = Printf.sprintf "%s%s" ident line
-let indent_lines lines = List.map indent_line lines
-
-let indent_lines_of_strings strings = lines_of_strings (indent_lines strings)
-
-let string_of_input_channel (in_channel : in_channel) =
-  (* Check if the content of the channel will fit in a single string... *)
-  let in_channel_length = in_channel_length in_channel in
-  if in_channel_length > Sys.max_string_length
-  then 
-    (* No it will not! *)
-    failwith "The input channel contents do not fit in a single string!"
-  else
-    (* Yes, it will fit in a single string, we can proceed and read from the channel. *)
-    let s = String.create in_channel_length in
-    really_input in_channel s 0 in_channel_length;
-    close_in in_channel;
-    s
-
-let did_process_exit_ok process_status =
-  match process_status with 
-  | Unix.WEXITED 0 -> true 
-  | _ -> false
+let program_did_exit_ok process_status = match process_status with 
+  | Unix.WEXITED 0 -> true | _ -> false
   
+let program_is_available program = List.fold_left (fun res cmd -> (program_did_exit_ok (Unix.system ("which " ^ cmd  ^ " > /dev/null"))) && res) true program.commands
+let programs_are_available l = List.fold_left (fun res p -> (program_is_available p) && res) true l
 
-type in_out_program = {
-  name    : string;
-  command : string;
-  exe     : string -> string -> string;
+let program_sync_exec  p l = Unix.system (p.exe l)
+let program_async_exec p l = let id = Unix.fork () in if id <> 0 then id else Unix.execv "/bin/sh" [|"-c"; ("\"" ^ (p.exe l) ^ "\"") |]
+let program_wait id = let (_, s) = Unix.waitpid [] id in s
+
+
+
+let mzn2fzn = {
+  name     = "G12 mzn2fzn";
+  commands = ["mzn2fzn"];
+  exe      = (fun l -> match l with [input; output] -> "mzn2fzn --no-output-ozn -o " ^ (String.escaped output) ^ " " ^ (String.escaped input)
+                       | _ -> raise Wrong_argument_number)
 }
 
-let is_program_available program =
-  did_process_exit_ok (Unix.system (Printf.sprintf "which %s > /dev/null" program))
+let g12_flatzinc_solver = {
+  name     = "G12";
+  commands = ["flatzinc"];
+  exe      = (fun l -> match l with [input; output] -> "flatzinc -o " ^ (String.escaped output) ^ " " ^ (String.escaped input)
+                       | _ -> raise Wrong_argument_number)
+}
 
-let check_if_programs_available programs =
-  (* Check if given commands are available on the machine. *)
-  List.iter (fun program ->
-    if not (is_program_available program.command)
-    then failwith (Printf.sprintf "The program \"%s\" (command \"%s\") is not available on this machine!" program.name program.command)
-  ) programs
+let gecode_flatzinc_solver = {
+  name     = "GeCode";
+  commands = ["fz"];
+  exe      = (fun l -> match l with [input; output] -> "fz -o " ^ (String.escaped output) ^ " " ^ (String.escaped input)
+                       | _ -> raise Wrong_argument_number)
+}
+
+let g12_minizinc_solver = {
+  name     = "G12";
+  commands = ["mzn2fzn"; "flatzinc"];
+  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".flz" in
+    "mzn2fzn --no-output-ozn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "flatzinc -o " ^ (String.escaped output) ^ " " ^ flatzinc
+                       | _ -> raise Wrong_argument_number)
+}
+
+let gecode_minizinc_solver = {
+  name     = "GeCode";
+  commands = ["mzn2fzn"; "fz"];
+  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".flz" in
+    "mzn2fzn --no-output-ozn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "fz -o " ^ (String.escaped output) ^ " " ^ flatzinc
+                       | _ -> raise Wrong_argument_number)
+}
+
+(** 2. File name manipulation *)
+
+type file = {dirname : string; basename : string; suffix : string}
+let file_default = {dirname = ""; basename = ""; suffix = ""}
+
+let file_process_name s = if s <> "" then (
+    let dir_name  = Filename.dirname s in
+    let base_name_tmp = Filename.basename s in
+     let (index, len) = (String.rindex base_name_tmp '.', String.length base_name_tmp) in
+      if (0 <= index) && (index < len) then
+       { dirname = dir_name; basename = String.sub base_name_tmp 0 index; suffix = String.sub base_name_tmp index (len - index) }
+      else { dirname = dir_name; basename = base_name_tmp; suffix = "" }
+  ) else file_default
+
+let file_create keep file = let filename_tmp = Filename.temp_file file.basename file.suffix in
+  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+
+let file_print keep file s = 
+  let (filename_tmp, out_c) = Filename.open_temp_file file.basename file.suffix in
+  output_string out_c s; flush out_c; close_out out_c;
+  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+
+(*
+let file_create ?(keep: bool = false) file = let filename_tmp = Filename.temp_file file.basename file.suffix in
+  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+
+let file_print ?(keep: bool = false) file s = 
+  let (filename_tmp, out_c) = Filename.open_temp_file file.basename file.suffix in
+  output_string out_c s; flush out_c; close_out out_c;
+  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+*)
 
 
-module Set_of_list =
-  functor (S : Set.S) ->
-  struct
-
-    exception Double_element of S.elt
-
-    let translate el_translate l =
-      List.fold_left (fun set el ->
-        let el = el_translate el
-        in
-        if S.mem el set
-        then raise (Double_element el)
-        else S.add el set
-      ) S.empty l
-
-  end
-
-module Map_of_assoc_list =
-  functor (M : Map.S) ->
-  struct
-
-    exception Double_key of M.key
-
-    let translate key_translate value_translate l =
-      List.fold_left (fun map (key, value) ->
-        let key   = key_translate key
-        and value = value_translate value
-        in
-        if M.mem key map
-        then raise (Double_key key)
-        else M.add key value map
-      ) M.empty l
-
-  end
-
-module Map_of_list =
-  functor (M : Map.S) ->
-  struct
-
-    exception Double_key of M.key
-
-    let translate key_translate value_translate l =
-      let module T = Map_of_assoc_list(M) in
-      T.translate key_translate value_translate (List.combine l l)
-
-  end
-
-module Set_of_map_values =
-  functor (M : Map.S) ->
-  functor (Set : Set.S) ->
-  struct
-
-    exception Double_value of Set.elt
-
-    let set_of_map_values map =
-      M.fold (fun _ value set ->
-        if Set.mem value set
-        then raise (Double_value value)
-        else Set.add value set
-      ) map Set.empty
-
-  end
-
-module Set_of_map_keys =
-  functor (Map : Map.S) ->
-  functor (Set : Set.S with type elt = Map.key) ->
-  struct
-
-    let set_of_map_keys map =
-      Map.fold (fun key _ set ->
-        Set.add key set
-      ) map Set.empty
-
-  end
-
-module Set_of_set =
-  functor (Set_origin : Set.S) ->
-  functor (Set_target : Set.S) -> 
-  struct
-    
-    let convert f s = Set_origin.fold (fun v res -> Set_target.add (f v) res) s Set_target.empty
-  
-  end

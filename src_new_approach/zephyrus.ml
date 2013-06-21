@@ -33,7 +33,7 @@ open Load_settings
 open Data_model
 open Load_model
 open Constraint_of
-
+open Solvers
 
 (* === Default settings === *)
 let () =

@@ -21,15 +21,13 @@
     - datatypes/Data_constraint
 *)
 
+(* the prints should be handled by Zephyrus log directly. Moreover maybe we should use the Lazy library, in case the string will never be printed *)
 type solver_settings = {
-  print_solver_variables       : bool; (* these prints should be handled by Zephyrus log directly, no? Maybe we should use the Lazy library, in case the string will never be printed *)
-  print_solver_constraints     : bool;
-  print_solver_execution       : bool;
-  print_intermediate_solutions : bool;
-  input_file_prefix            : string;
-  output_file_prefix           : string;
-  keep_input_file              : bool;
-  keep_output_file             : bool;  
+  bounds                : Data_constraint.variable_bounds;
+  input_file            : string;
+  output_file           : string;
+  keep_input_file       : bool;
+  keep_output_file      : bool;  
 }
 
 module type SOLVER = sig
