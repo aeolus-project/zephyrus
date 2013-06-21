@@ -25,18 +25,21 @@ true: use_menhir
 <src_new_approach/engine/translation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine/translation>: include
 
+<src_new_approach/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/solvers>: include
+
+<src_new_approach/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src_new_approach/engine/solvers/minizinc>: include
+
+
 
 <src_new_approach/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine/constraint_generation>: include
 
-<src_new_approach/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<src_new_approach/engine/solvers>: include
 
 <src_new_approach/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine/solvers/facile>: include
 
-<src_new_approach/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
-<src_new_approach/engine/solvers/minizinc>: include
 
 <src_new_approach/engine/configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
 <src_new_approach/engine/configuration_generation>: include

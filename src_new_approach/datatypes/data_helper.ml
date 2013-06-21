@@ -17,6 +17,22 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* Depends on
+    - datatypes/Data_model
+    - datatypes/Data_constraint
+*)
+
+
+
+(*  Constraints *)
+
+let my_max_int = 10000
+let int_of_value v = match v with | Data_constraint.Finite_value(i) -> i | Data_constraint.Infinite_value -> my_max_int
+
+let rec parse_nary_op op_none op_el op_combine l = match l with
+  | [] -> op_none | [el] -> op_el el | el::l' -> op_combine (op_el el) (parse_nary_op op_none op_el op_combine l')
+
+
 (****************************************************)
 (******************** DEPRECATED ********************)
 (****************************************************)
@@ -25,8 +41,6 @@
     - datatypes/Data_model (obviously)
     - datatypes/Data_state (for storing. Maybe a better aternative can be found)
 *)
-
-open Data_model
 
 
 (*  let get_provide_arity component_type port_name =
@@ -38,7 +52,7 @@ open Data_model
     | Not_found -> Zephyrus_log.log_missing_data "required port" port_name ("component \"" ^ component_type.component_type_name ^ "\""); exit(-1)
 
   let is_in_conflict component_type port_name = Port_name_set.mem port_name component_type.component_type_conflict
-*)
+
 
   let port_is_provide_strict prov = match prov with
     | Finite_provide i -> i > 0
@@ -55,7 +69,7 @@ open Data_model
     (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types)
 
 
-(*
+
 
 
 module Core = struct (** Core module with all functionalities partially defined *)
@@ -516,3 +530,5 @@ module Improved = struct
 
 end
 *)
+
+

@@ -374,6 +374,7 @@ let optimization_function () = match !Data_state.optimization_function with
       | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
       | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
       | Data_model.Optimization_function_none         -> Lexicographic([])))
+    | _ -> ()
 
 
 

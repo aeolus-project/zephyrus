@@ -17,11 +17,38 @@
 (*                                                                          *)
 (****************************************************************************)
 
-module Constraints_simple_to_Minizinc : sig
+(* Depends on
+    - datatypes/Data_constraint
+*)
 
-end
+open Data_constraint
 
-module Constraints_simple_to_Facile : sig
+type minizinc = string
 
-end
+(* 
+  Protocol to produce some minizinc:
+   1. us [variables] to get the variables from the constraints and optimization functions, necessary for the variable declaration part of the result
+   2. use [core] to get the variable declaration part, the constraint part, and the output part of the result
+   3. Iteratively (for lexicographic optimization functions),
+     3.1. apply [optimization_goal] to the result, to feed the solver with and then get an optimum for that goal
+     3.2. apply [extra_constraint] to the result, to add informations about the minimal cost, so we can iterate again
+ *)
+
+type named_variables = string Variable_map.t
+type structured_minizinc = { mzn_variables : named_variables; mzn_declaration : string; mzn_main_constraint : string; mzn_extra_constraint : string; mzn_output : string}
+
+exception Wrong_optimization_function
+
+
+let variables : (string * konstraint) list -> optimization_function -> named_variables
+let core : named_variables -> variable_bound -> (string * konstraint) list -> structured_minizinc
+
+let optimization_goal : structured_minizinc -> optimization_function -> string
+let extra_constraint : structured_minizinc -> expression -> int -> structured_minizinc
+
+
+
+
+
+
 

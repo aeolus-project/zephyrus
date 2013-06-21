@@ -18,6 +18,12 @@
 (****************************************************************************)
 
 
+(* Depends on
+    - datatypes/Data_model
+    - datatypes/Data_constraint
+    - datatypes/Data_helper
+*)
+
 (************************************)
 (** Model                           *)
 (************************************)
@@ -94,24 +100,21 @@ let value v = match v with
   | Data_constraint.Finite_value(i) -> string_of_int i
   | Data_constraint.Infinite_value  -> "infinite"
 
-let rec operation_list string_of op n l = match l with
-  | [] -> n | [el] -> string_of el | el::l' -> (string_of el) ^ op ^ (operation_list string_of op n l')
-
 let rec expression e = match e with
   | Data_constraint.Constant(v)  -> value v
   | Data_constraint.Variable(v)  -> variable v
   | Data_constraint.Reified(c)   -> "|| " ^ (konstraint c) ^ " ||"
-  | Data_constraint.Add(l)       -> operation_list expression " + " "0" l
+  | Data_constraint.Add(l)       -> Data_helper.parse_nary_op "0" expression (fun s1 s2 -> s1 ^ " + " ^ s2) l
   | Data_constraint.Sub(e1,e2)   -> "(" ^ (expression e1) ^ " - " ^ (expression e2) ^ ")"
-  | Data_constraint.Mul(l)       -> operation_list expression " * " "1" l
+  | Data_constraint.Mul(l)       -> Data_helper.parse_nary_op "1" expression (fun s1 s2 -> s1 ^ " * " ^ s2) l
   | Data_constraint.Abs(e')      -> "|" ^ (expression e') ^ "|"
   | Data_constraint.Mod(e1,e2)   -> "(" ^ (expression e1) ^ " % " ^ (expression e2) ^ ")"
   | Data_constraint.Div(e1,e2)   -> "(" ^ (expression e1) ^ " / " ^ (expression e2) ^ ")"
 and konstraint c = match c with
   | Data_constraint.True            -> "true"
   | Data_constraint.Arith(e1,o,e2)  -> (expression e1) ^ (op o) ^ (expression e2)
-  | Data_constraint.And(l)          -> operation_list konstraint " /\\ " "true" l
-  | Data_constraint.Or(l)           -> operation_list konstraint " \\/ " "false" l
+  | Data_constraint.And(l)          -> Data_helper.parse_nary_op "true" konstraint (fun s1 s2 -> s1 ^ " /\\ " ^ s2) l
+  | Data_constraint.Or(l)           -> Data_helper.parse_nary_op "false" konstraint (fun s1 s2 -> s1 ^ " \\/ " ^ s2) l
   | Data_constraint.Implies(c1,c2)  -> (konstraint c1) ^ " ==> " ^ (konstraint c2)
   | Data_constraint.Not(c')         -> "not(" ^ (konstraint c') ^ ")"
 

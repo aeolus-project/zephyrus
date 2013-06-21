@@ -16,16 +16,29 @@
 (*    along with Zephyrus.  If not, see <http://www.gnu.org/licenses/>.     *)
 (*                                                                          *)
 (****************************************************************************)
- 
-module Aeolus_flat_to_Constraint_basic : sig
- 
+
+(* Depends on
+    - datatypes/Data_constraint
+*)
+
+type solver_settings = {
+  print_solver_variables       : bool; (* these prints should be handled by Zephyrus log directly, no? Maybe we should use the Lazy library, in case the string will never be printed *)
+  print_solver_constraints     : bool;
+  print_solver_execution       : bool;
+  print_intermediate_solutions : bool;
+  input_file_prefix            : string;
+  output_file_prefix           : string;
+  keep_input_file              : bool;
+  keep_output_file             : bool;  
+}
+
+module type SOLVER = sig
+  val solve : solver_settings ->
+      (string * Data_constraint.konstraint) list ->
+      Data_constraint.optimization_function ->
+      (Data_constraint.solution * (int list)) (* It returns the solution and its cost. *)
 end
 
-module Aeolus_location_to_Constraint_basic : sig
- 
-end
-
-module Aeolus_location_to_Constraint_optimized : sig
- 
-end
+module G12    : SOLVER
+module GeCode : SOLVER
 

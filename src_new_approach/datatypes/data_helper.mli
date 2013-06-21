@@ -17,6 +17,19 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* Depends on
+    - datatypes/Data_model
+    - datatypes/Data_constraint
+*)
+
+(*  Constraints *)
+
+val parse_nary_op : 'a -> ('b -> 'a) -> ('a -> 'a -> 'a) -> ('b list) -> 'a
+val int_of_value : Data_constraint.value -> int
+
+
+
+
 (****************************************************)
 (******************** DEPRECATED ********************)
 (****************************************************)
@@ -27,18 +40,16 @@
 *)
 
 
-open Data_model
-
 (*
 val get_provide_arity : component_type -> port_id -> provide_arity
 val get_require_arity : component_type -> port_id -> require_arity
 val is_in_conflict : component_type -> port_id -> bool
-*)
+
 val requirers   : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
 val providers   : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
 val conflicters : component_type Component_type_id_map.t -> port_id -> Component_type_id_set.t
 
-
+*)
 
 
 (* Functions and data defined in the Zephyrus paper
