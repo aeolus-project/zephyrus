@@ -90,17 +90,17 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
     (* ports *)
   let port_names    : Port_name_set.t ref = ref Port_name_set.empty in             (* all port names *)
   let port_ids      : Port_id_set.t ref   = ref Port_id_set.empty in               (* all port ids *)
-  let port_local_provide : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids provided by the current component *)
-  let port_local_require : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids required by the current component *)
   let port_get_id   : (port_id Port_name_map.t) ref = ref Port_name_map.empty in   (* mapping from port names to port ids *)
   let port_get_name : (port_name Port_id_map.t) ref = ref Port_id_map.empty in     (* mapping from port ids to port names *)
+  let port_local_provide : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids provided by the current component *)
+  let port_local_require : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids required by the current component *)
+  let add_port_provided id = port_local_provide := Port_id_set.add id (!port_local_provide) in
+  let add_port_required id = port_local_require := Port_id_set.add id (!port_local_require) in
   let add_port name id = 
     port_names    := Port_name_set.add name (!port_names);
     port_ids      := Port_id_set.add id (!port_ids);
     port_get_id   := Port_name_map.add name id (!port_get_id);
     port_get_name := Port_id_map.add id name (!port_get_name) in
-  let add_port_provided id = port_local_provide := Port_id_set.add id (!port_local_provide) in
-  let add_port_required id = port_local_require := Port_id_set.add id (!port_local_require) in
   let port_current_id = ref 0 in
   let find_port name = try Port_name_map.find name !port_get_id with
     | Not_found -> let id = !port_current_id in port_current_id := (!port_current_id) + 1; add_port name id; id in
@@ -180,8 +180,10 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
   (* 2. Conversion *)
     (* component types *)
   let convert_component_type t =
+
     port_local_provide := Port_id_set.empty;
     port_local_require := Port_id_set.empty;
+
     let implem_provide  = Port_id_map.map_of_list
       (fun (p,n) -> (let id = find_port (convert_port_name p) in add_port_provided id; id, convert_provide_arity n)) t.Json_t.component_type_provide in
     let implem_require  = Port_id_map.map_of_list
@@ -189,16 +191,18 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
     let implem_conflict = Port_id_set.set_of_list (fun p -> find_port (convert_port_name p)) t.Json_t.component_type_conflict in
     let implem_consume = Resource_id_map.map_of_list
       (fun (r,n) -> (get_resource_id (convert_resource_name r), convert_resource_consume_arity n)) t.Json_t.component_type_consume in
+    let port_local_provide = !port_local_provide in
+    let port_local_require = !port_local_require in
     new_component_type (object(self)
       method name           = convert_component_type_name t.Json_t.component_type_name
       method provide      p = try Port_id_map.find p implem_provide with
-        | Not_found -> let port_desc = "(" ^ (string_of_int p) ^ "," ^ (try Port_id_map.find p (!port_get_name) with Not_found -> "") ^ ")" in
+        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try Port_id_map.find p (!port_get_name) with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
-      method provide_domain = !port_local_provide
+      method provide_domain = port_local_provide
       method require      p = try Port_id_map.find p implem_require with
-        | Not_found -> let port_desc = "(" ^ (string_of_int p) ^ "," ^ (try Port_id_map.find p (!port_get_name) with Not_found -> "") ^ ")" in
+        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try Port_id_map.find p (!port_get_name) with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ (self#name) ^ "\"")
-      method require_domain = !port_local_require
+      method require_domain = port_local_require
       method conflict       = implem_conflict
       method consume      r = try Resource_id_map.find r implem_consume with Not_found -> 0
     end) in
@@ -222,13 +226,14 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
     let implem_name = convert_repository_name r.Json_t.repository_name in
     let implem_packages = Package_id_map.map_of_list
       (fun k -> convert_package id implem_name k) r.Json_t.repository_packages in
+    let local_package_ids = !local_package_ids in let local_packages = !local_packages in
     new_repository (object(self) 
       method name          = implem_name
       method get_package k = try Package_id_map.find k implem_packages with
         | Not_found -> let package_desc = "(" ^ (string_of_int k) ^ "," ^ (try Package_id_map.find k (!package_get_name) with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "package" package_desc ("package of the repository \"" ^ (self#name) ^ "\"")
-      method packages = !local_packages
-      method package_ids = !local_package_ids
+      method packages = local_packages
+      method package_ids = local_package_ids
     end) in
 
     (* universe *)

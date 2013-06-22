@@ -24,30 +24,40 @@
     - datatypes/Data_helper
 *)
 
+let identity = fun x -> x
+let string_set s = "{" ^ (String.concat ", " (Data_common.SetString.elements s)) ^ "}"
+let int_set s =  "{" ^ (String.concat ", " (List.map string_of_int (Data_common.SetInt.elements s))) ^ "}"
+
 (************************************)
 (** Model                           *)
 (************************************)
 
 (** 1. Resources *)
-let resource_name r = r
-let resource_id r     = string_of_int r
+let resource_name     = identity
+let resource_name_set = string_set
+let resource_id       = string_of_int
+let resource_id_set   = int_set
 
 let resource_provide_arity r = string_of_int r
 let resource_consume_arity r = string_of_int r
 
 (** 2. Component types *)
-let port_name p = p
-let port_id   p = string_of_int p
+let port_name     = identity
+let port_name_set = string_set
+let port_id       = string_of_int
+let port_id_set   = int_set
 
-let component_type_name t = t
-let component_type_id   t = string_of_int t
+let component_type_name     = identity
+let component_type_name_set = string_set
+let component_type_id       = string_of_int
+let component_type_id_set   = int_set
 
 let provide_arity arity = match arity with | Data_model.Infinite_provide -> "infinite" | Data_model.Finite_provide i -> string_of_int i
-let require_arity arity = string_of_int arity
+let require_arity       = string_of_int
 
 (** 3. Packages *)
-let package_name k = k
-let package_id   k = string_of_int k
+let package_name = identity
+let package_id   = string_of_int
 
 (** 4. Repositories *)
 let repository_name r = r

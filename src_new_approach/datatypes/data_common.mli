@@ -52,6 +52,7 @@ module SetSetInt    : Set.S with type elt = SetInt.t
 module SetString    : Set.S with type elt = string
 module SetSetString : Set.S with type elt = SetString.t
 
+val setstring_of_setint : SetInt.t -> SetString.t
 
 (** Extension of the Map module from the standard library with Construction, Conversion and Extraction **)
 module Map : sig

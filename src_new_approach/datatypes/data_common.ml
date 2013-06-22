@@ -59,8 +59,8 @@ module SetInt       = Set.Make(Int)
 module SetSetInt    = Set.Make(SetInt)
 module SetString    = Set.Make(String)
 module SetSetString = Set.Make(SetString)
-
-
+module SetInt_to_SetString = Set.Convert(SetInt)(SetString)
+let setstring_of_setint s = SetInt_to_SetString.convert string_of_int s
 
 module Map = struct
 

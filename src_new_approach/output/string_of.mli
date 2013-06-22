@@ -29,18 +29,24 @@
 (*\********************************/*)
 
 (** 1. Resources *)
-val resource_name : Data_model.resource_name -> string
-val resource_id   : Data_model.resource_id -> string
+val resource_name     : Data_model.resource_name -> string
+val resource_name_set : Data_model.Resource_name_set.t -> string
+val resource_id       : Data_model.resource_id -> string
+val resource_id_set   : Data_model.Resource_id_set.t -> string
 
 val resource_provide_arity : Data_model.resource_provide_arity -> string
 val resource_consume_arity : Data_model.resource_consume_arity -> string
 
 (** 2. Component types *)
-val port_name : Data_model.port_name -> string
-val port_id   : Data_model.port_id -> string
+val port_name     : Data_model.port_name -> string
+val port_name_set : Data_model.Port_name_set.t -> string
+val port_id       : Data_model.port_id -> string
+val port_id_set   : Data_model.Port_id_set.t -> string
 
-val component_type_name : Data_model.component_type_name -> string
-val component_type_id   : Data_model.component_type_id -> string
+val component_type_name     : Data_model.component_type_name -> string
+val component_type_name_set : Data_model.Component_type_name_set.t -> string
+val component_type_id       : Data_model.component_type_id -> string
+val component_type_id_set   : Data_model.Component_type_id_set.t -> string
 
 val provide_arity : Data_model.provide_arity -> string
 val require_arity : Data_model.require_arity -> string

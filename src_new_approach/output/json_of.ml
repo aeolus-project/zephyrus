@@ -48,12 +48,18 @@ let convert_location_name          x = x
 let convert_component_name         x = x
 
 (* universe *)
-let convert_component_type c resources port_get_name resource_get_name = {
-    Json_j.component_type_name = convert_component_type_name (c#name);
-    Json_j.component_type_provide  = List.map (fun p -> (port_get_name p, convert_provide_arity (c#provide p))) (Port_id_set.elements c#provide_domain);
-    Json_j.component_type_require  = List.map (fun p -> (port_get_name p, convert_require_arity (c#require p))) (Port_id_set.elements c#require_domain);
-    Json_j.component_type_conflict = List.map port_get_name (Port_id_set.elements (c#conflict));
-    Json_j.component_type_consume  = List.map (fun r -> (resource_get_name r, convert_resource_consume_arity (c#consume r))) resources
+let convert_component_type t resources port_get_name resource_get_name = 
+(* DEBUG **************************)
+
+   print_string( " => component \"" ^ t#name ^ "\" provides " ^ (String_of.port_id_set t#provide_domain) ^ "\n");
+   print_string( " => component \"" ^ t#name ^ "\" requires " ^ (String_of.port_id_set t#require_domain) ^ "\n");
+
+(* DEBUG **************************) {
+    Json_j.component_type_name = convert_component_type_name (t#name);
+    Json_j.component_type_provide  = List.map (fun p -> (port_get_name p, convert_provide_arity (t#provide p))) (Port_id_set.elements t#provide_domain);
+    Json_j.component_type_require  = List.map (fun p -> (port_get_name p, convert_require_arity (t#require p))) (Port_id_set.elements t#require_domain);
+    Json_j.component_type_conflict = List.map port_get_name (Port_id_set.elements (t#conflict));
+    Json_j.component_type_consume  = List.map (fun r -> (resource_get_name r, convert_resource_consume_arity (t#consume r))) resources
 }
 
 let convert_package k resources package_get_name resource_get_name = {
