@@ -29,14 +29,16 @@ type mode =
  | Mode_bin_packing
  
 
-type optim =     (* the different kind of optimization in zephyrus *)
+(* the different kind of optimization in zephyrus *)
+type optim =
   | Optim_none
   | Optim_simple
   | Optim_compact
   | Optim_spread
   | Optim_conservative
 
-type solver =    (* the different kind of solver available in zephyrus *)
+(* the different kind of solver available in zephyrus *)
+type solver =
   | Solver_none
   | Solver_gcode
   | Solver_g12
@@ -45,12 +47,14 @@ type solver =    (* the different kind of solver available in zephyrus *)
 type solver_bin_packing = 
   | Solver_bin_packing_unknown
 
-type conf_gen_bindings =  (* the different mean we have to generate the final configuration *)
+(* the different mean we have to generate the final configuration *)
+type conf_gen_bindings =
   | Conf_gen_bindings_none
   | Conf_gen_bindings_candy
   | Conf_gen_bindings_constraint
 
-type conf_gen_packages = (* the different mean we have to generate the packages we need to install *)
+(* the different mean we have to generate the packages we need to install *)
+type conf_gen_packages =
   | Conf_gen_packages_none
   | Conf_gen_packages_universe
 

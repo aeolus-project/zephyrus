@@ -108,6 +108,7 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
 let () =
   Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
 
+
 (* === Default settings === *)
 let () =
   Settings.input_file_settings      := Some("./src_new_approach/zephyrus-settings.example");
@@ -151,14 +152,7 @@ let string_of_string_option_ref string_option_ref =
   | Some s -> s
 
 (* just a test! *)
-let my_universe =
-  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
 
-(* just a test! *)
-let my_specification =
-  Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification
-
-(* just a test! *)
 let my_settings =
   Printf.printf "Reading settings from file %s...\n" (string_of_string_option_ref Settings.input_file_settings);
   flush stdout;
@@ -169,10 +163,34 @@ let my_settings =
   | None -> failwith "No settings were found!"
   | Some settings -> settings
 
-
 let () =
   Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
   *)
+
+
+
+
+(* just a test! *)
+let my_universe =
+  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
+
+let () =
+  match my_universe with
+  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
+  | Some json_universe -> Printf.printf "\nThe universe:\n%s\n" (Yojson.Safe.prettify (Json_j.string_of_universe json_universe))
+
+(* just a test! *)
+let my_specification =
+  Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification
+
+let () =
+  Load_model.load_model ();
+  match !Data_state.universe_full with
+  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
+  | Some u -> ()
+(*     let json_universe = Save_model.universe u
+     in Printf.printf "\nThe universe:\n%s\n" (Json_j.string_of_universe json_universe)
+*)
 
 
 

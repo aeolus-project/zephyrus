@@ -131,8 +131,9 @@ let convert_configuration c u resources = convert_configuration_tmp (Resource_id
 let universe u resources channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u resources)
 let configuration c u resources channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u resources)
 
-let universe_string u resources = Json_j.string_of_universe (convert_universe u resources)
-let configuration_string c u resources = Json_j.string_of_configuration (convert_configuration c u resources)
+
+let universe_string u resources = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u resources))
+let configuration_string c u resources = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u resources))
 
 
 
