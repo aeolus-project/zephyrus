@@ -67,6 +67,7 @@ let not       x    = Not(x)
 
 
 
+let get_provide_arity_safe t p = if Data_model.Port_id_set.mem p t#provide_domain then constant_of_provide_arity (t#provide p) else constant 0
 let get_provide_arity t p = constant_of_provide_arity (t#provide p)
 let get_require_arity t p = constant_of_require_arity (t#require p)
 let get_consume x o = constant (x#consume o)
@@ -111,7 +112,7 @@ let binding u_dp ur up =
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res ->
       Data_model.Component_type_id_set.fold (fun tp res ->
-        ((eB p tp tr) <=~ ((eNt tr) *~ (eNt tr)))::res
+        ((eB p tp tr) <=~ ((eNt tr) *~ (eNt tp)))::res
       ) (up p) res
     ) (ur p) res
   ) u_dp []
@@ -120,7 +121,7 @@ let binding u_dp ur up =
 let conflict u_dp uc get_component_type =
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun t res ->
-      (((eNt t) >=~ (constant 1)) =>~~ ((eNp p) =~ (get_provide_arity (get_component_type t) p)))::res
+      (((eNt t) >=~ (constant 1)) =>~~ ((eNp p) =~ (get_provide_arity_safe (get_component_type t) p)))::res
     ) (uc p) res
   ) u_dp []
 
@@ -207,22 +208,37 @@ let deprecated_component_types_and_packages c_l =
 
 let universe_full () =
   let f (universe: Data_model.universe) configuration resources=
+(* DEBUG **************************) print_string ("Compute requires\n"); flush stdout;
     Data_state.constraint_universe_component_type_require        := require universe#u_dp universe#ur universe#up universe#get_component_type;
+(* DEBUG **************************) print_string ("Compute provides\n"); flush stdout;
     Data_state.constraint_universe_component_type_provide        := provide universe#u_dp universe#up universe#ur universe#get_component_type;
+(* DEBUG **************************) print_string ("Compute conflicts\n"); flush stdout;
     Data_state.constraint_universe_component_type_conflict       := conflict universe#u_dp universe#uc universe#get_component_type;
+(* DEBUG **************************) print_string ("Compute implem\n"); flush stdout;
     Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#c_l universe#u_dt universe#u_i;
+(* DEBUG **************************) print_string ("Compute unicitiy\n"); flush stdout;
     Data_state.constraint_universe_binding_unicity               := binding universe#u_dp universe#ur universe#up;
+(* DEBUG **************************) print_string ("Compute distribution component types\n"); flush stdout;
     Data_state.constraint_universe_location_component_type       := location_component_type universe#u_dt configuration#c_l;
+(* DEBUG **************************) print_string ("Compute distribution package\n"); flush stdout;
     Data_state.constraint_universe_location_package              := location_package universe#u_dk configuration#c_l;
+(* DEBUG **************************) print_string ("Compute distribution ports\n"); flush stdout;
     Data_state.constraint_universe_location_port                 := location_port universe#u_dp configuration#c_l;
+(* DEBUG **************************) print_string ("Compute implementation port\n"); flush stdout;
     Data_state.constraint_universe_definition_port               := location_port_equation universe#u_dp configuration#c_l universe#up universe#get_component_type;
+(* DEBUG **************************) print_string ("Compute repository unicity\n"); flush stdout;
     Data_state.constraint_universe_repository_unicity            := repository_unique configuration#c_l universe#u_dr;
+(* DEBUG **************************) print_string ("Compute package local to repository\n"); flush stdout;
     Data_state.constraint_universe_repository_package            :=
       repository_package configuration#c_l universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids);
+(* DEBUG **************************) print_string ("Compute package dependencies\n"); flush stdout;
     Data_state.constraint_universe_package_dependency            := package_dependency configuration#c_l universe#u_dk universe#get_package;
+(* DEBUG **************************) print_string ("Compute package conflicts\n"); flush stdout;
     Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#u_dk universe#get_package;
+(* DEBUG **************************) print_string ("Compute resource consumption\n"); flush stdout;
     Data_state.constraint_universe_resource_consumption          :=
       resource_consumption configuration#c_l resources#resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package;
+(* DEBUG **************************) print_string ("Compute elements to delete\n"); flush stdout;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.resources_full) with
     | (Some(u), Some(c), Some(r)) -> f u c r

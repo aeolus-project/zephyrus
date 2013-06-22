@@ -75,12 +75,20 @@ end module Repository_id_Package_name_map = Data_common.Map.Make(Repository_id_P
 
 let port_is_provide_strict prov = match prov with | Finite_provide i -> i > 0 | Infinite_provide -> true
 
-let requirers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false) component_types)
-let providers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false) component_types)
-let conflicters component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types)
+let requirers component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false) component_types) in
+(* DEBUG **************************)
+  print_string ("Components providing " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
+
+let providers component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false) component_types) in
+(* DEBUG **************************)
+  print_string ("Components requiring " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
+
+let conflicters component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types) in
+(* DEBUG **************************)
+  print_string ("Components conflicting with " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
 
 
 (*module Package_key_conversion = Data_common.Map.Convert(Repository_id_Package_name_map)(Package_id_map)*)
@@ -299,9 +307,9 @@ object(self)
   method ur p = (try Port_id_map.find p implem_ur with
            | Not_found -> let tmp = (requirers implem_get_component_type p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
   method up p = (try Port_id_map.find p implem_up with
-           | Not_found -> let tmp = (providers implem_get_component_type p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
-  method uc p = (try Port_id_map.find p implem_ur with
-           | Not_found -> let tmp = (conflicters implem_get_component_type p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
+           | Not_found -> let tmp = (providers implem_get_component_type p) in implem_up <- Port_id_map.add p tmp implem_up; tmp)
+  method uc p = (try Port_id_map.find p implem_uc with
+           | Not_found -> let tmp = (conflicters implem_get_component_type p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp)
 
   (* methods for naming *)
   method get_port_id           n = try Port_name_map.find n implem_get_port_id with Not_found -> deprecated_package_id (* to deal with initial configurations *)
