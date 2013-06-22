@@ -40,7 +40,10 @@ let program_did_exit_ok process_status = match process_status with
 let program_is_available program = List.fold_left (fun res cmd -> (program_did_exit_ok (Unix.system ("which " ^ cmd  ^ " > /dev/null"))) && res) true program.commands
 let programs_are_available l = List.fold_left (fun res p -> (program_is_available p) && res) true l
 
-let program_sync_exec  p l = Unix.system (p.exe l)
+let program_sync_exec  p l = 
+(* DEBUG **************************) print_string ("executing \"" ^ (p.exe l) ^"\"\n"); flush stdout;
+Unix.system (p.exe l)
+
 let program_async_exec p l = let id = Unix.fork () in if id <> 0 then id else Unix.execv "/bin/sh" [|"-c"; ("\"" ^ (p.exe l) ^ "\"") |]
 let program_wait id = let (_, s) = Unix.waitpid [] id in s
 
@@ -70,7 +73,7 @@ let gecode_flatzinc_solver = {
 let g12_minizinc_solver = {
   name     = "G12";
   commands = ["mzn2fzn"; "flatzinc"];
-  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".flz" in
+  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".fzn" in
     "mzn2fzn --no-output-ozn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "flatzinc -o " ^ (String.escaped output) ^ " " ^ flatzinc
                        | _ -> raise Wrong_argument_number)
 }
@@ -78,7 +81,7 @@ let g12_minizinc_solver = {
 let gecode_minizinc_solver = {
   name     = "GeCode";
   commands = ["mzn2fzn"; "fz"];
-  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".flz" in
+  exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".fzn" in
     "mzn2fzn --no-output-ozn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "fz -o " ^ (String.escaped output) ^ " " ^ flatzinc
                        | _ -> raise Wrong_argument_number)
 }
@@ -97,13 +100,18 @@ let file_process_name s = if s <> "" then (
       else { dirname = dir_name; basename = base_name_tmp; suffix = "" }
   ) else file_default
 
+let keep_file current_name file =
+  let basename = Filename.basename current_name in
+  let filename = file.dirname ^ Filename.dir_sep ^ basename in
+  (if current_name <> filename then Unix.rename current_name filename); filename
+
 let file_create keep file = let filename_tmp = Filename.temp_file file.basename file.suffix in
-  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+  if keep then keep_file filename_tmp file else filename_tmp
 
 let file_print keep file s = 
   let (filename_tmp, out_c) = Filename.open_temp_file file.basename file.suffix in
   output_string out_c s; flush out_c; close_out out_c;
-  if keep then let filename = file.basename ^ filename_tmp in Unix.rename filename_tmp filename; filename else filename_tmp
+  if keep then keep_file filename_tmp file else filename_tmp
 
 (*
 let file_create ?(keep: bool = false) file = let filename_tmp = Filename.temp_file file.basename file.suffix in

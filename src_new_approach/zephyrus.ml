@@ -51,6 +51,7 @@ let () =
   Settings.data_generation_initial_configuration  := Some(true);
   Settings.data_generation_specification          := Some(true);
   Settings.data_generation_optimization_function  := Some(true);
+  Settings.verbose_constraint_solver_activities   := Some(true);
 
 (* === load everything  === *)
   Load_model.load_model ();
@@ -101,6 +102,35 @@ let () =
 let constraint_optimization_function : optimization_function option ref = ref None
 let constraint_variable_bounds       : variable_bounds option ref = ref None
  *) 
+
+  print_string "\n ===============================";
+  print_string "\n    ==> SOLVING SECTION <==  \n";
+  let solver_settings = {
+      Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
+      Solvers.input_file            = "tests/minizinc/zephyrus-.mzn";
+      Solvers.output_file           = "zephyrus-.sol";
+      Solvers.keep_input_file       = true;
+      Solvers.keep_output_file      = true  
+    } in let solver_input = [
+    ("  require  " , (Data_constraint.And(!Data_state.constraint_universe_component_type_require)));
+    ("  provide  " , (Data_constraint.And(!Data_state.constraint_universe_component_type_provide)));
+    ("  conflict " , (Data_constraint.And(!Data_state.constraint_universe_component_type_conflict)));
+    ("  implem   " , (Data_constraint.And(!Data_state.constraint_universe_component_type_implementation)));
+    ("  unicity  " , (Data_constraint.And(!Data_state.constraint_universe_binding_unicity)));
+    ("  distrib1 " , (Data_constraint.And(!Data_state.constraint_universe_location_component_type)));
+    ("  distrib2 " , (Data_constraint.And(!Data_state.constraint_universe_location_package)));
+    ("  distrib3 " , (Data_constraint.And(!Data_state.constraint_universe_location_port)));
+    ("  port_cal " , (Data_constraint.And(!Data_state.constraint_universe_definition_port)));
+    ("  repo_1   " , (Data_constraint.And(!Data_state.constraint_universe_repository_unicity)));
+    ("  repo_pac " , (Data_constraint.And(!Data_state.constraint_universe_repository_package)));
+    ("  pack_dep " , (Data_constraint.And(!Data_state.constraint_universe_package_dependency)));
+    ("  pack_pb  " , (Data_constraint.And(!Data_state.constraint_universe_package_conflict)));
+    ("  resource " , (Data_constraint.And(!Data_state.constraint_universe_resource_consumption)));
+    ("  detlete  " , (Data_constraint.And(!Data_state.constraint_universe_deprecated_element)));
+    ("specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
+    ("  configuration " , ((Data_constraint.And(!Data_state.constraint_configuration_full)))) ] in
+  let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
+  let solution = Solvers.G12.solve solver_settings solver_input opt_f in
 
   print_string "\n\n\n <==========> THE END <==========>  \n\n"
 
