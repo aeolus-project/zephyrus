@@ -138,9 +138,11 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
   let package_get       : (package Package_id_map.t) ref                    = ref Package_id_map.empty in
   let package_get_id    : (package_id Repository_id_Package_name_map.t) ref = ref Repository_id_Package_name_map.empty in
   let package_get_name  : (package_name Package_id_map.t) ref               = ref Package_id_map.empty in
+  let repos_of_packages : (repository_id Package_id_map.t) ref  = ref Package_id_map.empty in
   let local_packages    : Package_set.t ref      = ref Package_set.empty in
   let local_package_ids : Package_id_set.t ref   = ref Package_id_set.empty in
   let add_package r name id = 
+    repos_of_packages := Package_id_map.add id r !repos_of_packages;
     package_names     := Package_name_set.add name (!package_names);
     package_ids       := Package_id_set.add id (!package_ids);
     local_package_ids := Package_id_set.add id (!package_ids);
@@ -260,9 +262,11 @@ object(self)
 
   (* methods *)
   method get_component_type id = Component_type_id_map.find id implem_get_component_type
-  method get_implementation id = Component_type_id_map.find id implem_get_implementation
+  method get_implementation id = try Component_type_id_map.find id implem_get_implementation with | Not_found -> Package_id_set.empty
   method get_repository     id = Repository_id_map.find id implem_get_repository
   method get_package        id = Package_id_map.find id implem_get_package
+
+  method repository_of_package id = Package_id_map.find id !repos_of_packages
 
   method get_component_types = !component_types
   method get_repositories    = !repositories

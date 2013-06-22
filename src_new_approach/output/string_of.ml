@@ -64,6 +64,64 @@ let component_id   c = string_of_int c
 let spec_variable_name v = v
 let spec_const const = string_of_int const
 
+let spec_local_element e = match e with
+  | Data_model.Spec_local_element_package (k) -> "#" ^ (package_id k)
+  | Data_model.Spec_local_element_component_type (c) -> "#" ^ (component_type_id c)
+  | Data_model.Spec_local_element_port (p) -> "#" ^ (port_id p)
+
+let rec spec_local_expr e = match e with
+  | Data_model.Spec_local_expr_var v -> spec_variable_name v
+  | Data_model.Spec_local_expr_const c -> spec_const c
+  | Data_model.Spec_local_expr_arity e -> spec_local_element e
+  | Data_model.Spec_local_expr_add (e1, e2) -> "(" ^ (spec_local_expr e1) ^ " + " ^ (spec_local_expr e2) ^ ")"
+  | Data_model.Spec_local_expr_sub (e1, e2) -> "(" ^ (spec_local_expr e1) ^ " - " ^ (spec_local_expr e2) ^ ")"
+  | Data_model.Spec_local_expr_mul (e1, e2) -> (spec_const e1) ^ " * " ^ (spec_local_expr e2)
+
+let spec_op o = match o with
+  | Data_model.Lt  -> " < " | Data_model.LEq -> " <= " | Data_model.Eq  -> " = "
+  | Data_model.GEq -> " >= " | Data_model.Gt  -> " > " | Data_model.NEq -> " <> "
+
+let rec local_specification s = match s with
+  | Data_model.Spec_local_true -> "true"
+  | Data_model.Spec_local_op (e1, op, e2) -> "(" ^ (spec_local_expr e1) ^ (spec_op op) ^ (spec_local_expr e2) ^ ")"
+  | Data_model.Spec_local_and (s1, s2) -> "(" ^ (local_specification s1) ^ " /\\ " ^ (local_specification s2) ^ ")"
+  | Data_model.Spec_local_or (s1, s2) -> "(" ^ (local_specification s1) ^ " \\/ " ^ (local_specification s2) ^ ")"
+  | Data_model.Spec_local_impl (s1, s2) -> "(" ^ (local_specification s1) ^ " => " ^ (local_specification s2) ^ ")"
+  | Data_model.Spec_local_not (s') -> "not " ^ (local_specification s')
+
+let spec_resource_constraint co = String.concat "; " (List.map (fun (o, op, i) -> (resource_id o) ^ (spec_op op) ^ (resource_provide_arity i)) co)
+let spec_repository_constraint cr = match cr with | [] -> "_" | _ -> String.concat " \\/ " (List.map (fun r -> (repository_id r)) cr)
+
+let spec_element e = match e with
+  | Data_model.Spec_element_package (k) -> "#" ^ (package_id k)
+  | Data_model.Spec_element_component_type (c) -> "#" ^ (component_type_id c)
+  | Data_model.Spec_element_port (p) -> "#" ^ (port_id p)
+  | Data_model.Spec_element_location (co, cr, ls) -> "#(" ^ (spec_resource_constraint co) ^ "){" ^ (spec_repository_constraint cr) ^ " : " ^ (local_specification ls) ^ "}"
+
+let rec spec_expr e = match e with
+  | Data_model.Spec_expr_var v -> spec_variable_name v
+  | Data_model.Spec_expr_const c -> spec_const c
+  | Data_model.Spec_expr_arity e -> spec_element e
+  | Data_model.Spec_expr_add (e1, e2) -> "(" ^ (spec_expr e1) ^ " + " ^ (spec_expr e2) ^ ")"
+  | Data_model.Spec_expr_sub (e1, e2) -> "(" ^ (spec_expr e1) ^ " - " ^ (spec_expr e2) ^ ")"
+  | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) ^ " * " ^ (spec_expr e2)
+
+let rec specification s = match s with
+  | Data_model.Spec_true -> "true"
+  | Data_model.Spec_op (e1, op, e2) ->  (spec_expr e1) ^ (spec_op op) ^ (spec_expr  e2)
+  | Data_model.Spec_and (s1, s2) -> "(" ^ (specification s1) ^ " /\\ " ^ (specification s2) ^ ")"
+  | Data_model.Spec_or  (s1, s2) -> "(" ^ (specification s1) ^ " \\/ " ^ (specification s2) ^ ")"
+  | Data_model.Spec_impl (s1, s2) -> "(" ^ (specification s1) ^ " => " ^ (specification s2) ^ ")"
+  | Data_model.Spec_not (s') -> "not " ^ (specification s')
+
+
+let rec model_optimization_function f = match f with
+  | Data_model.Optimization_function_simple       -> "simple"
+  | Data_model.Optimization_function_compact      -> "compact"
+  | Data_model.Optimization_function_conservative -> "conservative"
+  | Data_model.Optimization_function_spread       -> "spread"
+  | Data_model.Optimization_function_none         -> "none"
+ 
 
 (************************************)
 (** Constraints                     *)

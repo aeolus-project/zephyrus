@@ -184,9 +184,11 @@ end module Repository_set = Set.Make(Repository)
 class type universe = object
   (* basic methods *)
   method get_component_type : component_type_id -> component_type      (** Component types available in this universe. *)
-  method get_implementation  : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
-  method get_repository    : repository_id -> repository               (** Package repositories available in this universe. *)
+  method get_implementation : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
+  method get_repository     : repository_id -> repository               (** Package repositories available in this universe. *)
   method get_package        : package_id -> package
+
+  method repository_of_package : package_id -> repository_id
 
   method get_component_types : Component_type_set.t
   method get_repositories    : Repository_set.t

@@ -24,9 +24,9 @@
     - datatypes/Data_helper
 *)
 
-(************************************)
-(** Model                           *)
-(************************************)
+(*/********************************\*)
+(*  Model                           *)
+(*\********************************/*)
 
 (** 1. Resources *)
 val resource_name : Data_model.resource_name -> string
@@ -60,10 +60,16 @@ val location_id   : Data_model.location_id  -> string
 val component_name : Data_model.component_name -> string
 val component_id   : Data_model.component_id -> string
 
-(** Specification *)
+(************************************)
+(** Specification                   *)
+(************************************)
+
 val spec_variable_name : Data_model.spec_variable_name -> string
 val spec_const         : Data_model.spec_const -> string
 
+val specification : Data_model.specification -> string
+
+val model_optimization_function : Data_model.optimization_function -> string
 
 (************************************)
 (** Constraints                     *)
