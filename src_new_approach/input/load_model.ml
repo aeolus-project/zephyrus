@@ -44,27 +44,18 @@ let convert_repository_name        x = x
 let convert_location_name          x = x
 let convert_component_name         x = x
 
-(*****************************************************)
-(** 1. Resource Names and Ids Extractions            *)
-(*****************************************************)
-(*
+(*/*************************************************\*)
+(*| 1. Resource Names and Ids Extractions           |*)
+(*\*************************************************/*)
 
-class get_resources u k c s =
-  let resource_names : Resource_name_set.t ref = ref Resource_name_set.empty in
-  let get_resource_names_of_list l = List.fold_iter (fun (r,_) -> resource_names := Resource_name_set.add r !resource_names) l in
-  let parse_component_type c = get_resource_names_of_list c.Json_j.component_type_consume in
-  let parse_package k = get_resource_names_of_list k.Json_j.package_consume in
-  let parse_repository r = List.iter parse_package r.Json_j.repository_packages in
-  let parse_universe u = List.iter parse_component_type u.Json_j.universe_component_types; List.iter parse_repository u.Json_j.universe_repositories in
-  let parse_location l = get_resource_names_of_list l.Json_j.location_provide_resources in
-  let parse_configuration c = List.iter parse_location c.Json_j.configuration_locations in
-  let parse_el e = match e with `SpecElementLocalisation(rs,_,_) -> | _ -> ()
-*)
+(* empty ... *)
 
-(*****************************************************)
-(** 2. Universe Conversion                           *)
-(*****************************************************)
 
+(*/*************************************************\*)
+(*| 2. Universe Conversion                          |*)
+(*\*************************************************/*)
+
+(* this module is used to get from a package name the right package, by giving in addition in which repository to look in for *)
 module Repository_id_Package_name = struct
   type t = repository_id * package_name
   let compare v1 v2 =
@@ -73,27 +64,23 @@ module Repository_id_Package_name = struct
     else r1
 end module Repository_id_Package_name_map = Data_common.Map.Make(Repository_id_Package_name)
 
+
+(* function for port manipulation *)
+(*  - check if a provide does really provide a port *)
 let port_is_provide_strict prov = match prov with | Finite_provide i -> i > 0 | Infinite_provide -> true
+(*  - computes the set of component types (id) that requires the port in parameter *)
+let requirers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false) component_types)
+(*  - computes the set of component types (id) that provides the port in parameter *)
+let providers component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false) component_types)
+(*  - computes the set of component types (id) that are in conflict with the port in parameter *)
+let conflicters component_types port_id = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
+  (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types)
 
-let requirers component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false) component_types) in
-(* DEBUG **************************)
-  print_string ("Components providing " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
-
-let providers component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false) component_types) in
-(* DEBUG **************************)
-  print_string ("Components requiring " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
-
-let conflicters component_types port_id = let res = Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter
-  (fun id t -> Port_id_set.mem port_id (t#conflict)) component_types) in
-(* DEBUG **************************)
-  print_string ("Components conflicting with " ^ (string_of_int port_id) ^ " : " ^ (String_of.component_type_id_set res) ^ "\n"); res
-
-
-(*module Package_key_conversion = Data_common.Map.Convert(Repository_id_Package_name_map)(Package_id_map)*)
-
-class convert_universe get_resource_id get_resource_name input_repositories u = 
+(*/*********************************)
+(* class for loading a universe from a Json_j structure. Contains all conversion function concerning universes *)
+class convert_universe get_resource_id get_resource_name external_repositories u = 
   (* 1. Data Storage *)
     (* ports *)
   let port_names    : Port_name_set.t ref = ref Port_name_set.empty in             (* all port names *)
@@ -102,37 +89,37 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
   let port_get_name : (port_name Port_id_map.t) ref = ref Port_id_map.empty in     (* mapping from port ids to port names *)
   let port_local_provide : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids provided by the current component *)
   let port_local_require : Port_id_set.t ref   = ref Port_id_set.empty in          (* all port ids required by the current component *)
-  let add_port_provided id = port_local_provide := Port_id_set.add id (!port_local_provide) in
-  let add_port_required id = port_local_require := Port_id_set.add id (!port_local_require) in
-  let add_port name id = 
+  let add_port_provided id = port_local_provide := Port_id_set.add id (!port_local_provide) in (* function used to define the domain of the provide of a component type *)
+  let add_port_required id = port_local_require := Port_id_set.add id (!port_local_require) in (* function used to define the domain of the require of a component type *)
+  let add_port name id =                 (* function that adds the relation name <-> id in the maps. Never used directly (see [find_port]) *)
     port_names    := Port_name_set.add name (!port_names);
     port_ids      := Port_id_set.add id (!port_ids);
     port_get_id   := Port_name_map.add name id (!port_get_id);
     port_get_name := Port_id_map.add id name (!port_get_name) in
-  let port_current_id = ref 0 in
-  let find_port name = try Port_name_map.find name !port_get_id with
+  let port_current_id = ref 0 in                                     (* for unique identifier creation *)
+  let find_port name = try Port_name_map.find name !port_get_id with (* look for the port in the maps, or create it. *)
     | Not_found -> let id = !port_current_id in port_current_id := (!port_current_id) + 1; add_port name id; id in
 
     (* component types *)
   let component_types         : Component_type_set.t ref = ref Component_type_set.empty in                                (* all component types *)
   let component_type_names    : Component_type_name_set.t ref = ref Component_type_name_set.empty in                      (* all component type names *)
-  let component_type_ids      : Component_type_id_set.t ref = ref Component_type_id_set.empty in                        (* all component type ids *)
+  let component_type_ids      : Component_type_id_set.t ref = ref Component_type_id_set.empty in                          (* all component type ids *)
   let component_type_get      : (component_type Component_type_id_map.t) ref = ref Component_type_id_map.empty in         (* mapping from ids to component types *)
   let component_type_get_id   : (component_type_id Component_type_name_map.t) ref = ref Component_type_name_map.empty in  (* mapping from names to ids *)
   let component_type_get_name : (component_type_name Component_type_id_map.t) ref = ref Component_type_id_map.empty in    (* mapping from ids to name *)
-  let add_component_type t id = 
+  let add_component_type t id =      (* function that adds the relation t <-> id <-> t#name in the maps. Never used directly (see [new_component_type]) *)
     component_types         := Component_type_set.add t (!component_types);
     component_type_names    := Component_type_name_set.add t#name (!component_type_names);
     component_type_ids      := Component_type_id_set.add id (!component_type_ids);
     component_type_get      := Component_type_id_map.add id t (!component_type_get);
     component_type_get_id   := Component_type_name_map.add t#name id (!component_type_get_id);
     component_type_get_name := Component_type_id_map.add id t#name (!component_type_get_name) in
-  let component_type_current_id = ref 0 in
-  let new_component_type t = 
+  let component_type_current_id = ref 0 in  (* for unique identifier creation *)
+  let new_component_type t =                (* create all the data structure to store the component type in parameter *)
     let id = !component_type_current_id in component_type_current_id := (!component_type_current_id) + 1; add_component_type t id in
-  let find_component_type_id name = try Component_type_name_map.find name !component_type_get_id with
+  let find_component_type_id name = try Component_type_name_map.find name !component_type_get_id with (* annex function, for the implementation relation *)
     | Not_found ->  (* erroneous case, but well, for sake of consistency, we pospone error message in the check phase *)
-      let id = !component_type_current_id in
+      let id = !component_type_current_id in (* create a shallow structure for the component type (but without an actual component type...) *)
         component_type_current_id := (!component_type_current_id) + 1;
         component_type_names    := Component_type_name_set.add name (!component_type_names);
         component_type_ids      := Component_type_id_set.add id (!component_type_ids);
@@ -140,67 +127,65 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
         component_type_get_name := Component_type_id_map.add id name (!component_type_get_name); id in
 
     (* package *)
-  let packages          : Package_set.t ref      = ref Package_set.empty in
-  let package_names     : Package_name_set.t ref = ref Package_name_set.empty in
-  let package_ids       : Package_id_set.t ref   = ref Package_id_set.empty in
-  let package_get       : (package Package_id_map.t) ref                    = ref Package_id_map.empty in
-  let package_get_id    : (package_id Repository_id_Package_name_map.t) ref = ref Repository_id_Package_name_map.empty in
-  let package_get_name  : (package_name Package_id_map.t) ref               = ref Package_id_map.empty in
-  let repos_of_packages : (repository_id Package_id_map.t) ref  = ref Package_id_map.empty in
-  let local_packages    : Package_set.t ref      = ref Package_set.empty in
-  let local_package_ids : Package_id_set.t ref   = ref Package_id_set.empty in
-  let add_package r name id = 
+  let packages          : Package_set.t ref      = ref Package_set.empty in                                               (* all packages *)
+  let package_names     : Package_name_set.t ref = ref Package_name_set.empty in                                          (* all package names *)
+  let package_ids       : Package_id_set.t ref   = ref Package_id_set.empty in                                            (* all package ids *)
+  let package_get       : (package Package_id_map.t) ref                    = ref Package_id_map.empty in                 (* mapping id to package *)
+  let package_get_id    : (package_id Repository_id_Package_name_map.t) ref = ref Repository_id_Package_name_map.empty in (* mapping r_id * name to id *)
+  let package_get_name  : (package_name Package_id_map.t) ref               = ref Package_id_map.empty in                 (* mapping id to name *)
+  let repos_of_packages : (repository_id Package_id_map.t) ref  = ref Package_id_map.empty in                             (* mapping id to r_id *)
+  let local_packages    : Package_set.t ref      = ref Package_set.empty in      (* packages local to a repository *)
+  let local_package_ids : Package_id_set.t ref   = ref Package_id_set.empty in   (* ids of the packages local to a repository *)
+  let add_package r name id = (* function that adds the relation (r * name) <-> id in the mapping. Never used directly (see [find_package]) *)
     repos_of_packages := Package_id_map.add id r !repos_of_packages;
     package_names     := Package_name_set.add name (!package_names);
-    package_ids       := Package_id_set.add id (!package_ids);
-    local_package_ids := Package_id_set.add id (!package_ids);
-    package_get_id    := Repository_id_Package_name_map.add (r,name) id (!package_get_id);
-    package_get_name  := Package_id_map.add id name (!package_get_name) in
-  let package_current_id = ref 0 in
-  let find_package r name = try Repository_id_Package_name_map.find (r,name) !package_get_id with
+    package_ids       := Package_id_set.add id (!package_ids);                             (* note that because of the dependencies and conflict between packages *)
+    local_package_ids := Package_id_set.add id (!package_ids);                             (* we might encounter a package name before the package definition     *)
+    package_get_id    := Repository_id_Package_name_map.add (r,name) id (!package_get_id); (* hence the distinction between the shallow structure creation        *)
+    package_get_name  := Package_id_map.add id name (!package_get_name) in                 (* [find_package] and the full one [new_package]                       *)
+  let package_current_id = ref 0 in (* for unique identifier creation *)
+  let find_package r name = try Repository_id_Package_name_map.find (r,name) !package_get_id with (* find the id for (r*name) or create a shallow structure for it *)
     | Not_found -> let id = !package_current_id in package_current_id := (!package_current_id) + 1; add_package r name id; id in
-  let new_package r k = let id = find_package r k#name in
+  let new_package r k = let id = find_package r k#name in (* create a full structure for the package *)
     packages       := Package_set.add k (!packages);
     local_packages := Package_set.add k (!packages);
     package_get    := Package_id_map.add id k (!package_get); (id,k) in
 
     (* repositories *)
-  let repositories        : Repository_set.t ref      = ref Repository_set.empty in
-  let repository_names    : Repository_name_set.t ref = ref Repository_name_set.empty in
-  let repository_ids      : Repository_id_set.t ref   = ref Repository_id_set.empty in
-  let repository_get      : (repository Repository_id_map.t) ref      = ref Repository_id_map.empty in
-  let repository_get_id   : (repository_id Repository_name_map.t) ref = ref Repository_name_map.empty in
-  let repository_get_name : (repository_name Repository_id_map.t) ref = ref Repository_id_map.empty in
-  let add_repository r id = 
+  let repositories        : Repository_set.t ref      = ref Repository_set.empty in                       (* all repositories *)
+  let repository_names    : Repository_name_set.t ref = ref Repository_name_set.empty in                  (* all repository names *)
+  let repository_ids      : Repository_id_set.t ref   = ref Repository_id_set.empty in                    (* all repository ids *)
+  let repository_get      : (repository Repository_id_map.t) ref      = ref Repository_id_map.empty in    (* mapping id -> repository *)
+  let repository_get_id   : (repository_id Repository_name_map.t) ref = ref Repository_name_map.empty in  (* mapping name -> id *)
+  let repository_get_name : (repository_name Repository_id_map.t) ref = ref Repository_id_map.empty in    (* mapping name -> id *)
+  let add_repository r id = (* function that adds the relation r <-> id <-> r#name in the maps. Never used directly (see [new_repository]) *)
     repositories        := Repository_set.add r (!repositories);
     repository_names    := Repository_name_set.add r#name (!repository_names);
     repository_ids      := Repository_id_set.add id (!repository_ids);
     repository_get      := Repository_id_map.add id r (!repository_get);
     repository_get_id   := Repository_name_map.add r#name id (!repository_get_id);
     repository_get_name := Repository_id_map.add id r#name (!repository_get_name) in
-  let repository_current_id = ref 0 in
+  let repository_current_id = ref 0 in (* for unique identifier creation *)
   let get_current_repository_id () = !repository_current_id in
-  let new_repository t = 
-    let id = !repository_current_id in repository_current_id := (!repository_current_id) + 1; add_repository t id in
-  let find_repository r = try Repository_name_map.find r !repository_get_id with
-    | Not_found -> Zephyrus_log.log_missing_data "repository" r "repository declaration" in
+  let new_repository r = (* create a full structure for the repository *)
+    let id = !repository_current_id in repository_current_id := (!repository_current_id) + 1; add_repository r id in
+  let find_repository r = try Repository_name_map.find r !repository_get_id with (* annex function, for the implementation relation *)
+    | Not_found -> Zephyrus_log.log_missing_data "repository" r "repository declaration" in (* TODO: should I create a shallow structure also here? *)
 
   (* 2. Conversion *)
     (* component types *)
   let convert_component_type t =
-
     port_local_provide := Port_id_set.empty;
     port_local_require := Port_id_set.empty;
-
-    let implem_provide  = Port_id_map.map_of_list
+    let implem_provide  = Port_id_map.map_of_list (* create the mapping for provide, filling as a side effect the port structures and [port_local_provide] *)
       (fun (p,n) -> (let id = find_port (convert_port_name p) in add_port_provided id; id, convert_provide_arity n)) t.Json_t.component_type_provide in
-    let implem_require  = Port_id_map.map_of_list
+    let implem_require  = Port_id_map.map_of_list (* create the mapping for require, filling as a side effect the port structures and [port_local_require] *)
       (fun (p,n) -> (let id = find_port (convert_port_name p) in add_port_required id; id, convert_require_arity n)) t.Json_t.component_type_require in
-    let implem_conflict = Port_id_set.set_of_list (fun p -> find_port (convert_port_name p)) t.Json_t.component_type_conflict in
-    let implem_consume = Resource_id_map.map_of_list
+    let implem_conflict = Port_id_set.set_of_list (fun p -> find_port (convert_port_name p)) t.Json_t.component_type_conflict in (* create the mapping for require, etc *)
+    let implem_consume = Resource_id_map.map_of_list (* create the mapping for resource consumption *)
       (fun (r,n) -> (get_resource_id (convert_resource_name r), convert_resource_consume_arity n)) t.Json_t.component_type_consume in
-    let port_local_provide = !port_local_provide in
-    let port_local_require = !port_local_require in
+    let port_local_provide = !port_local_provide in (* local definition to fix a glitch of how object's methods are implemented *)
+    let port_local_require = !port_local_require in (* idem *)
     new_component_type (object(self)
       method name           = convert_component_type_name t.Json_t.component_type_name
       method provide      p = try Port_id_map.find p implem_provide with
@@ -216,10 +201,10 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
     end) in
     (* packages *)
   let convert_package r r_name k =
-    let implem_depend = Package_id_set_set.set_of_list
+    let implem_depend = Package_id_set_set.set_of_list (* create the dependency sets, creating as a side effect shallow structure for non-yet-seen packages *)
       (fun s -> Package_id_set.set_of_list (fun n -> find_package r (convert_package_name r_name n)) s) k.Json_t.package_depend in
-    let implem_conflict = Package_id_set.set_of_list (fun n -> find_package r (convert_package_name r_name n)) k.Json_t.package_conflict in
-    let implem_consume = Resource_id_map.map_of_list
+    let implem_conflict = Package_id_set.set_of_list (fun n -> find_package r (convert_package_name r_name n)) k.Json_t.package_conflict in (* similar *)
+    let implem_consume = Resource_id_map.map_of_list (* create the mapping for resource consumption *)
       (fun (r,n) -> (get_resource_id (convert_resource_name r), convert_resource_consume_arity n)) k.Json_t.package_consume in
     new_package r (object
       method name      = convert_package_name r_name k.Json_t.package_name
@@ -234,7 +219,7 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
     let implem_name = convert_repository_name r.Json_t.repository_name in
     let implem_packages = Package_id_map.map_of_list
       (fun k -> convert_package id implem_name k) r.Json_t.repository_packages in
-    let local_package_ids = !local_package_ids in let local_packages = !local_packages in
+    let local_package_ids = !local_package_ids in let local_packages = !local_packages in (* local definitions to fix a glitch of how object's methods are implemented *)
     new_repository (object(self) 
       method name          = implem_name
       method get_package k = try Package_id_map.find k implem_packages with
@@ -246,7 +231,7 @@ class convert_universe get_resource_id get_resource_name input_repositories u =
 
     (* universe *)
     let _ = List.iter convert_repository u.Json_t.universe_repositories        (* fill the repository and package tables 1/2 *) in   
-    let _ = List.iter convert_repository input_repositories                    (* fill the repository and package tables 2/2 *) in   
+    let _ = List.iter convert_repository external_repositories                 (* fill the repository and package tables 2/2 *) in   
     let _ = List.iter convert_component_type u.Json_t.universe_component_types (* fill the component type table *) in
     let implementation = Component_type_id_map.map_of_list                     (* may add erroneous packages and component types in the table *)
       (fun (t,ks) -> (find_component_type_id (convert_component_type_name t), Package_id_set.set_of_list
@@ -259,9 +244,9 @@ object(self)
   val implem_get_repository     = !repository_get
   val implem_get_package        = !package_get
 
-  val mutable implem_ur = Port_id_map.empty;
-  val mutable implem_up = Port_id_map.empty;
-  val mutable implem_uc = Port_id_map.empty;
+  val mutable implem_ur = Port_id_map.empty; (* set of component type requiring. Not directly computed, filled when requested *)
+  val mutable implem_up = Port_id_map.empty; (* set of component type providing. Not directly computed, filled when requested *)
+  val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
 
   val implem_get_port_id           = !port_get_id
   val implem_get_component_type_id = !component_type_get_id
@@ -328,84 +313,80 @@ end
  - component type presented in a dependency, but not declared. Can be detected by an id in [get_package_ids] without an entry in [get_package]
 *)
 
-(*
 
-let convert_universe u = {
-  universe_component_types = Component_type_name_map.map_of_list (fun t -> let t' = convert_component_type t in (t'.component_type_name, t')) u.Json_t.universe_component_types;
-  universe_implementation  = Component_type_name_map.map_of_list (fun (t,ks) -> (convert_component_name t, Package_name_set.set_of_direct_list ks))  u.Json_t.universe_implementation;
-  universe_repositories    = Repository_name_map.map_of_list (fun r -> let r' = convert_repository r in (r'.repository_name, r')) u.Json_t.universe_repositories }
-*)
+(*/*************************************************\*)
+(*| 3. Configuration Conversion                     |*)
+(*\*************************************************/*)
 
-
-(*****************************************************)
-(** 3. Configuration Conversion                      *)
-(*****************************************************)
-
-
+(* module for the [get_local_component] function that, given a location and component type, returns the set of components of the right location and type *)
 module Location_component_type = struct
   type t = Data_model.location_id * Data_model.component_type_id
   let compare (l,t) (l',t') = let tmp = Data_model.Location_id.compare l l' in
     if tmp = 0 then Data_model.Component_type_id.compare t t' else tmp
 end module Location_component_type_map = Data_common.Map.Make(Location_component_type)
 
+(* module for the [get_local_package] function that tells if a package is installed on a location *)
 module Location_package = struct
   type t = Data_model.location_id * Data_model.package_id
   let compare (l,t) (l',t') = let tmp = Data_model.Location_id.compare l l' in
     if tmp = 0 then Data_model.Package_id.compare t t' else tmp
 end module Location_package_map = Data_common.Map.Make(Location_package)
 
+(* functions that compute parts of the two functions just mentioned *)
 let get_local_component l t map = Component_id_map_extract_key.set_of_keys (Component_id_map.filter (fun _ c -> (c#location = l) & (c#typ = t)) map)
 let get_local_package l k map = try let l' = Location_id_map.find l map in Package_id_set.mem k l'#packages_installed with Not_found -> false
 
 
+(*/*********************************)
+(* class for loading a configuration from a Json_j structure. Contains all conversion function concerning configurations *)
 class convert_configuration get_resource_id get_port_id get_component_type_id get_package_id get_repository_id c =
   (* 1. Data storage *)
     (* locations *)
-  let locations         : Location_set.t ref = ref Location_set.empty in
-  let location_names    : Location_name_set.t ref = ref Location_name_set.empty in
-  let location_ids      : Location_id_set.t ref = ref Location_id_set.empty in
-  let location_get      : (location Location_id_map.t) ref = ref Location_id_map.empty in
-  let location_get_id   : (location_id Location_name_map.t) ref = ref Location_name_map.empty in
-  let location_get_name : (location_name Location_id_map.t) ref = ref Location_id_map.empty in
-  let add_location r id = 
-    locations         := Location_set.add r (!locations);
-    location_names    := Location_name_set.add r#name (!location_names);
+  let locations         : Location_set.t ref = ref Location_set.empty in                          (* all locations *)
+  let location_names    : Location_name_set.t ref = ref Location_name_set.empty in                (* all location names *)
+  let location_ids      : Location_id_set.t ref = ref Location_id_set.empty in                    (* all location ids *)
+  let location_get      : (location Location_id_map.t) ref = ref Location_id_map.empty in         (* mapping id -> location *)
+  let location_get_id   : (location_id Location_name_map.t) ref = ref Location_name_map.empty in  (* mapping name -> is *)
+  let location_get_name : (location_name Location_id_map.t) ref = ref Location_id_map.empty in    (* mapping id -> name *)
+  let add_location l id = (* add all the structure to store the mapping l <-> id <-> l#name. Never used directly (see [new_location]) *)
+    locations         := Location_set.add l (!locations);
+    location_names    := Location_name_set.add l#name (!location_names);
     location_ids      := Location_id_set.add id (!location_ids);
-    location_get      := Location_id_map.add id r (!location_get);
-    location_get_id   := Location_name_map.add r#name id (!location_get_id);
-    location_get_name := Location_id_map.add id r#name (!location_get_name) in
-  let location_current_id = ref 0 in
-  let new_location l = 
+    location_get      := Location_id_map.add id l (!location_get);
+    location_get_id   := Location_name_map.add l#name id (!location_get_id);
+    location_get_name := Location_id_map.add id l#name (!location_get_name) in
+  let location_current_id = ref 0 in (* for unique identifier creation *)
+  let new_location l =  (* create all the structure to store the new location l *)
     let id = !location_current_id in location_current_id := (!location_current_id) + 1; add_location l id in
-  let find_location l = try Location_name_map.find l (!location_get_id) with
+  let find_location l = try Location_name_map.find l (!location_get_id) with (* annex function, used for components *)
     | Not_found -> Zephyrus_log.log_missing_data "location" l "component" in
     (* components *)
-  let components         : Component_set.t ref = ref Component_set.empty in
-  let component_names    : Component_name_set.t ref = ref Component_name_set.empty in
-  let component_ids      : Component_id_set.t ref = ref Component_id_set.empty in
-  let component_get      : (component Component_id_map.t) ref = ref Component_id_map.empty in
-  let component_get_id   : (component_id Component_name_map.t) ref = ref Component_name_map.empty in
-  let component_get_name : (component_name Component_id_map.t) ref = ref Component_id_map.empty in
-  let add_component r id = 
-    components         := Component_set.add r (!components);
-    component_names    := Component_name_set.add r#name (!component_names);
+  let components         : Component_set.t ref = ref Component_set.empty in                             (* all components *)
+  let component_names    : Component_name_set.t ref = ref Component_name_set.empty in                   (* all component names *) 
+  let component_ids      : Component_id_set.t ref = ref Component_id_set.empty in                       (* all component ids *)
+  let component_get      : (component Component_id_map.t) ref = ref Component_id_map.empty in           (* mapping id -> component *)
+  let component_get_id   : (component_id Component_name_map.t) ref = ref Component_name_map.empty in    (* mapping name -> id *)
+  let component_get_name : (component_name Component_id_map.t) ref = ref Component_id_map.empty in      (* mapping id -> name *)
+  let add_component c id =  (* add all the structure to store the mapping c <-> id <-> c#name. Never used directly (see [new_component]) *)
+    components         := Component_set.add c (!components);
+    component_names    := Component_name_set.add c#name (!component_names);
     component_ids      := Component_id_set.add id (!component_ids);
-    component_get      := Component_id_map.add id r (!component_get);
-    component_get_id   := Component_name_map.add r#name id (!component_get_id);
-    component_get_name := Component_id_map.add id r#name (!component_get_name) in
+    component_get      := Component_id_map.add id c (!component_get);
+    component_get_id   := Component_name_map.add c#name id (!component_get_id);
+    component_get_name := Component_id_map.add id c#name (!component_get_name) in
   let component_current_id = ref 0 in
-  let new_component t = 
-    let id = !component_current_id in component_current_id := (!component_current_id) + 1; add_component t id in
-  let find_component c = try Component_name_map.find c (!component_get_id) with
+  let new_component c =  (* create all the structure to store the new component c *)
+    let id = !component_current_id in component_current_id := (!component_current_id) + 1; add_component c id in
+  let find_component c = try Component_name_map.find c (!component_get_id) with (* annex function, used for the bindings *)
     | Not_found -> Zephyrus_log.log_missing_data "component" c "binding" in
 
   (* 2. Conversion *)
     (* location *)
   let convert_location l =
     let implem_name = convert_location_name l.Json_t.location_name in
-    let r_name = convert_repository_name l.Json_t.location_repository in let implem_repository =  get_repository_id r_name in
+    let r_name = convert_repository_name l.Json_t.location_repository in let implem_repository = get_repository_id r_name in
     let implem_package = Package_id_set.set_of_list (fun k -> get_package_id implem_repository (convert_package_name r_name k)) l.Json_t.location_packages_installed in
-    let implem_resource = Resource_id_map.map_of_list
+    let implem_resource = Resource_id_map.map_of_list (* create the mapping for resource provide *)
       (fun (r,n) -> (get_resource_id (convert_resource_name r), convert_resource_provide_arity n)) l.Json_t.location_provide_resources in
     new_location (object
     method name                = implem_name
@@ -436,8 +417,8 @@ class convert_configuration get_resource_id get_port_id get_component_type_id ge
   let implem_bindings = Binding_set.set_of_list (convert_binding) c.Json_t.configuration_bindings in
 object(self)
 (* private *)
-  val mutable implem_get_local_component = Location_component_type_map.empty;
-  val mutable implem_get_local_package = Location_package_map.empty;
+  val mutable implem_get_local_component = Location_component_type_map.empty; (* computed incrementally *)
+  val mutable implem_get_local_package = Location_package_map.empty;          (* computed incrementally *)
 (* methods *)
 
   method get_location l = Location_id_map.find l (!location_get)
@@ -464,7 +445,6 @@ object(self)
          | Not_found -> let tmp = get_local_package l k (!location_get) in
            implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
 
-
   method get_location_id l  = Location_name_map.find l (!location_get_id)
   method get_component_id c = Component_name_map.find c (!component_get_id)
 
@@ -477,6 +457,7 @@ end
 (** 4. Specification conversion                      *)
 (*****************************************************)
 
+(* this translation is a one to one mapping. Nothing much to say *)
 
 let convert_spec_variable_name = fun x -> x
 let convert_spec_const         = fun x -> x
@@ -544,38 +525,41 @@ let convert_optimization_function o = match o with
 (** 5. Global Load Functions                         *)
 (*****************************************************)
 
+(* TODO: move the difficulties of dealing with Settings elsewhere? *)
 
-
+(* functions to load the Json encoding of each structure *)
+(*   - universe *)
 let load_universe () = if Settings.get_bool_basic Settings.data_generation_universe then Input_helper.parse_json Json_j.read_universe Settings.input_file_universe else None
-
+(*   - external repositories *)
 let load_repositories () = if Settings.get_bool_basic Settings.data_generation_repositories then List.fold_left
   (fun res (n,f) -> let r = Input_helper.parse_json Json_j.read_packages (ref (Some (f))) in match r with None -> res
       | Some(ks) -> { Json_j.repository_name = n; Json_j.repository_packages = ks }::res) [] !Settings.input_file_repositories else []
-
+(*   - initial configuration *)
 let load_initial_configuration () = if Settings.get_bool_basic Settings.data_generation_initial_configuration then
   Input_helper.parse_json Json_j.read_configuration Settings.input_file_initial_configuration else None
-
+(*   - specification *)
 let load_specification () = if Settings.get_bool_basic Settings.data_generation_specification then
   Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification else None
-
+(*   - optimization function (from Settings) *)
 let load_optimization_function () = if Settings.get_bool_basic Settings.data_generation_optimization_function then
   (match !Settings.input_optimization_function with None -> None | Some(o) -> Some(convert_optimization_function o)) else None
 
+(* full function that, as a side effect of constructing the structures, fill in the informations about the resources *)
 let load_model () =
   (* 1. data structure to constuct the set of resource names *)
-  let resource_names    : Resource_name_set.t ref = ref Resource_name_set.empty in
-  let resource_ids      : Resource_id_set.t ref = ref Resource_id_set.empty in
-  let resource_get_name : (resource_name Resource_id_map.t) ref = ref Resource_id_map.empty in
-  let resource_get_id   : (resource_id Resource_name_map.t) ref = ref Resource_name_map.empty in
-  let add_resource name id = 
+  let resource_names    : Resource_name_set.t ref = ref Resource_name_set.empty in               (* all resource names *)
+  let resource_ids      : Resource_id_set.t ref = ref Resource_id_set.empty in                   (* all resource ids *)
+  let resource_get_name : (resource_name Resource_id_map.t) ref = ref Resource_id_map.empty in   (* mapping id -> name *)
+  let resource_get_id   : (resource_id Resource_name_map.t) ref = ref Resource_name_map.empty in (* mapping name -> id *)
+  let add_resource name id = (* create all the structure to store the relation name <-> id, never used directly (see [get_resource_id]) *)
     resource_names    := Resource_name_set.add name !resource_names;
     resource_ids      := Resource_id_set.add id !resource_ids;
     resource_get_name := Resource_id_map.add id name !resource_get_name;
     resource_get_id   := Resource_name_map.add name id !resource_get_id in
-  let resource_current_id = ref 0 in
-  let get_resource_id name = try Resource_name_map.find name !resource_get_id with
+  let resource_current_id = ref 0 in (* for unique identifier creation *)
+  let get_resource_id name = try Resource_name_map.find name !resource_get_id with (* get the id for the name, or create the data for it *)
     | Not_found -> let id = !resource_current_id in resource_current_id := id + 1; add_resource name id; id in
-  let get_resource_name id = try Resource_id_map.find id !resource_get_name with
+  let get_resource_name id = try Resource_id_map.find id !resource_get_name with (* get the name from an id (if that fails, you're using a non declared id...) *)
     | Not_found -> Zephyrus_log.log_missing_data "resource id" (String_of.resource_id id) "universe" in
   (* 2. generate the universe (if required) *)
   let universe = match load_universe () with

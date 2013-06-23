@@ -246,6 +246,7 @@ module Location_name_map = MapString
 type location_id = int
 module Location_id = Int
 module Location_id_set = SetInt
+module Location_id_set_set = SetSetInt
 module Location_id_map = MapInt
 module Location_id_map_extract_key = Keys_of_MapInt
 

@@ -53,6 +53,15 @@ module Set = struct
   module Convert(Set_origin : S) (Set_target : S) = struct
     let convert f s = Set_origin.fold (fun v res -> Set_target.add (f v) res) s Set_target.empty
   end
+
+  module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) = struct
+    let compute f s =
+      let res = ref Set_target.empty in
+      Set_origin.iter (fun e -> let b = Set_target.fold (fun s b -> 
+          if b && (f (Set_origin.choose s) e) then (res := Set_target.add (Set_origin.add e s) (Set_target.remove s !res); false) else true) !res true in
+        (if b then res := Set_target.add (Set_origin.singleton e) !res)
+      ) s; !res
+  end
 end
 
 module SetInt       = Set.Make(Int)

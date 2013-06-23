@@ -27,7 +27,7 @@
 let input_open filename = match !filename with
   | None -> None
   | Some(filename) -> try Some (filename, open_in filename) with
-    | Sys_error e -> (Zephyrus_log.log_input_file_error e; None)
+    | Sys_error e -> (Zephyrus_log.log_input_file_error filename e; None)
 
 
 let parse_json parser filename = match input_open filename with

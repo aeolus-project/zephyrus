@@ -43,7 +43,8 @@ let check_option desc o = match o with
 let () = 
 (* === Default settings === *)
   Settings.input_file_universe      := Some("./tests/u_1_new.json");
-  Settings.input_file_initial_configuration := Some("./tests/ic_1.json");
+  Settings.input_file_initial_configuration := Some("./tests/ic_3.json");
+(*  Settings.input_file_initial_configuration := Some("./example-inputs/ic-ex-empty-20loc.json");*)
   Settings.input_file_specification := Some("./tests/spec_1.spec");
   Settings.input_optimization_function := Some(Settings.Optim_simple);
   Settings.data_generation_universe               := Some(true);
@@ -70,7 +71,9 @@ let () =
   print_string (String_of.specification s);
   print_string "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n";
   print_string (String_of.model_optimization_function f);
-
+  let c = Location_categories.full_categories r u c in
+  print_string "\n\n\n     ==> CATEGORIES <==  \n\n";
+  print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements c))) ^ " ]");
   print_string "\n ===============================";
   print_string "\n   ==> CONSTRAINT SECTION <==  \n";
   Constraint_of.universe_full ();
@@ -78,6 +81,8 @@ let () =
   Constraint_of.configuration_full ();
   Constraint_of.optimization_function ();
   Constraint_of.basic_bounds ();
+  Location_categories.generate_categories ();
+  let c = Location_categories.generate_constraint () in
   print_string "\n        ==> UNIVERSE <==        \n\n";
   print_string ("  require  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_require))) ^ "\n");
   print_string ("  provide  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_provide))) ^ "\n");
@@ -93,22 +98,22 @@ let () =
   print_string ("  pack_dep = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_package_dependency))) ^ "\n");
   print_string ("  pack_pb  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_package_conflict))) ^ "\n");
   print_string ("  resource = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_resource_consumption))) ^ "\n");
-  print_string ("  detlete  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
-  print_string "\n\n\n     ==> SPECIFICATION <==      \n\n";
-  print_string ((String_of.konstraint (check_option "specification constraint" !Data_state.constraint_specification_full)) ^ "\n");
-  print_string "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n";
-  print_string ((String_of.konstraint (Data_constraint.And(!Data_state.constraint_configuration_full))) ^ "\n");
+  print_string ("  delete   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
+  print_string ("  spec     = " ^ (String_of.konstraint (check_option "specification constraint" !Data_state.constraint_specification_full)) ^ "\n");
+  print_string ("  config   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_configuration_full))) ^ "\n");
+  print_string ("  category = " ^ (String_of.konstraint c) ^ "\n"); 
 (*
 let constraint_optimization_function : optimization_function option ref = ref None
 let constraint_variable_bounds       : variable_bounds option ref = ref None
  *) 
+
 
   print_string "\n ===============================";
   print_string "\n    ==> SOLVING SECTION <==  \n";
   let solver_settings = {
       Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
       Solvers.input_file            = "tests/minizinc/zephyrus-.mzn";
-      Solvers.output_file           = "zephyrus-.sol";
+      Solvers.output_file           = "tests/minizinc/zephyrus-.sol";
       Solvers.keep_input_file       = true;
       Solvers.keep_output_file      = true  
     } in let solver_input = [
@@ -126,9 +131,10 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
     ("  pack_dep " , (Data_constraint.And(!Data_state.constraint_universe_package_dependency)));
     ("  pack_pb  " , (Data_constraint.And(!Data_state.constraint_universe_package_conflict)));
     ("  resource " , (Data_constraint.And(!Data_state.constraint_universe_resource_consumption)));
-    ("  detlete  " , (Data_constraint.And(!Data_state.constraint_universe_deprecated_element)));
-    ("specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
-    ("  configuration " , ((Data_constraint.And(!Data_state.constraint_configuration_full)))) ] in
+    ("  delete   " , (Data_constraint.And(!Data_state.constraint_universe_deprecated_element)));
+    ("  specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
+    ("  configuration " , ((Data_constraint.And(!Data_state.constraint_configuration_full))));
+    ("  category " , c) ] in
   let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
   let solution = Solvers.G12.solve solver_settings solver_input opt_f in
 

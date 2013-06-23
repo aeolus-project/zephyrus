@@ -1,0 +1,504 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 2048]]
+		},
+		{
+			"name" : "location2",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 2048]]
+		},
+		{
+			"name" : "location3",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 2048]]
+		},
+		{
+			"name" : "location4",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 2048]]
+		},
+		{
+			"name" : "location5",
+			"repository" : "repository",
+			"provide_resources" : [["resource", 2048]]
+		},
+		{
+			"name" : "location6",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location7",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location8",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location9",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location10",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location11",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location12",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location13",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location14",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location15",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location16",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location17",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location18",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location19",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location20",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		}		,
+		{
+			"name" : "location21",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location22",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location23",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location24",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location25",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location26",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location27",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location28",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location29",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location30",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location31",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location32",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location33",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location34",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location35",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location36",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location37",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location38",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location39",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location40",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location41",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location42",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location43",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location44",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location45",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location46",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location47",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location48",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location49",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location50",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location51",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location52",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location53",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location54",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location55",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location56",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location57",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location58",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location59",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location60",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location61",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location62",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location63",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location64",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location65",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location66",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location67",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location68",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location69",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location70",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location71",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location72",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location73",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location74",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location75",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location76",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location77",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location78",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location79",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location80",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location81",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location82",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location83",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location84",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location85",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location86",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location87",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location88",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location89",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location90",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location91",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location92",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location93",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location94",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location95",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location96",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location97",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location98",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location99",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location100",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		}
+	]
+}

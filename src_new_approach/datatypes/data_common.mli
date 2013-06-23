@@ -45,6 +45,11 @@ module Set : sig
   module Convert(Set_origin : S) (Set_target : S) : sig
     val convert : (Set_origin.elt -> Set_target.elt) -> Set_origin.t -> Set_target.t
   end
+
+  module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) : sig
+    val compute : (Set_origin.elt -> Set_origin.elt -> bool) -> Set_origin.t -> Set_target.t
+  end
+
 end
 
 module SetInt       : Set.S with type elt = int
