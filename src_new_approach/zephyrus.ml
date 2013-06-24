@@ -43,7 +43,7 @@ let check_option desc o = match o with
 let () = 
 (* === Default settings === *)
   Settings.input_file_universe      := Some("./tests/u_1_new.json");
-  Settings.input_file_initial_configuration := Some("./tests/ic_3.json");
+  Settings.input_file_initial_configuration := Some("./tests/ic_1.json");
 (*  Settings.input_file_initial_configuration := Some("./example-inputs/ic-ex-empty-20loc.json");*)
   Settings.input_file_specification := Some("./tests/spec_1.spec");
   Settings.input_optimization_function := Some(Settings.Optim_simple);
@@ -138,6 +138,22 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
   let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
   let solution = Solvers.G12.solve solver_settings solver_input opt_f in
 
+  Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
+
+  let final_configuration = 
+    let solution = fst solution in
+    match !Data_state.universe_full with
+    | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"; None
+    | Some universe -> 
+      begin
+        match !Data_state.initial_configuration_full with
+        | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
+        | Some initial_configuration -> Some (Configuration_of.solution universe initial_configuration solution)
+      end
+
+
+
+  in
   print_string "\n\n\n <==========> THE END <==========>  \n\n"
 
 (*
@@ -205,7 +221,7 @@ let () =
 
 
 
-
+(*
 (* just a test! *)
 let my_universe =
   Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
@@ -224,9 +240,4 @@ let () =
   match !Data_state.universe_full with
   | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
   | Some u -> ()
-(*     let json_universe = Save_model.universe u
-     in Printf.printf "\nThe universe:\n%s\n" (Json_j.string_of_universe json_universe)
 *)
-
-
-
