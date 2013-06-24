@@ -95,9 +95,17 @@ module MiniZinc_generic = struct
       let solution_tmp = Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) in
 (*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map int_of_string solution_tmp));*)
       let cost = Name_map.find cost_variable_name solution_tmp in
-      let solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
-        data.mzn_variables#variables Variable_map.empty in
-      ((fun v -> try Data_constraint.Variable_map.find v solution with Not_found -> -1), cost)
+      let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
+          data.mzn_variables#variables Variable_map.empty
+      in
+      let solution =
+        let domain = data.mzn_variables#variables 
+        and variable_values = (fun v -> try Data_constraint.Variable_map.find v minizinc_solution with Not_found -> -1)
+        in {
+          Data_constraint.domain          = domain;
+          Data_constraint.variable_values = variable_values;
+        } in
+      (solution, cost)
     )
 
   let postprocess data f cost = match f with

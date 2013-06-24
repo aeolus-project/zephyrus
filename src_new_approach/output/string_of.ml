@@ -187,3 +187,14 @@ and konstraint c = match c with
   | Data_constraint.Not(c')         -> "not(" ^ (konstraint c') ^ ")"
 
 
+(************************************)
+(** Solution                        *)
+(************************************)
+
+let solution solution =
+  let open Data_constraint in
+  let variables = Variable_set.elements solution.domain in
+  let strings = List.map (fun var -> 
+    Printf.sprintf "%-15s = %d\n" (variable var) (solution.variable_values var)
+    ) variables in
+  String.concat "" strings

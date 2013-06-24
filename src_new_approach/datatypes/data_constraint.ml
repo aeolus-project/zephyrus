@@ -91,5 +91,8 @@ type variable_bounds = variable -> bound  (** Function that gives for each varia
 
 (* 5. Solutions *)
 
-type solution = variable -> int (** solution of a constraint, can be implemented with a [Variable_map.t] *)
+type solution = {
+  domain          : Variable_set.t;
+  variable_values : variable -> int; (** solution of a constraint, can be implemented with a [Variable_map.t] *)
+}
 

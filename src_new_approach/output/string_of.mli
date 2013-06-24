@@ -92,4 +92,8 @@ val expression : Data_constraint.expression -> string
 val konstraint : Data_constraint.konstraint -> string
 
 
+(************************************)
+(** Solution                        *)
+(************************************)
 
+val solution : Data_constraint.solution -> string
