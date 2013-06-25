@@ -29,35 +29,6 @@
 
 open Data_model
 
-
-(*
-  class type name_id_mapping = object
-    method ids        : Component_type_id_set.t
-    method names      : Component_type_name_set.t
-    method name_of_id : component_type_id   -> component_type_name
-    method id_of_name : component_type_name -> component_type_id
-  end
-*)
-
-(*
-module Name_id_mapping =
-  functor (Id_set   : Set.S) ->
-  functor (Name_set : Set.S) ->
-  struct
-
-    class type name_id_mapping = object
-      method ids        : Id_set.t
-      method names      : Name_set.t
-      method name_of_id : Id_set.elt   -> Name_set.elt
-      method id_of_name : Name_set.elt -> Id_set.elt
-    end
-
-  end
-
-module Component_type_name_id_mapping = Name_id_mapping(Component_type_id_set)(Component_type_name_set)
-
-*)
-
 (* 0. Name Conversion *)
 
 let convert_resource_name          x = x
@@ -103,6 +74,38 @@ end
 module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
 module Repository_id_package_name_map = Data_common.Map.Make(Repository_id_package_name)
 
+
+(*/*************************************************\*)
+(*| 1. Resource Names and Ids Extractions           |*)
+(*\*************************************************/*)
+
+(*
+  class type name_id_mapping = object
+    method ids        : Component_type_id_set.t
+    method names      : Component_type_name_set.t
+    method name_of_id : component_type_id   -> component_type_name
+    method id_of_name : component_type_name -> component_type_id
+  end
+*)
+
+(*
+module Name_id_mapping =
+  functor (Id_set   : Set.S) ->
+  functor (Name_set : Set.S) ->
+  struct
+
+    class type name_id_mapping = object
+      method ids        : Id_set.t
+      method names      : Name_set.t
+      method name_of_id : Id_set.elt   -> Name_set.elt
+      method id_of_name : Name_set.elt -> Id_set.elt
+    end
+
+  end
+
+module Component_type_name_id_mapping = Name_id_mapping(Component_type_id_set)(Component_type_name_set)
+
+*)
 
 class type name_id_mappings = object
   (* component_type *)
@@ -417,16 +420,6 @@ class name_id_mappings_of_json universe initial_configuration specification : na
     method component_name_of_id      = component_name_of_id
     method component_id_of_name      = component_id_of_name
   end
-  
-
-
-
-
-(*/*************************************************\*)
-(*| 1. Resource Names and Ids Extractions           |*)
-(*\*************************************************/*)
-
-(* empty ... *)
 
 
 (*/*************************************************\*)
