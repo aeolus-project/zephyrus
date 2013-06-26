@@ -100,10 +100,12 @@ let file_process_name s = if s <> "" then (
       else { dirname = dir_name; basename = base_name_tmp; suffix = "" }
   ) else file_default
 
-let keep_file current_name file =
+let keep_file current_name file = current_name
+(*
   let basename = Filename.basename current_name in
   let filename = file.dirname ^ Filename.dir_sep ^ basename in
-  (if current_name <> filename then Unix.rename current_name filename); filename
+  (if current_name != filename then Unix.rename current_name filename); filename
+*)
 
 let file_create keep file = let filename_tmp = Filename.temp_file file.basename file.suffix in
   if keep then keep_file filename_tmp file else filename_tmp

@@ -43,21 +43,25 @@ val port_name_set : Data_model.Port_name_set.t -> string
 val port_id       : Data_model.port_id -> string
 val port_id_set   : Data_model.Port_id_set.t -> string
 
-val component_type_name     : Data_model.component_type_name -> string
+val component_type_name     : Data_model.component_type_name       -> string
 val component_type_name_set : Data_model.Component_type_name_set.t -> string
-val component_type_id       : Data_model.component_type_id -> string
-val component_type_id_set   : Data_model.Component_type_id_set.t -> string
+val component_type_id       : Data_model.component_type_id         -> string
+val component_type_id_set   : Data_model.Component_type_id_set.t   -> string
 
 val provide_arity : Data_model.provide_arity -> string
 val require_arity : Data_model.require_arity -> string
 
 (** 3. Packages *)
-val package_name : Data_model.package_name -> string
-val package_id   : Data_model.package_id -> string
+val package_name      : Data_model.package_name      -> string
+val package_name_set : Data_model.Package_name_set.t -> string
+val package_id       : Data_model.package_id         -> string
+val package_id_set   : Data_model.Package_id_set.t   -> string
 
 (** 4. Repositories *)
-val repository_name : Data_model.repository_name -> string
-val repository_id   : Data_model.repository_id -> string
+val repository_name     : Data_model.repository_name       -> string
+val repository_name_set : Data_model.Repository_name_set.t -> string
+val repository_id       : Data_model.repository_id         -> string
+val repository_id_set   : Data_model.Repository_id_set.t   -> string
 
 (** 5. Location *)
 val location_name : Data_model.location_name -> string

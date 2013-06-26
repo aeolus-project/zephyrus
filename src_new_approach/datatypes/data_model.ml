@@ -135,6 +135,8 @@ module Package_id         = Int
 module Package_id_set     = SetInt
 module Package_id_set_set = SetSetInt
 module Package_id_map     = MapInt
+module Package_id_map_extract_key   = Keys_of_MapInt
+
 
   (** Package. *)
 class type package = object

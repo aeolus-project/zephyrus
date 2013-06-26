@@ -56,12 +56,16 @@ let provide_arity arity = match arity with | Data_model.Infinite_provide -> "inf
 let require_arity       = string_of_int
 
 (** 3. Packages *)
-let package_name = identity
-let package_id   = string_of_int
+let package_name     = identity
+let package_name_set = string_set
+let package_id       = string_of_int
+let package_id_set   = int_set
 
 (** 4. Repositories *)
-let repository_name r = r
-let repository_id   r = string_of_int r
+let repository_name   r = r
+let repository_name_set = string_set
+let repository_id     r = string_of_int r
+let repository_id_set   = int_set
 
 (** 5. Location *)
 let location_name l = l
