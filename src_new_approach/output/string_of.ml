@@ -68,11 +68,15 @@ let repository_id     r = string_of_int r
 let repository_id_set   = int_set
 
 (** 5. Location *)
-let location_name l = l
-let location_id   l = string_of_int l
+let location_name l   = l
+let location_name_set = string_set
+let location_id   l   = string_of_int l
+let location_id_set   = int_set
 
-let component_name c = c
-let component_id   c = string_of_int c
+let component_name c   = c
+let component_name_set = string_set
+let component_id   c   = string_of_int c
+let component_id_set   = int_set
 
 (** Specification *)
 let spec_variable_name v = v
