@@ -71,6 +71,26 @@ let () =
   print_string (String_of.specification s);
   print_string "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n";
   print_string (String_of.model_optimization_function f);
+  
+  (* TODO *)
+  match !Data_state.universe_full with
+    | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"
+    | Some universe -> 
+      begin
+        match !Data_state.initial_configuration_full with
+        | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"
+        | Some initial_configuration -> 
+        begin
+          match !Data_state.specification_full with
+          | None -> Printf.printf "\nZephyrus is proud to announce you, that the specification does not exist!...\n"
+          | Some specification -> 
+              let universe_trimmed_component_types = Trim.trim_component_types universe                         initial_configuration specification in
+              let universe_trimmed_package         = Trim.trim_repositories    universe_trimmed_component_types initial_configuration specification in
+              Data_state.universe_full := Some(universe_trimmed_package)
+        end
+      end;
+
+
   let c = Location_categories.full_categories r u c in
   print_string "\n\n\n     ==> CATEGORIES <==  \n\n";
   print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements c))) ^ " ]");
