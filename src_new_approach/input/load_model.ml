@@ -180,41 +180,13 @@ module Component_type_name_id_mapping = Name_id_mapping(Component_type_id_set)(C
 *)
 
 class type name_id_mappings = object
-  (* component_type *)
-  method component_type_ids        : Component_type_id_set.t
-  method component_type_names      : Component_type_name_set.t
-  method component_type_name_of_id : component_type_id   -> component_type_name
-  method component_type_id_of_name : component_type_name -> component_type_id
-  (* port *)
-  method port_ids                  : Port_id_set.t
-  method port_names                : Port_name_set.t
-  method port_name_of_id           : port_id   -> port_name
-  method port_id_of_name           : port_name -> port_id
-  (* repository *)
-  method repository_ids            : Repository_id_set.t
-  method repository_names          : Repository_name_set.t
-  method repository_name_of_id     : repository_id   -> repository_name
-  method repository_id_of_name     : repository_name -> repository_id
-  (* package *)
-  method package_ids               : Package_id_set.t
-  method package_names             : Repository_id_package_name_set.t
-  method package_name_of_id        : package_id -> Repository_id_package_name.t
-  method package_id_of_name        : Repository_id_package_name.t -> package_id
-  (* resource *)
-  method resource_ids              : Resource_id_set.t
-  method resource_names            : Resource_name_set.t
-  method resource_name_of_id       : resource_id   -> resource_name
-  method resource_id_of_name       : resource_name -> resource_id
-  (* location *)
-  method location_ids              : Location_id_set.t
-  method location_names            : Location_name_set.t
-  method location_name_of_id       : location_id   -> location_name
-  method location_id_of_name       : location_name -> location_id
-  (* component *)
-  method component_ids             : Component_id_set.t
-  method component_names           : Component_name_set.t
-  method component_name_of_id      : component_id   -> component_name
-  method component_id_of_name      : component_name -> component_id
+  method component_type : Component_type_name_mapping .mapping_iface
+  method port           : Port_name_mapping           .mapping_iface
+  method repository     : Repository_name_mapping     .mapping_iface
+  method package        : Package_name_mapping        .mapping_iface
+  method resource       : Resource_name_mapping       .mapping_iface
+  method location       : Location_name_mapping       .mapping_iface
+  method component      : Component_name_mapping      .mapping_iface
 
   method to_string : string
 end
@@ -304,48 +276,20 @@ class name_id_mappings_of_json universe additional_repositories initial_configur
       | Some c -> let _ = add_configuration c in ()
     end;
     begin
-      match specification with
+      match specification with (* TODO? *)
       | None   -> ()
       | Some s -> ()
     end
   in
 
   object (self)
-    (* component_type *)
-    method component_type_ids        = component_type_name_mapping#ids
-    method component_type_names      = component_type_name_mapping#names
-    method component_type_name_of_id = component_type_name_mapping#name_of_id
-    method component_type_id_of_name = component_type_name_mapping#id_of_name
-    (* port *)
-    method port_ids                  = port_name_mapping#ids
-    method port_names                = port_name_mapping#names
-    method port_name_of_id           = port_name_mapping#name_of_id
-    method port_id_of_name           = port_name_mapping#id_of_name
-    (* repository *)
-    method repository_ids            = repository_name_mapping#ids
-    method repository_names          = repository_name_mapping#names
-    method repository_name_of_id     = repository_name_mapping#name_of_id
-    method repository_id_of_name     = repository_name_mapping#id_of_name
-    (* package *)
-    method package_ids               = package_name_mapping#ids
-    method package_names             = package_name_mapping#names
-    method package_name_of_id        = package_name_mapping#name_of_id
-    method package_id_of_name        = package_name_mapping#id_of_name
-    (* resource *)
-    method resource_ids              = resource_name_mapping#ids
-    method resource_names            = resource_name_mapping#names
-    method resource_name_of_id       = resource_name_mapping#name_of_id
-    method resource_id_of_name       = resource_name_mapping#id_of_name
-    (* location *)
-    method location_ids              = location_name_mapping#ids
-    method location_names            = location_name_mapping#names
-    method location_name_of_id       = location_name_mapping#name_of_id
-    method location_id_of_name       = location_name_mapping#id_of_name
-    (* component *)
-    method component_ids             = component_name_mapping#ids
-    method component_names           = component_name_mapping#names
-    method component_name_of_id      = component_name_mapping#name_of_id
-    method component_id_of_name      = component_name_mapping#id_of_name
+    method component_type = component_type_name_mapping
+    method port           = port_name_mapping
+    method repository     = repository_name_mapping
+    method package        = package_name_mapping
+    method resource       = resource_name_mapping
+    method location       = location_name_mapping
+    method component      = component_name_mapping
 
     method to_string =
       let module Component_type_id_map_extract_key   = Component_type_id_map  .Set_of_keys(Component_type_id_set)   in
@@ -354,64 +298,57 @@ class name_id_mappings_of_json universe additional_repositories initial_configur
 
       String.concat "\n" [
         "component_types";
-        String_of.component_type_id_set self#component_type_ids;
-        String_of.component_type_name_set self#component_type_names;
+        String_of.component_type_id_set self#component_type#ids;
+        String_of.component_type_name_set self#component_type#names;
 
         "ports";
-        String_of.port_id_set self#port_ids;
-        String_of.port_name_set self#port_names;
+        String_of.port_id_set self#port#ids;
+        String_of.port_name_set self#port#names;
 
         "repositories";
-        String_of.repository_id_set self#repository_ids;
-        String_of.repository_name_set self#repository_names;
+        String_of.repository_id_set self#repository#ids;
+        String_of.repository_name_set self#repository#names;
 
         "packages";
-        String_of.package_id_set   self#package_ids;
-        String_of.package_name_set (Extract_package_names.convert snd self#package_names);
+        String_of.package_id_set   self#package#ids;
+        String_of.package_name_set (Extract_package_names.convert snd self#package#names);
 
         "resources";
-        String_of.resource_id_set self#resource_ids;
-        String_of.resource_name_set self#resource_names;
+        String_of.resource_id_set self#resource#ids;
+        String_of.resource_name_set self#resource#names;
+(*
+        "locations";
+        String_of.location_id_set self#location#ids;
+        String_of.location_name_set self#location#names;
+
+        "components";
+        String_of.component_id_set self#component#ids;
+        String_of.component_name_set self#component#names;
+*)
       ]
   end
 
-class name_id_mappings_of_json_with_exceptions (naming : name_id_mappings) : name_id_mappings = 
+class type closed_name_id_mappings = object
+  method component_type : Component_type_name_mapping.closed_mapping_iface
+  method port           : Port_name_mapping.closed_mapping_iface
+  method repository     : Repository_name_mapping.closed_mapping_iface
+  method package        : Package_name_mapping.closed_mapping_iface
+  method resource       : Resource_name_mapping.closed_mapping_iface
+  method location       : Location_name_mapping.closed_mapping_iface
+  method component      : Component_name_mapping.closed_mapping_iface
+
+  method to_string : string
+end
+
+class name_id_mappings_of_json_with_exceptions (naming : name_id_mappings) : closed_name_id_mappings = 
   object (self)
-    (* component_type *)
-    method component_type_ids        = naming#component_type_ids
-    method component_type_names      = naming#component_type_names
-    method component_type_name_of_id id   = try naming#component_type_name_of_id id   with Not_found -> failwith (Printf.sprintf "component_type_name_of_id %d" id)
-    method component_type_id_of_name name = try naming#component_type_id_of_name name with Not_found -> failwith (Printf.sprintf "component_type_id_of_name %s" name)
-    (* port *)
-    method port_ids                  = naming#port_ids
-    method port_names                = naming#port_names
-    method port_name_of_id           id   = try naming#port_name_of_id id   with Not_found -> failwith (Printf.sprintf "port_name_of_id %d" id)
-    method port_id_of_name           name = try naming#port_id_of_name name with Not_found -> failwith (Printf.sprintf "port_id_of_name %s" name)
-    (* repository *)
-    method repository_ids            = naming#repository_ids
-    method repository_names          = naming#repository_names
-    method repository_name_of_id     id   = try naming#repository_name_of_id id   with Not_found -> failwith (Printf.sprintf "repository_name_of_id %d" id)
-    method repository_id_of_name     name = try naming#repository_id_of_name name with Not_found -> failwith (Printf.sprintf "repository_id_of_name %s" name)
-    (* package *)
-    method package_ids               = naming#package_ids
-    method package_names             = naming#package_names
-    method package_name_of_id        id   = try naming#package_name_of_id id   with Not_found -> failwith (Printf.sprintf "package_name_of_id %d" id)
-    method package_id_of_name        name = try naming#package_id_of_name name with Not_found -> failwith (Printf.sprintf "package_id_of_name (%d, %s)" (fst name) (snd name))
-    (* resource *)
-    method resource_ids              = naming#resource_ids
-    method resource_names            = naming#resource_names
-    method resource_name_of_id       id   = try naming#resource_name_of_id id   with Not_found -> failwith (Printf.sprintf "resource_name_of_id %d" id)
-    method resource_id_of_name       name = try naming#resource_id_of_name name with Not_found -> failwith (Printf.sprintf "resource_id_of_name %s" name)
-    (* location *)
-    method location_ids              = naming#location_ids
-    method location_names            = naming#location_names
-    method location_name_of_id       id   = try naming#location_name_of_id id   with Not_found -> failwith (Printf.sprintf "location_name_of_id %d" id)
-    method location_id_of_name       name = try naming#location_id_of_name name with Not_found -> failwith (Printf.sprintf "location_id_of_name %s" name)
-    (* component *)
-    method component_ids             = naming#component_ids
-    method component_names           = naming#component_names
-    method component_name_of_id      id   = try naming#component_name_of_id id   with Not_found -> failwith (Printf.sprintf "component_name_of_id %d" id)
-    method component_id_of_name      name = try naming#component_id_of_name name with Not_found -> failwith (Printf.sprintf "component_id_of_name %s" name)
+    method component_type = new Component_type_name_mapping .closed_mapping_with_exceptions naming#component_type "component_type" String_of.component_type_id String_of.component_type_name
+    method port           = new Port_name_mapping           .closed_mapping_with_exceptions naming#port           "port"           String_of.port_id           String_of.port_name
+    method repository     = new Repository_name_mapping     .closed_mapping_with_exceptions naming#repository     "repository"     String_of.repository_id     String_of.repository_name
+    method package        = new Package_name_mapping        .closed_mapping_with_exceptions naming#package        "package"        String_of.package_id        (fun (r_id, k) -> String_of.package_name k)
+    method resource       = new Resource_name_mapping       .closed_mapping_with_exceptions naming#resource       "resource"       String_of.resource_id       String_of.resource_name
+    method location       = new Location_name_mapping       .closed_mapping_with_exceptions naming#location       "location"       String_of.location_id       String_of.location_name
+    method component      = new Component_name_mapping      .closed_mapping_with_exceptions naming#component      "component"      String_of.component_id      String_of.component_name
 
     method to_string = naming#to_string
   end
@@ -439,7 +376,7 @@ let conflicters component_types port_id = Component_type_id_map_extract_key.set_
 
 (*/*********************************)
 (* class for loading a universe from a Json_j structure. Contains all conversion function concerning universes *)
-class convert_universe (naming : name_id_mappings) external_repositories u = 
+class convert_universe (naming : closed_name_id_mappings) external_repositories u = 
   
   (* 1. Data Storage *)
 
@@ -452,7 +389,7 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
   
   (* create all the data structure to store the component type in parameter *)
   let new_component_type t =                
-    let id = naming#component_type_id_of_name t#name in 
+    let id = naming#component_type#id_of_name t#name in 
     component_types         := Component_type_set.add t (!component_types);
     component_type_get      := Component_type_id_map.add id t (!component_type_get) in
 
@@ -464,7 +401,7 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
 
   (* create a full structure for the package *)
   let new_package r k = 
-    let id = naming#package_id_of_name (r, k#name) in 
+    let id = naming#package#id_of_name (r, k#name) in 
     packages          := Package_set.add k (!packages);
     repos_of_packages := Package_id_map.add id r !repos_of_packages;
     package_get       := Package_id_map.add id k (!package_get); 
@@ -481,11 +418,11 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
 
   (* create a full structure for the repository *)
   let new_repository r =
-    let id = naming#repository_id_of_name r#name in add_repository r id in
+    let id = naming#repository#id_of_name r#name in add_repository r id in
 
   (* annex function, for the implementation relation *)
   let find_repository r = 
-    try naming#repository_id_of_name r 
+    try naming#repository#id_of_name r 
     with Not_found -> Zephyrus_log.log_missing_data "repository" r "repository declaration" in (* TODO: should I create a shallow structure also here? *)
 
 
@@ -499,27 +436,27 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
       Port_id_map.map_of_list (fun (name, arity) -> 
-        let id = naming#port_id_of_name (convert_port_name name) in 
+        let id = naming#port#id_of_name (convert_port_name name) in 
         (id, convert_provide_arity arity)
       ) t.Json_t.component_type_provide in
 
     (* create the mapping for require *)
     let require : require_arity Port_id_map.t = 
       Port_id_map.map_of_list (fun (name, arity) -> 
-        let id = naming#port_id_of_name (convert_port_name name) in 
+        let id = naming#port#id_of_name (convert_port_name name) in 
         (id, convert_require_arity arity)
       ) t.Json_t.component_type_require in
 
     (* create the mapping for conflict *)
     let conflict : Port_id_set.t = 
       Port_id_set.set_of_list (fun name -> 
-        naming#port_id_of_name (convert_port_name name)
+        naming#port#id_of_name (convert_port_name name)
       ) t.Json_t.component_type_conflict in 
 
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (name, arity) -> 
-        (naming#resource_id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
+        (naming#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
       ) t.Json_t.component_type_consume in
 
     let port_local_provide : Port_id_set.t = Port_id_map_extract_key.set_of_keys provide in (* local definition to fix a glitch of how object's methods are implemented *)
@@ -528,11 +465,11 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
     new_component_type (object(self)
       method name           = name
       method provide      p = try Port_id_map.find p provide with
-        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try naming#port_name_of_id p with Not_found -> "") ^ ")" in
+        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try naming#port#name_of_id p with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
       method provide_domain = port_local_provide
       method require      p = try Port_id_map.find p require with
-        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try naming#port_name_of_id p with Not_found -> "") ^ ")" in
+        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try naming#port#name_of_id p with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ (self#name) ^ "\"")
       method require_domain = port_local_require
       method conflict       = conflict
@@ -548,19 +485,19 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
     let depend : Package_id_set_set.t = 
       Package_id_set_set.set_of_list (fun s -> 
         Package_id_set.set_of_list (fun n -> 
-          naming#package_id_of_name (r_id, convert_package_name r_name n)) s
+          naming#package#id_of_name (r_id, convert_package_name r_name n)) s
       ) k.Json_t.package_depend in
     
     (* similar *)
     let conflict : Package_id_set.t = 
       Package_id_set.set_of_list (fun n -> 
-        naming#package_id_of_name (r_id, (convert_package_name r_name n))
+        naming#package#id_of_name (r_id, (convert_package_name r_name n))
       ) k.Json_t.package_conflict in
     
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (r_id,n) -> 
-        (naming#resource_id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
+        (naming#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
       ) k.Json_t.package_consume in
 
     new_package r_id (object
@@ -575,7 +512,7 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
 
     let name = convert_repository_name r.Json_t.repository_name in
 
-    let id = naming#repository_id_of_name name in
+    let id = naming#repository#id_of_name name in
     
     let packages : package Package_id_map.t = 
       Package_id_map.map_of_list (fun k -> 
@@ -592,7 +529,7 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
       method get_package k = 
         try Package_id_map.find k packages 
         with Not_found -> 
-          let package_desc = "(" ^ (string_of_int k) ^ "," ^ (try snd (naming#package_name_of_id k) with Not_found -> "") ^ ")" in
+          let package_desc = "(" ^ (string_of_int k) ^ "," ^ (try snd (naming#package#name_of_id k) with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "package" package_desc ("package of the repository \"" ^ (self#name) ^ "\"")
       method packages    = local_packages
       method package_ids = local_package_ids
@@ -603,8 +540,8 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
     let _ = List.iter convert_repository     external_repositories             (* fill the repository and package tables 2/2 *) in   
     let _ = List.iter convert_component_type u.Json_t.universe_component_types (* fill the component type table *) in
     let implementation = Component_type_id_map.map_of_list                     (* may add erroneous packages and component types in the table *)
-      (fun (t,ks) -> (naming#component_type_id_of_name (convert_component_type_name t), Package_id_set.set_of_list
-        (fun (r,k) -> let r_name = convert_repository_name r in naming#package_id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
+      (fun (t,ks) -> (naming#component_type#id_of_name (convert_component_type_name t), Package_id_set.set_of_list
+        (fun (r,k) -> let r_name = convert_repository_name r in naming#package#id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
 
     object(self)
     (* private *)
@@ -617,15 +554,15 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
       val mutable implem_up = Port_id_map.empty; (* set of component type providing. Not directly computed, filled when requested *)
       val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
 
-      val implem_get_port_id             = naming#port_id_of_name
-      val implem_get_component_type_id   = naming#component_type_id_of_name
-      val implem_get_repository_id       = naming#repository_id_of_name
-      val implem_get_package_id          = naming#package_id_of_name
+      val implem_get_port_id             = naming#port#id_of_name
+      val implem_get_component_type_id   = naming#component_type#id_of_name
+      val implem_get_repository_id       = naming#repository#id_of_name
+      val implem_get_package_id          = naming#package#id_of_name
 
-      val implem_get_port_name           = naming#port_name_of_id
-      val implem_get_component_type_name = naming#component_type_name_of_id
-      val implem_get_repository_name     = naming#repository_name_of_id
-      val implem_get_package_name        = naming#package_name_of_id
+      val implem_get_port_name           = naming#port#name_of_id
+      val implem_get_component_type_name = naming#component_type#name_of_id
+      val implem_get_repository_name     = naming#repository#name_of_id
+      val implem_get_package_name        = naming#package#name_of_id
 
       (* methods *)
       method get_component_type id = Component_type_id_map.find id implem_get_component_type
@@ -639,16 +576,16 @@ class convert_universe (naming : name_id_mappings) external_repositories u =
       method get_repositories    = !repositories
       method get_packages        = !packages
 
-      method get_port_ids           = naming#port_ids
-      method get_component_type_ids = naming#component_type_ids
-      method get_repository_ids     = naming#repository_ids
-      method get_package_ids        = naming#package_ids
+      method get_port_ids           = naming#port#ids
+      method get_component_type_ids = naming#component_type#ids
+      method get_repository_ids     = naming#repository#ids
+      method get_package_ids        = naming#package#ids
 
-      method get_port_names           = naming#port_names
-      method get_component_type_names = naming#component_type_names
-      method get_repository_names     = naming#repository_names
+      method get_port_names           = naming#port#names
+      method get_component_type_names = naming#component_type#names
+      method get_repository_names     = naming#repository#names
       method get_package_names        = let module M = Data_common.Set.Convert(Repository_id_package_name_set)(Package_name_set) in
-                                        M.convert snd naming#package_names
+                                        M.convert snd naming#package#names
 
       (* methods coming from the paper. Usually, aliases for well-named functions *)
       method u_dt = self#get_component_type_ids
@@ -710,7 +647,7 @@ let get_local_package l k map = try let l' = Location_id_map.find l map in Packa
 
 (*/*********************************)
 (* class for loading a configuration from a Json_j structure. Contains all conversion function concerning configurations *)
-class convert_configuration (naming : name_id_mappings) c =
+class convert_configuration (naming : closed_name_id_mappings) c =
 
   (* 1. Data storage *)
 
@@ -720,12 +657,12 @@ class convert_configuration (naming : name_id_mappings) c =
   
   (* create all the structure to store the new location l *)
   let new_location (l : location) =  
-    let id = naming#location_id_of_name l#name in 
+    let id = naming#location#id_of_name l#name in 
     locations     := Location_set.add l (!locations);
     location_get  := Location_id_map.add id l (!location_get) in
   
   let find_location l = 
-    try naming#location_id_of_name l with (* annex function, used for components *)
+    try naming#location#id_of_name l with (* annex function, used for components *)
     | Not_found -> Zephyrus_log.log_missing_data "location" l "component" in
   
     (* components *)
@@ -734,13 +671,13 @@ class convert_configuration (naming : name_id_mappings) c =
   
   (* create all the structure to store the new component c *)
   let new_component c =
-    let id = naming#component_id_of_name c#name in
+    let id = naming#component#id_of_name c#name in
     components    := Component_set.add c (!components);
     component_get := Component_id_map.add id c (!component_get) in
 
   (* annex function, used for the bindings *)
   let find_component c = 
-    try naming#component_id_of_name c
+    try naming#component#id_of_name c
     with Not_found -> Zephyrus_log.log_missing_data "component" c "binding" in
 
   (* 2. Conversion *)
@@ -748,10 +685,10 @@ class convert_configuration (naming : name_id_mappings) c =
   let convert_location l =
     let name = convert_location_name l.Json_t.location_name in
     let r_name = convert_repository_name l.Json_t.location_repository in 
-    let repository = naming#repository_id_of_name r_name in
-    let packages_installed = Package_id_set.set_of_list (fun k -> naming#package_id_of_name (repository, (convert_package_name r_name k))) l.Json_t.location_packages_installed in
+    let repository = naming#repository#id_of_name r_name in
+    let packages_installed = Package_id_set.set_of_list (fun k -> naming#package#id_of_name (repository, (convert_package_name r_name k))) l.Json_t.location_packages_installed in
     let resources = Resource_id_map.map_of_list (* create the mapping for resource provide *)
-      (fun (r,n) -> (naming#resource_id_of_name (convert_resource_name r), convert_resource_provide_arity n)) l.Json_t.location_provide_resources in
+      (fun (r,n) -> (naming#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)) l.Json_t.location_provide_resources in
 
     new_location (object
       method name                = name
@@ -763,7 +700,7 @@ class convert_configuration (naming : name_id_mappings) c =
     (* components *)
   let convert_component c =
     let name = convert_component_name c.Json_t.component_name in
-    let typ = naming#component_type_id_of_name (convert_component_type_name c.Json_t.component_type) in
+    let typ = naming#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
     new_component (object
@@ -774,7 +711,7 @@ class convert_configuration (naming : name_id_mappings) c =
     
     (* bindings *)
   let convert_binding b =
-    let port     = naming#port_id_of_name (convert_port_name b.Json_t.binding_port) in
+    let port     = naming#port#id_of_name (convert_port_name b.Json_t.binding_port) in
     let requirer = find_component (convert_component_name b.Json_t.binding_requirer) in
     let provider = find_component (convert_component_name b.Json_t.binding_provider) in 
 
@@ -802,11 +739,11 @@ object(self)
   method get_components = !components
   method get_bindings   = implem_bindings
 
-  method get_location_ids  = naming#location_ids
-  method get_component_ids = naming#component_ids
+  method get_location_ids  = naming#location#ids
+  method get_component_ids = naming#component#ids
 
-  method get_location_names  = naming#location_names
-  method get_component_names = naming#component_names
+  method get_location_names  = naming#location#names
+  method get_component_names = naming#component#names
 
   method c_l = self#get_location_ids
   method c_c = self#get_component_ids
@@ -819,11 +756,11 @@ object(self)
          | Not_found -> let tmp = get_local_package l k (!location_get) in
            implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
 
-  method get_location_id  l = naming#location_id_of_name  l
-  method get_component_id c = naming#component_id_of_name c
+  method get_location_id  l = naming#location#id_of_name  l
+  method get_component_id c = naming#component#id_of_name c
 
-  method get_location_name  l = naming#location_name_of_id   l
-  method get_component_name c =  naming#component_name_of_id c
+  method get_location_name  l = naming#location#name_of_id   l
+  method get_component_name c =  naming#component#name_of_id c
 end
 
 
@@ -838,13 +775,13 @@ let convert_spec_const         = fun x -> x
 let convert_spec_op o          = match o with
  | `Lt -> Lt | `LEq -> LEq | `Eq -> Eq | `GEq -> GEq | `Gt -> Gt | `NEq -> NEq
 
-let convert_specification (naming : name_id_mappings) s =
+let convert_specification (naming : closed_name_id_mappings) s =
 
   let convert_spec_local_element el = match el with
-    | `SpecLocalElementPackage(r,k)       -> let r_name = convert_repository_name r in let repo = naming#repository_id_of_name r_name in
-                                               Spec_local_element_package(naming#package_id_of_name (repo, (convert_package_name r_name k)))
-    | `SpecLocalElementComponentType(t)   -> Spec_local_element_component_type(naming#component_type_id_of_name (convert_component_type_name t))
-    | `SpecLocalElementPort(p)            -> Spec_local_element_port(naming#port_id_of_name (convert_port_name p)) in
+    | `SpecLocalElementPackage(r,k)       -> let r_name = convert_repository_name r in let repo = naming#repository#id_of_name r_name in
+                                               Spec_local_element_package(naming#package#id_of_name (repo, (convert_package_name r_name k)))
+    | `SpecLocalElementComponentType(t)   -> Spec_local_element_component_type(naming#component_type#id_of_name (convert_component_type_name t))
+    | `SpecLocalElementPort(p)            -> Spec_local_element_port(naming#port#id_of_name (convert_port_name p)) in
   let rec convert_spec_local_expr e = match e with
     | `SpecLocalExprVar(v)        -> Spec_local_expr_var(convert_spec_variable_name v)
     | `SpecLocalExprConst(c)      -> Spec_local_expr_const(convert_spec_const c)
@@ -860,14 +797,14 @@ let convert_specification (naming : name_id_mappings) s =
     | `SpecLocalImpl(sl1, sl2)  -> Spec_local_impl(convert_local_specification sl1, convert_local_specification sl2)
     | `SpecLocalNot(sl')        -> Spec_local_not(convert_local_specification sl') in
 
-  let convert_spec_repository_constraint x = naming#repository_id_of_name (convert_repository_name x) in
-  let convert_spec_resource_constraint (r, o, c) = (naming#resource_id_of_name (convert_resource_name r), convert_spec_op o, convert_spec_const c) in
+  let convert_spec_repository_constraint x = naming#repository#id_of_name (convert_repository_name x) in
+  let convert_spec_resource_constraint (r, o, c) = (naming#resource#id_of_name (convert_resource_name r), convert_spec_op o, convert_spec_const c) in
 
   let convert_spec_element el = match el with
-    | `SpecElementPackage(r,k)           -> let r_name = convert_repository_name r in let repo = naming#repository_id_of_name r_name in
-                                            Spec_element_package(naming#package_id_of_name (repo, (convert_package_name r_name k)))
-    | `SpecElementComponentType(t)       -> Spec_element_component_type(naming#component_type_id_of_name (convert_component_type_name t))
-    | `SpecElementPort(p)                -> Spec_element_port(naming#port_id_of_name (convert_port_name p))
+    | `SpecElementPackage(r,k)           -> let r_name = convert_repository_name r in let repo = naming#repository#id_of_name r_name in
+                                            Spec_element_package(naming#package#id_of_name (repo, (convert_package_name r_name k)))
+    | `SpecElementComponentType(t)       -> Spec_element_component_type(naming#component_type#id_of_name (convert_component_type_name t))
+    | `SpecElementPort(p)                -> Spec_element_port(naming#port#id_of_name (convert_port_name p))
     | `SpecElementLocalisation(phi,r,sl) -> Spec_element_location(
           List.map convert_spec_resource_constraint phi, List.map convert_spec_repository_constraint r, convert_local_specification sl) in
   let rec convert_spec_expr e = match e with
@@ -929,7 +866,7 @@ let load_model () =
 
   (* Prepare naming *)
   let fragile_naming = new name_id_mappings_of_json universe repositories initial_configuration specification in
-  let naming = new name_id_mappings_of_json_with_exceptions fragile_naming in
+  let naming : closed_name_id_mappings = new name_id_mappings_of_json_with_exceptions fragile_naming in
   Printf.printf "\nNaming:\n%s\n" naming#to_string;
 
   (* 2. generate the universe (if required) *)
@@ -949,10 +886,10 @@ let load_model () =
     | Some(s) -> Some(convert_specification naming s) in
   (* 5. generation of the resource set *)
   let resources = object
-    method resource_names = naming#resource_names
-    method resource_ids   = naming#resource_ids
-    method get_name    id = try naming#resource_name_of_id id   with Not_found -> Zephyrus_log.log_missing_data "resource id"   (String_of.resource_id id)     "universe"
-    method get_id    name = try naming#resource_id_of_name name with Not_found -> Zephyrus_log.log_missing_data "resource name" (String_of.resource_name name) "universe"
+    method resource_names = naming#resource#names
+    method resource_ids   = naming#resource#ids
+    method get_name    id = try naming#resource#name_of_id id   with Not_found -> Zephyrus_log.log_missing_data "resource id"   (String_of.resource_id id)     "universe"
+    method get_id    name = try naming#resource#id_of_name name with Not_found -> Zephyrus_log.log_missing_data "resource name" (String_of.resource_name name) "universe"
   end in
   (* 6. generation of the optimization function (if required) *)
   let optimization_function = load_optimization_function () in
