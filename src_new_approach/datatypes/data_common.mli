@@ -92,3 +92,14 @@ module Keys_of_MapInt    : sig val set_of_keys : 'a MapInt.t -> SetInt.t end
 module Keys_of_MapString : sig val set_of_keys : 'a MapString.t -> SetString.t end
 
 
+(* Modules for unique identifier creation *)
+module type Incrementing =
+sig
+  type t
+  type id
+  val create  : unit -> t
+  val current : t -> id
+  val next    : t -> id
+end
+
+module Incrementing_integer : Incrementing with type id = int

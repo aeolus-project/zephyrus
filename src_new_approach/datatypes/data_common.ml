@@ -119,3 +119,26 @@ module MapString = Map.Make(String)
 module Keys_of_MapInt    = MapInt.Set_of_keys(SetInt)
 module Keys_of_MapString = MapString.Set_of_keys(SetString)
 
+
+
+(* Modules for unique identifier creation *)
+module type Incrementing =
+sig
+  type t
+  type id
+  val create  : unit -> t
+  val current : t -> id
+  val next    : t -> id
+end
+
+module Incrementing_integer : Incrementing with type id = int =
+struct
+  type t = int ref
+  type id = int
+  let create () = ref 0
+  let current t = !t
+  let next t =
+    let value = !t in
+    t := !t + 1;
+    value
+end
