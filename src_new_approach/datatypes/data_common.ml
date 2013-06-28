@@ -122,7 +122,7 @@ module Keys_of_MapString = MapString.Set_of_keys(SetString)
 
 
 (* Modules for unique identifier creation *)
-module type Incrementing =
+module type Fresh =
 sig
   type t
   type id
@@ -131,7 +131,7 @@ sig
   val next    : t -> id
 end
 
-module Incrementing_integer : Incrementing with type id = int =
+module Fresh_integer : Fresh with type id = int =
 struct
   type t = int ref
   type id = int
@@ -144,9 +144,9 @@ struct
 end
 
 (* Unique identifiers plus special identifier requests *)
-module type Incrementing_with_special =
+module type Fresh_with_special =
 sig
-  include Incrementing
+  include Fresh
   type special_request (* type used to make requests for special identifiers *)
   val special : special_request -> id (* return an id corresponding to a special request *)
 end
@@ -154,9 +154,9 @@ end
 (* Only one special request: Deprecated *)
 type special_request_deprecated = Deprecated
 
-module Incrementing_integer_with_deprecated =
+module Fresh_integer_with_deprecated =
 struct
-  include Incrementing_integer
+  include Fresh_integer
   type special_request = special_request_deprecated
   let special = function Deprecated -> -1
 end

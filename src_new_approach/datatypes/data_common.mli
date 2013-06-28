@@ -93,7 +93,7 @@ module Keys_of_MapString : sig val set_of_keys : 'a MapString.t -> SetString.t e
 
 
 (* Modules for unique identifier creation *)
-module type Incrementing =
+module type Fresh =
 sig
   type t
   type id
@@ -102,13 +102,13 @@ sig
   val next    : t -> id
 end
 
-module Incrementing_integer : Incrementing with type id = int
+module Fresh_integer : Fresh with type id = int
 
 
 (* Unique identifiers plus special identifier requests *)
-module type Incrementing_with_special =
+module type Fresh_with_special =
 sig
-  include Incrementing
+  include Fresh
   type special_request
   val special : special_request -> id
 end
@@ -116,6 +116,6 @@ end
 (* Only one special request: Deprecated (which will typically correspond to id -1) *)
 type special_request_deprecated = Deprecated
 
-module Incrementing_integer_with_deprecated : Incrementing_with_special with 
+module Fresh_integer_with_deprecated : Fresh_with_special with 
   type id = int and 
   type special_request = special_request_deprecated
