@@ -142,3 +142,21 @@ struct
     t := !t + 1;
     value
 end
+
+(* Unique identifiers plus special identifier requests *)
+module type Incrementing_with_special =
+sig
+  include Incrementing
+  type special_request (* type used to make requests for special identifiers *)
+  val special : special_request -> id (* return an id corresponding to a special request *)
+end
+
+(* Only one special request: Deprecated *)
+type special_request_deprecated = Deprecated
+
+module Incrementing_integer_with_deprecated =
+struct
+  include Incrementing_integer
+  type special_request = special_request_deprecated
+  let special = function Deprecated -> -1
+end

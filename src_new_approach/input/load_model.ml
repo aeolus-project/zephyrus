@@ -43,7 +43,7 @@ let convert_repository_name        x = x
 let convert_location_name          x = x
 let convert_component_name         x = x
 
-module Incrementing_id = Data_common.Incrementing_integer
+module Incrementing_id = Data_common.Incrementing_integer_with_deprecated
 
 (* this module is used to get from a package name the right package, by giving in addition in which repository to look in for *)
 module Repository_id_package_name = struct
@@ -82,12 +82,14 @@ module Catalog =
 
     (* A modifiable catalog with name <-> id mapping. *)
     class type catalog_iface = object
-      method ids        : Id_set.t     (* All the ids. *)
-      method names      : Name_set.t   (* All the names. *)
-      method name_of_id : id   -> name (* Mapping name -> id. May throw Not_found exception. *)
-      method id_of_name : name -> id   (* Mapping id -> name. May throw Not_found exception. *)
-      method get_or_add : name -> id   (* Get the id corresponding to a name. If it does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
-      method add        : name -> unit (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
+      method ids            : Id_set.t           (* All the ids. *)
+      method names          : Name_set.t         (* All the names. *)
+      method name_of_id     : id   -> name       (* Mapping name -> id. May throw Not_found exception. *)
+      method id_of_name     : name -> id         (* Mapping id -> name. May throw Not_found exception. *)
+      method set_id_of_name : name -> id -> unit (* Adds the name to names and makes it correspond to a given id   (only one way, we have name -> id, but not id -> name!). *)
+      method set_name_of_id : id -> name -> unit (* Adds the id   to ids   and makes it correspond to a given name (only one way, we have id -> name, but not name -> id!). *)
+      method get_or_add     : name -> id         (* Get the id corresponding to a name. If it does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
+      method add            : name -> unit       (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
     end
 
     (* Implementation of the catalog. *)
@@ -102,14 +104,22 @@ module Catalog =
       (* Mapping functions. *)
       let id_of_name (name : name) : id   = Name_map.find name !name_to_id_map in
       let name_of_id (id   : id)   : name = Id_map  .find id   !id_to_name_map in
-          
-      (* Function that adds new name and id to appropriate sets 
-         and adds the relation id <-> name to both maps. *)
-      let add_new_name_id_pair name id =
+
+      (* Add the name to names and make it correspond to a given id (name -> id). *)
+      let set_id_of_name name id =
         names          := Name_set.add name    (!names);
+        name_to_id_map := Name_map.add name id (!name_to_id_map) in
+
+      (* Add the id to ids and make it correspond to a given name (id -> name). *)
+      let set_name_of_id id name =
         ids            := Id_set  .add id      (!ids);
-        name_to_id_map := Name_map.add name id (!name_to_id_map);
         id_to_name_map := Id_map  .add id name (!id_to_name_map) in
+          
+      (* Adds new name and id to appropriate sets 
+         and add the relation id <-> name to both maps. *)
+      let add_new_name_id_pair name id =
+        set_id_of_name name id;
+        set_name_of_id id name in
 
       (* For unique identifier creation. *)
       let current_id = Incrementing_id.create () in
@@ -125,12 +135,14 @@ module Catalog =
 
       (* The catalog object. *)
       object
-        method ids        = !ids
-        method names      = !names
-        method id_of_name = id_of_name
-        method name_of_id = name_of_id
-        method get_or_add = get_or_add
-        method add        = add
+        method ids            = !ids
+        method names          = !names
+        method id_of_name     = id_of_name
+        method name_of_id     = name_of_id
+        method set_id_of_name = set_id_of_name
+        method set_name_of_id = set_name_of_id
+        method get_or_add     = get_or_add
+        method add            = add
       end
 
     (* A closed catalog (closed means that it cannot be modified. *)
@@ -189,6 +201,8 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
 
   (* Functions for adding stuff *)
 
+  (* 1. Universe *)
+
   (* component types *)
   let add_component_type ct =
     let open Json_t in
@@ -220,15 +234,31 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
   let add_universe u =
     let open Json_t in
     List.iter add_component_type u.universe_component_types; (* component_types *)
-                                                             (* implementation *)
+                                                             (* TODO: implementation *)
     List.iter add_repository     u.universe_repositories     (* repositories *)
   in
+
+  (* Add all the universe data and all the additional repositories data. *)
+  let _ = 
+    begin
+      match universe with
+      | None   -> ()
+      | Some u -> add_universe u
+    end;
+    List.iter add_repository additional_repositories
+  in
+
+
+  (* 2. Configuration *)
 
   (* component *)
   let add_component c =
     let open Json_t in
-    component#add      (convert_component_name      c.component_name)    (* name *)
-    (* component_type#add (convert_component_type_name c.component_type)     (* type *) *)     (* TODO: Don't add here or you will have also deprecated component types. *)
+    component#add      (convert_component_name      c.component_name);    (* name *)
+    (* If the component's type is already in the catalog - do nothing. *)
+    try let _ = component_type#id_of_name (convert_component_type_name c.component_type) in ()
+    (* Otherwise it means that this component type does not exist in the universe - it is deprecated. *)
+    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.component_type) (Incrementing_id.special Data_common.Deprecated)  (* type *)
     (* location#add       (convert_location_name       c.component_location) (* location *) *) (* TODO: This is useless, as if the location does not exist, the initial config is not valid. *)
   in
 
@@ -258,21 +288,22 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
     (* List.iter add_binding   c.configuration_bindings *) (* bindings *)
   in
 
-  (* do it! (where "it" means: add all the model data) *)
+  (* Add all the initial configuration data. *)
   let _ = 
-    begin
-      match universe with
-      | None   -> ()
-      | Some u -> let _ = add_universe u in ()
-    end;
-    List.iter add_repository additional_repositories;
     begin
       match initial_configuration with
       | None   -> ()
-      | Some c -> let _ = add_configuration c in ()
-    end;
+      | Some c -> 
+          (* Prepare the one way mapping between component_type id -1 and name "Deprecated" *) (* TODO: This is probably useless? *)
+          (* component_type#set_name_of_id (Incrementing_id.special Data_common.Deprecated) "Deprecated"; *)
+          add_configuration c
+    end
+  in
+
+  (* TODO: Add all the specification data. *)
+  let _ =
     begin
-      match specification with (* TODO: maybe we should add it? *)
+      match specification with
       | None   -> ()
       | Some s -> ()
     end

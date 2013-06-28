@@ -103,3 +103,19 @@ sig
 end
 
 module Incrementing_integer : Incrementing with type id = int
+
+
+(* Unique identifiers plus special identifier requests *)
+module type Incrementing_with_special =
+sig
+  include Incrementing
+  type special_request
+  val special : special_request -> id
+end
+
+(* Only one special request: Deprecated (which will typically correspond to id -1) *)
+type special_request_deprecated = Deprecated
+
+module Incrementing_integer_with_deprecated : Incrementing_with_special with 
+  type id = int and 
+  type special_request = special_request_deprecated
