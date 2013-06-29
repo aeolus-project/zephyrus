@@ -160,3 +160,74 @@ struct
   type special_request = special_request_deprecated
   let special = function Deprecated -> -1
 end
+
+
+(*/************************************************************************\*)
+(*| 3. Generic Graph                                                       |*)
+(*\************************************************************************/*)
+
+module Graph = struct
+  module type Vertice = sig type t end
+  module type Edge   = sig type t end
+
+  module Make(V: Vertice)(E: Edge) = struct
+    type loop_id = int
+    type vertice_id = int
+    type edge_id = int
+  
+    type vertice = {
+      v_id : vertice_id; v_data : V.t;
+      mutable v_successors : edge list; mutable v_predecessors : edge list;
+      mutable v_parse_tag : bool; mutable v_loop_tag : loop_id option }
+    and edge = { e_id : edge_id; e_data : E.t; e_origin : vertice; e_target : vertice; mutable e_loop_tag : loop_id option }
+
+    module Vertice = struct
+      type t = vertice
+      let id = Fresh_integer.create ()
+      let create data = { v_id = Fresh_integer.next id; v_data = data; v_successors = []; v_predecessors = []; v_parse_tag = false; v_loop_tag = None }
+      let data n  = n.v_data
+      let succs n = n.v_successors
+      let preds n = n.v_predecessors
+      let compare v1 v2 = v1.v_id - v2.v_id
+    end module Vertice_set = Set.Make(Vertice)
+
+    module Edge = struct
+      type t = edge
+      let id = Fresh_integer.create ()
+      let create o data t = let res = { e_id = Fresh_integer.next id; e_data = data; e_origin = o; e_target = t; e_loop_tag = None } in
+        o.v_successors <- res::o.v_successors; o.v_predecessors <- res::o.v_predecessors; res
+      let data e  = e.e_data
+      let origin e = e.e_origin
+      let target e = e.e_target
+      let compare e1 e2 = e1.e_id - e2.e_id
+    end module Edge_set = Set.Make(Edge)
+    
+    type path = { p_origin : vertice; p_path : (vertice, edge) Hashtbl.t; p_end : vertice }
+    type loops = (loop_id, Vertice_set.t) Hashtbl.t
+    
+    type t = { mutable g_vertices : Vertice_set.t; mutable g_edges : Edge_set.t; mutable g_done_loops : bool; g_loops : loops;
+      mutable g_roots : Vertice_set.t; mutable g_leafs : Vertice_set.t }
+    
+    let create () = { g_vertices = Vertice_set.empty; g_edges = Edge_set.empty; g_done_loops = false; g_loops = Hashtbl.create 16; (* I don't expect many loops *)
+       g_roots = Vertice_set.empty; g_leafs = Vertice_set.empty }
+    
+    let add_vertice data g = let v = Vertice.create data in
+      g.g_vertices <- Vertice_set.add v g.g_vertices;
+      g.g_roots <- Vertice_set.add v g.g_roots;
+      g.g_leafs <- Vertice_set.add v g.g_leafs
+      
+    let add_edge o data t g = let e = Edge.create o data t in
+      g.g_edges <- Edge_set.add e g.g_edges;
+      g.g_done_loops <- false;
+      g.g_roots <- Vertice_set.remove t g.g_roots;
+      g.g_leafs <- Vertice_set.remove o g.g_leafs
+      
+    (* parsing functions *)
+    
+    
+  end
+end
+
+
+
+
