@@ -186,10 +186,13 @@ module Graph = struct
       let id = Fresh_integer.create ()
       let create data = { v_id = Fresh_integer.next id; v_data = data; v_successors = []; v_predecessors = []; v_parse_tag = false; v_loop_tag = None }
       let data n  = n.v_data
-      let succs n = n.v_successors
-      let preds n = n.v_predecessors
+      let succs_e n = n.v_successors
+      let preds_e n = n.v_predecessors
+      let succs_v n = List.map (fun e -> e.e_target) (succs_e n)
+      let preds_v n = List.map (fun e -> e.e_origin) (preds_e n)
       let compare v1 v2 = v1.v_id - v2.v_id
-    end module Vertice_set = Set.Make(Vertice)
+      let equal v1 v2 = (compare v1 v2) = 0
+    end module Vertice_set = Set.Make(Vertice) module Vertice_map = Map.Make(Vertice)
 
     module Edge = struct
       type t = edge
@@ -200,11 +203,74 @@ module Graph = struct
       let origin e = e.e_origin
       let target e = e.e_target
       let compare e1 e2 = e1.e_id - e2.e_id
-    end module Edge_set = Set.Make(Edge)
+    end module Edge_set = Set.Make(Edge) module Edge_map = Map.Make(Edge)
     
-    type path = { p_origin : vertice; p_path : (vertice, edge) Hashtbl.t; p_end : vertice }
-    type loops = (loop_id, Vertice_set.t) Hashtbl.t
+    module Path = struct
+      type t = { p_origin : vertice; p_end : vertice; p_vertices : Vertice_set.t; p_path : edge list }
+
+      exception Invalid_path_extension
+
+      let create o = { p_origin = o; p_end = o; p_vertices = Vertice_set.singleton o; p_path = []}
+      let is_empty p = match p.p_path with | [] -> true | _ -> false
+      let add e p = if Vertice.equal p.p_end (Edge.origin e) then raise (Invalid_path_extension) else let t = Edge.target e in {
+          p_origin = p.p_origin;
+          p_end = t;
+          p_vertices = Vertice_set.add t p.p_vertices;
+          p_path = e::p.p_path
+        }
+      let mem n p = Vertice_set.mem n p.p_vertices
+      let vertices p = p.p_vertices
+      let edges p = Edge_set.set_of_direct_list p.p_path
+      
+      let extract_of_vertice v p = (* TODO: switch to a split function *) (* used to extract the loop from a path *)
+        let rec f l = match l with
+          | [] -> []
+          | e::l' -> if Vertice.equal (Edge.origin e) v then [e] else e::(f l') in
+        let _path_rev = f p.p_path in
+        let _origin = match _path_rev with | [] -> p.p_origin | e::_ -> Edge.origin e in
+        let _end = p.p_end in {
+          p_origin   = _origin;
+          p_end      = _end;
+          p_vertices = List.fold_left (fun res e -> Vertice_set.add (Edge.origin e) res) (Vertice_set.singleton _end) _path_rev;
+          p_path     = List.rev _path_rev
+        }
+      let is_loop p = (Vertice.equal p.p_origin p.p_end) && (not (is_empty p))
+      
+      let center_loop_unsafe v p = 
+        let rec f l = match l with (* returns (what stays, what moves in first) *)
+          | [] -> ([],[])
+          | e::l' -> if Vertice.equal (Edge.origin e) v then (l,[e]) else let (l1, l2) = f l' in (e::l1, l2) in
+        let (l1, l2) = f p.p_path in {
+          p_origin = v;
+          p_end = v;
+          p_vertices = p.p_vertices;
+          p_path = l2 @ l1
+        }
+      
+      let add_loop pl p = if not (is_loop pl) then raise (Invalid_path_extension) else (
+        let s = Vertice_set.inter pl.p_vertices p.p_vertices in
+        if Vertice_set.is_empty s then raise (Invalid_path_extension) else (
+        let root = Vertice_set.choose s in
+          (* 1. recenter pl on root *)
+          let pl' = center_loop_unsafe root pl in
+          (* 2. insert pl' inside p *)
+          let rec f l = match l with
+            | [] -> pl.p_path
+            | e::l' -> if Vertice.equal (Edge.origin e) root then e::(pl.p_path @ l) else e::(f l') in
+          let _path = f p.p_path in {
+            p_origin = p.p_origin;
+            p_end = p.p_end;
+            p_vertices = Vertice_set.union pl.p_vertices p.p_vertices;
+            p_path = _path
+          }
+      ))
+    end
     
+    module Loop = struct
+      type t = { l_id : loop_id; mutable l_path : Path.t; mutable edges_in : Edge_set.t; mutable edges_out : Edge_set.t }
+ 
+     end
+(*    
     type t = { mutable g_vertices : Vertice_set.t; mutable g_edges : Edge_set.t; mutable g_done_loops : bool; g_loops : loops;
       mutable g_roots : Vertice_set.t; mutable g_leafs : Vertice_set.t }
     
@@ -224,7 +290,7 @@ module Graph = struct
       
     (* parsing functions *)
     
-    
+  *)  
   end
 end
 
