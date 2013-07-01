@@ -217,13 +217,10 @@ let trim_repositories universe initial_configuration specification =
 
   let package_ids : Package_id_set.t = trimmed_package_ids in
 
-  let package_of_package_id_map : package Package_id_map.t = 
+  let (package_of_package_id_map, repository_id_of_package_id_map) (* : (package Package_id_map.t, repository_id Package_id_map.t) *) = 
     
-    let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
-
-    (*
+    let package_of_package_id_map       : package Package_id_map.t ref       = ref Package_id_map.empty in
     let repository_id_of_package_id_map : repository_id Package_id_map.t ref = ref Package_id_map.empty in
-    *)
 
     Repository_id_set.iter (fun repository_id -> 
       
@@ -231,14 +228,14 @@ let trim_repositories universe initial_configuration specification =
       Package_id_set.iter (fun package_id ->
         
         let package = repository#get_package package_id in
-        package_of_package_id_map := Package_id_map.add package_id package !package_of_package_id_map
-        
-        (* repository_id_of_package_id_map := Package_id_map.add package_id repository_id !repository_id_of_package_id_map *)
+
+        package_of_package_id_map       := Package_id_map.add package_id package       !package_of_package_id_map;
+        repository_id_of_package_id_map := Package_id_map.add package_id repository_id !repository_id_of_package_id_map
       
       ) repository#package_ids
     ) repository_ids;
 
-    !package_of_package_id_map
+    (!package_of_package_id_map, !repository_id_of_package_id_map)
 
   in
 
@@ -249,9 +246,29 @@ let trim_repositories universe initial_configuration specification =
   let get_package (package_id : package_id) : package = 
     Package_id_map.find package_id package_of_package_id_map in
 
+  let repository_of_package (package_id : package_id) : repository_id =
+    Package_id_map.find package_id repository_id_of_package_id_map in
+
   let module Package_name_set_of_package_set = Data_common.Set.Convert(Package_set)(Package_name_set) in
   let package_names : Package_name_set.t = Package_name_set_of_package_set.convert (fun package -> package#name) packages in
   
+  
+  (* Restrincting domains of the package id <-> name mapping *)
+  
+  (* (* TODO: This will not work so easily as we don't know the names of packages in a given repository. *)
+  let get_package_id (repository_id : repository_id) (package_name : package_name) : package_id =
+    let repository = get_repository repository_id in
+    if   Package_name_set.mem package_name repository#package_names
+    then universe#get_package_id repository_id package_name
+    else failwith (Printf.sprintf "In the universe accessing a package with name=%s which was trimmed out!" (String_of.package_name package_name) ) in
+  *)
+
+  let get_package_name (package_id   : package_id  ) : package_name =
+    if   Package_id_set.mem package_id package_ids
+    then universe#get_package_name package_id
+    else failwith (Printf.sprintf "In the universe accessing a package with id=%s which was trimmed out!" (String_of.package_id package_id) ) in
+  
+
   (* The trimmed universe. *)
   object
     (* basic methods *)
@@ -260,7 +277,7 @@ let trim_repositories universe initial_configuration specification =
     method get_repository     = get_repository              (* Updated! *)
     method get_package        = get_package                 (* Updated! *)
 
-    method repository_of_package = universe#repository_of_package (* TODO: Domain should be restricted. *)
+    method repository_of_package = repository_of_package (* Updated! *)
 
     method get_component_types = universe#get_component_types (* Irrelevent to package trimming. *)
     method get_repositories    = repositories                 (* Updated! *)
@@ -292,11 +309,11 @@ let trim_repositories universe initial_configuration specification =
     (* methods for naming *)
     method get_port_id           = universe#get_port_id           (* Irrelevent to package trimming. *)
     method get_component_type_id = universe#get_component_type_id (* Irrelevent to package trimming. *)
-    method get_repository_id     = universe#get_repository_id     (* TODO: Domain should be restricted. *)
+    method get_repository_id     = universe#get_repository_id     (* Stays the same (repository mapping id <-> name does not change). *)
     method get_package_id        = universe#get_package_id        (* TODO: Domain should be restricted. *)
 
     method get_port_name           = universe#get_port_name           (* Irrelevent to package trimming. *)
     method get_component_type_name = universe#get_component_type_name (* Irrelevent to package trimming. *)
-    method get_repository_name     = universe#get_repository_name     (* TODO: Domain should be restricted. *)
-    method get_package_name        = universe#get_package_name        (* TODO: Domain should be restricted. *)
+    method get_repository_name     = universe#get_repository_name     (* Stays the same (repository mapping id <-> name does not change). *)
+    method get_package_name        = get_package_name                 (* Domain restricted. *)
   end
