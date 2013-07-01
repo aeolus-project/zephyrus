@@ -85,7 +85,9 @@ let () =
           | None -> Printf.printf "\nZephyrus is proud to announce you, that the specification does not exist!...\n"
           | Some specification -> 
               let universe_trimmed_component_types = Trim.trim_component_types universe                         initial_configuration specification in
+              print_string (Json_of.universe_string universe_trimmed_component_types r);
               let universe_trimmed_package         = Trim.trim_repositories    universe_trimmed_component_types initial_configuration specification in
+              print_string (Json_of.universe_string universe_trimmed_package r);
               Data_state.universe_full := Some(universe_trimmed_package)
         end
       end;

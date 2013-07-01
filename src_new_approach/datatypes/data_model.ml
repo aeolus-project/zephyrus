@@ -166,6 +166,7 @@ module Repository_id = Int
 module Repository_id_set     = SetInt
 module Repository_id_set_set = SetSetInt
 module Repository_id_map     = MapInt
+module Repository_id_map_extract_key = Keys_of_MapInt
 
   (** Repository. *)
 class type repository = object
