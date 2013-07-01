@@ -21,7 +21,12 @@
     - Map
     - Set
     - String
+    - Queue
 *)
+
+(*/************************************************************************\*)
+(*| 1. Simple Extension of Sets and Maps                                   |*)
+(*\************************************************************************/*)
 
 module type OrderedType = Map.OrderedType
 module type Map_from_stblib = Map.S
@@ -92,6 +97,10 @@ module Keys_of_MapInt    : sig val set_of_keys : 'a MapInt.t -> SetInt.t end
 module Keys_of_MapString : sig val set_of_keys : 'a MapString.t -> SetString.t end
 
 
+(*/************************************************************************\*)
+(*| 2. Unique Identifiers Generation                                       |*)
+(*\************************************************************************/*)
+
 (* Modules for unique identifier creation *)
 module type Fresh =
 sig
@@ -119,3 +128,112 @@ type special_request_deprecated = Deprecated
 module Fresh_integer_with_deprecated : Fresh_with_special with 
   type id = int and 
   type special_request = special_request_deprecated
+  
+
+(*/************************************************************************\*)
+(*| 3. Generic Graph                                                       |*)
+(*\************************************************************************/*)
+
+module Graph : sig
+  module type Vertice_data = sig type t end
+  module type Edge_data   = sig type t end
+
+  module Make(V: Vertice_data)(E: Edge_data) : sig
+    module rec Vertice : sig
+      type t
+      val data   : t -> V.t
+      val succs_e: t -> Edge_set.t
+      val preds_e: t -> Edge_set.t
+      val succs_v: t -> Vertice_set.t
+      val preds_v: t -> Vertice_set.t
+      
+      val parse_tag   : t -> unit
+      val is_parsed   : t -> bool
+      val parse_untag : t -> unit
+      val loop_tag    : Loop.t -> t -> unit
+      val loop_untag  : t -> unit
+      val is_loop     : t -> bool
+      val loop_get    : t -> Loop.t
+      
+      val compare : t -> t -> int
+      val equal   : t -> t -> bool
+    end and Vertice_set : (Set.S with type elt = Vertice.t) and Vertice_map : (Map.S with type key = Vertice.t)
+    
+    and Edge : sig
+      type t
+      val data   : t -> E.t
+      val origin : t -> Vertice.t
+      val target : t -> Vertice.t
+      
+      val loop_tag     : Loop.t -> t -> unit
+      val loop_tag_in  : Loop.t -> t -> unit
+      val loop_tag_out : Loop.t -> t -> unit
+      val loop_untag   : t -> unit
+      val is_loop      : t -> bool
+      val is_loop_in   : t -> bool
+      val is_loop_out  : t -> bool
+      val loop_get     : t -> Loop.t
+      
+      val compare : t -> t -> int
+      val equal   : t -> t -> bool
+    end and Edge_set : (Set.S with type elt = Edge.t) and Edge_map : (Map.S with type key = Edge.t)
+
+    and Path : sig
+      type t
+      exception Invalid_path_extension
+
+      val create   : Vertice.t -> t
+      val is_empty : t -> bool
+      val add      : Edge.t -> t -> t
+      val mem      : Vertice.t -> t -> bool
+      val vertices : t -> Vertice_set.t
+      val edges    : t -> Edge_set.t
+      
+      val extract_of_vertice : Vertice.t -> t -> t
+      val is_loop            : t -> bool
+      val center_loop_unsafe : Vertice.t -> t -> t
+      val add_loop           : t -> t -> t
+    end
+    
+    and Loop : sig
+      type t
+      exception Invalid_loop_extension
+      
+      val create   : Path.t -> t
+      val add      : Path.t -> t -> unit
+      val vertices : t -> Vertice_set.t
+      val edges    : t -> Edge_set.t
+      val succs_e  : t -> Edge_set.t
+      val preds_e  : t -> Edge_set.t
+      val succs_v  : t -> Vertice_set.t
+      val preds_v  : t -> Vertice_set.t
+      
+      val mem    : Vertice.t -> t -> bool
+      val center : Vertice.t -> t -> unit
+      
+      val compare : t -> t -> int
+      val equal   : t -> t -> bool
+    end and Loop_set : (Set.S with type elt = Loop.t) and Loop_map : (Map.S with type key = Loop.t)
+
+    type t
+
+    val create      : unit -> t
+    val add_vertice : V.t -> t -> unit
+    val add_edge    : Vertice.t -> E.t -> Vertice.t -> t -> unit
+    val get_loops   : t -> Loop_set.t
+    
+    module Traverse_depth : sig
+      val iter : (Path.t -> Vertice.t -> bool -> (unit -> unit) -> unit) -> t -> unit
+    end
+    
+    module Traverse_topology : sig
+      val iter_downward : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
+      val iter_upward   : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
+    end
+    
+    
+  end
+end
+
+
+
