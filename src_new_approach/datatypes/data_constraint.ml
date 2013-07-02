@@ -48,33 +48,55 @@ module Variable_map = Data_common.Map.Make(Variable)
 
 (* Remark: all associative and commutative operators have lists in arguement, for more efficient encoding *)
 
-type op = 
-  | Lt  (** Less-than operator *)
-  | LEq (** Less-than-or-equal-to operator *)
-  | Eq  (** Equal-to operator *)
-  | GEq (** Grearter-than-or-equal-to operator *)
-  | Gt  (** Greater-than operator *)
-  | NEq (** Not-equal-to operator *)
 
 type value = Finite_value of int | Infinite_value
 
+type arith_cmp_op = 
+  | Lt  (** Less-than                 operator *)
+  | LEq (** Less-than-or-equal-to     operator *)
+  | Eq  (** Equal-to                  operator *)
+  | GEq (** Grearter-than-or-equal-to operator *)
+  | Gt  (** Greater-than              operator *)
+  | NEq (** Not-equal-to              operator *)
+
+type unary_arith_op =
+  | Abs 
+
+type binary_arith_op =
+  | Add 
+  | Sub 
+  | Mul 
+  | Div 
+  | Mod 
+
+type nary_arith_op =
+  | Sum 
+  | Product
+
+type unary_konstraint_op =
+  | Not 
+
+type binary_konstraint_op =          
+  | Implies        
+
+type nary_konstraint_op =
+  | And
+  | Or
+
 type expression = 
-  | Constant of value
-  | Variable of variable
-  | Reified  of konstraint
-  | Add      of expression list         (** Addition operator *)
-  | Sub      of expression * expression (** Substraction operator *)
-  | Mul      of expression list         (** Multiplication operator *)
-  | Abs      of expression
-  | Mod      of expression * expression
-  | Div      of expression * expression
+  | Constant              of value
+  | Variable              of variable
+  | Reified               of konstraint
+  | UnaryArithExpression  of unary_arith_op  * expression
+  | BinaryArithExpression of binary_arith_op * expression * expression
+  | NaryArithExpression   of nary_arith_op   * expression list
 and konstraint = 
   | True                                  (** Always satisfied constraint. *)
-  | Arith of expression * op * expression
-  | And of konstraint list                (** And operator *)
-  | Or of konstraint list                 (** Or operator *)
-  | Implies of konstraint * konstraint    (** Implies operator *)
-  | Not of konstraint                     (** Not operator *)
+  | False
+  | ArithKonstraint       of arith_cmp_op         * expression * expression
+  | UnaryKonstraint       of unary_konstraint_op  * konstraint         
+  | BinaryKonstraint      of binary_konstraint_op * konstraint * konstraint
+  | NaryKonstraint        of nary_konstraint_op   * konstraint list
 
 (* 3. Optimization Function *)
 
@@ -96,3 +118,44 @@ type solution = {
   variable_values : variable -> int; (** solution of a constraint, can be implemented with a [Variable_map.t] *)
 }
 
+
+
+let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
+let value_of_require_arity a = Finite_value(a)
+let value i = Finite_value(i)
+let infinite_value = Infinite_value
+
+let constant i = Constant(Finite_value(i))
+let constant_of_provide_arity a = Constant(value_of_provide_arity a)
+let constant_of_require_arity a = Constant(value_of_require_arity a)
+
+let var2expr   v = Variable v
+let const2expr c = Constant c
+let int2expr   i = Constant (Finite_value i)
+
+let ( +~ )    x y  = NaryArithExpression   ( Sum,     [x; y] )
+let ( -~ )    x y  = BinaryArithExpression ( Sub,      x, y  )
+let ( *~ )    x y  = NaryArithExpression   ( Product, [x; y] )
+let ( /~ )    x y  = BinaryArithExpression ( Div,      x, y  )
+let ( %~ )    x y  = BinaryArithExpression ( Mod,      x, y  )
+let abs       x    = UnaryArithExpression  ( Abs,      x     )
+let sum       l    = NaryArithExpression   ( Sum,      l     )
+let prod      l    = NaryArithExpression   ( Product,  l     )
+let conj      l    = NaryKonstraint        ( And,      l     )
+let disj      l    = NaryKonstraint        ( Or,       l     )
+let reify     cstr = Reified(cstr)
+
+let (  <~ )   x y  = ArithKonstraint (Lt,  x, y)
+let ( <=~ )   x y  = ArithKonstraint (LEq, x, y)
+let (  =~ )   x y  = ArithKonstraint (Eq,  x, y)
+let ( >=~ )   x y  = ArithKonstraint (GEq, x, y)
+let (  >~ )   x y  = ArithKonstraint (Gt,  x, y)
+let ( <>~ )   x y  = ArithKonstraint (NEq, x, y)
+
+let true_konstraint  = True
+let false_konstraint = False
+
+let (  &&~~ ) x y  = NaryKonstraint   ( And, ([x; y]) )
+let (  ||~~ ) x y  = NaryKonstraint   ( Or,  ([x; y]) )
+let (  =>~~ ) x y  = BinaryKonstraint ( Implies, x, y )
+let (  !~   ) x    = UnaryKonstraint  ( Not, x        )

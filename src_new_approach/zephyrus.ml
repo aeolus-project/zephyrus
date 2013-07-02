@@ -156,23 +156,23 @@ let () =
   Location_categories.generate_categories ();
   let c = Location_categories.generate_constraint () in
   print_string "\n        ==> UNIVERSE <==        \n\n";
-  print_string ("  require  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_require))) ^ "\n");
-  print_string ("  provide  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_provide))) ^ "\n");
-  print_string ("  conflict = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_conflict))) ^ "\n");
-  print_string ("  implem   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_component_type_implementation))) ^ "\n");
-  print_string ("  unicity  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_binding_unicity))) ^ "\n");
-  print_string ("  distrib1 = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_location_component_type))) ^ "\n");
-  print_string ("  distrib2 = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_location_package))) ^ "\n");
-  print_string ("  distrib3 = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_location_port))) ^ "\n");
-  print_string ("  port_cal = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_definition_port))) ^ "\n");
-  print_string ("  repo_1   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_repository_unicity))) ^ "\n");
-  print_string ("  repo_pac = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_repository_package))) ^ "\n");
-  print_string ("  pack_dep = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_package_dependency))) ^ "\n");
-  print_string ("  pack_pb  = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_package_conflict))) ^ "\n");
-  print_string ("  resource = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_resource_consumption))) ^ "\n");
-  print_string ("  delete   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
+  print_string ("  require  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_require))) ^ "\n");
+  print_string ("  provide  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_provide))) ^ "\n");
+  print_string ("  conflict = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_conflict))) ^ "\n");
+  print_string ("  implem   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_implementation))) ^ "\n");
+  print_string ("  unicity  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_binding_unicity))) ^ "\n");
+  print_string ("  distrib1 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_component_type))) ^ "\n");
+  print_string ("  distrib2 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_package))) ^ "\n");
+  print_string ("  distrib3 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_port))) ^ "\n");
+  print_string ("  port_cal = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_definition_port))) ^ "\n");
+  print_string ("  repo_1   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_repository_unicity))) ^ "\n");
+  print_string ("  repo_pac = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_repository_package))) ^ "\n");
+  print_string ("  pack_dep = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_package_dependency))) ^ "\n");
+  print_string ("  pack_pb  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_package_conflict))) ^ "\n");
+  print_string ("  resource = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption))) ^ "\n");
+  print_string ("  delete   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
   print_string ("  spec     = " ^ (String_of.konstraint (check_option "specification constraint" !Data_state.constraint_specification_full)) ^ "\n");
-  print_string ("  config   = " ^ (String_of.konstraint (Data_constraint.And(!Data_state.constraint_configuration_full))) ^ "\n");
+  print_string ("  config   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_configuration_full))) ^ "\n");
   print_string ("  category = " ^ (String_of.konstraint c) ^ "\n"); 
 (*
 let constraint_optimization_function : optimization_function option ref = ref None
@@ -189,23 +189,23 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
       Solvers.keep_input_file       = true;
       Solvers.keep_output_file      = true  
     } in let solver_input = [
-    ("  require  " , (Data_constraint.And(!Data_state.constraint_universe_component_type_require)));
-    ("  provide  " , (Data_constraint.And(!Data_state.constraint_universe_component_type_provide)));
-    ("  conflict " , (Data_constraint.And(!Data_state.constraint_universe_component_type_conflict)));
-    ("  implem   " , (Data_constraint.And(!Data_state.constraint_universe_component_type_implementation)));
-    ("  unicity  " , (Data_constraint.And(!Data_state.constraint_universe_binding_unicity)));
-    ("  distrib1 " , (Data_constraint.And(!Data_state.constraint_universe_location_component_type)));
-    ("  distrib2 " , (Data_constraint.And(!Data_state.constraint_universe_location_package)));
-    ("  distrib3 " , (Data_constraint.And(!Data_state.constraint_universe_location_port)));
-    ("  port_cal " , (Data_constraint.And(!Data_state.constraint_universe_definition_port)));
-    ("  repo_1   " , (Data_constraint.And(!Data_state.constraint_universe_repository_unicity)));
-    ("  repo_pac " , (Data_constraint.And(!Data_state.constraint_universe_repository_package)));
-    ("  pack_dep " , (Data_constraint.And(!Data_state.constraint_universe_package_dependency)));
-    ("  pack_pb  " , (Data_constraint.And(!Data_state.constraint_universe_package_conflict)));
-    ("  resource " , (Data_constraint.And(!Data_state.constraint_universe_resource_consumption)));
-    ("  delete   " , (Data_constraint.And(!Data_state.constraint_universe_deprecated_element)));
+    ("  require  " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_require)));
+    ("  provide  " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_provide)));
+    ("  conflict " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_conflict)));
+    ("  implem   " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_implementation)));
+    ("  unicity  " , (Data_constraint.conj(!Data_state.constraint_universe_binding_unicity)));
+    ("  distrib1 " , (Data_constraint.conj(!Data_state.constraint_universe_location_component_type)));
+    ("  distrib2 " , (Data_constraint.conj(!Data_state.constraint_universe_location_package)));
+    ("  distrib3 " , (Data_constraint.conj(!Data_state.constraint_universe_location_port)));
+    ("  port_cal " , (Data_constraint.conj(!Data_state.constraint_universe_definition_port)));
+    ("  repo_1   " , (Data_constraint.conj(!Data_state.constraint_universe_repository_unicity)));
+    ("  repo_pac " , (Data_constraint.conj(!Data_state.constraint_universe_repository_package)));
+    ("  pack_dep " , (Data_constraint.conj(!Data_state.constraint_universe_package_dependency)));
+    ("  pack_pb  " , (Data_constraint.conj(!Data_state.constraint_universe_package_conflict)));
+    ("  resource " , (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption)));
+    ("  delete   " , (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element)));
     ("  specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
-    ("  configuration " , ((Data_constraint.And(!Data_state.constraint_configuration_full))));
+    ("  configuration " , ((Data_constraint.conj(!Data_state.constraint_configuration_full))));
     ("  category " , c) ] in
   let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
   let solution = Solvers.G12.solve solver_settings solver_input opt_f in

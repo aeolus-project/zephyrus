@@ -49,14 +49,14 @@ let full_categories resources u c =  Location_categories.compute (compare_full r
 (*/************************************)
 (*| constraint computation part *)
 
-let elements_of_location u l = Add ((List.map (fun t -> Variable(Local_variable(l, Component_type(t)))) (Component_type_id_set.elements u#get_component_type_ids))
+let elements_of_location u l = sum ((List.map (fun t -> Variable(Local_variable(l, Component_type(t)))) (Component_type_id_set.elements u#get_component_type_ids))
                                   @ (List.map (fun k -> Variable(Local_variable(l, Package(k)))) (Package_id_set.elements u#get_package_ids)))
 let constraint_of_category u s =
   let rec f ls =  match ls with
   | [] -> [] | [l] -> []
-  | l1::l2::ls' -> (Arith (elements_of_location u l1, LEq, elements_of_location u l2))::(f (l2::ls')) in f (Location_id_set.elements s)
+  | l1::l2::ls' -> ( (elements_of_location u l1) <=~ (elements_of_location u l2) ) ::(f (l2::ls')) in f (Location_id_set.elements s)
 
-let constraint_of u ss = And (Location_id_set_set.fold (fun s res -> res @ (constraint_of_category u s)) ss [])
+let constraint_of u ss = conj (Location_id_set_set.fold (fun s res -> res @ (constraint_of_category u s)) ss [])
 
 
 (*/************************************)

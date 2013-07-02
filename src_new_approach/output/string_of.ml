@@ -164,35 +164,73 @@ let variable v = match v with
   | Data_constraint.Local_repository_variable(l,r) -> "R(" ^ (location_id l) ^ ", " ^ (repository_id r) ^ ")"
   | Data_constraint.Local_resource_variable(l,r)   -> "O(" ^ (location_id l) ^ ", " ^ (resource_id r) ^ ")"
 
-let op o = match o with
-  | Data_constraint.Lt  -> " < "
-  | Data_constraint.LEq -> " <= "
-  | Data_constraint.Eq  -> " = "
-  | Data_constraint.GEq -> " >= "
-  | Data_constraint.Gt  -> " > "
-  | Data_constraint.NEq -> " <> "
+
+let unary_arith_op = function
+  | Data_constraint.Abs -> "abs"
+
+let binary_arith_op = function
+  | Data_constraint.Add -> "+"
+  | Data_constraint.Sub -> "-"
+  | Data_constraint.Mul -> "*"
+  | Data_constraint.Div -> "/"
+  | Data_constraint.Mod -> "%"
+
+let nary_arith_op = function
+  | Data_constraint.Sum     -> "+"
+  | Data_constraint.Product -> "*"
+
+let unit_of_nary_arith_op = function
+  | Data_constraint.Sum     -> "0"
+  | Data_constraint.Product -> "1"
+
+let arith_cmp_op = function
+  | Data_constraint.Lt  -> "<"
+  | Data_constraint.LEq -> "<="
+  | Data_constraint.Eq  -> "="
+  | Data_constraint.GEq -> ">="
+  | Data_constraint.Gt  -> ">"
+  | Data_constraint.NEq -> "<>"
+
+let unary_konstraint_op = function
+  | Data_constraint.Not -> "not"
+
+let binary_konstraint_op = function
+  | Data_constraint.Implies -> "=>"
+
+let nary_konstraint_op = function
+  | Data_constraint.And -> "/\\"
+  | Data_constraint.Or  -> "\\/"
+
+let unit_of_nary_konstraint_op = function
+  | Data_constraint.And -> "true"
+  | Data_constraint.Or  -> "false"
+
 
 let value v = match v with
   | Data_constraint.Finite_value(i) -> string_of_int i
   | Data_constraint.Infinite_value  -> "infinite"
 
 let rec expression e = match e with
-  | Data_constraint.Constant(v)  -> value v
-  | Data_constraint.Variable(v)  -> variable v
-  | Data_constraint.Reified(c)   -> "|| " ^ (konstraint c) ^ " ||"
-  | Data_constraint.Add(l)       -> Data_helper.parse_nary_op "0" expression (fun s1 s2 -> s1 ^ " + " ^ s2) l
-  | Data_constraint.Sub(e1,e2)   -> "(" ^ (expression e1) ^ " - " ^ (expression e2) ^ ")"
-  | Data_constraint.Mul(l)       -> Data_helper.parse_nary_op "1" expression (fun s1 s2 -> s1 ^ " * " ^ s2) l
-  | Data_constraint.Abs(e')      -> "|" ^ (expression e') ^ "|"
-  | Data_constraint.Mod(e1,e2)   -> "(" ^ (expression e1) ^ " % " ^ (expression e2) ^ ")"
-  | Data_constraint.Div(e1,e2)   -> "(" ^ (expression e1) ^ " / " ^ (expression e2) ^ ")"
+  | Data_constraint.Constant              (v)        -> value v
+  | Data_constraint.Variable              (v)        -> variable v
+  | Data_constraint.Reified               (c)        -> Printf.sprintf "|| %s ||" (konstraint c)
+  | Data_constraint.UnaryArithExpression  (op,e)     -> Printf.sprintf "%s (%s)" (unary_arith_op op) (expression e)
+  | Data_constraint.BinaryArithExpression (op,e1,e2) -> Printf.sprintf "(%s %s %s)" (expression e1) (binary_arith_op op) (expression e2)
+  | Data_constraint.NaryArithExpression   (op,l)     -> Printf.sprintf "(%s)"
+                                                        (if l = [] 
+                                                         then unit_of_nary_arith_op op
+                                                         else String.concat (" " ^ (nary_arith_op op) ^ " ") (List.map expression l) )
+
 and konstraint c = match c with
-  | Data_constraint.True            -> "true"
-  | Data_constraint.Arith(e1,o,e2)  -> (expression e1) ^ (op o) ^ (expression e2)
-  | Data_constraint.And(l)          -> Data_helper.parse_nary_op "true" konstraint (fun s1 s2 -> s1 ^ " /\\ " ^ s2) l
-  | Data_constraint.Or(l)           -> Data_helper.parse_nary_op "false" konstraint (fun s1 s2 -> s1 ^ " \\/ " ^ s2) l
-  | Data_constraint.Implies(c1,c2)  -> (konstraint c1) ^ " ==> " ^ (konstraint c2)
-  | Data_constraint.Not(c')         -> "not(" ^ (konstraint c') ^ ")"
+  | Data_constraint.True                        -> "true"
+  | Data_constraint.False                       -> "false"
+  | Data_constraint.ArithKonstraint  (op,e1,e2) -> Printf.sprintf "(%s %s %s)" (expression e1) (arith_cmp_op op) (expression e2)
+  | Data_constraint.UnaryKonstraint  (op,c)     -> Printf.sprintf "%s (%s)" (unary_konstraint_op op) (konstraint c)
+  | Data_constraint.BinaryKonstraint (op,c1,c2) -> Printf.sprintf "(%s %s %s)" (konstraint c1) (binary_konstraint_op op) (konstraint c2)
+  | Data_constraint.NaryKonstraint   (op,l)     -> Printf.sprintf "(%s)"
+                                                   (if l = []
+                                                    then unit_of_nary_konstraint_op op
+                                                    else String.concat (" " ^ (nary_konstraint_op op) ^ " ") (List.map konstraint l) )
 
 
 (************************************)
