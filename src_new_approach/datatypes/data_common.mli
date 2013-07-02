@@ -184,89 +184,97 @@ module Graph : sig
   module type Vertice_data = sig type t end
   module type Edge_data   = sig type t end
 
-  module Make(V: Vertice_data)(E: Edge_data) : sig
+  module type S = sig
+    type vertice_data
+    type edge_data
+    
     module rec Vertice : sig
-      type t
-      val data   : t -> V.t
-      val succs_e: t -> Edge_set.t
-      val preds_e: t -> Edge_set.t
-      val succs_v: t -> Vertice_set.t
-      val preds_v: t -> Vertice_set.t
+      type t                           (* type of vertices *)
+      val data   : t -> vertice_data   (* returns the data contained in that vertice *)
+      val succs_e: t -> Edge_set.t     (* returns the set of edges exiting from that vertice *)
+      val preds_e: t -> Edge_set.t     (* returns the set of edges targeting that vertice *)
+      val succs_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge from that vertice *)
+      val preds_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge to that vertice *)
       
       val parse_tag   : t -> unit
       val is_parsed   : t -> bool
       val parse_untag : t -> unit
       val loop_tag    : Loop.t -> t -> unit
       val loop_untag  : t -> unit
-      val is_loop     : t -> bool
-      val loop_get    : t -> Loop.t
+      val is_loop     : t -> bool      (* returns if the vertice is part of a loop *)
+      val loop_get    : t -> Loop.t    (* returns the loop in which the vertice is, or raise Not_found *)
       
-      val compare : t -> t -> int
-      val equal   : t -> t -> bool
+      val compare : t -> t -> int      (* classic comparison function *)
+      val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
     end and Vertice_set : (Set.S with type elt = Vertice.t) and Vertice_map : (Map.S with type key = Vertice.t)
     
     and Edge : sig
-      type t
-      val data   : t -> E.t
-      val origin : t -> Vertice.t
-      val target : t -> Vertice.t
+      type t                           (* type of edges *)
+      val data   : t -> edge_data      (* returns the data contained in that edge *)
+      val origin : t -> Vertice.t      (* returns the origin vertice of that edge *)
+      val target : t -> Vertice.t      (* returns the target vertice of that edge *)
       
       val loop_tag     : Loop.t -> t -> unit
       val loop_tag_in  : Loop.t -> t -> unit
       val loop_tag_out : Loop.t -> t -> unit
       val loop_untag   : t -> unit
-      val is_loop      : t -> bool
-      val is_loop_in   : t -> bool
-      val is_loop_out  : t -> bool
-      val loop_get     : t -> Loop.t
+      val is_loop      : t -> bool     (* returns if that edge is part of a loop *)
+      val is_loop_in   : t -> bool     (* returns if that edge targets a vertice in a loop *)
+      val is_loop_out  : t -> bool     (* returns if that edge originates from a vertice in a loop *)
+      val loop_get     : t -> Loop.t   (* returns the loop linked to that edge, or raise Not_found *)
       
-      val compare : t -> t -> int
-      val equal   : t -> t -> bool
+      val compare : t -> t -> int      (* classic comparison function *)
+      val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
     end and Edge_set : (Set.S with type elt = Edge.t) and Edge_map : (Map.S with type key = Edge.t)
 
     and Path : sig
-      type t
-      exception Invalid_path_extension
+      type t                                      (* type of path *)
+      exception Invalid_path_extension            (* exception raised when erroneous operation is done on a path *)
 
-      val create   : Vertice.t -> t
-      val is_empty : t -> bool
-      val add      : Edge.t -> t -> t
-      val mem      : Vertice.t -> t -> bool
-      val vertices : t -> Vertice_set.t
-      val edges    : t -> Edge_set.t
+      val create      : Vertice.t -> t            (* create an empty path starting on that vertice *)
+      val is_empty    : t -> bool                 (* returns if the path is empty *)
+      val add         : Edge.t -> t -> t          (* returns that path extended with that edge, or raise Invalid_path_extension *)
+      val mem         : Vertice.t -> t -> bool    (* returns if that vertice is in that path *)
+      val vertices    : t -> Vertice_set.t        (* returns the set of vertices in that path *)
+      val edges       : t -> Edge_set.t           (* returns the set of edges in that path *)
+      val split       : Vertice.t -> t -> t list  (* [split v p] returns the list [p1;...;pn] with [p = pn -> v -> ... -> v -> p1. Does not create empty path in case origin or target is [v] *)
+      val concat      : t -> t -> t               (* concat the two paths together, or raise Invalid_path_extension  *)
+      val concat_list : t list -> t               (* concat a non-empty list of paths *)
+      val is_loop     : t -> bool                 (* tests if that path is a loop *)
       
-      val extract_of_vertice : Vertice.t -> t -> t
-      val is_loop            : t -> bool
-      val center_loop_unsafe : Vertice.t -> t -> t
-      val add_loop           : t -> t -> t
-    end
+      val compare : t -> t -> int                 (* classic comparison function *)
+      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
+    end and Path_set : (Set.S with type elt = Path.t) and Path_map : (Map.S with type key = Path.t)
     
     and Loop : sig
-      type t
-      exception Invalid_loop_extension
+      type t                                     (* type of loop *)
+      exception Invalid_loop_extension           (* exception raised when erroneous operation is done on a path *)
       
-      val create   : Path.t -> t
-      val add      : Path.t -> t -> unit
-      val vertices : t -> Vertice_set.t
-      val edges    : t -> Edge_set.t
-      val succs_e  : t -> Edge_set.t
-      val preds_e  : t -> Edge_set.t
-      val succs_v  : t -> Vertice_set.t
-      val preds_v  : t -> Vertice_set.t
+      val create   : Path.t -> t                 (* create a loop from a looping path, or raise Invalid_loop_extension *)
+      val add      : Path.t -> t -> unit         (* extend a lopp with a new sub-loop, or raise Invalid_loop_extension *)
+      val vertices : t -> Vertice_set.t          (* returns the set of vertices that are part of that loop *)
+      val edges    : t -> Edge_set.t             (* returns the set of edges that are part of that loop *)
+      val succs_e  : t -> Edge_set.t             (* returns the set of edges whose origin is part of the loop (and which are not part of the loop) *)
+      val preds_e  : t -> Edge_set.t             (* returns the set of edges whose target is part of the loop (and which are not part of the loop) *)
+      val succs_v  : t -> Vertice_set.t          (* returns the targets of the edges in [succs_e] of that loop *)
+      val preds_v  : t -> Vertice_set.t          (* returns the origins of the edges in [preds_e] of that loop *)
       
-      val mem    : Vertice.t -> t -> bool
-      val center : Vertice.t -> t -> unit
+      val mem    : Vertice.t -> t -> bool        (* tests if that vertice is part of that loop *)
+      val center : Vertice.t -> t -> unit        (* if that vertice is part of that loop, move the starting point of the main path of the loop on that vertice *)
       
-      val compare : t -> t -> int
-      val equal   : t -> t -> bool
+      val compare : t -> t -> int                 (* classic comparison function *)
+      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
     end and Loop_set : (Set.S with type elt = Loop.t) and Loop_map : (Map.S with type key = Loop.t)
 
     type t
 
     val create      : unit -> t
-    val add_vertice : V.t -> t -> unit
-    val add_edge    : Vertice.t -> E.t -> Vertice.t -> t -> unit
-    val get_loops   : t -> Loop_set.t
+    val add_vertice : vertice_data -> t -> Vertice.t
+    val add_edge    : Vertice.t -> edge_data -> Vertice.t -> t -> Edge.t
+
+    val vertices : t -> Vertice_set.t
+    val edges    : t -> Edge_set.t
+    val loops    : t -> Loop_set.t
     
     module Traverse_depth : sig
       val iter : (Path.t -> Vertice.t -> bool -> (unit -> unit) -> unit) -> t -> unit
@@ -275,10 +283,11 @@ module Graph : sig
     module Traverse_topology : sig
       val iter_downward : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
       val iter_upward   : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
-    end
-    
-    
+    end    
   end
+
+  module Make(V: Vertice_data)(E: Edge_data) : S with type vertice_data = V.t and type edge_data = E.t
+
 end
 
 

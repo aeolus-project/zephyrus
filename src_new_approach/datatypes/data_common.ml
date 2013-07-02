@@ -21,7 +21,6 @@
     - Map
     - Set
     - String
-    - Queue
 *)
 
 (*/************************************************************************\*)
@@ -37,6 +36,11 @@ module type Set_from_stblib = Set_global_from_stdlib.S
 
 module String = String
 module Int = struct type t = int let compare = (-) end
+
+module List = struct
+  include List
+  let is_empty l = match l with [] -> true | _ -> false
+end
 
 module Set = struct
 
@@ -285,33 +289,139 @@ module Graph = struct
   module type Vertice_data = sig type t end
   module type Edge_data   = sig type t end
 
+  module type S = sig
+    type vertice_data
+    type edge_data
+    
+    module rec Vertice : sig
+      type t                           (* type of vertices *)
+      val data   : t -> vertice_data   (* returns the data contained in that vertice *)
+      val succs_e: t -> Edge_set.t     (* returns the set of edges exiting from that vertice *)
+      val preds_e: t -> Edge_set.t     (* returns the set of edges targeting that vertice *)
+      val succs_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge from that vertice *)
+      val preds_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge to that vertice *)
+      
+      val parse_tag   : t -> unit
+      val is_parsed   : t -> bool
+      val parse_untag : t -> unit
+      val loop_tag    : Loop.t -> t -> unit
+      val loop_untag  : t -> unit
+      val is_loop     : t -> bool      (* returns if the vertice is part of a loop *)
+      val loop_get    : t -> Loop.t    (* returns the loop in which the vertice is, or raise Not_found *)
+      
+      val compare : t -> t -> int      (* classic comparison function *)
+      val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
+    end and Vertice_set : (Set.S with type elt = Vertice.t) and Vertice_map : (Map.S with type key = Vertice.t)
+    
+    and Edge : sig
+      type t                           (* type of edges *)
+      val data   : t -> edge_data      (* returns the data contained in that edge *)
+      val origin : t -> Vertice.t      (* returns the origin vertice of that edge *)
+      val target : t -> Vertice.t      (* returns the target vertice of that edge *)
+      
+      val loop_tag     : Loop.t -> t -> unit
+      val loop_tag_in  : Loop.t -> t -> unit
+      val loop_tag_out : Loop.t -> t -> unit
+      val loop_untag   : t -> unit
+      val is_loop      : t -> bool     (* returns if that edge is part of a loop *)
+      val is_loop_in   : t -> bool     (* returns if that edge targets a vertice in a loop *)
+      val is_loop_out  : t -> bool     (* returns if that edge originates from a vertice in a loop *)
+      val loop_get     : t -> Loop.t   (* returns the loop linked to that edge, or raise Not_found *)
+      
+      val compare : t -> t -> int      (* classic comparison function *)
+      val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
+    end and Edge_set : (Set.S with type elt = Edge.t) and Edge_map : (Map.S with type key = Edge.t)
+
+    and Path : sig
+      type t                                      (* type of path *)
+      exception Invalid_path_extension            (* exception raised when erroneous operation is done on a path *)
+
+      val create      : Vertice.t -> t            (* create an empty path starting on that vertice *)
+      val is_empty    : t -> bool                 (* returns if the path is empty *)
+      val add         : Edge.t -> t -> t          (* returns that path extended with that edge, or raise Invalid_path_extension *)
+      val mem         : Vertice.t -> t -> bool    (* returns if that vertice is in that path *)
+      val vertices    : t -> Vertice_set.t        (* returns the set of vertices in that path *)
+      val edges       : t -> Edge_set.t           (* returns the set of edges in that path *)
+      val split       : Vertice.t -> t -> t list  (* [split v p] returns the list [p1;...;pn] with [p = pn -> v -> ... -> v -> p1. Does not create empty path in case origin or target is [v] *)
+      val concat      : t -> t -> t               (* concat the two paths together, or raise Invalid_path_extension  *)
+      val concat_list : t list -> t               (* concat a non-empty list of paths *)
+      val is_loop     : t -> bool                 (* tests if that path is a loop *)
+      
+      val compare : t -> t -> int                 (* classic comparison function *)
+      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
+    end and Path_set : (Set.S with type elt = Path.t) and Path_map : (Map.S with type key = Path.t)
+    
+    and Loop : sig
+      type t                                     (* type of loop *)
+      exception Invalid_loop_extension           (* exception raised when erroneous operation is done on a path *)
+      
+      val create   : Path.t -> t                 (* create a loop from a looping path, or raise Invalid_loop_extension *)
+      val add      : Path.t -> t -> unit         (* extend a lopp with a new sub-loop, or raise Invalid_loop_extension *)
+      val vertices : t -> Vertice_set.t          (* returns the set of vertices that are part of that loop *)
+      val edges    : t -> Edge_set.t             (* returns the set of edges that are part of that loop *)
+      val succs_e  : t -> Edge_set.t             (* returns the set of edges whose origin is part of the loop (and which are not part of the loop) *)
+      val preds_e  : t -> Edge_set.t             (* returns the set of edges whose target is part of the loop (and which are not part of the loop) *)
+      val succs_v  : t -> Vertice_set.t          (* returns the targets of the edges in [succs_e] of that loop *)
+      val preds_v  : t -> Vertice_set.t          (* returns the origins of the edges in [preds_e] of that loop *)
+      
+      val mem    : Vertice.t -> t -> bool        (* tests if that vertice is part of that loop *)
+      val center : Vertice.t -> t -> unit        (* if that vertice is part of that loop, move the starting point of the main path of the loop on that vertice *)
+      
+      val compare : t -> t -> int                 (* classic comparison function *)
+      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
+    end and Loop_set : (Set.S with type elt = Loop.t) and Loop_map : (Map.S with type key = Loop.t)
+
+    type t
+
+    val create      : unit -> t
+    val add_vertice : vertice_data -> t -> Vertice.t
+    val add_edge    : Vertice.t -> edge_data -> Vertice.t -> t -> Edge.t
+
+    val vertices : t -> Vertice_set.t
+    val edges    : t -> Edge_set.t
+    val loops    : t -> Loop_set.t
+    
+    module Traverse_depth : sig
+      val iter : (Path.t -> Vertice.t -> bool -> (unit -> unit) -> unit) -> t -> unit
+    end
+    
+    module Traverse_topology : sig
+      val iter_downward : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
+      val iter_upward   : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
+    end    
+  end
+
+
   module Make(V: Vertice_data)(E: Edge_data) = struct
+    type vertice_data = V.t
+    type edge_data = E.t
+
     type loop_id = int
     type vertice_id = int
     type edge_id = int
   
     module rec Data_types : sig
       type vertice = {
-        v_id : vertice_id; v_data : V.t;
+        v_id : vertice_id; v_data : vertice_data;
         mutable v_successors : Edge_set.t; mutable v_predecessors : Edge_set.t;
         mutable v_parse_tag : bool; mutable v_loop_tag : Loop.t option }
       and edge_loop_tag = Edge_no_loop | Edge_loop of Loop.t | Edge_loop_in of Loop.t | Edge_loop_out of Loop.t
-      and edge = { e_id : edge_id; e_data : E.t; e_origin : Vertice.t; e_target : Vertice.t; mutable e_loop_tag : edge_loop_tag }
+      and edge = { e_id : edge_id; e_data : edge_data; e_origin : Vertice.t; e_target : Vertice.t; mutable e_loop_tag : edge_loop_tag }
       and path = { p_origin : Vertice.t; p_end : Vertice.t; p_vertices : Vertice_set.t; p_path : edge list }
-      and loop = { l_id : loop_id; mutable l_path : Path.t; mutable l_edges_in : Edge_set.t; mutable l_edges_out : Edge_set.t }
+      and loop = { l_id : loop_id; mutable l_main_path : Path.t; mutable l_paths : Path_set.t; mutable l_edges_in : Edge_set.t; mutable l_edges_out : Edge_set.t }
     end = struct
       type vertice = {
-        v_id : vertice_id; v_data : V.t;
+        v_id : vertice_id; v_data : vertice_data;
         mutable v_successors : Edge_set.t; mutable v_predecessors : Edge_set.t;
         mutable v_parse_tag : bool; mutable v_loop_tag : Loop.t option }
       and edge_loop_tag = Edge_no_loop | Edge_loop of Loop.t | Edge_loop_in of Loop.t | Edge_loop_out of Loop.t
-      and edge = { e_id : edge_id; e_data : E.t; e_origin : Vertice.t; e_target : Vertice.t; mutable e_loop_tag : edge_loop_tag }
+      and edge = { e_id : edge_id; e_data : edge_data; e_origin : Vertice.t; e_target : Vertice.t; mutable e_loop_tag : edge_loop_tag }
       and path = { p_origin : Vertice.t; p_end : Vertice.t; p_vertices : Vertice_set.t; p_path : edge list }
-      and loop = { l_id : loop_id; mutable l_path : Path.t; mutable l_edges_in : Edge_set.t; mutable l_edges_out : Edge_set.t }
+      and loop = { l_id : loop_id; mutable l_main_path : Path.t; mutable l_paths : Path_set.t; mutable l_edges_in : Edge_set.t; mutable l_edges_out : Edge_set.t }
       
     end and Vertice : sig
       type t = Data_types.vertice
-      val create : V.t -> t
+      val create : vertice_data -> t
       val data   : t -> V.t
       val succs_e: t -> Edge_set.t
       val preds_e: t -> Edge_set.t
@@ -353,7 +463,7 @@ module Graph = struct
     
     and Edge : sig
       type t = Data_types.edge
-      val create : Vertice.t -> E.t -> Vertice.t -> t
+      val create : Vertice.t -> edge_data -> Vertice.t -> t
       val data   : t -> E.t
       val origin : t -> Vertice.t
       val target : t -> Vertice.t
@@ -397,17 +507,24 @@ module Graph = struct
       type t = Data_types.path
       exception Invalid_path_extension
 
-      val create   : Vertice.t -> t
-      val is_empty : t -> bool
-      val add      : Edge.t -> t -> t
-      val mem      : Vertice.t -> t -> bool
-      val vertices : t -> Vertice_set.t
-      val edges    : t -> Edge_set.t
+      val create      : Vertice.t -> t
+      val is_empty    : t -> bool
+      val add         : Edge.t -> t -> t
       
-      val extract_of_vertice : Vertice.t -> t -> t
-      val is_loop            : t -> bool
-      val center_loop_unsafe : Vertice.t -> t -> t
-      val add_loop           : t -> t -> t
+      val origin      : t -> Vertice.t
+      val target      : t -> Vertice.t
+      val mem         : Vertice.t -> t -> bool
+      val vertices    : t -> Vertice_set.t
+      val edges       : t -> Edge_set.t
+      val edges_rev   : t -> Edge.t list
+      
+      val split       : Vertice.t -> t -> t list
+      val concat      : t -> t -> t
+      val concat_list : t list -> t
+      val is_loop     : t -> bool
+
+      val compare : t -> t -> int
+      val equal   : t -> t -> bool
     end = struct
       open Data_types
       type t = path
@@ -422,10 +539,57 @@ module Graph = struct
           p_vertices = Vertice_set.add t p.p_vertices;
           p_path = e::p.p_path
         }
+      
+      let origin p = p.p_origin
+      let target p = p.p_end
       let mem n p = Vertice_set.mem n p.p_vertices
       let vertices p = p.p_vertices
       let edges p = Edge_set.set_of_direct_list p.p_path
+      let edges_rev p = p.p_path
       
+      let of_edge_list l = (* the list l must not be empty, and consistent with a path structure. Not exported for general use *)
+       let rec f l accu = match l with
+         | []    -> raise Invalid_path_extension
+         | [e]   -> (Edge.origin e, Vertice_set.add (Edge.origin e) accu)
+         | e::l' -> f l' (Vertice_set.add (Edge.origin e) accu) in
+       let target = try Edge.target (List.hd l) with  Failure _ -> raise Invalid_path_extension in
+       let (origin, vs) = f l (Vertice_set.singleton target) in
+         { p_origin = origin; p_end = target; p_vertices = vs; p_path = l }
+      
+      let split v p =
+        let rec f l = match l with
+          | [] -> ([],[])
+          | e::l' -> let (accu,res) = f l' in if Vertice.equal (Edge.target e) v then ([], (e::accu)::res) else (e::accu, res) in
+        if is_empty p then [p]
+        else (
+          let (p', ps) = f p.p_path in
+          if List.is_empty p' then List.map of_edge_list ps else List.map of_edge_list (p'::ps)
+        )
+        
+      let concat p1 p2 = if Vertice.equal (origin p2) (target p1) then {
+        p_origin = p1.p_origin;
+        p_end = p2.p_end;
+        p_vertices = Vertice_set.union p1.p_vertices p2.p_vertices;
+        p_path = p2.p_path @ p1.p_path
+      } else raise Invalid_path_extension
+      let rec concat_list l = match l with
+        | [] -> raise Invalid_path_extension
+        | [p] -> p
+        | p::l -> let p' = concat_list l in concat p p'
+      
+      let is_loop p = (Vertice.equal p.p_origin p.p_end) && (not (is_empty p))
+    
+      
+
+      let compare p1 p2 =
+        let rec f dl = match dl with
+          | ([], [])         -> 0
+          | (e1::l1, e2::l2) -> let tmp = Edge.compare e1 e2 in if tmp != 0 then tmp else f (l1,l2)
+          | ( []   , _     ) -> -1
+          | ( _    , []    ) ->  1 in f (p1.p_path, p2.p_path)
+      let equal p1 p2 = (compare p1 p2 = 0)
+
+(*      
       let extract_of_vertice v p = (* TODO: switch to a split function *) (* used to extract the loop from a path *)
         let rec f l = match l with
           | [] -> []
@@ -438,8 +602,9 @@ module Graph = struct
           p_vertices = List.fold_left (fun res e -> Vertice_set.add (Edge.origin e) res) (Vertice_set.singleton _end) _path_rev;
           p_path     = List.rev _path_rev
         }
-      let is_loop p = (Vertice.equal p.p_origin p.p_end) && (not (is_empty p))
-      
+*)
+
+(*      
       let center_loop_unsafe v p = 
         let rec f l = match l with (* returns (what stays, what moves in first) *)
           | [] -> ([],[])
@@ -450,7 +615,7 @@ module Graph = struct
           p_vertices = p.p_vertices;
           p_path = l2 @ l1
         }
-      
+*) (*      
       let add_loop pl p = if not (is_loop pl) then raise (Invalid_path_extension) else (
         let s = Vertice_set.inter pl.p_vertices p.p_vertices in
         if Vertice_set.is_empty s then raise (Invalid_path_extension) else (
@@ -467,8 +632,8 @@ module Graph = struct
             p_vertices = Vertice_set.union pl.p_vertices p.p_vertices;
             p_path = _path
           }
-      ))
-    end
+      )) *)
+    end and Path_set : Set.S with type elt = Path.t = Set.Make(Path) and Path_map : Map.S with type key = Path.t = Map.Make(Path)
     
     and Loop : sig
       type t = Data_types.loop
@@ -486,43 +651,64 @@ module Graph = struct
       val mem    : Vertice.t -> t -> bool
       val center : Vertice.t -> t -> unit
       
+      val main_loop : t -> Path.t
+      val sub_loops : t -> Path_set.t
+      
       val compare : t -> t -> int
       val equal   : t -> t -> bool
     end = struct
       open Data_types
       type t = loop
       exception Invalid_loop_extension
+
+
+      let vertices l = Path.vertices l.l_main_path
+      let edges    l = Path.edges l.l_main_path
+      let succs_e  l = l.l_edges_out
+      let succs_v  l = Edge_set_to_vertices.convert Edge.target l.l_edges_out
+      let preds_e  l = l.l_edges_in
+      let preds_v  l = Edge_set_to_vertices.convert Edge.origin l.l_edges_in
+      let mem v l = Path.mem v l.l_main_path
+      let center v l = if mem v l then match Path.split v l.l_main_path with
+        | p1::l1 -> l.l_main_path <- Path.concat_list (l1 @ [p1])
+        | _ ->  raise Invalid_loop_extension (* NOT POSSIBLE CASE *)
+      
+      let main_loop l = l.l_main_path
+      let sub_loops l = l.l_paths
+
       
       let id = Fresh_integer.create ()
       let create p = if not (Path.is_loop p) then raise Invalid_loop_extension else (
         let vs = Path.vertices p in let es = Path.edges p in
         let e_in  = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.preds_e v) res) vs Edge_set.empty) es in
         let e_out = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.succs_e v) res) vs Edge_set.empty) es in
-        let res   = { l_id = Fresh_integer.next id; l_path = p; l_edges_in = e_in; l_edges_out = e_out } in
+        let paths = Path_set.set_of_direct_list (Path.split (Path.origin p) p) in
+        let res   = { l_id = Fresh_integer.next id; l_main_path = p; l_paths = paths; l_edges_in = e_in; l_edges_out = e_out } in
         Vertice_set.iter (fun v -> Vertice.loop_tag res v) vs; Edge_set.iter (fun e -> Edge.loop_tag res e) es; res
       )
       
-      let add p l = let p' = try Path.add_loop p l.l_path with | Path.Invalid_path_extension -> raise Invalid_loop_extension in
-        let vs = Path.vertices p in let es = Path.edges p in
-        Vertice_set.iter (fun v -> Vertice.loop_tag l v) vs; Edge_set.iter (fun e -> Edge.loop_tag l e) es;
-        let e_in  = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.preds_e v) res) vs l.l_edges_in) es in
-        let e_out = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.succs_e v) res) vs l.l_edges_out) es in
-        l.l_path <- p'; l.l_edges_in  <- e_in; l.l_edges_out <- e_out
-      
-      let vertices l = Path.vertices l.l_path
-      let edges    l = Path.edges l.l_path
-      let succs_e  l = l.l_edges_out
-      let succs_v  l = Edge_set_to_vertices.convert Edge.target l.l_edges_out
-      let preds_e  l = l.l_edges_in
-      let preds_v  l = Edge_set_to_vertices.convert Edge.origin l.l_edges_in
-      
-      let mem v l = Path.mem v l.l_path
-      let center v l = if mem v l then l.l_path <- Path.center_loop_unsafe v l.l_path
-      
+      let add p l = if Path.is_loop p then (
+        let vs_common = Vertice_set.inter (Path.vertices p) (vertices l) in
+        if Vertice_set.is_empty (vs_common) then raise Invalid_loop_extension
+        else (
+          let v = Vertice_set.choose vs_common in
+          let p_res = match (Path.split v p, Path.split v l.l_main_path) with
+            | (p1::l1, p2::l2) -> Path.concat_list ((l1 @ [p1]) @ (l2 @ [p2]))
+            | _ ->  raise Invalid_loop_extension (* NOT POSSIBLE CASE *) in
+          let vs = Path.vertices p in let es = Path.edges p in
+          Vertice_set.iter (fun v -> Vertice.loop_tag l v) vs; Edge_set.iter (fun e -> Edge.loop_tag l e) es;
+          let e_in  = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.preds_e v) res) vs l.l_edges_in) es in
+          let e_out = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.succs_e v) res) vs l.l_edges_out) es in
+          let paths = Path_set.set_of_direct_list (Path.split (Path.origin p) p) in
+          l.l_main_path <- p_res; l.l_paths <- Path_set.union paths l.l_paths; l.l_edges_in  <- e_in; l.l_edges_out <- e_out
+        )) else raise Invalid_loop_extension
+            
       let compare l1 l2 = l1.l_id - l2.l_id
       let equal l1 l2 = (compare l1 l2) = 0
      end and Loop_set : Set.S with type elt = Loop.t = Set.Make(Loop) and Loop_map : Map.S with type key = Loop.t = Map.Make(Loop)
-     
+
+
+
 
     module El = struct
       type t = V of Vertice.t | L of Loop.t
@@ -543,13 +729,13 @@ module Graph = struct
     let add_vertice data g = let v = Vertice.create data in
       g.g_vertices <- Vertice_set.add v g.g_vertices;
       g.g_roots <- El_set.add (El.V v) g.g_roots;
-      g.g_leafs <- El_set.add (El.V v) g.g_leafs
+      g.g_leafs <- El_set.add (El.V v) g.g_leafs; v
       
     let add_edge o data t g = let e = Edge.create o data t in
       g.g_edges <- Edge_set.add e g.g_edges;
       g.g_loops_done <- false;
       g.g_roots <- El_set.remove (El.V t) g.g_roots;
-      g.g_leafs <- El_set.remove (El.V o) g.g_leafs
+      g.g_leafs <- El_set.remove (El.V o) g.g_leafs; e
     
 
     (* traversal functions *)
@@ -587,12 +773,14 @@ module Graph = struct
     
     (* loop computation *)
     
-    let get_loops g =
+    let vertices g = g.g_vertices
+    let edges    g = g.g_edges
+    let loops    g = if g.g_loops_done then g.g_loops else (
       let res = ref Loop_set.empty in
       (* 1. compute the set of loops *)
       let step p v is_parsed next =
         if Path.mem v p then (
-          let p' = Path.extract_of_vertice v p in (* the path of the loop *)
+          let p' = List.hd (Path.split v p) in (* the path of the loop *)
           let l = if Vertice.is_loop v then (let l = Vertice.loop_get v in Loop.add p' l; l) else Loop.create p' in
           res := Loop_set.add l !res
         ) else ( if not is_parsed then next ()) in
@@ -608,7 +796,7 @@ module Graph = struct
       let sort_loop l =
         if Edge_set.is_empty (Loop.preds_e l) then  g.g_roots <- El_set.add (El.L l) g.g_roots
         else (if Edge_set.is_empty (Loop.succs_e l) then  g.g_leafs <- El_set.add (El.L l) g.g_leafs) in
-      Loop_set.iter sort_loop !res; !res
+      Loop_set.iter sort_loop !res; !res)
     
   end
 end

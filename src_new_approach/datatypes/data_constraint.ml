@@ -44,7 +44,46 @@ module Variable = struct type t = variable let compare = Pervasives.compare end
 module Variable_set = Data_common.Set.Make(Variable)
 module Variable_map = Data_common.Map.Make(Variable)
 
-(* 2. Constraints *)
+(* 2. Values *)
+
+type value = Finite_value of int | Infinite_value
+
+module Value = struct
+  type t = value
+  
+  let of_int n = Finite_value n
+  let infty    = Infinite_value
+  
+  let value_of_provide_arity p = match p with | Finite_provide(n) -> of_int n | Infinite_provide -> infty
+  let value_of_require_arity r = of_int r
+
+  let min v1 v2 = match (v1,v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (min n1 n2)
+    | (Finite_value _ , _              ) -> v1
+    | (_              , Finite_value _ ) -> v2
+    | _  -> Infinite_value
+
+  let max v1 v2 = match (v1,v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (max n1 n2)
+    | _ -> Infinite_value
+
+  let sum v1 v2 = match (v1,v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (n1 + n2)
+    | _ -> Infinite_value
+
+  let prod v1 v2 = match (v1,v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (n1 * n2)
+    | _ -> Infinite_value
+  
+  let div v1 v2 = match (v1, v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (n1 / n2)
+    | (Finite_value _ , _              ) -> of_int 0
+    | (_              , Finite_value _ ) -> infty
+    | _  -> of_int 1
+  
+end
+
+(* 3. Constraints *)
 
 (* Remark: all associative and commutative operators have lists in arguement, for more efficient encoding *)
 
@@ -56,7 +95,6 @@ type op =
   | Gt  (** Greater-than operator *)
   | NEq (** Not-equal-to operator *)
 
-type value = Finite_value of int | Infinite_value
 
 type expression = 
   | Constant of value
