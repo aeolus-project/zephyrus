@@ -48,15 +48,16 @@ module Transitive_closure =
              If a node is in the in_the_closure set, it means that it was (or still is) in the to_do set.
              So either it (and its successors) has been already processed or they will surely
              be processed in the future. *)
-          if (not (Node_set.mem node !in_the_closure))
-          then
+          if (not (Node_set.mem node !in_the_closure)) then begin
             
             (* We add the node to the closure. *)
             in_the_closure := Node_set.add node !in_the_closure;
 
             (* As the node was not in the closure just before, we know that
                its successors were not processed yet, so they should be processed. *)
-            to_do          := Node_set.add node !to_do;
+            to_do          := Node_set.add node !to_do
+
+          end
 
         ) current_succesors;
         
@@ -414,7 +415,7 @@ let trim_repositories universe configuration specification =
 
     Package_id_set_set.fold Package_id_set.union set_of_sets_of_implementing_packages Package_id_set.empty
   in
-  (* Printf.printf "\nimplementing_package_ids: %s\n%!" (String_of.package_id_set implementing_package_ids); *)
+  Printf.printf "\nimplementing_package_ids: %s\n%!" (String_of.package_id_set implementing_package_ids);
 
 
   (* 1. The transitive closure of dependencies. *)
@@ -422,7 +423,7 @@ let trim_repositories universe configuration specification =
   let repository_keep_only_dependency_transitive_closure (universe : universe) : (repository -> repository) = 
     let packages_in_the_dependency_closure : Package_id_set.t = 
       dependency_transitive_closure implementing_package_ids universe#get_package in
-    (* Printf.printf "\npackages_in_the_dependency_closure: %s\n%!" (String_of.package_id_set packages_in_the_dependency_closure); *)
+    Printf.printf "\npackages_in_the_dependency_closure: %s\n%!" (String_of.package_id_set packages_in_the_dependency_closure);
     trim_repository packages_in_the_dependency_closure in
 
 
@@ -433,21 +434,26 @@ let trim_repositories universe configuration specification =
       remove_always_installable_packages universe#get_package_ids universe#get_package in
     let core_and_not_always_installable_packages : Package_id_set.t =
       Package_id_set.union implementing_package_ids not_always_installable_packages in
-    (* Printf.printf "\ncore_and_not_always_installable_packages: %s\n%!" (String_of.package_id_set core_and_not_always_installable_packages); *)
+    Printf.printf "\ncore_and_not_always_installable_packages: %s\n%!" (String_of.package_id_set core_and_not_always_installable_packages);
     trim_repository core_and_not_always_installable_packages in
 
   (* We prepare the trimming functions: *)
-  let repository_trimmers : (universe -> (repository -> repository)) list = [
-    repository_keep_only_dependency_transitive_closure; (* 1. We keep only the transitive closure of the packages mentioned in the implementation. *)
-    repository_remove_always_installable_packages;      (* 2. We keep only core packages and these packages wich are not always installable. *)
+  let repository_trimmers : (string * (universe -> (repository -> repository))) list = [
+    ("dependency closure", repository_keep_only_dependency_transitive_closure); (* 1. We keep only the transitive closure of the packages mentioned in the implementation. *)
+    ("always installable", repository_remove_always_installable_packages);      (* 2. We keep only core packages and these packages wich are not always installable. *)
   ] in
+
+  Printf.printf "\nBeginning universe trimming...%!";
 
   (* We trim the repositories: *)
   let trimmed_universe : universe =
-    List.fold_left (fun universe repository_trimming_function ->
-        trim_universe_repositories (repository_trimming_function universe) universe
-      ) universe repository_trimmers
+    List.fold_left (fun universe (description, repository_trimming_function) ->
+        Printf.printf "\n+ trimming: %s...%!" description;
+        let universe' = trim_universe_repositories (repository_trimming_function universe) universe in
+        Printf.printf "+ trimming %s done!%!" description;
+        universe'
+      ) universe repository_trimmers in
 
-  in
+  Printf.printf "\nUniverse trimming done!%!";
 
   trimmed_universe

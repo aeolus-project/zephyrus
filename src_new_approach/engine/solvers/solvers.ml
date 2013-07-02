@@ -46,8 +46,10 @@ end
 let solve_lexicographic settings preprocess solve_step postprocess c f = 
   let initial_data = preprocess settings c f in
   let rec iterative_solve data f = match f with
-    | Data_constraint.Lexicographic(f1::l1) -> let (data, solution, costs) = iterative_solve data f1 in
-      let (data', solution', costs') = iterative_solve data (Data_constraint.Lexicographic(l1)) in (data', solution', costs @ costs')
+    | Data_constraint.Lexicographic(f1::l1) -> 
+      let (data , solution , costs ) = iterative_solve data f1 in
+      let (data', solution', costs') = iterative_solve data (Data_constraint.Lexicographic(l1)) in 
+      (data', solution', costs @ costs')
     | _ -> let (solution, cost) = solve_step settings data f in (postprocess data f cost, solution, [cost]) in
   let (_, solution, costs) = iterative_solve initial_data f in (solution, costs)
 
@@ -111,7 +113,9 @@ module MiniZinc_generic = struct
   let postprocess data f cost = match f with
     | Data_constraint.Minimize(e) -> add_extra_constraint data e cost
     | Data_constraint.Maximize(e) -> add_extra_constraint data e cost
-    | _ -> raise Wrong_optimization_function
+    | _ -> data
+    (* Kuba: Ad-hoc bug correction, I don't know if it's what should be done, but it works... *)
+    (* | _ -> raise Wrong_optimization_function *)
 end
 
 (* 3. Main Modules *)

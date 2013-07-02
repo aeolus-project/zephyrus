@@ -41,30 +41,76 @@ let check_option desc o = match o with
   | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
 
 let () = 
-(* === Default settings === *)
-  Settings.input_file_universe      := Some("./tests/u_1_new.json");
-  Settings.input_file_initial_configuration := Some("./tests/ic_1.json");
-(*  Settings.input_file_initial_configuration := Some("./example-inputs/ic-ex-empty-20loc.json");*)
-  Settings.input_file_specification := Some("./tests/spec_1.spec");
-  Settings.input_optimization_function := Some(Settings.Optim_simple);
-  Settings.data_generation_universe               := Some(true);
-  Settings.data_generation_repositories           := Some(true);
-  Settings.data_generation_initial_configuration  := Some(true);
-  Settings.data_generation_specification          := Some(true);
-  Settings.data_generation_optimization_function  := Some(true);
-  Settings.verbose_constraint_solver_activities   := Some(true);
+  (* === Default settings === *)
+    Settings.input_file_universe                    := Some("./tests/u_1_new.json");
+    Settings.input_file_initial_configuration       := Some("./tests/ic_1.json");
+  (*  Settings.input_file_initial_configuration       := Some("./example-inputs/ic-ex-empty-20loc.json"); *)
+    Settings.input_file_specification               := Some("./tests/spec_1.spec");
+    Settings.input_optimization_function            := Some(Settings.Optim_simple);
+    Settings.data_generation_universe               := Some(true);
+    Settings.data_generation_repositories           := Some(true);
+    Settings.data_generation_initial_configuration  := Some(true);
+    Settings.data_generation_specification          := Some(true);
+    Settings.data_generation_optimization_function  := Some(true);
+    Settings.verbose_constraint_solver_activities   := Some(true)
 
+(* === Handling the arguments === *)
+
+(* Arg module settings *)
+let usage = 
+  Printf.sprintf
+    "usage: %s %s"
+    Sys.argv.(0)
+    "[-s settings-file]"
+
+let speclist = 
+  Arg.align [
+    (* Input arguments *)
+    ("-settings", Arg.String (fun filename -> Settings.input_file_settings := Some(filename)), " The settings file");
+  ]
+
+(* Read the arguments *)
+let () =
+  Arg.parse
+    speclist
+    (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
+    usage
+
+(* === Set up everything === *)
+
+(* Read the input. *)
+
+(* Read settings. *)
+
+let string_of_string_option_ref string_option_ref =
+  match !string_option_ref with
+  | None   -> "[unspecified]"
+  | Some s -> s
+
+let my_settings =
+  Printf.printf "Reading settings from file %s...\n" (string_of_string_option_ref Settings.input_file_settings);
+  flush stdout;
+  let settings_option =
+    parse_standard Settings_parser.main Settings_lexer.token Settings.input_file_settings
+  in
+  match settings_option with
+  | None -> Printf.printf "No settings were found!\n"
+  | Some settings -> 
+      Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ()); 
+      settings
+
+let () =
 (* === load everything  === *)
   Load_model.load_model ();
   print_string "\n ===============================";
   print_string "\n      ==> LOAD SECTION <==      \n";
-  let r = check_option "resources" !Data_state.resources_full in
-  let u = check_option "universe" !Data_state.universe_full in
-  let c = check_option "configuration" !Data_state.initial_configuration_full in
-  let s = check_option "specification" !Data_state.specification_full in
+  let r = check_option "resources"             !Data_state.resources_full in
+  let u = check_option "universe"              !Data_state.universe_full in
+  let c = check_option "configuration"         !Data_state.initial_configuration_full in
+  let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
   print_string "\n        ==> UNIVERSE <==        \n\n";
-  print_string (Json_of.universe_string u r);
+  (* print_string (Json_of.universe_string u r); *)
   print_string "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n";
   print_string (Json_of.configuration_string c u r);
   print_string "\n\n\n     ==> SPECIFICATION <==      \n\n";
@@ -84,10 +130,14 @@ let () =
           match !Data_state.specification_full with
           | None -> Printf.printf "\nZephyrus is proud to announce you, that the specification does not exist!...\n"
           | Some specification -> 
+              Printf.printf "\nTrimming component types...%!";
               let universe_trimmed_component_types = Trim.trim_component_types universe                         initial_configuration specification in
-              print_string (Json_of.universe_string universe_trimmed_component_types r);
+              Printf.printf "\nComponent types trimmed!%!";
+              (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
+              Printf.printf "\nTrimming repositories...%!";
               let universe_trimmed_package         = Trim.trim_repositories    universe_trimmed_component_types initial_configuration specification in
-              print_string (Json_of.universe_string universe_trimmed_package r);
+              Printf.printf "\nRepositories trimmed!%!";
+              Printf.printf "\n%s\n" (Json_of.universe_string universe_trimmed_package r);
               Data_state.universe_full := Some(universe_trimmed_package)
         end
       end;
@@ -177,71 +227,6 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
 
   in
   print_string "\n\n\n <==========> THE END <==========>  \n\n"
-
-(*
-let () =
-  Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
-
-
-(* === Default settings === *)
-let () =
-  Settings.input_file_settings      := Some("./src_new_approach/zephyrus-settings.example");
-  Settings.input_file_universe      := Some("./tests/u_1_new.json");
-  Settings.input_file_specification := Some("./tests/spec_1.spec")
-
-
-(* === Handling the arguments === *)
-
-(* Arg module settings *)
-let usage = 
-  Printf.sprintf
-    "usage: %s %s"
-    Sys.argv.(0)
-    "[-s settings-file]"
-
-let speclist = 
-  Arg.align [
-    (* Input arguments *)
-    ("-settings", Arg.String (fun filename -> Settings.input_file_settings := Some(filename)), " The settings file");
-  ]
-
-(* Read the arguments *)
-let () =
-  Arg.parse
-    speclist
-    (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-    usage
-
-
-
-(* === Set up everything === *)
-
-(* Read the input. *)
-
-(* Read settings. *)
-
-let string_of_string_option_ref string_option_ref =
-  match !string_option_ref with
-  | None   -> "[unspecified]"
-  | Some s -> s
-
-(* just a test! *)
-
-let my_settings =
-  Printf.printf "Reading settings from file %s...\n" (string_of_string_option_ref Settings.input_file_settings);
-  flush stdout;
-  let settings_option =
-    parse_standard Settings_parser.main Settings_lexer.token Settings.input_file_settings
-  in
-  match settings_option with
-  | None -> failwith "No settings were found!"
-  | Some settings -> settings
-
-let () =
-  Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ())
-  *)
-
-
 
 (*
 (* just a test! *)

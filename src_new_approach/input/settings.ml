@@ -462,7 +462,7 @@ let string_of_settings () =
   let settings_strings =
     List.map (fun (setting_name, get_setting_function) ->
       let setting = get_setting_function () in
-      Printf.sprintf "%-45s = %s\n" setting_name (string_of_setting setting)
+      Printf.sprintf "%-45s = %s\n%!" setting_name (string_of_setting setting)
     ) settings_printing_functions
   in
   String.concat "" settings_strings

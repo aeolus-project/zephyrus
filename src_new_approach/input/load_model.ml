@@ -795,7 +795,7 @@ let load_model () =
 
   (* Prepare catalog of model objects. *)
   let model_catalog : closed_model_catalog = new model_catalog_of_json_t_with_exceptions (new model_catalog_of_json_t universe repositories initial_configuration specification) in
-  Printf.printf "\nNaming:\n%s\n" model_catalog#to_string;
+  (* Printf.printf "\nNaming:\n%s\n" model_catalog#to_string; *)
 
   (* 2. generate the universe (if required) *)
   let universe = 

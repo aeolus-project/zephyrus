@@ -158,7 +158,7 @@ let add_extra_constraint smzn e i = {
   mzn_variables        = smzn.mzn_variables;
   mzn_declaration      = smzn.mzn_declaration;
   mzn_main_constraint  = smzn.mzn_main_constraint;
-  mzn_extra_constraint = smzn.mzn_extra_constraint ^ "\n" ^ (minizinc_of_expression smzn.mzn_variables e) ^ " = " ^ (string_of_int i);
+  mzn_extra_constraint = smzn.mzn_extra_constraint ^ "\nconstraint (" ^ (minizinc_of_expression smzn.mzn_variables e) ^ " = " ^ (string_of_int i) ^ ");";
   mzn_output           = smzn.mzn_output }
 
 
