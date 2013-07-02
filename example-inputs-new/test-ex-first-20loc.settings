@@ -9,4 +9,4 @@ input-optimization-function = compact
 
 # 07. Output Configuration
 
-results                     = [("json", "example-inputs-new/ic-ex-first-output-4loc-result.json"); ("graph-deployment", "example-inputs-new/result-first-output-4loc.dot")]
+results                     = [("json", "example-inputs-new/ic-ex-first-output-20loc-result.json"); ("graph-deployment", "example-inputs-new/result-first-output-20loc.dot")]

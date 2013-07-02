@@ -94,7 +94,6 @@ val element       : Data_constraint.element -> string
 val local_element : Data_model.location_id -> Data_constraint.element -> string
 
 val variable   : Data_constraint.variable -> string
-val op         : Data_constraint.op -> string
 val value      : Data_constraint.value -> string
 val expression : Data_constraint.expression -> string
 val konstraint : Data_constraint.konstraint -> string

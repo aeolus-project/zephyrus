@@ -29,44 +29,6 @@ open Data_constraint
 (** 1. Helper functions                    *)
 (*******************************************)
 
-let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
-let value_of_require_arity a = Finite_value(a)
-let value i = Finite_value(i)
-let infinite_value = Infinite_value
-
-let constant i = Constant(Finite_value(i))
-let constant_of_provide_arity a = Constant(value_of_provide_arity a)
-let constant_of_require_arity a = Constant(value_of_require_arity a)
-
-let var2expr   v = Variable v
-let const2expr c = Constant c
-let int2expr   i = Constant (Finite_value i)
-
-let ( +~ )    x y  = Add([x; y])
-let ( -~ )    x y  = Sub(x, y)
-let ( *~ )    x y  = Mul([x; y])
-let ( /~ )    x y  = Div(x, y)
-let ( %~ )    x y  = Mod(x, y)
-let abs       x    = Abs(x)
-let sum       l    = Add(l)
-let reify     cstr = Reified(cstr)
-
-let (  <~ )   x y  = Arith (x, Lt,  y)
-let ( <=~ )   x y  = Arith (x, LEq, y)
-let (  =~ )   x y  = Arith (x, Eq,  y)
-let ( >=~ )   x y  = Arith (x, GEq, y)
-let (  >~ )   x y  = Arith (x, Gt,  y)
-let ( <>~ )   x y  = Arith (x, NEq, y)
-
-let truecstr   = True
-
-let (  &&~~ ) x y  = And([x; y])
-let (  ||~~ ) x y  = Or([x; y])
-let (  =>~~ ) x y  = Implies(x, y)
-let not       x    = Not(x)
-
-
-
 let get_provide_arity_safe t p = if Data_model.Port_id_set.mem p t#provide_domain then constant_of_provide_arity (t#provide p) else constant 0
 let get_provide_arity t p = constant_of_provide_arity (t#provide p)
 let get_require_arity t p = constant_of_require_arity (t#require p)
@@ -160,7 +122,7 @@ let repository_package c_l u_dr u_dk get_packages =
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Repository_id_set.fold (fun r res ->
       (((eR l r) =~ (constant 1)) =>~~
-        (And (Data_model.Package_id_set.fold (fun k res -> ((eNlk l k) =~ (constant 0))::res) (Data_model.Package_id_set.diff u_dk (get_packages r)) [])))::res
+        (conj (Data_model.Package_id_set.fold (fun k res -> ((eNlk l k) =~ (constant 0))::res) (Data_model.Package_id_set.diff u_dk (get_packages r)) [])))::res
     ) u_dr res
   ) c_l []
 
@@ -275,7 +237,7 @@ let rec local_specification l s = match s with
   | Data_model.Spec_local_and (s1, s2) -> (local_specification l s1) &&~~ (local_specification l s2)
   | Data_model.Spec_local_or (s1, s2) -> (local_specification l s1) ||~~ (local_specification l s2)
   | Data_model.Spec_local_impl (s1, s2) -> (local_specification l s1) =>~~ (local_specification l s2)
-  | Data_model.Spec_local_not (s') -> not (local_specification l s')
+  | Data_model.Spec_local_not (s') -> !~ (local_specification l s')
 
 let spec_resource_constraint l co = List.fold_left (fun res (o, op, i) -> ((spec_op op) (eO l o) (constant i))::res) [] co
 let spec_repository_constraint l cr = (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
@@ -285,7 +247,7 @@ let spec_element location_ids e = match e with
   | Data_model.Spec_element_component_type (component_type_id) -> eNt component_type_id
   | Data_model.Spec_element_port (port_id) -> eNp port_id
   | Data_model.Spec_element_location (co, cr, ls) -> sum (Data_model.Location_id_set.fold
-     (fun l res -> (reify (And((local_specification l ls)::(spec_repository_constraint l cr)::(spec_resource_constraint l co))))::res ) location_ids [])
+     (fun l res -> (reify (conj((local_specification l ls)::(spec_repository_constraint l cr)::(spec_resource_constraint l co))))::res ) location_ids [])
 
 let rec spec_expr location_ids e = match e with
   | Data_model.Spec_expr_var v -> spec_variable_name v
@@ -301,7 +263,7 @@ let rec specification location_ids s = match s with
   | Data_model.Spec_and (s1, s2) -> (specification location_ids s1) &&~~ (specification location_ids s2)
   | Data_model.Spec_or  (s1, s2) -> (specification location_ids s1) ||~~ (specification location_ids s2)
   | Data_model.Spec_impl (s1, s2) -> (specification location_ids s1) =>~~ (specification location_ids s2)
-  | Data_model.Spec_not (s') -> not (specification location_ids s')
+  | Data_model.Spec_not (s') -> !~ (specification location_ids s')
 
 
 let specification_full () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with

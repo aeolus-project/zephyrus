@@ -65,22 +65,19 @@ let name_of_variable_safe v = let id = !name_var_id in name_var_id := id + 1; "v
 (* 2. get all the variables in the constraint and optimization function *)
 
 let rec variables_from_expression e = match e with
-  | Constant(v)  -> Variable_set.empty
-  | Variable(v)  -> Variable_set.singleton v
-  | Reified(c)   -> variables_from_konstraint c
-  | Add(l)       -> List.fold_left (fun res e -> Variable_set.union (variables_from_expression e) res) Variable_set.empty l
-  | Sub(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
-  | Mul(l)       -> List.fold_left (fun res e -> Variable_set.union (variables_from_expression e) res) Variable_set.empty l
-  | Abs(e')      -> variables_from_expression e'
-  | Mod(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
-  | Div(e1,e2)   -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | Constant(v)                     -> Variable_set.empty
+  | Variable(v)                     -> Variable_set.singleton v
+  | Reified(c)                      -> variables_from_konstraint c
+  | UnaryArithExpression  (_,e')    -> variables_from_expression e'
+  | BinaryArithExpression (_,e1,e2) -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | NaryArithExpression   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_from_expression e) vars) Variable_set.empty l
 and variables_from_konstraint c = match c with
   | True            -> Variable_set.empty
-  | Arith(e1,o,e2)  -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
-  | And(l)          -> List.fold_left (fun res e -> Variable_set.union (variables_from_konstraint e) res) Variable_set.empty l
-  | Or(l)           -> List.fold_left (fun res e -> Variable_set.union (variables_from_konstraint e) res) Variable_set.empty l
-  | Implies(c1,c2)  -> Variable_set.union (variables_from_konstraint c1) (variables_from_konstraint c2)
-  | Not(c')         -> variables_from_konstraint c'
+  | False           -> Variable_set.empty
+  | ArithKonstraint  (_,e1,e2) -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
+  | UnaryKonstraint  (_,c')    -> variables_from_konstraint c'
+  | BinaryKonstraint (_,c1,c2) -> Variable_set.union (variables_from_konstraint c1) (variables_from_konstraint c2)
+  | NaryKonstraint   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_from_konstraint e) vars) Variable_set.empty l
 
 let rec variables_from_optimization_function f = match f with
   | Minimize (e) -> variables_from_expression e
@@ -117,26 +114,66 @@ let variable_declaration v_map f_bound =
 
 (* 4. core *)
 
-let minizinc_of_op op = match op with
-  | Lt  -> " < " | LEq -> " <= " | Eq  -> " = " | GEq -> " >= " | Gt  -> " > " | NEq -> " != "
+let minizinc_of_unary_arith_op = function
+  | Data_constraint.Abs -> "abs"
+
+let minizinc_of_binary_arith_op = function
+  | Data_constraint.Add -> "+"
+  | Data_constraint.Sub -> "-"
+  | Data_constraint.Mul -> "*"
+  | Data_constraint.Div -> "/"
+  | Data_constraint.Mod -> "%"
+
+let minizinc_of_nary_arith_op = function
+  | Data_constraint.Sum     -> "+"
+  | Data_constraint.Product -> "*"
+
+let minizinc_of_unit_of_nary_arith_op = function
+  | Data_constraint.Sum     -> "0"
+  | Data_constraint.Product -> "1"
+
+let minizinc_of_arith_cmp_op = function
+  | Data_constraint.Lt  -> "<"
+  | Data_constraint.LEq -> "<="
+  | Data_constraint.Eq  -> "="
+  | Data_constraint.GEq -> ">="
+  | Data_constraint.Gt  -> ">"
+  | Data_constraint.NEq -> "!="
+
+let minizinc_of_unary_konstraint_op = function
+  | Data_constraint.Not -> "not"
+
+let minizinc_of_binary_konstraint_op = function
+  | Data_constraint.Implies -> "->"
+
+let minizinc_of_nary_konstraint_op = function
+  | Data_constraint.And -> "/\\"
+  | Data_constraint.Or  -> "\\/"
+
+let minizinc_of_unit_of_nary_konstraint_op = function
+  | Data_constraint.And -> "true"
+  | Data_constraint.Or  -> "false"
 
 let rec minizinc_of_expression v_map e = match e with
-  | Constant(v)  -> (string_of_int (Data_helper.int_of_value v))
-  | Variable(v)  -> v_map#get_name v
-  | Reified(c)   -> "(bool2int " ^ (minizinc_of_konstraint v_map c) ^ ")"
-  | Add(l)       -> "(" ^ (Data_helper.parse_nary_op  "0" (minizinc_of_expression v_map) (fun s1 s2 -> s1 ^ " + " ^ s2) l) ^ ")"
-  | Sub(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " - " ^ (minizinc_of_expression v_map e2) ^ ")"
-  | Mul(l)       -> "(" ^ (Data_helper.parse_nary_op "1" (minizinc_of_expression v_map) (fun s1 s2 -> s1 ^ " * " ^ s2) l) ^ ")"
-  | Abs(e')      -> "(abs(" ^ (minizinc_of_expression v_map e') ^ "))"
-  | Mod(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " % " ^ (minizinc_of_expression v_map e2) ^ ")"
-  | Div(e1,e2)   -> "(" ^ (minizinc_of_expression v_map e1) ^ " / " ^ (minizinc_of_expression v_map e2) ^ ")"
+  | Constant              (v)        -> (string_of_int (Data_helper.int_of_value v))
+  | Variable              (v)        -> v_map#get_name v
+  | Reified               (c)        -> Printf.sprintf "(bool2int %s)" (minizinc_of_konstraint v_map c)
+  | UnaryArithExpression  (op,e)     -> Printf.sprintf "(%s(%s))" (minizinc_of_unary_arith_op op) (minizinc_of_expression v_map e)
+  | BinaryArithExpression (op,e1,e2) -> Printf.sprintf "(%s %s %s)" (minizinc_of_expression v_map e1) (minizinc_of_binary_arith_op op) (minizinc_of_expression v_map e2)
+  | NaryArithExpression   (op,l)     -> Printf.sprintf "(%s)"
+                                                        (if l = [] 
+                                                         then minizinc_of_unit_of_nary_arith_op op
+                                                         else String.concat (" " ^ (minizinc_of_nary_arith_op op) ^ " ") (List.map (minizinc_of_expression v_map) l) )
 and minizinc_of_konstraint v_map c = match c with
-  | True            -> "true"
-  | Arith(e1,o,e2)  -> "(" ^ (minizinc_of_expression v_map e1) ^ (minizinc_of_op o) ^ (minizinc_of_expression v_map e2) ^ ")"
-  | And(l)          -> "(" ^ (Data_helper.parse_nary_op "true" (minizinc_of_konstraint v_map) (fun s1 s2 -> s1 ^ " /\\ " ^ s2) l) ^ ")"
-  | Or(l)           -> "(" ^ (Data_helper.parse_nary_op "false" (minizinc_of_konstraint v_map) (fun s1 s2 -> s1 ^ " \\/ " ^ s2) l) ^ ")"
-  | Implies(c1,c2)  -> "(" ^ (minizinc_of_konstraint v_map c1) ^ " -> " ^ (minizinc_of_konstraint v_map c2) ^ ")"
-  | Not(c')         -> "(not(" ^ (minizinc_of_konstraint v_map c') ^ "))"
+  | True                        -> "true"
+  | False                       -> "false"
+  | ArithKonstraint  (op,e1,e2) -> Printf.sprintf "(%s %s %s)" (minizinc_of_expression v_map e1) (minizinc_of_arith_cmp_op op) (minizinc_of_expression v_map e2)
+  | UnaryKonstraint  (op,c)     -> Printf.sprintf "(%s (%s))" (minizinc_of_unary_konstraint_op op) (minizinc_of_konstraint v_map c)
+  | BinaryKonstraint (op,c1,c2) -> Printf.sprintf "(%s %s %s)" (minizinc_of_konstraint v_map c1) (minizinc_of_binary_konstraint_op op) (minizinc_of_konstraint v_map c2)
+  | NaryKonstraint   (op,l)     -> Printf.sprintf "(%s)"
+                                                   (if l = []
+                                                    then minizinc_of_unit_of_nary_konstraint_op op
+                                                    else String.concat (" " ^ (minizinc_of_nary_konstraint_op op) ^ " ") (List.map (minizinc_of_konstraint v_map) l) )
 
 let minizinc_of_konstraints v_map cs =
   List.fold_left (fun res (s,c) -> ("\n%% " ^ s ^ "\n") ^ ("constraint " ^ (minizinc_of_konstraint v_map c) ^ ";") ^ res) "" cs
