@@ -212,6 +212,7 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
 
   Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
 
+  (*
   let final_configuration = 
     let solution = fst solution in
     match !Data_state.universe_full with
@@ -222,10 +223,9 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
         | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
         | Some initial_configuration -> Some (Configuration_of.solution universe initial_configuration solution)
       end
-
-
-
   in
+  *)
+
   print_string "\n\n\n <==========> THE END <==========>  \n\n"
 
 (*
