@@ -97,8 +97,7 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   let build_component_name = 
     Printf.sprintf
-    "%s-%s-%d" 
-    (String_of.location_name location_name)
+    "%s-%d" 
     (String_of.component_type_name component_type_name)
 
   in
@@ -197,6 +196,81 @@ let generate_components
   ) !almost_done_components)
   
 
+(* Set up for the matching algorithm. *)
+module My_matching_algorithm = Candy_algorithm
+
+open My_matching_algorithm.Int_list_match_requirers_with_providers
+open My_matching_algorithm.Int_list_requirer_provider_types
+
+(* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
+let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
+
+  (* Get all the ports mentioned in the universe. *)
+  let port_ids = universe#get_port_ids in
+
+  let bindings : Binding_set.t ref = ref Binding_set.empty in
+  
+  (* Generate bindings for each port p. *)
+  Port_id_set.iter (fun port_id ->
+
+      (* Prepare the inputs for the matching algorithm: *)
+
+      (* 1. Mapping from component name to their require arity on port p. *)
+      let requirers : My_matching_algorithm.Int_list_requirer_provider_types.Requirers.t = 
+        Output_helper.filter_map (fun component_id ->
+          let component      = get_component component_id in
+          let component_type = universe#get_component_type component#typ in
+          let require_arity  = component_type#require port_id in
+          if require_arity > 0
+          then Some (component_id, require_arity)
+          else None
+        ) (Component_id_set.elements component_ids)
+  
+      (* 2. Mapping from component name to their provide arity on port p. *)
+      and providers : My_matching_algorithm.Int_list_requirer_provider_types.Providers.t = 
+        Output_helper.filter_map (fun component_id ->
+          let component      = get_component component_id in
+          let component_type = universe#get_component_type component#typ in
+          let provide_arity  = component_type#provide port_id in
+          match provide_arity with
+          | Infinite_provide -> Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.InfiniteInteger)
+          | Finite_provide i -> if i > 0
+                                then Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.FiniteInteger i)
+                                else None          
+        ) (Component_id_set.elements component_ids)
+  
+      in
+  
+      (* Launch the matching alogrithm with the prepared inputs! *)
+      match matching_algorithm requirers providers with
+
+      (* If there is no way to generate required bindings between these components (which should never happen). *)
+      | None -> 
+          failwith (Printf.sprintf
+            "Matching algorithm has failed for a solution which should be correct (for port %s)!"
+            (String_of.port_id port_id) )
+
+      (* The matching algoritm has yielded a result. *)
+      | Some results -> 
+    
+        (* We convert the matching algorithm result to actual bindings. *)
+        List.iter (fun result -> 
+          let binding =
+            object
+              method port     = port_id
+              method provider = result.provides
+              method requirer = result.requires
+            end
+          in
+          bindings := Binding_set.add binding !bindings
+        ) results
+  
+    ) port_ids;
+
+    !bindings
+
+
+
 let solution (universe : universe) (initial_configuration : configuration) (solution : solution) : configuration =
 
   let solution = new extended_solution solution in
@@ -245,6 +319,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let location_name_of_id   : location_id -> location_name   = location_name_catalog#name_of_id in
   let location_id_of_name   : location_name -> location_id   = location_name_catalog#id_of_name in
 
+  let get_local_package location_id package_id : bool =
+    Package_id_set.mem package_id (get_location location_id)#packages_installed in
   
 
   (* components *)
@@ -266,12 +342,12 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let component_name_of_id   : component_id -> component_name  = component_name_catalog#name_of_id in
   let component_id_of_name   : component_name -> component_id  = component_name_catalog#id_of_name in
 
-
   let get_local_components location_id component_type_id : Component_id_set.t =
     Component_id_set.filter (fun component_id -> ((get_component component_id)#location = location_id)) component_ids in
 
-  let get_local_package location_id package_id : bool =
-    Package_id_set.mem package_id (get_location location_id)#packages_installed in
+
+  (* bindings *)
+  let bindings = generate_bindings universe component_ids get_component in
 
   object(self)
     (* methods *)
@@ -280,7 +356,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     method get_locations  = locations
     method get_components = components
-    method get_bindings   = Binding_set.empty
+    method get_bindings   = bindings
 
     method get_location_ids  = location_ids
     method get_component_ids = component_ids
