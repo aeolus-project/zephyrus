@@ -108,7 +108,7 @@ let cost_variable_name = "cost_var"
 
 let variable_declaration v_map f_bound =
   Variable_set.fold (fun v res -> let bound = f_bound v in
-      let (min, max) = (string_of_int (Data_helper.int_of_value bound.min), string_of_int (Data_helper.int_of_value bound.max)) in
+      let (min, max) = (string_of_int (Data_helper.int_of_value (Bound.min bound)), string_of_int (Data_helper.int_of_value (Bound.max bound))) in
       res ^ ("var " ^ min  ^ ".." ^ max ^ " : "  ^ (v_map#get_name v) ^ ";\n")) 
     v_map#variables ("var 0.." ^ (string_of_int (Data_helper.int_of_value Data_constraint.Infinite_value)) ^ " : " ^ cost_variable_name ^ ";\n")
 

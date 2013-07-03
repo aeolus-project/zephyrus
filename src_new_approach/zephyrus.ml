@@ -35,6 +35,7 @@ open Load_model
 open Constraint_of
 open Solvers
 open Json_of
+open Bound_approximation
 
 let check_option desc o = match o with
   | Some(a) -> a
@@ -208,7 +209,7 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
     ("  configuration " , ((Data_constraint.conj(!Data_state.constraint_configuration_full))));
     ("  category " , c) ] in
   let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
-  let solution = Solvers.G12.solve solver_settings solver_input opt_f in
+  let solution = Solvers.GeCode.solve solver_settings solver_input opt_f in
 
   Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
 
