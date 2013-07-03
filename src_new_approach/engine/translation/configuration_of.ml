@@ -27,10 +27,8 @@ class type extended_solution_iface =
     method domain          : Variable_set.t
     method variable_values : variable -> int
 
-    (* location *)
-    method get_repository_id_of_a_location : location_id -> repository_id
-    method get_package_ids_of_a_location   : location_id -> Package_id_set.t
-
+    method get_repository_id_of_a_location        : location_id -> repository_id
+    method get_package_ids_of_a_location          : location_id -> Package_id_set.t
     method get_number_of_components_of_a_location : location_id -> component_type_id -> int 
   end
 
@@ -43,30 +41,35 @@ class extended_solution (solution : solution) : extended_solution_iface =
     method variable_values = value
 
     method get_repository_id_of_a_location location_id = 
-      let location_repository_variables : Variable_set.t =
-        Variable_set.filter (fun variable ->
+      let module Repository_id_set_of_variable_set = Set.Convert(Variable_set)(Repository_id_set) in
+      let location_repository_ids : Repository_id_set.t =
+        Repository_id_set_of_variable_set.filter_convert (fun variable ->
           match variable with
           | Local_repository_variable (var_location_id, var_repository_id) -> 
-              (var_location_id = location_id) && ((value variable) = 1)
-          | _ -> false
+              if (var_location_id = location_id) && ((value variable) = 1)
+              then Some(var_repository_id)
+              else None
+          | _ -> None
         ) domain
       in
-      match Variable_set.cardinal location_repository_variables with
-      | 1 -> value (Variable_set.choose location_repository_variables)
+      match Repository_id_set.cardinal location_repository_ids with
+      | 1 -> Repository_id_set.choose location_repository_ids
       | 0 -> failwith "No repository attributed to a location!"
       | _ -> failwith "Many repositories attributed to a location!"
 
     method get_package_ids_of_a_location location_id = 
-      let location_package_variables : Variable_set.t =
-        Variable_set.filter (fun variable ->
+      let module Package_id_set_of_variable_set = Set.Convert(Variable_set)(Package_id_set) in
+      let location_package_ids : Package_id_set.t =
+        Package_id_set_of_variable_set.filter_convert (fun variable ->
           match variable with
           | Local_variable (var_location_id, Package(var_package_id)) -> 
-              var_location_id = location_id
-          | _ -> false
+              if (var_location_id = location_id) && ((value variable) = 1)
+              then Some(var_package_id)
+              else None
+          | _ -> None
         ) domain
       in
-      let module Variable_set_of_package_id_set = Set.Convert(Variable_set)(Package_id_set) in
-      Variable_set_of_package_id_set.convert value location_package_variables
+      location_package_ids
 
     (* How many components of a given component type should be installed on a given location according to this solution? *)
     method get_number_of_components_of_a_location location_id component_type_id =
@@ -175,18 +178,11 @@ let generate_components
     ) component_type_ids
   ) location_ids;
 
-  let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
-    List.fold_right (fun (el : 'b option) (l : 'b list) -> 
-      match el with
-      | None   -> l 
-      | Some x -> x :: l) 
-    (List.map f l) [] in
-
   (* We have prepared all the almost-done-components. Now we can extract all their names
      and we will have the initial set of names already used in the configuration
      (all coming from reused components, cause the new ones are unnamed for now). *)
   let (used_names : used_names ref) = ref (Component_name_set.set_of_direct_list (
-    filter_map (function
+    Output_helper.filter_map (function
     | ReusedComponent component -> Some component#name
     | NewComponent    _         -> None
     ) !almost_done_components)) in

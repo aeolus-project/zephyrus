@@ -226,7 +226,7 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
             begin
               match !Data_state.resources_full with
               | None           -> Printf.printf "\nZephyrus is proud to announce you, that resources are not set!...\n"
-              | Some resources -> Printf.printf "\n%s" "(NOT PRINTING THE FINAL CONFIGURATION)" (* (Json_of.configuration_string final_configuration universe resources) *)
+              | Some resources -> Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration universe resources) (* (String_of.configuration universe final_configuration) *)
             end;
             Some(final_configuration)
       end
