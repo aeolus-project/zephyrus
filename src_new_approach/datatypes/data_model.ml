@@ -264,7 +264,9 @@ end
 module Location = struct
   type t = location
   let compare l1 l2 = String.compare l1#name l2#name 
-end module Location_set = Set.Make(Location)
+end 
+module Location_set = Set.Make(Location)
+module Location_map = Map.Make(Location)
 
 (** Assertions:
     {ul
@@ -297,7 +299,9 @@ end
 module Component = struct
   type t = component
   let compare c1 c2 = String.compare c1#name c2#name 
-end module Component_set = Set.Make(Component)
+end 
+module Component_set = Set.Make(Component)
+module Component_map = Map.Make(Component)
 
 (** Assertions:
     {ul
