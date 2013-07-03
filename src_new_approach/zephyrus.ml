@@ -35,7 +35,8 @@ open Load_model
 open Constraint_of
 open Solvers
 open Json_of
-open Bound_approximation
+open Variable_bounds
+open Location_bound
 
 let check_option desc o = match o with
   | Some(a) -> a
@@ -143,10 +144,22 @@ let () =
         end
       end;
 
-
-  let c = Location_categories.full_categories r u c in
+  let u = check_option "universe"              !Data_state.universe_full in
+  let cat = Location_categories.full_categories r u c in
   print_string "\n\n\n     ==> CATEGORIES <==  \n\n";
-  print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements c))) ^ " ]");
+  print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat))) ^ " ]");
+  Constraint_of.basic_bounds ();
+  let solver_settings = {
+    Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
+    Solvers.input_file            = "zephyrus-fit-loc-.mzn";
+    Solvers.output_file           = "zephyrus-fit-loc-.sol";
+    Solvers.keep_input_file       = false;
+    Solvers.keep_output_file      = false  
+  } in (match Location_bound.fit_categories (Solvers.GeCode.solve solver_settings) (r#resource_ids,u,c,s) cat with
+      | None -> print_string "\n\n\n     ==> NEW CATEGORIES <==  \n While computing, we discuvered that there was no solution\n"
+      | Some(cat') -> print_string "\n\n\n     ==> NEW CATEGORIES <==  \n\n";
+    print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat'))) ^ " ]"));
+  
   print_string "\n ===============================";
   print_string "\n   ==> CONSTRAINT SECTION <==  \n";
   Constraint_of.universe_full ();
@@ -209,30 +222,31 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
     ("  configuration " , ((Data_constraint.conj(!Data_state.constraint_configuration_full))));
     ("  category " , c) ] in
   let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
-  let solution = Solvers.GeCode.solve solver_settings solver_input opt_f in
+  match Solvers.GeCode.solve solver_settings solver_input opt_f with
+  | None -> Zephyrus_log.log_panic "no solution for the given input"
+  | Some(solution) -> (
+    Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
 
-  Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
-
-  let final_configuration = 
-    let solution = fst solution in
-    match !Data_state.universe_full with
-    | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"; None
-    | Some universe -> 
-      begin
-        match !Data_state.initial_configuration_full with
-        | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
-        | Some initial_configuration -> 
-            let final_configuration = Configuration_of.solution universe initial_configuration solution in
-            begin
-              match !Data_state.resources_full with
-              | None           -> Printf.printf "\nZephyrus is proud to announce you, that resources are not set!...\n"
-              | Some resources -> Printf.printf "\n%s" "(NOT PRINTING THE FINAL CONFIGURATION)" (* (Json_of.configuration_string final_configuration universe resources) *)
-            end;
-            Some(final_configuration)
-      end
+    let final_configuration = 
+      let solution = fst solution in
+      match !Data_state.universe_full with
+      | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"; None
+      | Some universe -> 
+        begin
+          match !Data_state.initial_configuration_full with
+          | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
+          | Some initial_configuration -> 
+              let final_configuration = Configuration_of.solution universe initial_configuration solution in
+              begin
+                match !Data_state.resources_full with
+                | None           -> Printf.printf "\nZephyrus is proud to announce you, that resources are not set!...\n"
+                | Some resources -> Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration universe resources) (* (String_of.configuration universe final_configuration) *)
+              end;
+              Some(final_configuration)
+        end
   in
 
-  print_string "\n\n\n <==========> THE END <==========>  \n\n"
+  print_string "\n\n\n <==========> THE END <==========>  \n\n")
 
 (*
 (* just a test! *)

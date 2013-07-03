@@ -27,8 +27,6 @@
     - input/Input_helper (for input file manipulation)
 *)
 
-
-(* TODO: replace all access to catalog to print an id in an access to String_of *)
 open Data_model
 open Data_model_catalog
 
@@ -312,7 +310,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_component_type t =
     
     let name = convert_component_type_name t.Json_t.component_type_name in
-    let id = catalog#component_type#id_of_name name in
 
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
@@ -345,14 +342,12 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
     new_component_type (object(self)
       method name           = name
-      method id             = id
-      method provide      p = try Port_id_map.find p provide with
-        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-          Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
+      method id             = catalog#component_type#id_of_name name
+      method provide      p = try Port_id_map.find p provide 
+                              with Not_found -> Finite_provide 0
       method provide_domain = port_local_provide
-      method require      p = try Port_id_map.find p require with
-        | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-          Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ (self#name) ^ "\"")
+      method require      p = try Port_id_map.find p require 
+                              with Not_found -> 0
       method require_domain = port_local_require
       method conflict       = conflict
       method consume      r = try Resource_id_map.find r consume with Not_found -> 0
@@ -362,7 +357,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_package r_id r_name k =
 
     let name = convert_package_name r_name k.Json_t.package_name in
-    let id = catalog#package#id_of_name (r_id, name) in
 
     (* create the dependency sets, creating as a side effect shallow structure for non-yet-seen packages *)
     let depend : Package_id_set_set.t = 
@@ -385,7 +379,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
     new_package r_id (object
       method name      = name
-      method id        = id
+      method id        = catalog#package#id_of_name (r_id, name)
       method depend    = depend
       method conflict  = conflict
       method consume r = try Resource_id_map.find r_id consume with Not_found -> 0
@@ -395,6 +389,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_repository r = 
 
     let name = convert_repository_name r.Json_t.repository_name in
+
     let id = catalog#repository#id_of_name name in
     
     let packages : package Package_id_map.t = 
@@ -409,7 +404,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     
     new_repository (object(self) 
       method name          = name
-      method id            = id
+      method id        = catalog#repository#id_of_name name
       method get_package k = 
         try Package_id_map.find k packages 
         with Not_found -> 
@@ -571,7 +566,6 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* location *)
   let convert_location l =
     let name = convert_location_name l.Json_t.location_name in
-    let id = catalog#location#id_of_name name in
     let r_name = convert_repository_name l.Json_t.location_repository in 
     let repository = catalog#repository#id_of_name r_name in
     let packages_installed = Package_id_set.set_of_list (fun k -> catalog#package#id_of_name (repository, (convert_package_name r_name k))) l.Json_t.location_packages_installed in
@@ -580,7 +574,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
 
     new_location (object
       method name                = name
-      method id                  = id
+      method id                  = catalog#location#id_of_name name
       method repository          = repository
       method packages_installed  = packages_installed
       method provide_resources r = try Resource_id_map.find r resources with Not_found -> 0 
@@ -589,13 +583,11 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* components *)
   let convert_component c =
     let name = convert_component_name c.Json_t.component_name in
-    let id = catalog#component#id_of_name name in
     let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
     new_component (object
       method name     = name
-      method id       = id
       method typ      = typ
       method location = location 
     end) in

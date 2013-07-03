@@ -205,6 +205,22 @@ let (  =>~~ ) x y  = BinaryKonstraint ( Implies, x, y )
 let (  !~   ) x    = UnaryKonstraint  ( Not, x        )
 
 
+let rec variables_of_expression e = match e with
+  | Constant(v)                     -> Variable_set.empty
+  | Variable(v)                     -> Variable_set.singleton v
+  | Reified(c)                      -> variables_of_konstraint c
+  | UnaryArithExpression  (_,e')    -> variables_of_expression e'
+  | BinaryArithExpression (_,e1,e2) -> Variable_set.union (variables_of_expression e1) (variables_of_expression e2)
+  | NaryArithExpression   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_of_expression e) vars) Variable_set.empty l
+and variables_of_konstraint c = match c with
+  | True            -> Variable_set.empty
+  | False           -> Variable_set.empty
+  | ArithKonstraint  (_,e1,e2) -> Variable_set.union (variables_of_expression e1) (variables_of_expression e2)
+  | UnaryKonstraint  (_,c')    -> variables_of_konstraint c'
+  | BinaryKonstraint (_,c1,c2) -> Variable_set.union (variables_of_konstraint c1) (variables_of_konstraint c2)
+  | NaryKonstraint   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_of_konstraint e) vars) Variable_set.empty l
+
+
 
 (*/************************************************************************\*)
 (*| 4. Optimization Functions                                              |*)
@@ -214,6 +230,11 @@ type optimization_function =
   | Minimize of expression
   | Maximize of expression
   | Lexicographic of optimization_function list
+
+let rec variables_of_optimization_function f = match f with
+  | Minimize (e) -> variables_of_expression e
+  | Maximize (e) -> variables_of_expression e
+  | Lexicographic (l) -> List.fold_left (fun res f' -> Variable_set.union (variables_of_optimization_function f') res) Variable_set.empty l
 
 (*/************************************************************************\*)
 (*| 5. Bounds for Variables                                                |*)

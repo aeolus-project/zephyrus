@@ -51,7 +51,7 @@ type structured_minizinc = { mzn_variables : named_variables; mzn_declaration : 
 exception Wrong_optimization_function
 val cost_variable_name : string
 
-val get_named_variables : (string * konstraint) list -> optimization_function -> named_variables
+val get_named_variables : Variable_set.t -> named_variables
 val core_translation : named_variables -> variable_bounds -> (string * konstraint) list -> structured_minizinc
 
 val add_optimization_goal : structured_minizinc -> optimization_function -> minizinc

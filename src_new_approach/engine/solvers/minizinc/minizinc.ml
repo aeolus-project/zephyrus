@@ -39,6 +39,8 @@ type minizinc = string
 
 (* 1. create names for the variables *)
 
+(* TODO: put get variables somewhere else, and use a catalog. This algorithm is really unsafe *)
+
   (* unsafe name creation *)
 let sanitize_name name = Str.global_replace (Str.regexp "[^a-z0-9]") "_" (String.lowercase name)
 let name_of_t t = (sanitize_name (String_of.component_type_id t))
@@ -64,28 +66,7 @@ let name_of_variable_safe v = let id = !name_var_id in name_var_id := id + 1; "v
 
 (* 2. get all the variables in the constraint and optimization function *)
 
-let rec variables_from_expression e = match e with
-  | Constant(v)                     -> Variable_set.empty
-  | Variable(v)                     -> Variable_set.singleton v
-  | Reified(c)                      -> variables_from_konstraint c
-  | UnaryArithExpression  (_,e')    -> variables_from_expression e'
-  | BinaryArithExpression (_,e1,e2) -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
-  | NaryArithExpression   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_from_expression e) vars) Variable_set.empty l
-and variables_from_konstraint c = match c with
-  | True            -> Variable_set.empty
-  | False           -> Variable_set.empty
-  | ArithKonstraint  (_,e1,e2) -> Variable_set.union (variables_from_expression e1) (variables_from_expression e2)
-  | UnaryKonstraint  (_,c')    -> variables_from_konstraint c'
-  | BinaryKonstraint (_,c1,c2) -> Variable_set.union (variables_from_konstraint c1) (variables_from_konstraint c2)
-  | NaryKonstraint   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_from_konstraint e) vars) Variable_set.empty l
-
-let rec variables_from_optimization_function f = match f with
-  | Minimize (e) -> variables_from_expression e
-  | Maximize (e) -> variables_from_expression e
-  | Lexicographic (l) -> List.fold_left (fun res f -> Variable_set.union (variables_from_optimization_function f) res) Variable_set.empty l
-
-let get_named_variables cs f =
-  let vs = List.fold_left (fun res (_, c) -> Variable_set.union (variables_from_konstraint c) res) (variables_from_optimization_function f) cs in
+let get_named_variables vs =
   let variables_tmp = ref Variable_set.empty in
   let names_tmp = ref Name_set.empty in
   let get_name_tmp = ref Variable_map.empty in
@@ -107,10 +88,10 @@ let get_named_variables cs f =
 let cost_variable_name = "cost_var"
 
 let variable_declaration v_map f_bound =
-  Variable_set.fold (fun v res -> let bound = f_bound v in
+  Variable_set.fold (fun v res -> let bound = f_bound v in 
       let (min, max) = (string_of_int (Data_helper.int_of_value (Bound.min bound)), string_of_int (Data_helper.int_of_value (Bound.max bound))) in
       res ^ ("var " ^ min  ^ ".." ^ max ^ " : "  ^ (v_map#get_name v) ^ ";\n")) 
-    v_map#variables ("var 0.." ^ (string_of_int (Data_helper.int_of_value Data_constraint.Infinite_value)) ^ " : " ^ cost_variable_name ^ ";\n")
+    v_map#variables ("var 0.." ^ (string_of_int (Data_helper.int_of_value Value.infty)) ^ " : " ^ cost_variable_name ^ ";\n")
 
 (* 4. core *)
 
@@ -182,9 +163,16 @@ let output_of_variables v_map =
   let output_of_variable v = "  \"" ^ v ^ " = \", show(" ^ v ^ "), \";\\n\"" in
   "output [\n" ^ (String.concat ",\n" (List.map output_of_variable (cost_variable_name::(Name_set.elements v_map#names)))) ^ "\n];\n\n"
 
-let core_translation v_map f_bound cs = {
+let core_translation v_map f_bound cs =
+  Zephyrus_log.log_solver_execution "Computing the variable declaration part of the file...\n";
+  (* let decl = variable_declaration v_map f_bound in *)
+  Zephyrus_log.log_solver_execution "Computing main part of the file...\n";
+  let main = minizinc_of_konstraints v_map cs in
+  Zephyrus_log.log_solver_execution "Computing the output part of the file...\n";
+  let out = output_of_variables v_map in
+ {
   mzn_variables        = v_map;
-  mzn_declaration      = variable_declaration v_map f_bound;
+  mzn_declaration      = variable_declaration v_map f_bound; (* can take very very long with a lot of variables *)
   mzn_main_constraint  = minizinc_of_konstraints v_map cs;
   mzn_extra_constraint = "";
   mzn_output           = output_of_variables v_map }

@@ -27,10 +27,8 @@ class type extended_solution_iface =
     method domain          : Variable_set.t
     method variable_values : variable -> int
 
-    (* location *)
-    method get_repository_id_of_a_location : location_id -> repository_id
-    method get_package_ids_of_a_location   : location_id -> Package_id_set.t
-
+    method get_repository_id_of_a_location        : location_id -> repository_id
+    method get_package_ids_of_a_location          : location_id -> Package_id_set.t
     method get_number_of_components_of_a_location : location_id -> component_type_id -> int 
   end
 
@@ -43,30 +41,35 @@ class extended_solution (solution : solution) : extended_solution_iface =
     method variable_values = value
 
     method get_repository_id_of_a_location location_id = 
-      let location_repository_variables : Variable_set.t =
-        Variable_set.filter (fun variable ->
+      let module Repository_id_set_of_variable_set = Set.Convert(Variable_set)(Repository_id_set) in
+      let location_repository_ids : Repository_id_set.t =
+        Repository_id_set_of_variable_set.filter_convert (fun variable ->
           match variable with
           | Local_repository_variable (var_location_id, var_repository_id) -> 
-              (var_location_id = location_id) && ((value variable) = 1)
-          | _ -> false
+              if (var_location_id = location_id) && ((value variable) = 1)
+              then Some(var_repository_id)
+              else None
+          | _ -> None
         ) domain
       in
-      match Variable_set.cardinal location_repository_variables with
-      | 1 -> value (Variable_set.choose location_repository_variables)
+      match Repository_id_set.cardinal location_repository_ids with
+      | 1 -> Repository_id_set.choose location_repository_ids
       | 0 -> failwith "No repository attributed to a location!"
       | _ -> failwith "Many repositories attributed to a location!"
 
     method get_package_ids_of_a_location location_id = 
-      let location_package_variables : Variable_set.t =
-        Variable_set.filter (fun variable ->
+      let module Package_id_set_of_variable_set = Set.Convert(Variable_set)(Package_id_set) in
+      let location_package_ids : Package_id_set.t =
+        Package_id_set_of_variable_set.filter_convert (fun variable ->
           match variable with
           | Local_variable (var_location_id, Package(var_package_id)) -> 
-              var_location_id = location_id
-          | _ -> false
+              if (var_location_id = location_id) && ((value variable) = 1)
+              then Some(var_package_id)
+              else None
+          | _ -> None
         ) domain
       in
-      let module Variable_set_of_package_id_set = Set.Convert(Variable_set)(Package_id_set) in
-      Variable_set_of_package_id_set.convert value location_package_variables
+      location_package_ids
 
     (* How many components of a given component type should be installed on a given location according to this solution? *)
     method get_number_of_components_of_a_location location_id component_type_id =
@@ -94,8 +97,7 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   let build_component_name = 
     Printf.sprintf
-    "%s-%s-%d" 
-    (String_of.location_name location_name)
+    "%s-%d" 
     (String_of.component_type_name component_type_name)
 
   in
@@ -163,6 +165,7 @@ let generate_components
               in 
               object
                 method name     = component_name;
+(*                method id       = -1 (* TODO: to fix when we will add the new components to the catalog ... *) *)
                 method typ      = component_type_id;
                 method location = location_id;
               end) in
@@ -175,18 +178,11 @@ let generate_components
     ) component_type_ids
   ) location_ids;
 
-  let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
-    List.fold_right (fun (el : 'b option) (l : 'b list) -> 
-      match el with
-      | None   -> l 
-      | Some x -> x :: l) 
-    (List.map f l) [] in
-
   (* We have prepared all the almost-done-components. Now we can extract all their names
      and we will have the initial set of names already used in the configuration
      (all coming from reused components, cause the new ones are unnamed for now). *)
   let (used_names : used_names ref) = ref (Component_name_set.set_of_direct_list (
-    filter_map (function
+    Output_helper.filter_map (function
     | ReusedComponent component -> Some component#name
     | NewComponent    _         -> None
     ) !almost_done_components)) in
@@ -200,6 +196,81 @@ let generate_components
     | NewComponent    component_f -> component_f used_names
   ) !almost_done_components)
   
+
+(* Set up for the matching algorithm. *)
+module My_matching_algorithm = Candy_algorithm
+
+open My_matching_algorithm.Int_list_match_requirers_with_providers
+open My_matching_algorithm.Int_list_requirer_provider_types
+
+(* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
+let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
+
+  (* Get all the ports mentioned in the universe. *)
+  let port_ids = universe#get_port_ids in
+
+  let bindings : Binding_set.t ref = ref Binding_set.empty in
+  
+  (* Generate bindings for each port p. *)
+  Port_id_set.iter (fun port_id ->
+
+      (* Prepare the inputs for the matching algorithm: *)
+
+      (* 1. Mapping from component name to their require arity on port p. *)
+      let requirers : My_matching_algorithm.Int_list_requirer_provider_types.Requirers.t = 
+        Output_helper.filter_map (fun component_id ->
+          let component      = get_component component_id in
+          let component_type = universe#get_component_type component#typ in
+          let require_arity  = component_type#require port_id in
+          if require_arity > 0
+          then Some (component_id, require_arity)
+          else None
+        ) (Component_id_set.elements component_ids)
+  
+      (* 2. Mapping from component name to their provide arity on port p. *)
+      and providers : My_matching_algorithm.Int_list_requirer_provider_types.Providers.t = 
+        Output_helper.filter_map (fun component_id ->
+          let component      = get_component component_id in
+          let component_type = universe#get_component_type component#typ in
+          let provide_arity  = component_type#provide port_id in
+          match provide_arity with
+          | Infinite_provide -> Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.InfiniteInteger)
+          | Finite_provide i -> if i > 0
+                                then Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.FiniteInteger i)
+                                else None          
+        ) (Component_id_set.elements component_ids)
+  
+      in
+  
+      (* Launch the matching alogrithm with the prepared inputs! *)
+      match matching_algorithm requirers providers with
+
+      (* If there is no way to generate required bindings between these components (which should never happen). *)
+      | None -> 
+          failwith (Printf.sprintf
+            "Matching algorithm has failed for a solution which should be correct (for port %s)!"
+            (String_of.port_id port_id) )
+
+      (* The matching algoritm has yielded a result. *)
+      | Some results -> 
+    
+        (* We convert the matching algorithm result to actual bindings. *)
+        List.iter (fun result -> 
+          let binding =
+            object
+              method port     = port_id
+              method provider = result.provides
+              method requirer = result.requires
+            end
+          in
+          bindings := Binding_set.add binding !bindings
+        ) results
+  
+    ) port_ids;
+
+    !bindings
+
+
 
 let solution (universe : universe) (initial_configuration : configuration) (solution : solution) : configuration =
 
@@ -229,6 +300,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     let new_location : location =
       object
         method name                = name
+        method id                  = location_id
         method repository          = repository
         method packages_installed  = packages_installed
         method provide_resources   = provide_resources
@@ -249,6 +321,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let location_name_of_id   : location_id -> location_name   = location_name_catalog#name_of_id in
   let location_id_of_name   : location_name -> location_id   = location_name_catalog#id_of_name in
 
+  let get_local_package location_id package_id : bool =
+    Package_id_set.mem package_id (get_location location_id)#packages_installed in
   
 
   (* components *)
@@ -270,12 +344,12 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let component_name_of_id   : component_id -> component_name  = component_name_catalog#name_of_id in
   let component_id_of_name   : component_name -> component_id  = component_name_catalog#id_of_name in
 
-
   let get_local_components location_id component_type_id : Component_id_set.t =
     Component_id_set.filter (fun component_id -> ((get_component component_id)#location = location_id)) component_ids in
 
-  let get_local_package location_id package_id : bool =
-    Package_id_set.mem package_id (get_location location_id)#packages_installed in
+
+  (* bindings *)
+  let bindings = generate_bindings universe component_ids get_component in
 
   object(self)
     (* methods *)
@@ -284,7 +358,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     method get_locations  = locations
     method get_components = components
-    method get_bindings   = Binding_set.empty
+    method get_bindings   = bindings
 
     method get_location_ids  = location_ids
     method get_component_ids = component_ids

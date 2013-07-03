@@ -48,7 +48,7 @@ module Set = struct
   module type S = sig
     include Set_from_stblib
     
-    val sub_cardinal : int -> t -> t
+    val keep_elements : int -> t -> t
     val set_of_direct_list: elt list -> t
     val set_of_list: ('a -> elt) -> 'a list -> t
   end
@@ -65,6 +65,12 @@ module Set = struct
 
   module Convert(Set_origin : S) (Set_target : S) = struct
     let convert f s = Set_origin.fold (fun v res -> Set_target.add (f v) res) s Set_target.empty
+    let filter_convert f s = 
+      Set_origin.fold (fun el s -> 
+        match f el with
+        | None   -> s 
+        | Some x -> Set_target.add x s
+      ) s Set_target.empty
   end
 
   module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) = struct

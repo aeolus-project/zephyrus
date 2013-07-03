@@ -308,14 +308,14 @@ module Component_id_map_extract_key = Keys_of_MapInt
   (** Components *)
 class type component = object
   method name     : component_name
-  method id       : component_id
+(*  method id       : component_id *)
   method typ      : component_type_id
   method location : location_id
 end
 
 module Component = struct
   type t = component
-  let compare c1 c2 = Component_id.compare c1#id c2#id 
+  let compare c1 c2 = Component_name.compare c1#name c2#name
 end 
 module Component_set = Set.Make(Component)
 module Component_map = Map.Make(Component)
@@ -464,7 +464,7 @@ type optimization_function =
 (*| 6. Putting all together                                                |*)
 (*\************************************************************************/*)
 
-type model      = universe * configuration * specification
-type model_full = universe * configuration * specification * optimization_function
+type model      = Resource_set.t * universe * configuration * specification
+type model_full = Resource_set.t * universe * configuration * specification * optimization_function
 
 

@@ -55,6 +55,7 @@ let eO l o = Variable(Local_resource_variable(l,o))
 
 (* flat model *)
 let require u_dp ur up get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute requires\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res -> (
         ((get_require_arity (get_component_type tr) p) *~ (eNt tr))
@@ -63,6 +64,7 @@ let require u_dp ur up get_component_type =
   ) u_dp []
 
 let provide u_dp up ur get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute provides\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tp res -> (
           ((get_provide_arity (get_component_type tp) p) *~ (eNt tp))
@@ -71,6 +73,7 @@ let provide u_dp up ur get_component_type =
   ) u_dp []
 
 let binding u_dp ur up = 
+  Zephyrus_log.log_constraint_execution "Compute unicitiy\n\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res ->
       Data_model.Component_type_id_set.fold (fun tp res ->
@@ -81,6 +84,7 @@ let binding u_dp ur up =
 
 
 let conflict u_dp uc get_component_type =
+  Zephyrus_log.log_constraint_execution "Compute conflicts\n\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun t res ->
       (((eNt t) >=~ (constant 1)) =>~~ ((eNp p) =~ (get_provide_arity_safe (get_component_type t) p)))::res
@@ -89,21 +93,25 @@ let conflict u_dp uc get_component_type =
 
 (* location val *)
 let location_component_type u_dt c_l =
+  Zephyrus_log.log_constraint_execution "Compute distribution component types\n";
   Data_model.Component_type_id_set.fold (fun t res ->
     ((eNt t) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlt l t)::res) c_l [])))::res
   ) u_dt []
   
 let location_package u_dk c_l =
+  Zephyrus_log.log_constraint_execution "Compute distribution packages\n";
   Data_model.Package_id_set.fold (fun k res ->
     ((eNk k) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlk l k)::res) c_l [])))::res
   ) u_dk []
 
 let location_port u_dp c_l =
+  Zephyrus_log.log_constraint_execution "Compute distribution ports\n";
   Data_model.Port_id_set.fold (fun p res ->
     ((eNp p) =~ (sum (Data_model.Location_id_set.fold (fun l res -> (eNlp l p)::res) c_l [])))::res
   ) u_dp []
 
 let location_port_equation u_dp c_l up get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute implementation port\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Location_id_set.fold (fun l res ->
       ((eNlp l p) =~ (sum (Data_model.Component_type_id_set.fold
@@ -115,10 +123,12 @@ let location_port_equation u_dp c_l up get_component_type =
   (* Repositories *)
 let repository_unique c_l u_dr =
   Data_model.Location_id_set.fold (fun l res ->
+  Zephyrus_log.log_constraint_execution "Compute repository unicity\n";
     ((constant 1) =~ (sum (Data_model.Repository_id_set.fold (fun r res -> (eR l r)::res) u_dr [])))::res
   ) c_l []
 
 let repository_package c_l u_dr u_dk get_packages =
+  Zephyrus_log.log_constraint_execution "Compute packages local to repository\n";
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Repository_id_set.fold (fun r res ->
       (((eR l r) =~ (constant 1)) =>~~
@@ -128,6 +138,7 @@ let repository_package c_l u_dr u_dk get_packages =
 
   (* Package dependencies *)
 let component_type_implementation c_l u_dt u_i =
+  Zephyrus_log.log_constraint_execution "Compute component type implementation\n";
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Component_type_id_set.fold (fun t res ->
       (((eNlt l t) >=~ (constant 1)) =>~~ ((sum (Data_model.Package_id_set.fold (fun k res -> (eNlk l k)::res) (u_i t) [])) >=~ (constant 1)))::res
@@ -135,6 +146,7 @@ let component_type_implementation c_l u_dt u_i =
   ) c_l []
 
 let package_dependency c_l u_dk get_package =
+  Zephyrus_log.log_constraint_execution "Compute package dependencies\n";
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Package_id_set.fold (fun k1 res ->
       Data_model.Package_id_set_set.fold (fun ks res ->
@@ -144,6 +156,7 @@ let package_dependency c_l u_dk get_package =
   ) c_l []
 
 let package_conflict c_l u_dk get_package =
+  Zephyrus_log.log_constraint_execution "Compute package conflicts\n";
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Package_id_set.fold (fun k1 res ->
       Data_model.Package_id_set.fold (fun k2 res ->
@@ -155,6 +168,7 @@ let package_conflict c_l u_dk get_package =
 
   (* Resource consumptions *)
 let resource_consumption c_l resources u_dt u_dk get_component_type get_package =
+  Zephyrus_log.log_constraint_execution "Compute resource consumption\n";
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Resource_id_set.fold (fun o res ->
       ((sum (Data_model.Package_id_set.fold (fun k res -> ((get_consume (get_package k) o) *~ (eNlk l k))::res) u_dk
@@ -165,76 +179,46 @@ let resource_consumption c_l resources u_dt u_dk get_component_type get_package 
   (* Deprecated packages and component types *)
 let deprecated_component_types_and_packages c_l =
   Data_model.Location_id_set.fold (fun l res ->
+  Zephyrus_log.log_constraint_execution "Compute elements to delete\n";
     ((eNlt l Data_model.deprecated_component_type_id) =~ (constant 0))::((eNlk l Data_model.deprecated_package_id) =~ (constant 0))::res
   ) c_l []
 
 let universe resources locations universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
-((* DEBUG **************************) print_string ("Compute requires\n"); flush stdout;
-    (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ) ;
-((* DEBUG **************************) print_string ("Compute provides\n"); flush stdout;
-    (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ) ;
-((* DEBUG **************************) print_string ("Compute conflicts\n"); flush stdout;
-    (Data_state.constraint_universe_component_type_conflict , conflict universe#u_dp universe#uc universe#get_component_type) ) ;
-((* DEBUG **************************) print_string ("Compute implem\n"); flush stdout;
-    (Data_state.constraint_universe_component_type_implementation , component_type_implementation locations universe#u_dt universe#u_i) ) ;
-((* DEBUG **************************) print_string ("Compute unicitiy\n"); flush stdout;
-    (Data_state.constraint_universe_binding_unicity         , binding universe#u_dp universe#ur universe#up) ) ;
-((* DEBUG **************************) print_string ("Compute distribution component types\n"); flush stdout;
-    (Data_state.constraint_universe_location_component_type , location_component_type universe#u_dt locations) ) ;
-((* DEBUG **************************) print_string ("Compute distribution package\n"); flush stdout;
-    (Data_state.constraint_universe_location_package        , location_package universe#u_dk locations) ) ;
-((* DEBUG **************************) print_string ("Compute distribution ports\n"); flush stdout;
-    (Data_state.constraint_universe_location_port           , location_port universe#u_dp locations) ) ;
-((* DEBUG **************************) print_string ("Compute implementation port\n"); flush stdout;
-    (Data_state.constraint_universe_definition_port         , location_port_equation universe#u_dp locations universe#up universe#get_component_type) ) ;
-((* DEBUG **************************) print_string ("Compute repository unicity\n"); flush stdout;
-    (Data_state.constraint_universe_repository_unicity      , repository_unique locations universe#u_dr) ) ;
-((* DEBUG **************************) print_string ("Compute package local to repository\n"); flush stdout;
-    (Data_state.constraint_universe_repository_package      ,  repository_package locations universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ) ;
-((* DEBUG **************************) print_string ("Compute package dependencies\n"); flush stdout;
-    (Data_state.constraint_universe_package_dependency      , package_dependency locations universe#u_dk universe#get_package) ) ;
-((* DEBUG **************************) print_string ("Compute package conflicts\n"); flush stdout;
-    (Data_state.constraint_universe_package_conflict        , package_conflict locations universe#u_dk universe#get_package) ) ;
-((* DEBUG **************************) print_string ("Compute resource consumption\n"); flush stdout;
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption locations resources universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ) ;
-((* DEBUG **************************) print_string ("Compute elements to delete\n"); flush stdout;
-    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages locations) ) ]
+    (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_conflict , conflict universe#u_dp universe#uc universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_implementation , component_type_implementation locations universe#u_dt universe#u_i) ;
+    (Data_state.constraint_universe_binding_unicity         , binding universe#u_dp universe#ur universe#up) ;
+    (Data_state.constraint_universe_location_component_type , location_component_type universe#u_dt locations) ;
+    (Data_state.constraint_universe_location_package        , location_package universe#u_dk locations) ;
+    (Data_state.constraint_universe_location_port           , location_port universe#u_dp locations) ;
+    (Data_state.constraint_universe_definition_port         , location_port_equation universe#u_dp locations universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_repository_unicity      , repository_unique locations universe#u_dr) ;
+    (Data_state.constraint_universe_repository_package      ,  repository_package locations universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ;
+    (Data_state.constraint_universe_package_dependency      , package_dependency locations universe#u_dk universe#get_package) ;
+    (Data_state.constraint_universe_package_conflict        , package_conflict locations universe#u_dk universe#get_package) ;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption locations resources universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ;
+    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages locations) ]
 
  
 
 let universe_full () =
   let f (universe: Data_model.universe) configuration resources=
-(* DEBUG **************************) print_string ("Compute requires\n"); flush stdout;
     Data_state.constraint_universe_component_type_require        := require universe#u_dp universe#ur universe#up universe#get_component_type;
-(* DEBUG **************************) print_string ("Compute provides\n"); flush stdout;
     Data_state.constraint_universe_component_type_provide        := provide universe#u_dp universe#up universe#ur universe#get_component_type;
-(* DEBUG **************************) print_string ("Compute conflicts\n"); flush stdout;
     Data_state.constraint_universe_component_type_conflict       := conflict universe#u_dp universe#uc universe#get_component_type;
-(* DEBUG **************************) print_string ("Compute implem\n"); flush stdout;
     Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#c_l universe#u_dt universe#u_i;
-(* DEBUG **************************) print_string ("Compute unicitiy\n"); flush stdout;
     Data_state.constraint_universe_binding_unicity               := binding universe#u_dp universe#ur universe#up;
-(* DEBUG **************************) print_string ("Compute distribution component types\n"); flush stdout;
     Data_state.constraint_universe_location_component_type       := location_component_type universe#u_dt configuration#c_l;
-(* DEBUG **************************) print_string ("Compute distribution package\n"); flush stdout;
     Data_state.constraint_universe_location_package              := location_package universe#u_dk configuration#c_l;
-(* DEBUG **************************) print_string ("Compute distribution ports\n"); flush stdout;
     Data_state.constraint_universe_location_port                 := location_port universe#u_dp configuration#c_l;
-(* DEBUG **************************) print_string ("Compute implementation port\n"); flush stdout;
     Data_state.constraint_universe_definition_port               := location_port_equation universe#u_dp configuration#c_l universe#up universe#get_component_type;
-(* DEBUG **************************) print_string ("Compute repository unicity\n"); flush stdout;
     Data_state.constraint_universe_repository_unicity            := repository_unique configuration#c_l universe#u_dr;
-(* DEBUG **************************) print_string ("Compute package local to repository\n"); flush stdout;
-    Data_state.constraint_universe_repository_package            :=
-      repository_package configuration#c_l universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids);
-(* DEBUG **************************) print_string ("Compute package dependencies\n"); flush stdout;
+    Data_state.constraint_universe_repository_package            := repository_package configuration#c_l universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids);
     Data_state.constraint_universe_package_dependency            := package_dependency configuration#c_l universe#u_dk universe#get_package;
-(* DEBUG **************************) print_string ("Compute package conflicts\n"); flush stdout;
     Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#u_dk universe#get_package;
-(* DEBUG **************************) print_string ("Compute resource consumption\n"); flush stdout;
     Data_state.constraint_universe_resource_consumption          :=
       resource_consumption configuration#c_l resources#resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package;
-(* DEBUG **************************) print_string ("Compute elements to delete\n"); flush stdout;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.resources_full) with
     | (Some(u), Some(c), Some(r)) -> f u c r
@@ -291,7 +275,8 @@ let rec spec_expr location_ids e = match e with
   | Data_model.Spec_expr_sub (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
   | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_expr location_ids e2)
 
-let rec specification_simple location_ids s = match s with
+let rec specification_simple location_ids s =
+  Zephyrus_log.log_constraint_execution "Compute Specification\n"; match s with
   | Data_model.Spec_true -> True
   | Data_model.Spec_op (e1, op, e2) -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
   | Data_model.Spec_and (s1, s2) -> (specification_simple location_ids s1) &&~~ (specification_simple location_ids s2)
@@ -310,10 +295,11 @@ let specification_full () = match (!Data_state.specification_full, !Data_state.i
 (** 4. Configuration Translation           *) (* using naming conventions from the paper *)
 (*******************************************)
 
-let locations resources locations = [ Data_state.constraint_configuration_full , 
+let locations resources locations = Zephyrus_log.log_constraint_execution "Compute Resources Provided by Locations\n";
+ [ Data_state.constraint_configuration_full , 
   Data_model.Location_set.fold  (fun l res ->
     Data_model.Resource_id_set.fold (fun o res ->
-      ((eO (l#name) o) =~ (constant (l#provide_resources o)))::res
+      ((eO (l#id) o) =~ (constant (l#provide_resources o)))::res
     ) resources res
   ) locations [] ]
 

@@ -24,7 +24,6 @@
     - Printf
 *)
 
-
 (* 1. For indentation *) 
 
 let indent_stage = ref ""
@@ -37,5 +36,15 @@ let get_current_indent () = !indent_stage
 (* 2. for printing *)
 
 let new_line_regexp = Str.regexp "\n"
-let print file s = Printf.fprintf file "%s%s\n" (!indent_stage) (Str.global_replace new_line_regexp ("\n" ^ (!indent_stage)) s)
+let print file s = Printf.fprintf file "%s%s" (!indent_stage) (Str.global_replace new_line_regexp ("\n" ^ (!indent_stage)) s); flush file
 let print_capo file s = Printf.fprintf file "%s\n" s
+
+
+
+(* Because there is no general Helper module... *)
+let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
+  List.fold_right (fun (el : 'a) (l : 'b list) -> 
+    match f el with
+    | None   -> l 
+    | Some x -> x :: l
+  ) l []

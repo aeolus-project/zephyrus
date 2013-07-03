@@ -57,12 +57,14 @@ let log_common str  = Printf.printf "Normal:  %s"  str
 
 
 (* translation into constraint logging *)
-
+let log_constraint_execution str = if Settings.get_bool_basic Settings.verbose_constraint then Output_helper.print out_channel str
+let log_constraint_data desc str = if Settings.get_bool_basic Settings.verbose_constraint then (
+  Output_helper.print out_channel desc; Output_helper.print out_channel (Lazy.force str))
 
 (* solver logging *)
-let log_solver_execution str = if Settings.get_bool_basic Settings.verbose_constraint_solver_activities then Output_helper.print out_channel str else ()
+let log_solver_execution str = if Settings.get_bool_basic Settings.verbose_constraint_solver_activities then Output_helper.print out_channel str
 let log_solver_data desc str =  if Settings.get_bool_basic Settings.verbose_constraint_solver_activities then (
-  Output_helper.print out_channel desc; Output_helper.print out_channel (Lazy.force str)) else ()
+  Output_helper.print out_channel desc; Output_helper.print out_channel (Lazy.force str))
 
 
 

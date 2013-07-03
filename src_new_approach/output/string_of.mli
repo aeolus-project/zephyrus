@@ -106,3 +106,10 @@ val konstraint : Data_constraint.konstraint -> string
 val solution : Data_constraint.solution -> string
 
 
+(************************************)
+(** Configuration                   *)
+(************************************)
+
+val configuration : Data_model.universe -> Data_model.configuration -> string
+
+

@@ -191,6 +191,7 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
     let trimmed_package =
       object
         method name     = package#name
+        method id       = package#id
         method depend   = depend
         method conflict = conflict
         method consume  = package#consume
@@ -209,6 +210,7 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
   
   object
     method name        = repository#name
+    method id          = repository#id
     method get_package = get_package
     method packages    = packages
     method package_ids = package_ids

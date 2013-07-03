@@ -244,3 +244,41 @@ let solution solution =
     Printf.sprintf "%-15s = %d\n" (variable var) (solution.variable_values var)
     ) variables in
   String.concat "" strings
+
+
+
+(************************************)
+(** Configuration                   *)
+(************************************)
+
+let configuration universe configuration =
+  let open Data_model in
+  
+  Printf.printf "\n%s\n" (int_set universe#get_repository_ids);
+
+  let location_ids = Location_id_set.elements configuration#get_location_ids in
+  
+  let location_strings = List.map (fun lid ->
+
+    let l = configuration#get_location lid in
+    assert(configuration#get_location_id l#name = lid);
+    assert(configuration#get_location_name lid = l#name);
+    let line1 =Printf.sprintf "%s -> %s\n" (location_id lid) (location_name l#name) in
+
+    let rid = l#repository in
+    let r = universe#get_repository rid in
+    assert(universe#get_repository_id r#name = rid);
+    assert(universe#get_repository_name rid = r#name);
+    let line2 = Printf.sprintf "    + repository : %s -> %s\n" (repository_id rid) (repository_name r#name) in
+
+    let kids = l#packages_installed in
+    let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
+    let ks = Package_set_of_package_id_set.convert universe#get_package kids in
+    let module Package_name_set_of_package_set = Data_common.Set.Convert(Package_set)(Package_name_set) in
+    let knames = Package_name_set_of_package_set.convert Data_common.get_name ks in
+    let line3 = Printf.sprintf "    + packages : %s\n" (string_set knames) in
+
+    Printf.sprintf "%s%s%s" line1 line2 line3
+  ) location_ids in
+
+  String.concat "" location_strings

@@ -36,6 +36,8 @@ val log_input_file_error : string -> string -> unit
 
 (* translation into constraint logging *)
 
+val log_constraint_execution : string -> unit
+val log_constraint_data : string -> string Lazy.t -> unit (* desc -> data -> print *)
 
 (* solver logging *)
 val log_solver_execution : string -> unit

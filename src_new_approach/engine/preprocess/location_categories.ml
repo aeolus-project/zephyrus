@@ -26,6 +26,9 @@
 open Data_model
 open Data_constraint
 
+include Location_id_set_set
+
+
 (*/************************************)
 (*| category computation part *)
 

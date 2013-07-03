@@ -24,9 +24,9 @@
 
 open Data_constraint
 
-val universe      : Data_model.Resource_set.t -> Data_model.Location_id_set.t -> Data_model.universe -> ((konstraint list option ref) * (konstraint list)) list
-val specification : Data_model.Location_id_set.t -> Data_model.specification -> ((konstraint list option ref) * (konstraint list)) list
-val locations     : Data_model.Resource_set.t -> Data_model.Location_set.t -> ((konstraint list option ref) * (konstraint list)) list
+val universe      : Data_model.Resource_set.t -> Data_model.Location_id_set.t -> Data_model.universe -> ((konstraint list ref) * (konstraint list)) list
+val specification : Data_model.Location_id_set.t -> Data_model.specification -> ((konstraint option ref) * (konstraint)) list
+val locations     : Data_model.Resource_set.t -> Data_model.Location_set.t -> ((konstraint list ref) * (konstraint list)) list
 
 val universe_full : unit -> unit      (* set the universe-related constraints in Data_state using what is provided in Data_state *)
 val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)

@@ -54,7 +54,7 @@ let solve_lexicographic settings preprocess solve_step postprocess c f =
     | _ -> match solve_step settings data f with
       | None -> raise No_solution
       | Some(solution, cost) -> (postprocess data f cost, solution, [cost]) in
-   try (let (_, solution, costs) = iterative_solve initial_data f in Some(solution, costs)) with | No_solution -> None
+    try (let (_, solution, costs) = iterative_solve initial_data f in Some(solution, costs)) with | No_solution -> None
 
 
 (* 2. generic minizinc handling *)
@@ -75,8 +75,10 @@ module MiniZinc_generic = struct
       Zephyrus_log.log_solver_execution ("Preparing file names for minizinc and solution storage...\n");
       input  := Engine_helper.file_process_name settings.input_file;
       output := Engine_helper.file_process_name settings.output_file;
-      Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...\n");
-      let v_map = get_named_variables c f in
+      Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...");
+      let vs = List.fold_left (fun res (_, k) -> Variable_set.union (variables_of_konstraint k) res) (variables_of_optimization_function f) c in
+      Zephyrus_log.log_solver_execution ("  we have " ^ (string_of_int (Variable_set.cardinal vs)) ^ " variables\n");
+      let v_map = get_named_variables vs in
 (*      Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
       Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
       let res = core_translation v_map settings.bounds c in
