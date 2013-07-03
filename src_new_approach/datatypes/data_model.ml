@@ -28,9 +28,9 @@ open Data_common
 (** For efficiency and to avoid name clash, all names are paired with identifiers *)
 
 
-(************************************)
-(** 1. Resources                    *)
-(************************************)
+(*/************************************************************************\*)
+(*| 1. Resources                                                           |*)
+(*\************************************************************************/*)
 
   (** A name of a resource provided by a location or consumed by a component type or a package. *)
 type resource_name = string
@@ -57,7 +57,7 @@ type resource_provide_arity = int
   (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
 type resource_consume_arity = int
 
-  (** Resource set *)
+  (** Resource set *) (* TODO: remove *)
 class type resources = object
   method resource_names : Resource_name_set.t
   method resource_ids   : Resource_id_set.t
@@ -66,9 +66,9 @@ class type resources = object
 end
 
 
-(************************************)
-(** 2. Universe                     *)
-(************************************)
+(*/************************************************************************\*)
+(*| 2. Universe                                                           |*)
+(*\************************************************************************/*)
   (** 2.1. Component types *)
 
   (** The name of a component type in the universe. *)
@@ -119,6 +119,7 @@ type require_arity = int
 
 class type component_type = object
   method name           : component_type_name                     (** The name of this component type. *)
+  method id             : component_type_id
   method provide        : port_id -> provide_arity                (** Which ports does this component provide and with what arities. *)
   method provide_domain : Port_id_set.t
   method require        : port_id -> require_arity                (** Which ports does this component require and with what arities. *)
@@ -129,7 +130,7 @@ end
 
 module Component_type = struct
   type t = component_type
-  let compare t1 t2 = String.compare t1#name t2#name 
+  let compare t1 t2 = Component_type_id.compare t1#id t2#id 
 end module Component_type_set = Set.Make(Component_type) module Component_type_map = Map.Make(Component_type)
 
 
@@ -154,6 +155,7 @@ module Package_id_map_extract_key   = Keys_of_MapInt
   (** Package. *)
 class type package = object
   method name     : package_name                              (** The name of this package. *)
+  method id       : package_id
   method depend   : Package_id_set_set.t                      (** Which packages does this package depend on (a disjunction of conjunctions). *)
   method conflict : Package_id_set.t                          (** Which packages is this package is in conflict with. *)
   method consume  : resource_id -> resource_consume_arity     (** Which resources does this package consume and in what amounts. *)
@@ -161,7 +163,7 @@ end
 
 module Package = struct
   type t = package
-  let compare k1 k2 = String.compare k1#name k2#name 
+  let compare k1 k2 = Package_id.compare k1#id k2#id 
 end module Package_set = Set.Make(Package) module Package_set_set = Set.Make(Package_set)
 
 
@@ -183,7 +185,8 @@ module Repository_id_map_extract_key = Keys_of_MapInt
 
   (** Repository. *)
 class type repository = object
-  method name     : repository_name         (** The name of this repository. *)
+  method name        : repository_name         (** The name of this repository. *)
+  method id          : repository_id
   method get_package : package_id -> package   (** Which packages does this repository contain. *)
 
   method packages    : Package_set.t
@@ -192,11 +195,11 @@ end
 
 module Repository = struct
   type t = repository
-  let compare r1 r2 = String.compare r1#name r2#name 
+  let compare r1 r2 = Repository_id.compare r1#id r2#id 
 end module Repository_set = Set.Make(Repository)
 
 
-  (** 3.3. Universes *)
+  (** 2.4. Universes *)
 class type universe = object
   (* basic methods *)
   method get_component_type : component_type_id -> component_type      (** Component types available in this universe. *)
@@ -248,11 +251,11 @@ end
 
 
 
-(************************************)
-(** 4. Configuration                *)
-(************************************)
+(*/************************************************************************\*)
+(*| 3. Configuration                                                       |*)
+(*\************************************************************************/*)
 
-  (** 4.1. Locations *)
+  (** 3.1. Locations *)
   (** A name of a location in the configuration. *)
 type location_name = string
 module Location_name = String
@@ -269,6 +272,7 @@ module Location_id_map_extract_key = Keys_of_MapInt
   (** Location. *)
 class type location = object
   method name               : location_name                            (** The name of this location. *)
+  method id                 : location_id
   method repository         : repository_id                            (** The name of the package repository used by this location. *)
   method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
   method provide_resources  : resource_id -> resource_provide_arity    (** Which resources does this location provide and in what amounts. *)
@@ -276,8 +280,8 @@ end
 
 module Location = struct
   type t = location
-  let compare l1 l2 = Location_name.compare l1#name l2#name 
-end module Location_set = Set.Make(Location)
+  let compare l1 l2 = Location_id.compare l1#id l2#id 
+end module Location_set = Set.Make(Location) module Location_map = Map.Make(Location)
 module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
 
 (** Assertions:
@@ -288,7 +292,7 @@ module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
     } *)
 
 
-  (** 4.2. Component. *)
+  (** 3.2. Component. *)
   (** A name of a component in the configuration. *)
 type component_name = string
 module Component_name = String
@@ -304,14 +308,17 @@ module Component_id_map_extract_key = Keys_of_MapInt
   (** Components *)
 class type component = object
   method name     : component_name
+  method id       : component_id
   method typ      : component_type_id
   method location : location_id
 end
 
 module Component = struct
   type t = component
-  let compare c1 c2 = String.compare c1#name c2#name 
-end module Component_set = Set.Make(Component)
+  let compare c1 c2 = Component_id.compare c1#id c2#id 
+end 
+module Component_set = Set.Make(Component)
+module Component_map = Map.Make(Component)
 
 (** Assertions:
     {ul
@@ -321,7 +328,7 @@ end module Component_set = Set.Make(Component)
 
 
 
-  (** 4.3. Binding. *)
+  (** 3.3. Binding. *)
 class type binding = object
   method port     : port_id
   method requirer : component_id
@@ -345,7 +352,7 @@ end module Binding_set = Set.Make(Binding)
     } *)
 
 
-  (** 4.4. Configuration. *)
+  (** 3.4. Configuration. *)
 class type configuration = object
   (* basic methods *)
   method get_location  : location_id -> location
@@ -379,9 +386,9 @@ end
 
 
 
-(************************************)
-(** 5. Specification.               *)
-(************************************)
+(*/************************************************************************\*)
+(*| 4. Specification.                                                      |*)
+(*\************************************************************************/*)
 
 type spec_variable_name = string
 type spec_const = int
@@ -441,9 +448,9 @@ type specification =
   | Spec_not of specification
 
 
-(************************************)
-(** 6. Optimization function        *)
-(************************************)
+(*/************************************************************************\*)
+(*| 5. Optimization function                                               |*)
+(*\************************************************************************/*)
 
 type optimization_function = 
   | Optimization_function_simple
@@ -451,5 +458,13 @@ type optimization_function =
   | Optimization_function_conservative
   | Optimization_function_spread
   | Optimization_function_none
+
+
+(*/************************************************************************\*)
+(*| 6. Putting all together                                                |*)
+(*\************************************************************************/*)
+
+type model      = universe * configuration * specification
+type model_full = universe * configuration * specification * optimization_function
 
 

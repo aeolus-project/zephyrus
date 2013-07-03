@@ -18,4 +18,5 @@
 (****************************************************************************)
 
 
-val fit_categories : (Data_constraint.konstraint -> 'a option) -> Data_model.model -> Data_model.Location_categories.t -> Data_model.Location_categories.t option
+val fit_categories : (Data_constraint.konstraint -> Data_constraint.optimization_function -> 'a option) ->
+                       Data_model.model -> Data_model.Location_categories.t -> Data_model.Location_categories.t option

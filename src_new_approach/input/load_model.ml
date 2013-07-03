@@ -27,7 +27,10 @@
     - input/Input_helper (for input file manipulation)
 *)
 
+
+(* TODO: replace all access to catalog to print an id in an access to String_of *)
 open Data_model
+open Data_model_catalog
 
 (* 0. Name Conversion *)
 
@@ -43,47 +46,10 @@ let convert_repository_name        x = x
 let convert_location_name          x = x
 let convert_component_name         x = x
 
-module Fresh_id = Data_common.Fresh_integer_with_deprecated
-
-(* this module is used to get from a package name the right package, by giving in addition in which repository to look in for *)
-module Repository_id_package_name = struct
-  type t = repository_id * package_name
-  let compare v1 v2 =
-    let r1 = Repository_id.compare (fst v1) (fst v2) in if r1 = 0 then
-      Package_name.compare (snd v1) (snd v2)
-    else r1
-end 
-
-module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
-module Repository_id_package_name_map = Data_common.Map.Make(Repository_id_package_name)
-
 
 (*/*************************************************\*)
 (*| 1. Resource Names and Ids Extractions           |*)
 (*\*************************************************/*)
-
-(* Catalog modules for types of all our objects. *)
-(* Five-functor structure makes it quite long but we are sure it types well. *)
-module Component_type_catalog = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_name_set       )(Component_type_id_map)(Component_type_name_map       )
-module Port_catalog           = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_name_set                 )(Port_id_map          )(Port_name_map                 )
-module Repository_catalog     = Data_common.Catalog(Fresh_id)(Repository_id_set    )(Repository_name_set           )(Repository_id_map    )(Repository_name_map           )
-module Package_catalog        = Data_common.Catalog(Fresh_id)(Package_id_set       )(Repository_id_package_name_set)(Package_id_map       )(Repository_id_package_name_map)
-module Resource_catalog       = Data_common.Catalog(Fresh_id)(Resource_id_set      )(Resource_name_set             )(Resource_id_map      )(Resource_name_map             )
-module Location_catalog       = Data_common.Catalog(Fresh_id)(Location_id_set      )(Location_name_set             )(Location_id_map      )(Location_name_map             )
-module Component_catalog      = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_name_set            )(Component_id_map     )(Component_name_map            )
-
-(* A meta-catalog containing catalogs of all objects from our model. *)
-class type model_catalog = object
-  method component_type : Component_type_catalog .catalog_iface  (* component types *)
-  method port           : Port_catalog           .catalog_iface  (* ports *)
-  method repository     : Repository_catalog     .catalog_iface  (* repositories *)
-  method package        : Package_catalog        .catalog_iface  (* packages *)
-  method resource       : Resource_catalog       .catalog_iface  (* resources *)
-  method location       : Location_catalog       .catalog_iface  (* locations *)
-  method component      : Component_catalog      .catalog_iface  (* components *)
-
-  method to_string : string
-end
 
 (* A meta-catalog created from the Json_t model: universe, repositories, initial configuration and specification. *)
 class model_catalog_of_json_t (universe : Json_t.universe option) (additional_repositories : Json_t.repository list) (initial_configuration : Json_t.configuration option) (specification : Json_t.specification option) : model_catalog = 
@@ -254,18 +220,6 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
       ]
   end
 
-class type closed_model_catalog = object
-  method component_type : Component_type_catalog .closed_catalog_iface
-  method port           : Port_catalog           .closed_catalog_iface
-  method repository     : Repository_catalog     .closed_catalog_iface
-  method package        : Package_catalog        .closed_catalog_iface
-  method resource       : Resource_catalog       .closed_catalog_iface
-  method location       : Location_catalog       .closed_catalog_iface
-  method component      : Component_catalog      .closed_catalog_iface
-
-  method to_string : string
-end
-
 class model_catalog_of_json_t_with_exceptions (naming : model_catalog) : closed_model_catalog = 
   object (self)
     method component_type = new Component_type_catalog .closed_catalog_with_exceptions naming#component_type "component_type" String_of.component_type_id String_of.component_type_name
@@ -358,6 +312,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_component_type t =
     
     let name = convert_component_type_name t.Json_t.component_type_name in
+    let id = catalog#component_type#id_of_name name in
 
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
@@ -390,6 +345,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
     new_component_type (object(self)
       method name           = name
+      method id             = id
       method provide      p = try Port_id_map.find p provide with
         | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
           Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
@@ -406,6 +362,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_package r_id r_name k =
 
     let name = convert_package_name r_name k.Json_t.package_name in
+    let id = catalog#package#id_of_name (r_id, name) in
 
     (* create the dependency sets, creating as a side effect shallow structure for non-yet-seen packages *)
     let depend : Package_id_set_set.t = 
@@ -428,6 +385,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
     new_package r_id (object
       method name      = name
+      method id        = id
       method depend    = depend
       method conflict  = conflict
       method consume r = try Resource_id_map.find r_id consume with Not_found -> 0
@@ -437,7 +395,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let convert_repository r = 
 
     let name = convert_repository_name r.Json_t.repository_name in
-
     let id = catalog#repository#id_of_name name in
     
     let packages : package Package_id_map.t = 
@@ -452,6 +409,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     
     new_repository (object(self) 
       method name          = name
+      method id            = id
       method get_package k = 
         try Package_id_map.find k packages 
         with Not_found -> 
@@ -613,6 +571,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* location *)
   let convert_location l =
     let name = convert_location_name l.Json_t.location_name in
+    let id = catalog#location#id_of_name name in
     let r_name = convert_repository_name l.Json_t.location_repository in 
     let repository = catalog#repository#id_of_name r_name in
     let packages_installed = Package_id_set.set_of_list (fun k -> catalog#package#id_of_name (repository, (convert_package_name r_name k))) l.Json_t.location_packages_installed in
@@ -621,6 +580,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
 
     new_location (object
       method name                = name
+      method id                  = id
       method repository          = repository
       method packages_installed  = packages_installed
       method provide_resources r = try Resource_id_map.find r resources with Not_found -> 0 
@@ -629,11 +589,13 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* components *)
   let convert_component c =
     let name = convert_component_name c.Json_t.component_name in
+    let id = catalog#component#id_of_name name in
     let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
     new_component (object
       method name     = name
+      method id       = id
       method typ      = typ
       method location = location 
     end) in

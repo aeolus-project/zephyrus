@@ -37,11 +37,12 @@ module type SOLVER = sig
   val solve : solver_settings ->
       (string * Data_constraint.konstraint) list ->
       Data_constraint.optimization_function ->
-      (Data_constraint.solution * (int list)) (* It returns the solution and its cost. *)
+      (Data_constraint.solution * (int list)) option (* It returns the solution and its cost. *)
 end
 
 
 (* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
+exception No_solution (* to break the normal controlflow of solution computation in case there are none. Too painful to deal with options *)
 
 let solve_lexicographic settings preprocess solve_step postprocess c f = 
   let initial_data = preprocess settings c f in
@@ -50,8 +51,10 @@ let solve_lexicographic settings preprocess solve_step postprocess c f =
       let (data , solution , costs ) = iterative_solve data f1 in
       let (data', solution', costs') = iterative_solve data (Data_constraint.Lexicographic(l1)) in 
       (data', solution', costs @ costs')
-    | _ -> let (solution, cost) = solve_step settings data f in (postprocess data f cost, solution, [cost]) in
-  let (_, solution, costs) = iterative_solve initial_data f in (solution, costs)
+    | _ -> match solve_step settings data f with
+      | None -> raise No_solution
+      | Some(solution, cost) -> (postprocess data f cost, solution, [cost]) in
+   try (let (_, solution, costs) = iterative_solve initial_data f in Some(solution, costs)) with | No_solution -> None
 
 
 (* 2. generic minizinc handling *)
@@ -94,20 +97,20 @@ module MiniZinc_generic = struct
       Zephyrus_log.log_panic "Error during the solving of the constraint. Aborting execution\n"
     else (
       Zephyrus_log.log_solver_execution "Getting the solution found by the flatzinc solver...\n";
-      let solution_tmp = Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) in
+      match Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) with
+      | None -> None
+      | Some solution_tmp -> (
 (*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map int_of_string solution_tmp));*)
-      let cost = Name_map.find cost_variable_name solution_tmp in
-      let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
-          data.mzn_variables#variables Variable_map.empty
-      in
-      let solution =
+        let cost = Name_map.find cost_variable_name solution_tmp in
+        let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
+            data.mzn_variables#variables Variable_map.empty in
+        let solution =
         let domain = data.mzn_variables#variables 
         and variable_values = (fun v -> try Data_constraint.Variable_map.find v minizinc_solution with Not_found -> -1)
         in {
           Data_constraint.domain          = domain;
           Data_constraint.variable_values = variable_values;
-        } in
-      (solution, cost)
+        } in Some(solution, cost))
     )
 
   let postprocess data f cost = match f with

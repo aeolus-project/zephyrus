@@ -245,14 +245,9 @@ let minimize_upper_bound fu =
 
 let nb_max_location fu = Value.sums (Graph.Vertice_set.fold (fun v res -> let data = data_v v in if V_data.is_port data then res else (V_data.bound_max data)::res) (vertices fu) [])
 
-let extract_n_locations n s =
-  let diff = Value.int_of_unsafe (Value.sub n (Value.of_int (Data_model.Location_id_set.cardinal s))) in
-  let rec f n s = if n = 0 then s else f (n - 1) (Data_model.Location_id_set.remove (Data_model.Location_id_set.choose s) s) in
-  f diff s
-
 let domain_of_categories categories fu =
-  let nb = nb_max_location fu in
-  Data_model.Location_id_set_set.fold (fun s res -> Data_model.Location_id_set.union (extract_n_locations nb s) res) categories Data_model.Location_id_set.empty
+  let nb = nb_max_location fu in Data_model.Location_id_set_set.fold (fun s res -> Data_model.Location_id_set.union
+     (Data_model.Location_id_set.keep_elements (Value.int_of nb (Data_model.Location_id_set.cardinal s)) s) res) categories Data_model.Location_id_set.empty
 
 let variable_bounds get_component_type get_location categories fu v = let s = domain_of_categories categories fu in
   let bound_of_element e = match e with 

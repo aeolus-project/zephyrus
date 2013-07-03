@@ -34,7 +34,7 @@ module type SOLVER = sig
   val solve : solver_settings ->
       (string * Data_constraint.konstraint) list ->
       Data_constraint.optimization_function ->
-      (Data_constraint.solution * (int list)) (* It returns the solution and its cost. *)
+      (Data_constraint.solution * (int list)) option (* It returns the solution and its cost. *)
 end
 
 module G12    : SOLVER
