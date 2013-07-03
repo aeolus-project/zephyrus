@@ -220,10 +220,13 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
         Output_helper.filter_map (fun component_id ->
           let component      = get_component component_id in
           let component_type = universe#get_component_type component#typ in
-          let require_arity  = component_type#require port_id in
-          if require_arity > 0
-          then Some (component_id, require_arity)
-          else None
+          if Port_id_set.mem port_id component_type#require_domain
+          then begin
+            let require_arity  = component_type#require port_id in
+            if require_arity > 0
+            then Some (component_id, require_arity)
+            else None
+          end else None
         ) (Component_id_set.elements component_ids)
   
       (* 2. Mapping from component name to their provide arity on port p. *)
@@ -231,12 +234,15 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
         Output_helper.filter_map (fun component_id ->
           let component      = get_component component_id in
           let component_type = universe#get_component_type component#typ in
-          let provide_arity  = component_type#provide port_id in
-          match provide_arity with
-          | Infinite_provide -> Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.InfiniteInteger)
-          | Finite_provide i -> if i > 0
-                                then Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.FiniteInteger i)
-                                else None          
+          if Port_id_set.mem port_id component_type#provide_domain
+          then begin
+            let provide_arity  = component_type#provide port_id in
+            match provide_arity with
+            | Infinite_provide -> Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.InfiniteInteger)
+            | Finite_provide i -> if i > 0
+                                  then Some (component_id, My_matching_algorithm.DecrementableIntegerWithInfinity.FiniteInteger i)
+                                  else None          
+          end else None
         ) (Component_id_set.elements component_ids)
   
       in
