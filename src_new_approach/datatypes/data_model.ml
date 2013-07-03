@@ -46,6 +46,12 @@ module Resource_id_set_set = SetSetInt
 module Resource_id_map     = MapInt
 module Resource_id_map_extract_key = Keys_of_MapInt
 
+type resource = resource_id
+module Resource = Resource_id
+module Resource_set     = Resource_id_set
+module Resource_set_set = Resource_id_set_set
+module Resource_map     = Resource_id_map
+
   (** A quantity describing how much units of a resource is provided by a location. *)
 type resource_provide_arity = int
   (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
@@ -270,8 +276,9 @@ end
 
 module Location = struct
   type t = location
-  let compare l1 l2 = String.compare l1#name l2#name 
+  let compare l1 l2 = Location_name.compare l1#name l2#name 
 end module Location_set = Set.Make(Location)
+module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
 
 (** Assertions:
     {ul

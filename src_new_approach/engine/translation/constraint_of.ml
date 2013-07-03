@@ -168,6 +168,40 @@ let deprecated_component_types_and_packages c_l =
     ((eNlt l Data_model.deprecated_component_type_id) =~ (constant 0))::((eNlk l Data_model.deprecated_package_id) =~ (constant 0))::res
   ) c_l []
 
+let universe resources locations universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
+((* DEBUG **************************) print_string ("Compute requires\n"); flush stdout;
+    (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ) ;
+((* DEBUG **************************) print_string ("Compute provides\n"); flush stdout;
+    (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ) ;
+((* DEBUG **************************) print_string ("Compute conflicts\n"); flush stdout;
+    (Data_state.constraint_universe_component_type_conflict , conflict universe#u_dp universe#uc universe#get_component_type) ) ;
+((* DEBUG **************************) print_string ("Compute implem\n"); flush stdout;
+    (Data_state.constraint_universe_component_type_implementation , component_type_implementation locations universe#u_dt universe#u_i) ) ;
+((* DEBUG **************************) print_string ("Compute unicitiy\n"); flush stdout;
+    (Data_state.constraint_universe_binding_unicity         , binding universe#u_dp universe#ur universe#up) ) ;
+((* DEBUG **************************) print_string ("Compute distribution component types\n"); flush stdout;
+    (Data_state.constraint_universe_location_component_type , location_component_type universe#u_dt locations) ) ;
+((* DEBUG **************************) print_string ("Compute distribution package\n"); flush stdout;
+    (Data_state.constraint_universe_location_package        , location_package universe#u_dk locations) ) ;
+((* DEBUG **************************) print_string ("Compute distribution ports\n"); flush stdout;
+    (Data_state.constraint_universe_location_port           , location_port universe#u_dp locations) ) ;
+((* DEBUG **************************) print_string ("Compute implementation port\n"); flush stdout;
+    (Data_state.constraint_universe_definition_port         , location_port_equation universe#u_dp locations universe#up universe#get_component_type) ) ;
+((* DEBUG **************************) print_string ("Compute repository unicity\n"); flush stdout;
+    (Data_state.constraint_universe_repository_unicity      , repository_unique locations universe#u_dr) ) ;
+((* DEBUG **************************) print_string ("Compute package local to repository\n"); flush stdout;
+    (Data_state.constraint_universe_repository_package      ,  repository_package locations universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ) ;
+((* DEBUG **************************) print_string ("Compute package dependencies\n"); flush stdout;
+    (Data_state.constraint_universe_package_dependency      , package_dependency locations universe#u_dk universe#get_package) ) ;
+((* DEBUG **************************) print_string ("Compute package conflicts\n"); flush stdout;
+    (Data_state.constraint_universe_package_conflict        , package_conflict locations universe#u_dk universe#get_package) ) ;
+((* DEBUG **************************) print_string ("Compute resource consumption\n"); flush stdout;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption locations resources universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ) ;
+((* DEBUG **************************) print_string ("Compute elements to delete\n"); flush stdout;
+    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages locations) ) ]
+
+ 
+
 let universe_full () =
   let f (universe: Data_model.universe) configuration resources=
 (* DEBUG **************************) print_string ("Compute requires\n"); flush stdout;
@@ -257,23 +291,31 @@ let rec spec_expr location_ids e = match e with
   | Data_model.Spec_expr_sub (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
   | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_expr location_ids e2)
 
-let rec specification location_ids s = match s with
+let rec specification_simple location_ids s = match s with
   | Data_model.Spec_true -> True
   | Data_model.Spec_op (e1, op, e2) -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
-  | Data_model.Spec_and (s1, s2) -> (specification location_ids s1) &&~~ (specification location_ids s2)
-  | Data_model.Spec_or  (s1, s2) -> (specification location_ids s1) ||~~ (specification location_ids s2)
-  | Data_model.Spec_impl (s1, s2) -> (specification location_ids s1) =>~~ (specification location_ids s2)
-  | Data_model.Spec_not (s') -> !~ (specification location_ids s')
+  | Data_model.Spec_and (s1, s2) -> (specification_simple location_ids s1) &&~~ (specification_simple location_ids s2)
+  | Data_model.Spec_or  (s1, s2) -> (specification_simple location_ids s1) ||~~ (specification_simple location_ids s2)
+  | Data_model.Spec_impl (s1, s2) -> (specification_simple location_ids s1) =>~~ (specification_simple location_ids s2)
+  | Data_model.Spec_not (s') -> !~ (specification_simple location_ids s')
 
+let specification locations s = [(Data_state.constraint_specification_full, specification_simple locations s) ]
 
 let specification_full () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with
-  | (Some(s), Some(c)) -> Data_state.constraint_specification_full := Some(specification c#get_location_ids s)
+  | (Some(s), Some(c)) -> Data_state.constraint_specification_full := Some(specification_simple c#get_location_ids s)
   | _  -> ()
 
 
 (*******************************************)
 (** 4. Configuration Translation           *) (* using naming conventions from the paper *)
 (*******************************************)
+
+let locations resources locations = [ Data_state.constraint_configuration_full , 
+  Data_model.Location_set.fold  (fun l res ->
+    Data_model.Resource_id_set.fold (fun o res ->
+      ((eO (l#name) o) =~ (constant (l#provide_resources o)))::res
+    ) resources res
+  ) locations [] ]
 
 let configuration resources c_l get_location = 
   Data_model.Location_id_set.fold (fun l res ->
