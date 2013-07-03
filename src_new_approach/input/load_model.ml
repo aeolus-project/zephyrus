@@ -343,11 +343,13 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     new_component_type (object(self)
       method name           = name
       method id             = catalog#component_type#id_of_name name
-      method provide      p = try Port_id_map.find p provide 
-                              with Not_found -> Finite_provide 0
+      method provide      p = try Port_id_map.find p provide with
+                              | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
+                                Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
       method provide_domain = port_local_provide
-      method require      p = try Port_id_map.find p require 
-                              with Not_found -> 0
+      method require      p = try Port_id_map.find p require with
+                              | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
+                                Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ (self#name) ^ "\"")
       method require_domain = port_local_require
       method conflict       = conflict
       method consume      r = try Resource_id_map.find r consume with Not_found -> 0
