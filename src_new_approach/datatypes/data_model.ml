@@ -92,6 +92,13 @@ module Port_id_set_set = SetSetInt
 module Port_id_map     = MapInt
 module Port_id_map_extract_key = Keys_of_MapInt
 
+type port = port_id
+module Port         = Port_id
+module Port_set     = Port_id_set
+module Port_set_set = Port_id_set_set
+module Port_map     = Port_id_map
+module Port_map_extract_key = Port_id_map_extract_key
+
   (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
 type provide_arity = 
@@ -117,7 +124,7 @@ end
 module Component_type = struct
   type t = component_type
   let compare t1 t2 = String.compare t1#name t2#name 
-end module Component_type_set = Set.Make(Component_type)
+end module Component_type_set = Set.Make(Component_type) module Component_type_map = Map.Make(Component_type)
 
 
   (** 2.2. Packages *)

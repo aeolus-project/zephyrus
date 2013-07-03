@@ -35,6 +35,7 @@ open Load_model
 open Constraint_of
 open Solvers
 open Json_of
+open Bound_approximation
 
 let check_option desc o = match o with
   | Some(a) -> a

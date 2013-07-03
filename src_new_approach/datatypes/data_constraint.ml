@@ -24,7 +24,9 @@
 
 open Data_model
 
-(* 1. Variables *)
+(*/************************************************************************\*)
+(*| 1. Variables                                                           |*)
+(*\************************************************************************/*)
 
 type element = 
   | Component_type of component_type_id
@@ -44,18 +46,24 @@ module Variable = struct type t = variable let compare = Pervasives.compare end
 module Variable_set = Data_common.Set.Make(Variable)
 module Variable_map = Data_common.Map.Make(Variable)
 
-(* 2. Values *)
+
+(*/************************************************************************\*)
+(*| 2. Values                                                              |*)
+(*\************************************************************************/*)
 
 type value = Finite_value of int | Infinite_value
 
 module Value = struct
   type t = value
   
-  let of_int n = Finite_value n
+  let zero     = Finite_value 0
+  let one      = Finite_value 1
   let infty    = Infinite_value
-  
-  let value_of_provide_arity p = match p with | Finite_provide(n) -> of_int n | Infinite_provide -> infty
-  let value_of_require_arity r = of_int r
+
+  let of_int n = Finite_value n
+  let of_provide_arity p = match p with | Finite_provide(n) -> of_int n | Infinite_provide -> infty
+  let of_require_arity = of_int
+  let of_resource_provide_arity = of_int
 
   let min v1 v2 = match (v1,v2) with
     | (Finite_value n1, Finite_value n2) -> of_int (min n1 n2)
@@ -70,24 +78,49 @@ module Value = struct
   let sum v1 v2 = match (v1,v2) with
     | (Finite_value n1, Finite_value n2) -> of_int (n1 + n2)
     | _ -> Infinite_value
+  let sums l = Data_common.List.fold_combine (fun x -> x) sum l zero
 
   let prod v1 v2 = match (v1,v2) with
     | (Finite_value n1, Finite_value n2) -> of_int (n1 * n2)
     | _ -> Infinite_value
+  let prods l = Data_common.List.fold_combine (fun x -> x) prod l one
   
+  let sub v1 v2 = match (v1, v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (Pervasives.max 0 (n1 - n2)) (* we want to stay positive :p *)
+    | (Finite_value _ , _              ) -> zero
+    | (_              , Finite_value _ ) -> infty
+    | _  -> zero
+
   let div v1 v2 = match (v1, v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (n1 / n2)
-    | (Finite_value _ , _              ) -> of_int 0
+    | (Finite_value n1, Finite_value n2) -> of_int ((n1 / n2) + (if (n1 mod n2) > 0 then 1 else 0)) (* rounded up, to match bound computation *)
+    | (Finite_value _ , _              ) -> zero
     | (_              , Finite_value _ ) -> infty
     | _  -> of_int 1
   
+  let is_finite v = (v != Infinite_value)
+  let is_infty  v = (v  = Infinite_value)
+  
+  let is_sup v1 v2 = match (v1, v2) with
+    | (Finite_value n1, Finite_value n2) -> v1 > v2
+    | (Finite_value _ , _              ) -> false
+    | (_              , Finite_value _ ) -> true
+    | _  -> false
+    
+  let is_inf_eq v1 v2 = match (v1, v2) with
+    | (Finite_value n1, Finite_value n2) -> v1 <= v2
+    | (Finite_value _ , _              ) -> true
+    | (_              , Finite_value _ ) -> false
+    | _  -> true
+  
+  let int_of v default = match v with | Finite_value v -> v | Infinite_value -> default
+  let int_of_unsafe v  = match v with | Finite_value v -> v | Infinite_value -> raise (Failure "cannot give a normal value for an infinite one")
+  
 end
 
-(* 3. Constraints *)
 
-(* Remark: all associative and commutative operators have lists in arguement, for more efficient encoding *)
-
-
+(*/************************************************************************\*)
+(*| 3. Constraints                                                         |*)
+(*\************************************************************************/*)
 
 type arith_cmp_op = 
   | Lt  (** Less-than                 operator *)
@@ -136,36 +169,9 @@ and konstraint =
   | BinaryKonstraint      of binary_konstraint_op * konstraint * konstraint
   | NaryKonstraint        of nary_konstraint_op   * konstraint list
 
-(* 3. Optimization Function *)
-
-type optimization_function = 
-  | Minimize of expression
-  | Maximize of expression
-  | Lexicographic of optimization_function list
-
-(* 4. Bounds *)
-
-type bound = { min : value; max : value }    (** Each variable has a given search space in between [min] and [max]  *)
-type variable_bounds = variable -> bound  (** Function that gives for each variable its bound. Can be implemented with a map. *)
-
-
-(* 5. Solutions *)
-
-type solution = {
-  domain          : Variable_set.t;
-  variable_values : variable -> int; (** solution of a constraint, can be implemented with a [Variable_map.t] *)
-}
-
-
-
-let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
-let value_of_require_arity a = Finite_value(a)
-let value i = Finite_value(i)
-let infinite_value = Infinite_value
-
-let constant i = Constant(Finite_value(i))
-let constant_of_provide_arity a = Constant(value_of_provide_arity a)
-let constant_of_require_arity a = Constant(value_of_require_arity a)
+let constant i = Constant(Value.of_int i)
+let constant_of_provide_arity a = Constant(Value.of_provide_arity a)
+let constant_of_require_arity a = Constant(Value.of_require_arity a)
 
 let var2expr   v = Variable v
 let const2expr c = Constant c
@@ -197,3 +203,59 @@ let (  &&~~ ) x y  = NaryKonstraint   ( And, ([x; y]) )
 let (  ||~~ ) x y  = NaryKonstraint   ( Or,  ([x; y]) )
 let (  =>~~ ) x y  = BinaryKonstraint ( Implies, x, y )
 let (  !~   ) x    = UnaryKonstraint  ( Not, x        )
+
+
+
+(*/************************************************************************\*)
+(*| 4. Optimization Functions                                              |*)
+(*\************************************************************************/*)
+
+type optimization_function = 
+  | Minimize of expression
+  | Maximize of expression
+  | Lexicographic of optimization_function list
+
+(*/************************************************************************\*)
+(*| 5. Bounds for Variables                                                |*)
+(*\************************************************************************/*)
+
+module Bound = struct
+  type t = { min : value; max : value }   (** Each variable has a given search space in between [min] and [max]  *)
+
+  let create v1 v2 = { min = v1; max = v2 }
+  let singleton v = { min = v; max = v }
+  let combine b1 b2 = { min = Value.max b1.min b2.min; max = Value.min b1.max b2.max }
+  let add_min b v = { min = Value.max b.min v; max = b.max }
+  let add_max b v = { min = b.min; max = Value.min b.max v }
+
+  let min b = b.min
+  let max b = b.max
+
+  let is_empty b = Value.is_sup b.min b.max
+ 
+  let null  = create Value.zero Value.zero 
+  let small = create Value.zero Value.one
+  let big   = create Value.zero Value.infty
+end
+
+type variable_bounds = variable -> Bound.t  (** Function that gives for each variable its bound. Can be implemented with a map. *)
+
+
+(*/************************************************************************\*)
+(*| 6. Solution of Constraints                                             |*)
+(*\************************************************************************/*)
+
+type solution = {
+  domain          : Variable_set.t;
+  variable_values : variable -> int; (** solution of a constraint, can be implemented with a [Variable_map.t] *)
+}
+
+
+(*
+let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
+let value_of_require_arity a = Finite_value(a)
+let value i = Finite_value(i)
+let infinite_value = Infinite_value
+*)
+
+

@@ -364,14 +364,13 @@ let optimization_function () = match !Data_state.optimization_function with
 (*******************************************)
 
 let basic_bounds_function v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
-  let big   = { min = value 0; max = infinite_value } in
-  let small = { min = value 0; max = value 1 } in match v with
-  | Simple_variable         _ -> big
-  | Global_variable         _ -> big
-  | Local_variable     (_, e) -> (match e with | Package(_) -> small | _ -> big)
-  | Binding_variable        _ -> big
-  | Local_repository_variable _ -> small
-  | Local_resource_variable   _ -> big
+   match v with
+  | Simple_variable         _ -> Bound.big
+  | Global_variable         _ -> Bound.big
+  | Local_variable     (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
+  | Binding_variable        _ -> Bound.big
+  | Local_repository_variable _ -> Bound.small
+  | Local_resource_variable   _ -> Bound.big
 
 let basic_bounds () = Data_state.constraint_variable_bounds := Some(basic_bounds_function)
 
