@@ -58,6 +58,7 @@ let name_of_variable_unsafe v = match v with
   | Binding_variable(p,t1,t2)      -> "binding_" ^ (name_of_p p) ^ "_" ^ (name_of_t t1) ^ "_" ^ (name_of_t t2)
   | Local_repository_variable(l,r) -> "local_repository_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.repository_id r))
   | Local_resource_variable(l,r)   -> "local_resource_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.resource_id r))
+  | Location_used_variable(l)      -> "location_used_" ^ (name_of_l l)
 
   (* safe name creation *)
 let name_var_id = ref 0

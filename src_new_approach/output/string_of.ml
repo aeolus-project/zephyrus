@@ -163,6 +163,7 @@ let variable v = match v with
   | Data_constraint.Binding_variable(p,t1,t2)      -> "B(" ^ (port_id p) ^ ", " ^ (component_type_id t1) ^ ", " ^ (component_type_id t2) ^ ")"
   | Data_constraint.Local_repository_variable(l,r) -> "R(" ^ (location_id l) ^ ", " ^ (repository_id r) ^ ")"
   | Data_constraint.Local_resource_variable(l,r)   -> "O(" ^ (location_id l) ^ ", " ^ (resource_id r) ^ ")"
+  | Data_constraint.Location_used_variable(l)      -> "U(" ^ (location_id l) ^ ")"
 
 
 let unary_arith_op = function

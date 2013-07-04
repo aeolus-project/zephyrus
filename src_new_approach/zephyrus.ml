@@ -113,6 +113,7 @@ let () =
   print_string ("  pack_pb  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_package_conflict))) ^ "\n");
   print_string ("  resource = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption))) ^ "\n");
   print_string ("  delete   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
+  print_string ("  used_loc = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_used_locations))) ^ "\n");
   print_string ("  spec     = " ^ (String_of.konstraint (check_option "specification constraint" !Data_state.constraint_specification_full)) ^ "\n");
   print_string ("  config   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_configuration_full))) ^ "\n");
   print_string ("  category = " ^ (String_of.konstraint c) ^ "\n"); 
@@ -146,6 +147,7 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
     ("  pack_pb  " , (Data_constraint.conj(!Data_state.constraint_universe_package_conflict)));
     ("  resource " , (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption)));
     ("  delete   " , (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element)));
+    ("  used_loc " , (Data_constraint.conj(!Data_state.constraint_universe_used_locations)));
     ("  specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
     ("  configuration " , ((Data_constraint.conj(!Data_state.constraint_configuration_full))));
     ("  category " , c) ] in

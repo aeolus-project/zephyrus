@@ -84,6 +84,7 @@ let constraint_universe_package_dependency            : (konstraint list) ref = 
 let constraint_universe_package_conflict              : (konstraint list) ref = ref []
 let constraint_universe_resource_consumption          : (konstraint list) ref = ref []
 let constraint_universe_deprecated_element            : (konstraint list) ref = ref []
+let constraint_universe_used_locations                : (konstraint list) ref = ref []
 
 let constraint_specification_full : konstraint option ref = ref None
 let constraint_configuration_full : (konstraint list) ref = ref []

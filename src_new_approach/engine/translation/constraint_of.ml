@@ -46,6 +46,7 @@ let eB p tp tr = Variable(Binding_variable(p,tp,tr))
 let eR l r = Variable(Local_repository_variable(l,r))
 let eO l o = Variable(Local_resource_variable(l,o))
 
+let eU l = Variable(Location_used_variable(l))
 
 
 
@@ -183,6 +184,18 @@ let deprecated_component_types_and_packages c_l =
     ((eNlt l Data_model.deprecated_component_type_id) =~ (constant 0))::((eNlk l Data_model.deprecated_package_id) =~ (constant 0))::res
   ) c_l []
 
+  (* Used locations *)
+let used_locations u_dt u_dk c_l =
+  Zephyrus_log.log_constraint_execution "Compute used locations\n";
+  let local_component_exprs l : expression list = Data_model.Component_type_id_set.fold (fun t res -> (eNlt l t)::res) u_dt [] in
+  let local_package_exprs   l : expression list = Data_model.Package_id_set.fold        (fun k res -> (eNlk l k)::res) u_dk [] in
+  Data_model.Location_id_set.fold (fun l res -> 
+     let konstraint = ( eU l =~ reify ((sum (local_component_exprs l @ local_package_exprs l)) >~ (constant 0)) ) in
+     konstraint :: res
+  ) c_l []
+
+
+
 let universe resources locations universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ;
@@ -198,7 +211,8 @@ let universe resources locations universe = [ (* TODO: replace the references wi
     (Data_state.constraint_universe_package_dependency      , package_dependency locations universe#u_dk universe#get_package) ;
     (Data_state.constraint_universe_package_conflict        , package_conflict locations universe#u_dk universe#get_package) ;
     (Data_state.constraint_universe_resource_consumption    , resource_consumption locations resources universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ;
-    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages locations) ]
+    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages locations);
+    (Data_state.constraint_universe_deprecated_element      , used_locations universe#u_dt universe#u_dk locations) ]
 
  
 
@@ -219,7 +233,8 @@ let universe_full () =
     Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#u_dk universe#get_package;
     Data_state.constraint_universe_resource_consumption          :=
       resource_consumption configuration#c_l resources#resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package;
-    Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l
+    Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l;
+    Data_state.constraint_universe_used_locations                := used_locations universe#u_dt universe#u_dk configuration#c_l;
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.resources_full) with
     | (Some(u), Some(c), Some(r)) -> f u c r
     | _ -> ()
@@ -401,6 +416,7 @@ let basic_bounds_function v = (** this function gives the basic bounds of every 
   | Binding_variable        _ -> Bound.big
   | Local_repository_variable _ -> Bound.small
   | Local_resource_variable   _ -> Bound.big
+  | Location_used_variable    _ -> Bound.small
 
 let basic_bounds () = Data_state.constraint_variable_bounds := Some(basic_bounds_function)
 

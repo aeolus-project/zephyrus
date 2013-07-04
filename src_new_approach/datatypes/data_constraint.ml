@@ -41,6 +41,7 @@ type variable =
     (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
   | Local_repository_variable  of location_id * repository_id  (** Is the given repository installed on the given location? (boolean variable) *)
   | Local_resource_variable    of location_id * resource_id    (** How many resources of the given type are provided by the given location. *)
+  | Location_used_variable     of location_id
 
 module Variable = struct type t = variable let compare = Pervasives.compare end
 module Variable_set = Data_common.Set.Make(Variable)
