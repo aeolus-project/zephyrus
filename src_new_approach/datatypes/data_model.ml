@@ -131,7 +131,9 @@ end
 module Component_type = struct
   type t = component_type
   let compare t1 t2 = Component_type_id.compare t1#id t2#id 
-end module Component_type_set = Set.Make(Component_type) module Component_type_map = Map.Make(Component_type)
+end 
+module Component_type_set = Set.Make(Component_type) 
+module Component_type_map = Map.Make(Component_type)
 
 
   (** 2.2. Packages *)
@@ -164,7 +166,10 @@ end
 module Package = struct
   type t = package
   let compare k1 k2 = Package_id.compare k1#id k2#id 
-end module Package_set = Set.Make(Package) module Package_set_set = Set.Make(Package_set)
+end
+module Package_set = Set.Make(Package)
+module Package_set_set = Set.Make(Package_set)
+module Package_map = Map.Make(Package)
 
 
   (** 2.3. Repositories *)
@@ -196,7 +201,9 @@ end
 module Repository = struct
   type t = repository
   let compare r1 r2 = Repository_id.compare r1#id r2#id 
-end module Repository_set = Set.Make(Repository)
+end
+module Repository_set = Set.Make(Repository)
+module Repository_map = Map.Make(Repository)
 
 
   (** 2.4. Universes *)
@@ -269,6 +276,8 @@ module Location_id_set_set = SetSetInt
 module Location_id_map = MapInt
 module Location_id_map_extract_key = Keys_of_MapInt
 
+type location_cost = int
+
   (** Location. *)
 class type location = object
   method name               : location_name                            (** The name of this location. *)
@@ -276,12 +285,14 @@ class type location = object
   method repository         : repository_id                            (** The name of the package repository used by this location. *)
   method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
   method provide_resources  : resource_id -> resource_provide_arity    (** Which resources does this location provide and in what amounts. *)
+  method cost               : location_cost
 end
 
 module Location = struct
   type t = location
   let compare l1 l2 = Location_id.compare l1#id l2#id 
-end module Location_set = Set.Make(Location) module Location_map = Map.Make(Location)
+end 
+module Location_set = Set.Make(Location) module Location_map = Map.Make(Location)
 module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
 
 (** Assertions:
@@ -343,7 +354,8 @@ module Binding = struct
         Component_id.compare b1#provider b2#provider
       else r2
     else r1
-end module Binding_set = Set.Make(Binding)
+end 
+module Binding_set = Set.Make(Binding)
 
 (** Assertions:
     {ul

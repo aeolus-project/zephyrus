@@ -84,12 +84,14 @@ type universe = {
 <doc text="Type definitions for Configuration.">
 
 type resources_provided = (resource_name * resource_provide_arity) list
+type location_cost = int
 
 type location = {
   name                                     : location_name;
   ~provide_resources  <ocaml default="[]"> : resources_provided;
   repository                               : repository_name;
-  ~packages_installed <ocaml default="[]"> : package_name list
+  ~packages_installed <ocaml default="[]"> : package_name list;
+  ~cost               <ocaml default="1" > : location_cost
 } <ocaml field_prefix="location_">
 
 type component = {

@@ -258,7 +258,9 @@ let rec local_specification l s = match s with
   | Data_model.Spec_local_not (s') -> !~ (local_specification l s')
 
 let spec_resource_constraint l co = List.fold_left (fun res (o, op, i) -> ((spec_op op) (eO l o) (constant i))::res) [] co
-let spec_repository_constraint l cr = (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
+let spec_repository_constraint l cr = match cr with 
+                                      | [] -> true_konstraint
+                                      | _  -> (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
 
 let spec_element location_ids e = match e with
   | Data_model.Spec_element_package (package_id) -> eNk package_id

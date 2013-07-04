@@ -42,6 +42,7 @@ let convert_require_arity          x = x
 let convert_package_name         r x = if Settings.get_bool_basic Settings.data_package_name_extended then r ^ x else x
 let convert_repository_name        x = x
 let convert_location_name          x = x
+let convert_location_cost          x = x
 let convert_component_name         x = x
 
 
@@ -258,57 +259,47 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   
   (* 1. Data Storage *)
 
-    (* ports *)
-    (* nothing to store here... *)
-
-    (* component types *)
-  let component_types         : Component_type_set.t ref = ref Component_type_set.empty in                        (* all component types *)
-  let component_type_get      : (component_type Component_type_id_map.t) ref = ref Component_type_id_map.empty in (* mapping component type id -> component type *)
+  (* component types *)
+  let component_type           : Component_type_obj_catalog.obj_catalog_iface = new Component_type_obj_catalog.obj_catalog in
   
-  (* create all the data structure to store the component type in parameter *)
+  (* store the component type in parameter *)
   let new_component_type t =                
     let id = catalog#component_type#id_of_name t#name in 
-    component_types         := Component_type_set.add t (!component_types);
-    component_type_get      := Component_type_id_map.add id t (!component_type_get) in
+    component_type#set_obj_of_id id t in
 
 
-    (* package *)
-  let packages          : Package_set.t ref                    = ref Package_set.empty in    (* all packages *)
-  let package_get       : (package Package_id_map.t) ref       = ref Package_id_map.empty in (* mapping package id -> package *)
-  let repos_of_packages : (repository_id Package_id_map.t) ref = ref Package_id_map.empty in (* mapping package id -> repository id *)
+  (* packages *)
+  let package                   : Package_obj_catalog.obj_catalog_iface = new Package_obj_catalog.obj_catalog in
+  let package_id_to_repo_id_map : (repository_id Package_id_map.t) ref  = ref Package_id_map.empty in (* mapping package id -> repository id *)
 
-  (* create a full structure for the package *)
+  (* store the package *)
   let new_package r k = 
     let id = catalog#package#id_of_name (r, k#name) in 
-    packages          := Package_set.add k (!packages);
-    repos_of_packages := Package_id_map.add id r !repos_of_packages;
-    package_get       := Package_id_map.add id k (!package_get); 
+    package#set_obj_of_id id k;
+    package_id_to_repo_id_map := Package_id_map.add id r !package_id_to_repo_id_map;
     (id, k) in (* <- this pair looks strange: LOOK INTO THIS *)
 
 
-    (* repositories *)
-  let repositories        : Repository_set.t ref                 = ref Repository_set.empty in    (* all repositories *)
-  let repository_get      : (repository Repository_id_map.t) ref = ref Repository_id_map.empty in (* mapping repository id -> repository *)
-
-  let add_repository r id = (* function that adds the relation r <-> id <-> r#name in the maps. Never used directly (see [new_repository]) *)
-    repositories        := Repository_set.add r (!repositories);
-    repository_get      := Repository_id_map.add id r (!repository_get) in
-
-  (* create a full structure for the repository *)
+  (* repositories *)
+  let repository : Repository_obj_catalog.obj_catalog_iface = new Repository_obj_catalog.obj_catalog in
+    
+  (* store the repository *)
   let new_repository r =
-    let id = catalog#repository#id_of_name r#name in add_repository r id in
+    let id = catalog#repository#id_of_name r#name in
+    repository#set_obj_of_id id r in
 
   (* annex function, for the implementation relation *)
   let find_repository r = 
     try catalog#repository#id_of_name r 
-    with Not_found -> Zephyrus_log.log_missing_data "repository" r "repository declaration" in (* TODO: should I create a shallow structure also here? *)
+    with Not_found -> Zephyrus_log.log_missing_data "repository" r "repository declaration" in
 
 
   (* 2. Conversion *)
     
-    (* component types *)
+  (* component types *)
   let convert_component_type t =
-    
+  
+    (* name *)  
     let name = convert_component_type_name t.Json_t.component_type_name in
 
     (* create the mapping for provide *)
@@ -325,7 +316,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (id, convert_require_arity arity)
       ) t.Json_t.component_type_require in
 
-    (* create the mapping for conflict *)
+    (* create the set for conflict *)
     let conflict : Port_id_set.t = 
       Port_id_set.set_of_list (fun name -> 
         catalog#port#id_of_name (convert_port_name name)
@@ -337,8 +328,9 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
       ) t.Json_t.component_type_consume in
 
-    let port_local_provide : Port_id_set.t = Port_id_map_extract_key.set_of_keys provide in (* local definition to fix a glitch of how object's methods are implemented *)
-    let port_local_require : Port_id_set.t = Port_id_map_extract_key.set_of_keys require in (* idem *)
+    (* local definition to fix a glitch of how object's methods are implemented *)
+    let port_local_provide : Port_id_set.t = Port_id_map_extract_key.set_of_keys provide in 
+    let port_local_require : Port_id_set.t = Port_id_map_extract_key.set_of_keys require in
 
     new_component_type (object(self)
       method name           = name
@@ -355,12 +347,14 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method consume      r = try Resource_id_map.find r consume with Not_found -> 0
     end) in
     
-    (* packages *)
+
+  (* packages *)
   let convert_package r_id r_name k =
 
+    (* name *)
     let name = convert_package_name r_name k.Json_t.package_name in
 
-    (* create the dependency sets, creating as a side effect shallow structure for non-yet-seen packages *)
+    (* create the dependency sets *)
     let depend : Package_id_set_set.t = 
       Package_id_set_set.set_of_list (fun s -> 
         Package_id_set.set_of_list (fun n -> 
@@ -387,26 +381,28 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method consume r = try Resource_id_map.find r_id consume with Not_found -> 0
     end) in
 
-    (* repositories *)
+
+  (* repositories *)
   let convert_repository r = 
 
+    (* name *)
     let name = convert_repository_name r.Json_t.repository_name in
 
+    (* packages *)
     let id = catalog#repository#id_of_name name in
-    
     let packages : package Package_id_map.t = 
       Package_id_map.map_of_list (fun k -> 
         convert_package id name k
       ) r.Json_t.repository_packages in
     
+    (* local definition to fix a glitch of how object's methods are implemented *)
     let module Package_id_map_extract_value = Package_id_map.Set_of_values(Package_set) in
-
-    let local_package_ids = Package_id_map_extract_key.set_of_keys     packages in 
-    let local_packages    = Package_id_map_extract_value.set_of_values packages in
+    let local_package_ids : Package_id_set.t = Package_id_map_extract_key.set_of_keys     packages in 
+    let local_packages    : Package_set.t    = Package_id_map_extract_value.set_of_values packages in
     
     new_repository (object(self) 
       method name          = name
-      method id        = catalog#repository#id_of_name name
+      method id            = catalog#repository#id_of_name name
       method get_package k = 
         try Package_id_map.find k packages 
         with Not_found -> 
@@ -425,37 +421,22 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (fun (r,k) -> let r_name = convert_repository_name r in catalog#package#id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
 
     object(self)
-    (* private *)
-      val implem_get_component_type = !component_type_get
-      val implem_get_implementation = implementation
-      val implem_get_repository     = !repository_get
-      val implem_get_package        = !package_get
-
-      val mutable implem_ur = Port_id_map.empty; (* set of component type requiring. Not directly computed, filled when requested *)
-      val mutable implem_up = Port_id_map.empty; (* set of component type providing. Not directly computed, filled when requested *)
+      (* private *)
+      val mutable implem_ur = Port_id_map.empty; (* set of component type requiring.   Not directly computed, filled when requested *)
+      val mutable implem_up = Port_id_map.empty; (* set of component type providing.   Not directly computed, filled when requested *)
       val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
 
-      val implem_get_port_id             = catalog#port#id_of_name
-      val implem_get_component_type_id   = catalog#component_type#id_of_name
-      val implem_get_repository_id       = catalog#repository#id_of_name
-      val implem_get_package_id          = catalog#package#id_of_name
-
-      val implem_get_port_name           = catalog#port#name_of_id
-      val implem_get_component_type_name = catalog#component_type#name_of_id
-      val implem_get_repository_name     = catalog#repository#name_of_id
-      val implem_get_package_name        = catalog#package#name_of_id
-
       (* methods *)
-      method get_component_type id = Component_type_id_map.find id implem_get_component_type
-      method get_implementation id = try Component_type_id_map.find id implem_get_implementation with | Not_found -> Package_id_set.empty
-      method get_repository     id = Repository_id_map.find id implem_get_repository
-      method get_package        id = Package_id_map.find id implem_get_package
+      method get_component_type    = component_type#obj_of_id
+      method get_repository        = repository#obj_of_id
+      method get_package           = package#obj_of_id
+      method get_implementation id = try Component_type_id_map.find id implementation with | Not_found -> Package_id_set.empty
 
-      method repository_of_package id = Package_id_map.find id !repos_of_packages
+      method repository_of_package id = Package_id_map.find id !package_id_to_repo_id_map
 
-      method get_component_types = !component_types
-      method get_repositories    = !repositories
-      method get_packages        = !packages
+      method get_component_types = component_type#objs
+      method get_repositories    = repository#objs
+      method get_packages        = package#objs
 
       method get_port_ids           = catalog#port#ids
       method get_component_type_ids = catalog#component_type#ids
@@ -481,22 +462,22 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method u_w  = self#get_package
 
       method ur p = (try Port_id_map.find p implem_ur with
-               | Not_found -> let tmp = (requirers implem_get_component_type p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
+               | Not_found -> let tmp = (requirers component_type#id_to_obj_map p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp)
       method up p = (try Port_id_map.find p implem_up with
-               | Not_found -> let tmp = (providers implem_get_component_type p) in implem_up <- Port_id_map.add p tmp implem_up; tmp)
+               | Not_found -> let tmp = (providers component_type#id_to_obj_map p) in implem_up <- Port_id_map.add p tmp implem_up; tmp)
       method uc p = (try Port_id_map.find p implem_uc with
-               | Not_found -> let tmp = (conflicters implem_get_component_type p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp)
+               | Not_found -> let tmp = (conflicters component_type#id_to_obj_map p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp)
 
       (* methods for catalog *)
-      method get_port_id           n = try implem_get_port_id n           with Not_found -> deprecated_package_id (* to deal with initial configurations *)
-      method get_component_type_id n = try implem_get_component_type_id n with Not_found -> deprecated_component_type_id (* to deal with initial configurations *)
-      method get_repository_id     n = implem_get_repository_id n
-      method get_package_id      r n = implem_get_package_id (r,n)
+      method get_port_id           n = try catalog#port#id_of_name n           with Not_found -> deprecated_package_id (* to deal with initial configurations *)
+      method get_component_type_id n = try catalog#component_type#id_of_name n with Not_found -> deprecated_component_type_id (* to deal with initial configurations *)
+      method get_repository_id     n = catalog#repository#id_of_name n
+      method get_package_id      r n = catalog#package#id_of_name (r,n)
 
-      method get_port_name           id = implem_get_port_name id
-      method get_component_type_name id = if id = deprecated_component_type_id then "!!deprecated_component!!" else implem_get_component_type_name id
-      method get_repository_name     id = implem_get_repository_name id
-      method get_package_name        id = if id = deprecated_package_id then "!!deprecated_package!!" else snd (implem_get_package_name id)
+      method get_port_name           id = catalog#port#name_of_id id
+      method get_component_type_name id = if id = deprecated_component_type_id then "!!deprecated_component!!" else catalog#component_type#name_of_id id
+      method get_repository_name     id = catalog#repository#name_of_id id
+      method get_package_name        id = if id = deprecated_package_id then "!!deprecated_package!!" else snd (catalog#package#name_of_id id)
     end
 
 (* Possible inconsistencies not detected during generation:
@@ -535,29 +516,26 @@ class convert_configuration (catalog : closed_model_catalog) c =
 
   (* 1. Data storage *)
 
-    (* locations *)
-  let locations    : Location_set.t ref = ref Location_set.empty in                   (* all locations *)
-  let location_get : (location Location_id_map.t) ref = ref Location_id_map.empty in  (* mapping id -> location *)
+  (* locations *)
+  let location : Location_obj_catalog.obj_catalog_iface = new Location_obj_catalog.obj_catalog in
   
   (* create all the structure to store the new location l *)
   let new_location (l : location) =  
     let id = catalog#location#id_of_name l#name in 
-    locations     := Location_set.add l (!locations);
-    location_get  := Location_id_map.add id l (!location_get) in
-  
+    location#set_obj_of_id id l in
+
+  (* annex function, used for components *)
   let find_location l = 
-    try catalog#location#id_of_name l with (* annex function, used for components *)
-    | Not_found -> Zephyrus_log.log_missing_data "location" l "component" in
+    try catalog#location#id_of_name l
+    with Not_found -> Zephyrus_log.log_missing_data "location" l "component" in
   
-    (* components *)
-  let components    : Component_set.t ref = ref Component_set.empty in                    (* all components *)
-  let component_get : (component Component_id_map.t) ref = ref Component_id_map.empty in  (* mapping id -> component *)
+  (* components *)
+  let component : Component_obj_catalog.obj_catalog_iface = new Component_obj_catalog.obj_catalog in
   
   (* create all the structure to store the new component c *)
   let new_component c =
     let id = catalog#component#id_of_name c#name in
-    components    := Component_set.add c (!components);
-    component_get := Component_id_map.add id c (!component_get) in
+    component#set_obj_of_id id c in
 
   (* annex function, used for the bindings *)
   let find_component c = 
@@ -565,14 +543,28 @@ class convert_configuration (catalog : closed_model_catalog) c =
     with Not_found -> Zephyrus_log.log_missing_data "component" c "binding" in
 
   (* 2. Conversion *)
-    (* location *)
+  
+  (* location *)
   let convert_location l =
+
+    (* name *)
     let name = convert_location_name l.Json_t.location_name in
+
+    (* repository *)
     let r_name = convert_repository_name l.Json_t.location_repository in 
     let repository = catalog#repository#id_of_name r_name in
+
+    (* packages installed *)
     let packages_installed = Package_id_set.set_of_list (fun k -> catalog#package#id_of_name (repository, (convert_package_name r_name k))) l.Json_t.location_packages_installed in
-    let resources = Resource_id_map.map_of_list (* create the mapping for resource provide *)
-      (fun (r,n) -> (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)) l.Json_t.location_provide_resources in
+
+    (* resources *)
+    let resources = 
+      Resource_id_map.map_of_list (fun (r, n) -> 
+        (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
+      ) l.Json_t.location_provide_resources in
+
+    (* cost *)
+    let cost = convert_location_cost l.Json_t.location_cost in
 
     new_location (object
       method name                = name
@@ -580,12 +572,19 @@ class convert_configuration (catalog : closed_model_catalog) c =
       method repository          = repository
       method packages_installed  = packages_installed
       method provide_resources r = try Resource_id_map.find r resources with Not_found -> 0 
+      method cost                = cost
     end) in
 
-    (* components *)
+  (* components *)
   let convert_component c =
+
+    (* name *)
     let name = convert_component_name c.Json_t.component_name in
+
+    (* type *)
     let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
+
+    (* location *)
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
     new_component (object
@@ -617,11 +616,11 @@ object(self)
   val mutable implem_get_local_package = Location_package_map.empty;          (* computed incrementally *)
 (* methods *)
 
-  method get_location l = Location_id_map.find l (!location_get)
-  method get_component c = Component_id_map.find c (!component_get)
+  method get_location  = location#obj_of_id
+  method get_component = component#obj_of_id
 
-  method get_locations  = !locations
-  method get_components = !components
+  method get_locations  = location#objs
+  method get_components = component#objs
   method get_bindings   = implem_bindings
 
   method get_location_ids  = catalog#location#ids
@@ -634,18 +633,18 @@ object(self)
   method c_c = self#get_component_ids
   method c_type c = (self#get_component c)#typ
 
-  method get_local_component l t = (try Location_component_type_map.find (l,t) implem_get_local_component with
-         | Not_found -> let tmp = get_local_component l t (!component_get) in
-           implem_get_local_component <- Location_component_type_map.add (l,t) tmp implem_get_local_component; tmp)
-  method get_local_package l k = (try Location_package_map.find (l,k) implem_get_local_package with
-         | Not_found -> let tmp = get_local_package l k (!location_get) in
-           implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
+  method get_local_component l t = (try Location_component_type_map.find (l,t) implem_get_local_component
+                                    with Not_found -> let tmp = get_local_component l t component#id_to_obj_map in
+                                    implem_get_local_component <- Location_component_type_map.add (l,t) tmp implem_get_local_component; tmp)
+  method get_local_package   l k = (try Location_package_map.find (l,k) implem_get_local_package
+                                    with Not_found -> let tmp = get_local_package l k location#id_to_obj_map in
+                                    implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
 
-  method get_location_id  l = catalog#location#id_of_name  l
-  method get_component_id c = catalog#component#id_of_name c
+  method get_location_id  = catalog#location#id_of_name 
+  method get_component_id = catalog#component#id_of_name
 
-  method get_location_name  l = catalog#location#name_of_id   l
-  method get_component_name c =  catalog#component#name_of_id c
+  method get_location_name  = catalog#location#name_of_id  
+  method get_component_name = catalog#component#name_of_id
 end
 
 
