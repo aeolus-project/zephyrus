@@ -276,6 +276,8 @@ module Location_id_set_set = SetSetInt
 module Location_id_map = MapInt
 module Location_id_map_extract_key = Keys_of_MapInt
 
+type location_cost = int
+
   (** Location. *)
 class type location = object
   method name               : location_name                            (** The name of this location. *)
@@ -283,6 +285,7 @@ class type location = object
   method repository         : repository_id                            (** The name of the package repository used by this location. *)
   method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
   method provide_resources  : resource_id -> resource_provide_arity    (** Which resources does this location provide and in what amounts. *)
+  method cost               : location_cost
 end
 
 module Location = struct

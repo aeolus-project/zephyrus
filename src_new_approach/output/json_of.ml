@@ -47,6 +47,8 @@ let convert_repository_name        x = x
 let convert_location_name          x = x
 let convert_component_name         x = x
 
+let convert_location_cost          x = x
+
 (* universe *)
 let convert_component_type t resources port_get_name resource_get_name = 
 (* DEBUG **************************)
@@ -95,7 +97,8 @@ let convert_location l resources repository_get_name package_get_name component_
     Json_j.location_name = convert_location_name l#name;
     Json_j.location_repository = repository_get_name l#repository;
     Json_j.location_packages_installed = List.map package_get_name (Package_id_set.elements l#packages_installed);
-    Json_j.location_provide_resources = List.map (fun r -> (resource_get_name r, convert_resource_provide_arity (l#provide_resources r))) resources
+    Json_j.location_provide_resources = List.map (fun r -> (resource_get_name r, convert_resource_provide_arity (l#provide_resources r))) resources;
+    Json_j.location_cost = convert_location_cost l#cost
 }
 
 let convert_component c resources component_type_get_name location_get_name = {

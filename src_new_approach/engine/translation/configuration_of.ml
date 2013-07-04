@@ -303,6 +303,9 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     (* resources provided *)
     let provide_resources = location#provide_resources in
 
+    (* cost *)
+    let cost = location#cost in
+
     let new_location : location =
       object
         method name                = name
@@ -310,6 +313,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
         method repository          = repository
         method packages_installed  = packages_installed
         method provide_resources   = provide_resources
+        method cost                = cost
       end
 
     in

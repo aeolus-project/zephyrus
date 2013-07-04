@@ -42,6 +42,7 @@ let convert_require_arity          x = x
 let convert_package_name         r x = if Settings.get_bool_basic Settings.data_package_name_extended then r ^ x else x
 let convert_repository_name        x = x
 let convert_location_name          x = x
+let convert_location_cost          x = x
 let convert_component_name         x = x
 
 
@@ -562,12 +563,16 @@ class convert_configuration (catalog : closed_model_catalog) c =
         (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
       ) l.Json_t.location_provide_resources in
 
+    (* cost *)
+    let cost = convert_location_cost l.Json_t.location_cost in
+
     new_location (object
       method name                = name
       method id                  = catalog#location#id_of_name name
       method repository          = repository
       method packages_installed  = packages_installed
       method provide_resources r = try Resource_id_map.find r resources with Not_found -> 0 
+      method cost                = cost
     end) in
 
   (* components *)
