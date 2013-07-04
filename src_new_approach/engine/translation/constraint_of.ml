@@ -365,14 +365,22 @@ let cost_difference_packages c_l u_dk get_local_package =
       (if get_local_package l k then abs((eNlk l k) -~ (constant 1)) else (eNlk l k))::res
     ) u_dk res) c_l []
 
+let cost_locations c_l (get_location_cost : Data_model.location_id -> Data_model.location_cost) =
+  Data_model.Location_id_set.fold (fun l res ->
+    ( (eU l) *~ constant (get_location_cost l) ) :: res
+  ) c_l []
+
 (* translation functions *)
-let compact_slow c_l u_dt u_dk =
+let compact_slow c_l u_dt u_dk get_location_cost =
   Lexicographic ([
-    Minimize (sum (cost_used_locations c_l u_dt u_dk false)); (* First minimize the number of used locations *)
-    Minimize (sum (cost_all_components u_dt));                (* then minimize the number of components *)
-    Minimize (sum (cost_all_packages u_dk)) ])                (* finally minimize the number of packages. (so we do not have useless packages) *)
-let compact_fast c_l u_dt u_dk = Minimize (sum (List.rev_append (List.rev_append (cost_all_components u_dt) (cost_used_locations c_l u_dt u_dk false))
-                                                                        (cost_all_packages u_dk)))
+    Minimize (sum (cost_locations c_l get_location_cost));       (* First minimize the number of used locations *)
+    Minimize (sum (cost_all_components u_dt)); (* then minimize the number of components *)
+    Minimize (sum (cost_all_packages u_dk)) ]) (* finally minimize the number of packages. (so we do not have useless packages) *)
+let compact_fast c_l u_dt u_dk get_location_cost = 
+  Minimize (sum (List.rev_append (List.rev_append 
+    (cost_all_components u_dt) 
+    (cost_locations c_l get_location_cost))
+    (cost_all_packages u_dk)))
 let spread_slow c_l u_dt u_dk =
   Lexicographic ([
     Minimize (sum (cost_all_components u_dt));               (* First minimize the number of components *)
@@ -390,10 +398,10 @@ let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
 
 let optimization_function () = match !Data_state.optimization_function with
   | None -> () | Some(o) -> match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
-    | (Some(u), Some(c)) -> (let (c_l, u_dt, u_dk, get_local_component, get_local_package) = (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package) in
+    | (Some(u), Some(c)) -> (let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) = (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
       Data_state.constraint_optimization_function := Some(match o with
       | Data_model.Optimization_function_simple       -> Minimize (sum (cost_all_components u_dt))
-      | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk
+      | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk get_location_cost
       | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
       | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
       | Data_model.Optimization_function_none         -> Lexicographic([])))
