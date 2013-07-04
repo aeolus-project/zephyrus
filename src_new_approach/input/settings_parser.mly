@@ -191,6 +191,7 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "verbose-input-warning" , fun v -> Settings.verbose_input_warning := Some(get_bool v));
   ( "verbose-input-error"   , fun v -> Settings.verbose_input_error   := Some(get_bool v));
 
+  ( "print-data"                  , fun v -> Settings.verbose_data                        := Some(get_bool v));
   ( "print-input-universe"        , fun v -> Settings.verbose_input_universe              := Some(get_bool v));
   ( "print-input-repositories"    , fun v -> Settings.verbose_input_repositories          := Some(get_bool v));
   ( "print-full-universe"         , fun v -> Settings.verbose_input_universe_full         := Some(get_bool v));

@@ -25,8 +25,14 @@
 *)
 
 let identity = fun x -> x
-let string_set s = "{" ^ (String.concat ", " (Data_common.SetString.elements s)) ^ "}"
-let int_set s =  "{" ^ (String.concat ", " (List.map string_of_int (Data_common.SetInt.elements s))) ^ "}"
+let string_list s = "{" ^ (String.concat ", " s) ^ "}"
+let int_list    s = string_list (List.map string_of_int s)
+
+let string_set s = string_list (Data_common.SetString.elements s)
+let string_set_set s = "[ " ^ (String.concat "; " (List.map string_set (Data_common.SetSetString.elements s))) ^ " ]"
+let int_set s =  int_list (Data_common.SetInt.elements s)
+let int_set_set s = "[ " ^ (String.concat "; " (List.map int_set (Data_common.SetSetInt.elements s))) ^ " ]"
+
 
 (************************************)
 (** Model                           *)
@@ -72,6 +78,8 @@ let location_name l   = l
 let location_name_set = string_set
 let location_id   l   = string_of_int l
 let location_id_set   = int_set
+
+let location_categories = int_set_set
 
 let component_name c   = c
 let component_name_set = string_set

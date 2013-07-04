@@ -69,10 +69,13 @@ val location_name_set : Data_model.Location_name_set.t -> string
 val location_id       : Data_model.location_id         -> string
 val location_id_set   : Data_model.Location_id_set.t   -> string
 
+val location_categories : Location_categories.t -> string
+
 val component_name     : Data_model.component_name       -> string
 val component_name_set : Data_model.Component_name_set.t -> string
 val component_id       : Data_model.component_id         -> string
 val component_id_set   : Data_model.Component_id_set.t   -> string
+
 
 (************************************)
 (** Specification                   *)

@@ -22,6 +22,10 @@
     - Printf (standard library, for logging of course)
 *)
 
+val log_stage_new : string -> unit
+val log_stage_end : unit -> unit
+
+
 (* core logging *)
 val log_panic : string -> 'a
 val log_missing_data : string -> string -> string -> 'a

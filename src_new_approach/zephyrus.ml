@@ -50,8 +50,7 @@ let () = Load_settings.load ();
 let () =
 (* === load everything  === *)
   Load_model.set_initial_model_of_settings ();
-  print_string "\n ===============================";
-  print_string "\n      ==> LOAD SECTION <==      \n";
+  Zephyrus_log.log_stage_new "LOAD SECTION";
   let r = check_option "resources"             !Data_state.resources_full in
   let u = check_option "universe"              !Data_state.universe_full in
   let c = check_option "configuration"         !Data_state.initial_configuration_full in
@@ -74,9 +73,8 @@ let () =
   let u = universe_trimmed_package in
 
   let cat = Location_categories.full_categories r u c in
-  print_string "\n\n\n     ==> CATEGORIES <==  \n\n";
-  print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat))) ^ " ]");
-  Constraint_of.basic_bounds ();
+  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
+  Constraint_of.basic_bounds (); (* TODO: replace this with a call to flat universe, i.e. engine/preprocess/variable_bounds *)
   let solver_settings = {
     Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
     Solvers.input_file            = "zephyrus-fit-loc-.mzn";
@@ -88,8 +86,8 @@ let () =
       | Some(cat') -> print_string "\n\n\n     ==> NEW CATEGORIES <==  \n\n";
     print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat'))) ^ " ]"));
   
-  print_string "\n ===============================";
-  print_string "\n   ==> CONSTRAINT SECTION <==  \n";
+  Zephyrus_log.log_stage_end ();
+  Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
   Constraint_of.universe_full ();
   Constraint_of.specification_full ();
   Constraint_of.configuration_full ();

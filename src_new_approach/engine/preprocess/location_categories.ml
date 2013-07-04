@@ -33,19 +33,24 @@ include Location_id_set_set
 (*| category computation part *)
 
 
+
 let compare_components (u: universe) (c: configuration) l1 l2 =
   Component_type_id_set.fold (fun t b -> b &&
      ((Component_id_set.cardinal (c#get_local_component l1 t)) = ((Component_id_set.cardinal(c#get_local_component l2 t)))) ) u#get_component_type_ids true
 let compare_repositories l1 l2 = (l1#repository = l2#repository)
 let compare_packages l1 l2 = ((Data_model.Package_id_set.compare (l1#packages_installed) (l2#packages_installed)) = 0)
 let compare_resources resources l1 l2 = Data_model.Resource_id_set.fold (fun r b -> b && ((l1#provide_resources r) = (l2#provide_resources r))) resources#resource_ids true
+let compare_cost l1 l2 = (Data_model.Location_cost.compare l1#cost l2#cost) = 0
+
+let compare_simple resources l1 l2 = (compare_resources resources l1 l2) && (compare_cost l1 l2)
+
 let compare_full resources (u:universe) c l1 l2 = let (l1',l2') = (c#get_location l1, c#get_location l2) in
-  (compare_resources resources l1' l2') && (compare_repositories l1' l2') && (compare_packages l1' l2') && (compare_components u c l1 l2)
+  (compare_simple resources l1' l2') && (compare_repositories l1' l2') && (compare_packages l1' l2') && (compare_components u c l1 l2)
 
 module Location_categories = Data_common.Set.EquivalenceClass(Data_model.Location_id_set)(Data_model.Location_id_set_set)
 
 (* generate the categories only considering resources, for optimizations like [compact] or [spread] *)
-let resource_categories resources c = Location_categories.compute (fun l1 l2 -> compare_resources resources (c#get_location l1) (c#get_location l2)) c#get_location_ids
+let resource_categories resources c = Location_categories.compute (fun l1 l2 -> compare_simple resources (c#get_location l1) (c#get_location l2)) c#get_location_ids
 (* generate the categories for the [conservative] optimization function *)
 let full_categories resources u c =  Location_categories.compute (compare_full resources u c) c#get_location_ids
 

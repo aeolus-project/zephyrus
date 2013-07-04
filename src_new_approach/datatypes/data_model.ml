@@ -277,6 +277,7 @@ module Location_id_map = MapInt
 module Location_id_map_extract_key = Keys_of_MapInt
 
 type location_cost = int
+module Location_cost = Int
 
   (** Location. *)
 class type location = object
