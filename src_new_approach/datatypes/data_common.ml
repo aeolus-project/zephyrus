@@ -74,12 +74,12 @@ module Set = struct
   end
 
   module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) = struct
-    let compute f s =
-      let res = ref Set_target.empty in
-      Set_origin.iter (fun e -> let b = Set_target.fold (fun s b -> 
-          if b && (f (Set_origin.choose s) e) then (res := Set_target.add (Set_origin.add e s) (Set_target.remove s !res); false) else true) !res true in
-        (if b then res := Set_target.add (Set_origin.singleton e) !res)
-      ) s; !res
+    let mem f t ss = Set_target.fold (fun s res -> match res with | Some _ -> res | None -> if f  t (Set_origin.choose s) then Some(s) else None) ss None
+    let compute_step f t ss = match mem f t ss with
+      | None -> Set_target.add (Set_origin.singleton t) ss
+      | Some(s) -> Set_target.add (Set_origin.add t s) (Set_target.remove s ss)
+
+    let compute f s = Set_origin.fold (compute_step f) s Set_target.empty
   end
 end
 
