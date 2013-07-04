@@ -32,8 +32,9 @@ val universe_full : unit -> unit      (* set the universe-related constraints in
 val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)
 val configuration_full : unit -> unit (* set the configuration-related constraints in Data_state using what is provided in Data_state *)
 
-val optimization_function : unit -> unit (* conversion of the optimization function, and storage in Data_state *)
-val basic_bounds : unit -> unit          (* set the bounds in Data_state to their most basic values *)
+val optimization_function : Data_model.universe -> Data_model.configuration -> Data_model.optimization_function -> Data_constraint.optimization_function
+val optimization_function_full : unit -> unit (* conversion of the optimization function, and storage in Data_state *)
+(* val basic_bounds : unit -> unit          (* set the bounds in Data_state to their most basic values *)*)
 
 
 

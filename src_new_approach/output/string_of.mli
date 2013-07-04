@@ -101,6 +101,10 @@ val value      : Data_constraint.value -> string
 val expression : Data_constraint.expression -> string
 val konstraint : Data_constraint.konstraint -> string
 
+val described_konstraint : string * Data_constraint.konstraint -> string
+val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
+
+val constraint_optimization_function : Data_constraint.optimization_function -> string
 
 (************************************)
 (** Solution                        *)

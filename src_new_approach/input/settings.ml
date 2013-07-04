@@ -21,6 +21,8 @@
   MUST DEPEND ON NOTHING !!
 *)
 
+let get_bool_basic r = match !r with | None -> false | Some(b) -> b
+
 
 (* 00. DataTypes *)
 type mode = 
@@ -131,17 +133,37 @@ let constraint_weight_component_types  : int option ref = ref None (* NotUsedYet
 let constraint_weight_packages         : int option ref = ref None (* NotUsedYet *)
 
 let constraint_solver_classic_linear   : bool option ref = ref None (* NotUsedYet *)
-let constraint_solver_classic_kind     : solver option ref = ref None (* NotUsedYet *)
+let constraint_preprocess_solver       : solver option ref = ref None (* NotUsedYet *)
+let constraint_main_solver             : solver option ref = ref None (* NotUsedYet *)
+
+let get_constraint_main_solver () = match !constraint_main_solver with
+  | None    -> Solver_g12
+  | Some(s) -> s
+let get_main_solver_file_extension () = ".mzn"
+
+let get_constraint_preprocess_solver () = match !constraint_preprocess_solver with
+  | None    -> Solver_g12
+  | Some(s) -> s
+let get_preprocess_solver_file_extension () = ".mzn"
+
 
 let constraint_solver_bin_packing_kind : solver_bin_packing option ref = ref None (* NotUsedYet *)
 
 
 (* 05. Temporary Files *)
 
-let pre_process_spec_empty_detection_input_file       : string option ref = ref None (* NotUsedYet *)
-let pre_process_spec_empty_detection_output_file      : string option ref = ref None (* NotUsedYet *)
-let pre_process_spec_empty_detection_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
-let pre_process_spec_empty_detection_output_file_keep : bool option ref = ref None (* NotUsedYet *)
+let pre_process_input_file       : string option ref = ref None (* NotUsedYet *)
+let pre_process_output_file      : string option ref = ref None (* NotUsedYet *)
+let pre_process_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
+let pre_process_output_file_keep : bool option ref = ref None (* NotUsedYet *)
+
+let get_preprocess_input_file ()       = match !pre_process_input_file with | None -> "zephyrus-" ^ (get_preprocess_solver_file_extension ()) | Some(file) -> file
+let get_preprocess_output_file ()      = match !pre_process_output_file with | None -> "zephyrus-.sol" | Some(file) -> file
+let get_keep_preprocess_input_file ()  = get_bool_basic pre_process_input_file_keep
+let get_keep_preprocess_output_file () = get_bool_basic pre_process_output_file_keep
+
+let get_preprocess_file_informations () =
+  ((get_preprocess_input_file (), get_keep_preprocess_input_file ()), (get_preprocess_output_file (), get_keep_preprocess_output_file ()))
 
 let constraint_solver_flat_input_file       : string option ref = ref None (* NotUsedYet *)
 let constraint_solver_flat_output_file      : string option ref = ref None (* NotUsedYet *)
@@ -152,6 +174,14 @@ let constraint_solver_classic_input_file       : string option ref = ref None (*
 let constraint_solver_classic_output_file      : string option ref = ref None (* NotUsedYet *)
 let constraint_solver_classic_input_file_keep  : bool option ref = ref None (* NotUsedYet *)
 let constraint_solver_classic_output_file_keep : bool option ref = ref None (* NotUsedYet *)
+
+let get_main_input_file ()       = match !constraint_solver_classic_input_file with | None -> "zephyrus-" ^ (get_main_solver_file_extension ()) | Some(file) -> file
+let get_main_output_file ()      = match !constraint_solver_classic_output_file with | None -> "zephyrus-.sol" | Some(file) -> file
+let get_keep_main_input_file ()  = get_bool_basic constraint_solver_classic_input_file_keep
+let get_keep_main_output_file () = get_bool_basic constraint_solver_classic_output_file_keep
+
+let get_main_file_informations () =
+  ((get_main_input_file (), get_keep_main_input_file ()), (get_main_output_file (), get_keep_main_output_file ()))
 
 
 (* 06. Configuration Generation *)
@@ -167,7 +197,8 @@ let output_file                  : (out_file * string) list ref = ref [] (* NotU
 
 (* 08. Verbose Options *)
 
-let verbose_stage : bool option ref = ref None (* NotUsedYet *)
+let verbose_stage : bool option ref = ref None
+let verbose_activities : bool option ref = ref None
 
 (* settings *)
 
@@ -378,16 +409,16 @@ let settings_printing_functions : (string * (unit -> setting)) list = [
   ( "weight-packages"              , fun () -> IntSetting(!constraint_weight_packages)       );
 
   ( "solver-use-linear-constraint" , fun () -> BoolSetting                (!constraint_solver_classic_linear)  );
-  ( "solver"                       , fun () -> SolverKindSetting          (!constraint_solver_classic_kind)    );
+  ( "solver"                       , fun () -> SolverKindSetting          (!constraint_main_solver)    );
   ( "solver-bin-packing"           , fun () -> SolverBinPackingKindSetting(!constraint_solver_bin_packing_kind));
 
 
 (* 05. Temporary Files *)
 
-  ( "detect-spec-is-empty-constraint-file"      , fun () -> StringSetting(!pre_process_spec_empty_detection_input_file)    );
-  ( "detect-spec-is-empty-solution-file"        , fun () -> StringSetting(!pre_process_spec_empty_detection_output_file)   );
-  ( "detect-spec-is-empty-keep-constraint-file" , fun () -> BoolSetting(!pre_process_spec_empty_detection_input_file_keep) );
-  ( "detect-spec-is-empty-keep-solution-file"   , fun () -> BoolSetting(!pre_process_spec_empty_detection_output_file_keep));
+  ( "detect-spec-is-empty-constraint-file"      , fun () -> StringSetting(!pre_process_input_file)    );
+  ( "detect-spec-is-empty-solution-file"        , fun () -> StringSetting(!pre_process_output_file)   );
+  ( "detect-spec-is-empty-keep-constraint-file" , fun () -> BoolSetting(!pre_process_input_file_keep) );
+  ( "detect-spec-is-empty-keep-solution-file"   , fun () -> BoolSetting(!pre_process_output_file_keep));
 
   ( "solver-flat-constraint-file"               , fun () -> StringSetting(!constraint_solver_flat_input_file)    );
   ( "solver-flat-solution-file"                 , fun () -> StringSetting(!constraint_solver_flat_output_file)   );

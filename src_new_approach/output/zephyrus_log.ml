@@ -30,6 +30,7 @@ let out_channel = stdout
 let log_panic str = Output_helper.print_capo out_channel ("Zephyrus panic: " ^ str ^ "\nExiting"); flush out_channel; exit(-1)
 let log_missing_data kind what where = log_panic ("the " ^ kind ^ " \"" ^ what ^ "\" is missing from the " ^ where)
 
+let log_execution str = if Settings.get_bool_basic Settings.verbose_activities then Output_helper.print out_channel str
 
 
 (* stage logging *)

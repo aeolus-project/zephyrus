@@ -141,16 +141,16 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "weight-packages"         , fun v -> Settings.constraint_weight_packages        := Some(get_int v));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
-  ( "solver"                       , fun v -> Settings.constraint_solver_classic_kind     := Some(solver_kind_of_string (get_ident v)));
+  ( "solver"                       , fun v -> Settings.constraint_main_solver     := Some(solver_kind_of_string (get_ident v)));
   ( "solver-bin-packing"           , fun v -> Settings.constraint_solver_bin_packing_kind := Some(solver_bin_packing_of_string (get_ident v)));
 
 
 (* 05. Temporary Files *)
 
-  ( "detect-spec-is-empty-constraint-file"      , fun v -> Settings.pre_process_spec_empty_detection_input_file       := Some(get_ident v));
-  ( "detect-spec-is-empty-solution-file"        , fun v -> Settings.pre_process_spec_empty_detection_output_file      := Some(get_ident v));
-  ( "detect-spec-is-empty-keep-constraint-file" , fun v -> Settings.pre_process_spec_empty_detection_input_file_keep  := Some(get_bool v));
-  ( "detect-spec-is-empty-keep-solution-file"   , fun v -> Settings.pre_process_spec_empty_detection_output_file_keep := Some(get_bool v));
+  ( "preprocess-constraint-file"      , fun v -> Settings.pre_process_input_file       := Some(get_ident v));
+  ( "preprocess-solution-file"        , fun v -> Settings.pre_process_output_file      := Some(get_ident v));
+  ( "preprocess-keep-constraint-file" , fun v -> Settings.pre_process_input_file_keep  := Some(get_bool v));
+  ( "preprocess-keep-solution-file"   , fun v -> Settings.pre_process_output_file_keep := Some(get_bool v));
 
   ( "solver-flat-constraint-file"      , fun v -> Settings.constraint_solver_flat_input_file       := Some(get_ident v));
   ( "solver-flat-solution-file"        , fun v -> Settings.constraint_solver_flat_output_file      := Some(get_ident v));

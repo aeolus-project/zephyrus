@@ -30,13 +30,23 @@ type solver_settings = {
   keep_output_file      : bool;  
 }
 
+type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t_full = solver_settings -> t
+
+type settings_kind = Preprocess | Main
+val settings_of_settings : settings_kind -> solver_settings
+
+val full_of_settings     : settings_kind -> t_full
+val of_settings          : settings_kind -> t
+
+
+
 module type SOLVER = sig
-  val solve : solver_settings ->
-      (string * Data_constraint.konstraint) list ->
-      Data_constraint.optimization_function ->
-      (Data_constraint.solution * (int list)) option (* It returns the solution and its cost. *)
+  val solve : t_full (* It returns the solution and its cost. *)
 end
 
 module G12    : SOLVER
 module GeCode : SOLVER
+
+
 

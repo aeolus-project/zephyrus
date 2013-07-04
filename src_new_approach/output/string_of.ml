@@ -242,6 +242,15 @@ and konstraint c = match c with
                                                     else String.concat (" " ^ (nary_konstraint_op op) ^ " ") (List.map konstraint l) )
 
 
+let described_konstraint (c,k) = c ^ (konstraint k) ^ "\n"
+let described_konstraint_list l = List.fold_left (fun res el -> (described_konstraint el) ^ res) "" l
+
+let constraint_optimization_function f =
+  let rec inner accu f = match f with
+  | Data_constraint.Minimize e -> "Minimize " ^  (expression e)
+  | Data_constraint.Maximize e -> "Maximize " ^  (expression e)
+  | Data_constraint.Lexicographic l -> String.concat ("\n" ^ accu ^ "then ") (List.map (inner (accu ^ "  ")) l) in inner "  " f
+
 (************************************)
 (** Solution                        *)
 (************************************)

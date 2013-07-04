@@ -90,7 +90,56 @@ let constraint_specification_full : konstraint option ref = ref None
 let constraint_configuration_full : (konstraint list) ref = ref []
 
 let constraint_optimization_function : optimization_function option ref = ref None
+
+let get_constraint_optimization_function () = match !constraint_optimization_function with None -> Data_constraint.Lexicographic [] | Some(f) -> f
+
+let get_constraint_flat_universe () = [
+    ("  require  " , (Data_constraint.conj(!constraint_universe_component_type_require)));
+    ("  provide  " , (Data_constraint.conj(!constraint_universe_component_type_provide)));
+    ("  conflict " , (Data_constraint.conj(!constraint_universe_component_type_conflict)));
+    ("  unicity  " , (Data_constraint.conj(!constraint_universe_binding_unicity))) ]
+
+let get_constraint_universe () = (get_constraint_flat_universe ()) @ [
+    ("  implem   " , (Data_constraint.conj(!constraint_universe_component_type_implementation)));
+    ("  distrib1 " , (Data_constraint.conj(!constraint_universe_location_component_type)));
+    ("  distrib2 " , (Data_constraint.conj(!constraint_universe_location_package)));
+    ("  distrib3 " , (Data_constraint.conj(!constraint_universe_location_port)));
+    ("  port_cal " , (Data_constraint.conj(!constraint_universe_definition_port)));
+    ("  repo_1   " , (Data_constraint.conj(!constraint_universe_repository_unicity)));
+    ("  repo_pac " , (Data_constraint.conj(!constraint_universe_repository_package)));
+    ("  pack_dep " , (Data_constraint.conj(!constraint_universe_package_dependency)));
+    ("  pack_pb  " , (Data_constraint.conj(!constraint_universe_package_conflict)));
+    ("  resource " , (Data_constraint.conj(!constraint_universe_resource_consumption)));
+    ("  delete   " , (Data_constraint.conj(!constraint_universe_deprecated_element)));
+    ("  used_loc " , (Data_constraint.conj(!constraint_universe_used_locations))) ]
+
+let get_constraint_specification () = [
+    ("  specification constraint" , match !constraint_specification_full with None -> Data_constraint.true_konstraint | Some(k) -> k) ]
+let get_constraint_configuration () = [
+    ("  configuration " , ((Data_constraint.conj(!constraint_configuration_full)))) ]
+
+let get_constraint_full () = (get_constraint_universe ()) @ (get_constraint_specification ()) @ (get_constraint_configuration ())
+
 let constraint_variable_bounds       : variable_bounds option ref = ref None
+
+
+
+(*******************************************)
+(** 6. Very Simple Bounds Definition       *)
+(*******************************************)
+
+let basic_bounds_function v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
+   match v with
+  | Simple_variable         _ -> Bound.big
+  | Global_variable         _ -> Bound.big
+  | Local_variable     (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
+  | Binding_variable        _ -> Bound.big
+  | Local_repository_variable _ -> Bound.small
+  | Local_resource_variable   _ -> Bound.big
+  | Location_used_variable    _ -> Bound.small
+
+let get_variable_bounds () = match !constraint_variable_bounds with None -> basic_bounds_function | Some(b) -> b
+
 
 (* let constraint_bin_packing           : konstraintbin_packing option ref = ref None *)
 (*

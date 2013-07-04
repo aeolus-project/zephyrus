@@ -396,7 +396,24 @@ let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
 
 (* set the optimization function in Data_state *)
 
-let optimization_function () = match !Data_state.optimization_function with
+let optimization_function u c f =
+  let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) =
+    (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
+  match f with
+  | Data_model.Optimization_function_simple       -> Minimize (sum (cost_all_components u_dt))
+  | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk get_location_cost
+  | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
+  | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
+  | Data_model.Optimization_function_none         -> Lexicographic([])
+
+
+let optimization_function_full () = match !Data_state.optimization_function with
+  | None -> () | Some(f) -> match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+    | (Some(u), Some(c)) -> Data_state.constraint_optimization_function := Some(optimization_function u c f)
+    | _ -> ()
+
+(*
+let optimization_function_full () = match !Data_state.optimization_function with
   | None -> () | Some(o) -> match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
     | (Some(u), Some(c)) -> (let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) = (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
       Data_state.constraint_optimization_function := Some(match o with
@@ -406,27 +423,10 @@ let optimization_function () = match !Data_state.optimization_function with
       | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
       | Data_model.Optimization_function_none         -> Lexicographic([])))
     | _ -> ()
+*)
 
 
 
-
-
-
-(*******************************************)
-(** 6. Very Simple Bounds Definition       *)
-(*******************************************)
-
-let basic_bounds_function v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
-   match v with
-  | Simple_variable         _ -> Bound.big
-  | Global_variable         _ -> Bound.big
-  | Local_variable     (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
-  | Binding_variable        _ -> Bound.big
-  | Local_repository_variable _ -> Bound.small
-  | Local_resource_variable   _ -> Bound.big
-  | Location_used_variable    _ -> Bound.small
-
-let basic_bounds () = Data_state.constraint_variable_bounds := Some(basic_bounds_function)
 
   (* Optimization function *)
 

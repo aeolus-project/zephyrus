@@ -56,101 +56,49 @@ let () =
   let c = check_option "configuration"         !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
+  let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
+  let main_solver = Solvers.of_settings Solvers.Main in
   Zephyrus_log.log_data "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string c u r));
   Zephyrus_log.log_data "\n\n\n     ==> SPECIFICATION <==      \n\n" (lazy (String_of.specification s));
   Zephyrus_log.log_data "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n" (lazy (String_of.model_optimization_function f));
 
 (* === Perform the trimming === *)
-  Printf.printf "\nTrimming component types...%!";
+  Zephyrus_log.log_execution "\nTrimming component types...";
   let universe_trimmed_component_types = Trim.trim_component_types u c s in
-  Printf.printf "\nComponent types trimmed!%!";
+  Zephyrus_log.log_execution " ok";
   (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
-  Printf.printf "\nTrimming repositories...%!";
+  Zephyrus_log.log_execution "\nTrimming repositories...";
   let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
-  Printf.printf "\nRepositories trimmed!%!";
+  Zephyrus_log.log_execution " ok";
   Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
   Data_state.universe_full := Some(universe_trimmed_package);
   let u = universe_trimmed_package in
 
   let cat = Location_categories.full_categories r u c in
   Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
-  Constraint_of.basic_bounds (); (* TODO: replace this with a call to flat universe, i.e. engine/preprocess/variable_bounds *)
-  let solver_settings = {
-    Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
-    Solvers.input_file            = "zephyrus-fit-loc-.mzn";
-    Solvers.output_file           = "zephyrus-fit-loc-.sol";
-    Solvers.keep_input_file       = false;
-    Solvers.keep_output_file      = false  
-  } in (match Location_bound.fit_categories (Solvers.GeCode.solve solver_settings) (r#resource_ids,u,c,s) cat with
-      | None -> print_string "\n\n\n     ==> NEW CATEGORIES <==  \n While computing, we discuvered that there was no solution\n"
-      | Some(cat') -> print_string "\n\n\n     ==> NEW CATEGORIES <==  \n\n";
-    print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat'))) ^ " ]"));
+  let cat' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat with
+      | None -> Location_categories.empty
+      | Some(cat') -> cat' in
+  Zephyrus_log.log_data "\n\n\n     ==> NEW CATEGORIES <==  \n" (lazy (String_of.location_categories cat'));
   
   Zephyrus_log.log_stage_end ();
   Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
+
   Constraint_of.universe_full ();
   Constraint_of.specification_full ();
   Constraint_of.configuration_full ();
-  Constraint_of.optimization_function ();
-  Constraint_of.basic_bounds ();
+  Constraint_of.optimization_function_full ();
   Location_categories.generate_categories ();
-  let c = Location_categories.generate_constraint () in
-  print_string "\n        ==> UNIVERSE <==        \n\n";
-  print_string ("  require  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_require))) ^ "\n");
-  print_string ("  provide  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_provide))) ^ "\n");
-  print_string ("  conflict = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_conflict))) ^ "\n");
-  print_string ("  implem   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_component_type_implementation))) ^ "\n");
-  print_string ("  unicity  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_binding_unicity))) ^ "\n");
-  print_string ("  distrib1 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_component_type))) ^ "\n");
-  print_string ("  distrib2 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_package))) ^ "\n");
-  print_string ("  distrib3 = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_location_port))) ^ "\n");
-  print_string ("  port_cal = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_definition_port))) ^ "\n");
-  print_string ("  repo_1   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_repository_unicity))) ^ "\n");
-  print_string ("  repo_pac = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_repository_package))) ^ "\n");
-  print_string ("  pack_dep = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_package_dependency))) ^ "\n");
-  print_string ("  pack_pb  = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_package_conflict))) ^ "\n");
-  print_string ("  resource = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption))) ^ "\n");
-  print_string ("  delete   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element))) ^ "\n");
-  print_string ("  used_loc = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_universe_used_locations))) ^ "\n");
-  print_string ("  spec     = " ^ (String_of.konstraint (check_option "specification constraint" !Data_state.constraint_specification_full)) ^ "\n");
-  print_string ("  config   = " ^ (String_of.konstraint (Data_constraint.conj(!Data_state.constraint_configuration_full))) ^ "\n");
-  print_string ("  category = " ^ (String_of.konstraint c) ^ "\n"); 
-(*
-let constraint_optimization_function : optimization_function option ref = ref None
-let constraint_variable_bounds       : variable_bounds option ref = ref None
- *) 
+  let cat_constraint = Location_categories.generate_constraint () in
 
+  Zephyrus_log.log_stage_end ();
+  Zephyrus_log.log_stage_new "SOLVING SECTION";
 
-  print_string "\n ===============================";
-  print_string "\n    ==> SOLVING SECTION <==  \n";
-  let solver_settings = {
-      Solvers.bounds                = check_option "variable bounds" !Data_state.constraint_variable_bounds;
-      Solvers.input_file            = "tests/minizinc/zephyrus-.mzn";
-      Solvers.output_file           = "tests/minizinc/zephyrus-.sol";
-      Solvers.keep_input_file       = true;
-      Solvers.keep_output_file      = true  
-    } in let solver_input = [
-    ("  require  " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_require)));
-    ("  provide  " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_provide)));
-    ("  conflict " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_conflict)));
-    ("  implem   " , (Data_constraint.conj(!Data_state.constraint_universe_component_type_implementation)));
-    ("  unicity  " , (Data_constraint.conj(!Data_state.constraint_universe_binding_unicity)));
-    ("  distrib1 " , (Data_constraint.conj(!Data_state.constraint_universe_location_component_type)));
-    ("  distrib2 " , (Data_constraint.conj(!Data_state.constraint_universe_location_package)));
-    ("  distrib3 " , (Data_constraint.conj(!Data_state.constraint_universe_location_port)));
-    ("  port_cal " , (Data_constraint.conj(!Data_state.constraint_universe_definition_port)));
-    ("  repo_1   " , (Data_constraint.conj(!Data_state.constraint_universe_repository_unicity)));
-    ("  repo_pac " , (Data_constraint.conj(!Data_state.constraint_universe_repository_package)));
-    ("  pack_dep " , (Data_constraint.conj(!Data_state.constraint_universe_package_dependency)));
-    ("  pack_pb  " , (Data_constraint.conj(!Data_state.constraint_universe_package_conflict)));
-    ("  resource " , (Data_constraint.conj(!Data_state.constraint_universe_resource_consumption)));
-    ("  delete   " , (Data_constraint.conj(!Data_state.constraint_universe_deprecated_element)));
-    ("  used_loc " , (Data_constraint.conj(!Data_state.constraint_universe_used_locations)));
-    ("  specification constraint" , ((check_option "specification constraint" !Data_state.constraint_specification_full)));
-    ("  configuration " , ((Data_constraint.conj(!Data_state.constraint_configuration_full))));
-    ("  category " , c) ] in
-  let opt_f = check_option "optimization function constraint" !Data_state.constraint_optimization_function in
-  match Solvers.GeCode.solve solver_settings solver_input opt_f with
+  let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full ()) in
+  Zephyrus_log.log_data "All constraints" (lazy (String_of.described_konstraint_list solver_input_k));
+  let solver_input_f = Data_state.get_constraint_optimization_function () in
+  Zephyrus_log.log_data "Optimization function" (lazy (String_of.constraint_optimization_function solver_input_f));
+  match main_solver solver_input_k solver_input_f with
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
     Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));

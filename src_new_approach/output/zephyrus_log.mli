@@ -30,6 +30,8 @@ val log_stage_end : unit -> unit
 val log_panic : string -> 'a
 val log_missing_data : string -> string -> string -> 'a
 
+val log_execution : string -> unit
+
 (* setting logging *)
 val log_input_settings_unknown_setting : string -> unit
 val log_input_settings_wrong_value : string -> unit

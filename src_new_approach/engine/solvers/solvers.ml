@@ -32,12 +32,12 @@ type solver_settings = {
   keep_output_file      : bool;  
 }
 
+type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t_full = solver_settings -> t
+      
 
 module type SOLVER = sig
-  val solve : solver_settings ->
-      (string * Data_constraint.konstraint) list ->
-      Data_constraint.optimization_function ->
-      (Data_constraint.solution * (int list)) option (* It returns the solution and its cost. *)
+  val solve : t_full (* It returns the solution and its cost. *)
 end
 
 
@@ -135,5 +135,24 @@ module GeCode : SOLVER = struct
     solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
+(* Annex functions *)
+type settings_kind = Preprocess | Main
 
+let settings_of_settings kind =
+  let ((in_file, in_keep), (out_file, out_keep)) = match kind with
+    | Preprocess -> Settings.get_preprocess_file_informations ()
+    | Main -> Settings.get_main_file_informations () in {
+  bounds            = Data_state.get_variable_bounds ();
+  input_file        = in_file;
+  output_file       = out_file;
+  keep_input_file   = in_keep;
+  keep_output_file  = out_keep
+}
+
+let full_of_settings kind = match (match kind with Preprocess -> Settings.get_constraint_preprocess_solver () | Main -> Settings.get_constraint_main_solver ()) with
+  | Settings.Solver_gcode  -> GeCode.solve
+  | Settings.Solver_g12    -> G12.solve
+  | Settings.Solver_facile -> GeCode.solve (* default *)
+  | Settings.Solver_none   -> GeCode.solve (* default *)
+let of_settings kind = (full_of_settings kind) (settings_of_settings kind)
 
