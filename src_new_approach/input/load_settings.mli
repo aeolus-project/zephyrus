@@ -25,4 +25,4 @@
  - input/Setgings_lexer
 *)
 
-val load_settings : unit -> unit
+val load : unit -> unit

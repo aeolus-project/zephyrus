@@ -48,13 +48,15 @@ let log_stage_end () =  if Settings.get_bool_basic Settings.verbose_stage then
 (* setting logging *)
 let log_input_settings_unknown_setting str = Printf.printf "Error in settings: the setting \"%s\" is unknown. Skiping its definition\n" str
 let log_input_settings_wrong_value str = Printf.printf "Error in settings: the key \"%s\" has an unexpected value. Skipping its definition\n" str
+let log_settings str = if Settings.get_bool_basic Settings.verbose_settings_data then Printf.printf "\nSETTINGS:\n\n%s\n" str
 
 
 (* loading logging *)
 let log_input_file_error filename str = Printf.printf "Error: file \"%s\" => %s" filename str
-let log_setting_not_set str = if Settings.get_bool_basic Settings.verbose_settings_non_set then Printf.printf "Warning: the %s is not set" str else ()
-let log_common str  = Printf.printf "Normal:  %s"  str
+let log_setting_not_set str = if Settings.get_bool_basic Settings.verbose_settings_non_set then Printf.printf "Warning: the %s is not set" str
 
+let log_universe_full desc str = if Settings.get_bool_basic Settings.verbose_data_full then Output_helper.print out_channel (desc ^ (Lazy.force str))
+let log_data desc str = if Settings.get_bool_basic Settings.verbose_data then Output_helper.print out_channel (desc ^ (Lazy.force str))
 
 (* translation into constraint logging *)
 let log_constraint_execution str = if Settings.get_bool_basic Settings.verbose_constraint then Output_helper.print out_channel str

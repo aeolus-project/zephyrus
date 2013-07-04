@@ -726,7 +726,59 @@ let convert_optimization_function o = match o with
 
 (* functions to load the Json encoding of each structure *)
 (*   - universe *)
-let load_universe () = if Settings.get_bool_basic Settings.data_generation_universe then Input_helper.parse_json Json_j.read_universe Settings.input_file_universe else None
+
+let load_basic_universe file      = Input_helper.parse_json Json_j.read_universe file
+let load_basic_repositories l     = List.fold_left (fun res (n,f) -> let r = Input_helper.parse_json Json_j.read_packages f in match r with None -> res
+      | Some(ks) -> { Json_j.repository_name = n; Json_j.repository_packages = ks }::res) [] l
+let load_basic_configuration file = Input_helper.parse_json Json_j.read_configuration file
+let load_basic_specification file = Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
+
+
+let load_catalog u rs c s        = new model_catalog_of_json_t_with_exceptions (new model_catalog_of_json_t u rs c s)
+let load_universe catalog rs u    = new convert_universe catalog rs u
+let load_configuration catalog c = new convert_configuration catalog c
+let load_specification           = convert_specification
+let load_optimization_function   = convert_optimization_function
+let load_resources model_catalog = object
+    method resource_names = model_catalog#resource#names
+    method resource_ids   = model_catalog#resource#ids
+    method get_name    id = try model_catalog#resource#name_of_id id with
+      Not_found -> Zephyrus_log.log_missing_data "resource id"   (String_of.resource_id id)     "universe"
+    method get_id    name = try model_catalog#resource#id_of_name name with
+      Not_found -> Zephyrus_log.log_missing_data "resource name" (String_of.resource_name name) "universe"
+  end
+
+
+let model_of_file_options file_u file_repos file_conf file_spec optim =
+  let u  = match file_u with None -> None | Some(file_u') -> load_basic_universe file_u' in
+  let rs = match file_repos with None -> [] | Some(file_repos') -> load_basic_repositories file_repos' in
+  let c  = match file_conf with None -> None | Some(file_conf') -> load_basic_configuration file_conf' in
+  let s  = match file_spec with None -> None | Some(file_spec') -> load_basic_specification file_spec' in
+  let f  = match optim with None -> None | Some(optim') -> Some(load_optimization_function optim') in
+  let catalog = load_catalog u rs c s in
+  let final_u = match u with None -> None | Some(u') -> Some(load_universe catalog rs u') in
+  let final_c = match c with None -> None | Some(c') -> Some(load_configuration catalog c') in
+  let final_s = match s with None -> None | Some(s') -> Some(load_specification catalog s') in
+  let resources = load_resources catalog in
+  (catalog, resources, final_u, final_c, final_s, f)
+
+let model_of_settings () = model_of_file_options
+    (Settings.get_input_file_universe ()) (Settings.get_input_file_repositories ()) (Settings.get_input_file_initial_configuration ())
+    (Settings.get_input_file_specification ()) (Settings.get_input_optimization_function ())
+
+let set_initial_model_of_settings () = let (catalog, resources, universe, initial_configuration, specification, f) = model_of_settings () in
+  Data_state.universe_full := universe;
+  Data_state.initial_configuration_full := initial_configuration;
+  Data_state.specification_full := specification;
+  Data_state.resources_full := Some(resources);
+  Data_state.optimization_function := f
+
+
+
+
+(*
+
+
 (*   - external repositories *)
 let load_repositories () = if Settings.get_bool_basic Settings.data_generation_repositories then List.fold_left
   (fun res (n,f) -> let r = Input_helper.parse_json Json_j.read_packages (ref (Some (f))) in match r with None -> res
@@ -780,6 +832,10 @@ let load_model () =
   (* 7. set all data in data_state *)
   Data_state.universe_full := universe;
   Data_state.initial_configuration_full := initial_configuration;
+
+
   Data_state.specification_full := specification;
   Data_state.resources_full := Some(resources);
   Data_state.optimization_function := optimization_function
+*)
+

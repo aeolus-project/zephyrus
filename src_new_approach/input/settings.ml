@@ -78,7 +78,8 @@ let input_file_initial_configuration : string option ref          = ref None (* 
 let input_file_specification         : string option ref          = ref None (* specification file *)
 let input_optimization_function      : optim option ref           = ref None (* Optimization function *)
 
-let input_file_settings              : string option ref          = ref None  (* NotUsedYet *)
+let input_file_settings              : string list ref          = ref []  (* NotUsedYet *)
+
 
 (* TODO: Add options for the syntax of files ? *)
 
@@ -90,6 +91,13 @@ let data_generation_repositories          : bool option ref = ref None
 let data_generation_initial_configuration : bool option ref = ref None
 let data_generation_specification         : bool option ref = ref None
 let data_generation_optimization_function : bool option ref = ref None
+
+let get_input_file_universe () = if !data_generation_universe = Some(false) then None else !input_file_universe
+let get_input_file_repositories () = if !data_generation_repositories = Some(false) then None else Some(!input_file_repositories)
+let get_input_file_initial_configuration () = if !data_generation_initial_configuration = Some(false) then None else !input_file_initial_configuration
+let get_input_file_specification () = if !data_generation_specification = Some(false) then None else !input_file_specification
+let get_input_optimization_function () = if !data_generation_optimization_function = Some(false) then None else !input_optimization_function
+
 
 let data_package_name_extended : bool option ref = ref None
 
@@ -166,6 +174,7 @@ let verbose_stage : bool option ref = ref None (* NotUsedYet *)
 let verbose_settings_check_warning : bool option ref = ref None
 let verbose_settings_check_error   : bool option ref = ref None
 let verbose_settings_non_set       : bool option ref = ref None
+let verbose_settings_data          : bool option ref = ref None
 
 (* 08.1. inputs *)
 
@@ -178,6 +187,10 @@ let verbose_input_universe_full         : bool option ref = ref None
 let verbose_input_initial_configuration : bool option ref = ref None
 let verbose_input_specification         : bool option ref = ref None
 let verbose_input_optimization_function : bool option ref = ref None
+
+let verbose_data              : bool option ref = ref None
+let verbose_data_full         : bool option ref = ref None
+
 
 let verbose_input_universe_check              : bool option ref = ref None
 let verbose_input_repositories_check          : bool option ref = ref None

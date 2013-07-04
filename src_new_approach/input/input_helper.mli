@@ -24,10 +24,10 @@
 *)
 
 
-val input_open : string option ref -> (string * in_channel) option
+val input_open : string -> (string * in_channel) option
 
-val parse_json : (Yojson.Safe.lexer_state -> Lexing.lexbuf -> 'a) -> string option ref -> 'a option
+val parse_json : (Yojson.Safe.lexer_state -> Lexing.lexbuf -> 'a) -> string -> 'a option
 
-val parse_standard : ((Lexing.lexbuf -> 'b) -> Lexing.lexbuf -> 'a) -> (Lexing.lexbuf -> 'b) -> string option ref -> 'a option
+val parse_standard : ((Lexing.lexbuf -> 'b) -> Lexing.lexbuf -> 'a) -> (Lexing.lexbuf -> 'b) -> string -> 'a option
 
 

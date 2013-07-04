@@ -42,68 +42,14 @@ let check_option desc o = match o with
   | Some(a) -> a
   | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
 
-let () = 
-  (* === Default settings === *)
-    Settings.input_file_universe                    := Some("./tests/u_1_new.json");
-    Settings.input_file_initial_configuration       := Some("./tests/ic_1.json");
-  (*  Settings.input_file_initial_configuration       := Some("./example-inputs/ic-ex-empty-20loc.json"); *)
-    Settings.input_file_specification               := Some("./tests/spec_1.spec");
-    Settings.input_optimization_function            := Some(Settings.Optim_simple);
-    Settings.data_generation_universe               := Some(true);
-    Settings.data_generation_repositories           := Some(true);
-    Settings.data_generation_initial_configuration  := Some(true);
-    Settings.data_generation_specification          := Some(true);
-    Settings.data_generation_optimization_function  := Some(true);
-    Settings.verbose_constraint_solver_activities   := Some(true)
-
 (* === Handling the arguments === *)
-
-(* Arg module settings *)
-let usage = 
-  Printf.sprintf
-    "usage: %s %s"
-    Sys.argv.(0)
-    "[-s settings-file]"
-
-let speclist = 
-  Arg.align [
-    (* Input arguments *)
-    ("-settings", Arg.String (fun filename -> Settings.input_file_settings := Some(filename)), " The settings file");
-  ]
-
-(* Read the arguments *)
-let () =
-  Arg.parse
-    speclist
-    (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-    usage
-
+let () = Load_settings.load ();
+  Zephyrus_log.log_settings (Settings.string_of_settings ())
 (* === Set up everything === *)
-
-(* Read the input. *)
-
-(* Read settings. *)
-
-let string_of_string_option_ref string_option_ref =
-  match !string_option_ref with
-  | None   -> "[unspecified]"
-  | Some s -> s
-
-let my_settings =
-  Printf.printf "Reading settings from file %s...\n" (string_of_string_option_ref Settings.input_file_settings);
-  flush stdout;
-  let settings_option =
-    parse_standard Settings_parser.main Settings_lexer.token Settings.input_file_settings
-  in
-  match settings_option with
-  | None -> Printf.printf "No settings were found!\n"
-  | Some settings -> 
-      Printf.printf "\nSETTINGS:\n\n%s\n" (Settings.string_of_settings ()); 
-      settings
 
 let () =
 (* === load everything  === *)
-  Load_model.load_model ();
+  Load_model.set_initial_model_of_settings ();
   print_string "\n ===============================";
   print_string "\n      ==> LOAD SECTION <==      \n";
   let r = check_option "resources"             !Data_state.resources_full in
@@ -111,40 +57,22 @@ let () =
   let c = check_option "configuration"         !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
-  print_string "\n        ==> UNIVERSE <==        \n\n";
-  (* print_string (Json_of.universe_string u r); *)
-  print_string "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n";
-  print_string (Json_of.configuration_string c u r);
-  print_string "\n\n\n     ==> SPECIFICATION <==      \n\n";
-  print_string (String_of.specification s);
-  print_string "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n";
-  print_string (String_of.model_optimization_function f);
-  
-  (* TODO *)
-  match !Data_state.universe_full with
-    | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"
-    | Some universe -> 
-      begin
-        match !Data_state.initial_configuration_full with
-        | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"
-        | Some initial_configuration -> 
-        begin
-          match !Data_state.specification_full with
-          | None -> Printf.printf "\nZephyrus is proud to announce you, that the specification does not exist!...\n"
-          | Some specification -> 
-              Printf.printf "\nTrimming component types...%!";
-              let universe_trimmed_component_types = Trim.trim_component_types universe                         initial_configuration specification in
-              Printf.printf "\nComponent types trimmed!%!";
-              (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
-              Printf.printf "\nTrimming repositories...%!";
-              let universe_trimmed_package         = Trim.trim_repositories    universe_trimmed_component_types initial_configuration specification in
-              Printf.printf "\nRepositories trimmed!%!";
-              Printf.printf "\n%s\n" (Json_of.universe_string universe_trimmed_package r);
-              Data_state.universe_full := Some(universe_trimmed_package)
-        end
-      end;
+  Zephyrus_log.log_data "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string c u r));
+  Zephyrus_log.log_data "\n\n\n     ==> SPECIFICATION <==      \n\n" (lazy (String_of.specification s));
+  Zephyrus_log.log_data "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n" (lazy (String_of.model_optimization_function f));
 
-  let u = check_option "universe"              !Data_state.universe_full in
+(* === Perform the trimming === *)
+  Printf.printf "\nTrimming component types...%!";
+  let universe_trimmed_component_types = Trim.trim_component_types u c s in
+  Printf.printf "\nComponent types trimmed!%!";
+  (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
+  Printf.printf "\nTrimming repositories...%!";
+  let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
+  Printf.printf "\nRepositories trimmed!%!";
+  Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
+  Data_state.universe_full := Some(universe_trimmed_package);
+  let u = universe_trimmed_package in
+
   let cat = Location_categories.full_categories r u c in
   print_string "\n\n\n     ==> CATEGORIES <==  \n\n";
   print_string ("[ " ^ (String.concat "; " (List.map (fun s -> String_of.resource_id_set s) (Location_id_set_set.elements cat))) ^ " ]");
