@@ -165,7 +165,7 @@ let generate_components
               in 
               object
                 method name     = component_name;
-(*                method id       = -1 (* TODO: to fix when we will add the new components to the catalog ... *) *)
+                method id       = -1 (* TODO: to fix when we will add the new components to the catalog ... *) 
                 method typ      = component_type_id;
                 method location = location_id;
               end) in

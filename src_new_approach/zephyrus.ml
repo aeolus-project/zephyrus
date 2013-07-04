@@ -71,7 +71,11 @@ let () =
   let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
   Zephyrus_log.log_execution " ok";
   Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
+
+  (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
   Data_state.universe_full := Some(universe_trimmed_package);
+
+
   let u = universe_trimmed_package in
 
   let cat = Location_categories.full_categories r u c in
@@ -80,7 +84,13 @@ let () =
       | None -> Location_categories.empty
       | Some(cat') -> cat' in
   Zephyrus_log.log_data "\n\n\n     ==> NEW CATEGORIES <==  \n" (lazy (String_of.location_categories cat'));
-  
+  Zephyrus_log.log_execution "\nTrimming configuration...";
+  let (core_conf, annex_conf) = Trim.configuration c (Location_categories.fold (fun s res -> Location_id_set.union s res) cat' Location_id_set.empty) in
+  Zephyrus_log.log_data "\n\n\n  ==> TRIMMED CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string core_conf u r));
+
+  (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
+  Data_state.initial_configuration_full := Some(core_conf);
+
   Zephyrus_log.log_stage_end ();
   Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
 

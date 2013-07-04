@@ -42,3 +42,4 @@ open Data_model
 val trim_component_types : universe -> configuration -> specification -> universe
 val trim_repositories    : universe -> configuration -> specification -> universe
  
+val configuration : configuration -> Location_id_set.t -> configuration * configuration

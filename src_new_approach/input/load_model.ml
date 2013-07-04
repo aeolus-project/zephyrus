@@ -589,6 +589,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
 
     new_component (object
       method name     = name
+      method id       = catalog#component#id_of_name name
       method typ      = typ
       method location = location 
     end) in

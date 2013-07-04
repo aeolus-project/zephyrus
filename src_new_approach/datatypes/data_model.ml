@@ -320,7 +320,7 @@ module Component_id_map_extract_key = Keys_of_MapInt
   (** Components *)
 class type component = object
   method name     : component_name
-(*  method id       : component_id *)
+  method id       : component_id 
   method typ      : component_type_id
   method location : location_id
 end
@@ -331,6 +331,8 @@ module Component = struct
 end 
 module Component_set = Set.Make(Component)
 module Component_map = Map.Make(Component)
+module Component_set_of_ids = Set.Convert(Component_id_set)(Component_set)
+module Id_set_of_components = Set.Convert(Component_set)(Component_id_set)
 
 (** Assertions:
     {ul

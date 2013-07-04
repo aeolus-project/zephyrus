@@ -459,3 +459,77 @@ let trim_repositories universe configuration specification =
   Printf.printf "\nUniverse trimming done!%!";
 
   trimmed_universe
+
+
+
+(*/************************************************************************\*)
+(*| 4. Configuration.                                                      |*)
+(*\************************************************************************/*)
+
+let transitive_closure_location_id_set c domain = (* TODO: maybe the initial fit of location categories should ensure that there was no broken links *)
+  let depends_on l_id =
+    let components = Component_set.filter (fun c -> c#location = l_id) c#get_components in
+    let component_ids = Id_set_of_components.convert (fun c -> c#id) components in
+    let component_ids' = Binding_set.fold (fun b res -> if Component_id_set.mem b#provider component_ids then Component_id_set.add b#requirer res else res)
+      c#get_bindings Component_id_set.empty in
+    let components' = Component_set_of_ids.convert (fun c_id -> c#get_component c_id) component_ids' in
+    Component_set.fold (fun c res -> Location_id_set.add c#location res) components' Location_id_set.empty in
+  Data_model.Location_id_set.fold (fun l_id res -> Location_id_set.union (depends_on l_id) res) domain domain
+
+let configuration c domain = 
+  let domain = transitive_closure_location_id_set c domain in
+  let locations_1 = Location_set.filter (fun l -> Location_id_set.mem l#id domain) c#get_locations in
+  let locations_2 = Location_set.diff c#get_locations locations_1 in
+  let location_ids_1 = domain in
+  let location_ids_2 = Location_id_set.diff c#get_location_ids location_ids_1 in
+  let components_1 = Component_set.filter (fun c -> Location_id_set.mem c#location domain) c#get_components in
+  let components_2 = Component_set.diff c#get_components components_1 in
+  let component_ids_1 = Component_id_set.filter (fun c_id -> Component_set.mem (c#get_component c_id) components_1) c#get_component_ids in
+  let component_ids_2 = Component_id_set.diff c#get_component_ids component_ids_1 in
+  let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) c#get_bindings in
+  let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) c#get_bindings in
+  let location_names_1 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_1 Location_name_set.empty in
+  let location_names_2 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_2 Location_name_set.empty in
+  let component_names_1 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_1 Component_name_set.empty in
+  let component_names_2 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_2 Component_name_set.empty in
+ ( object
+      method get_location   = c#get_location
+      method get_component  = c#get_component
+      method get_locations  = locations_1
+      method get_components = components_1
+      method get_bindings   = bindings_1
+      method get_location_ids  = location_ids_1
+      method get_component_ids = component_ids_1
+      method get_location_names  = location_names_1
+      method get_component_names = component_names_1
+      method c_l = location_ids_1
+      method c_c = component_ids_1
+      method c_type = c#c_type
+      method get_local_component = c#get_local_component
+      method get_local_package   = c#get_local_package
+      method get_location_id     = c#get_location_id
+      method get_component_id    = c#get_component_id
+      method get_location_name   = c#get_location_name
+      method get_component_name  = c#get_component_name
+    end , object
+      method get_location   = c#get_location
+      method get_component  = c#get_component
+      method get_locations  = locations_2
+      method get_components = components_2
+      method get_bindings   = bindings_2
+      method get_location_ids  = location_ids_2
+      method get_component_ids = component_ids_2
+      method get_location_names  = location_names_2
+      method get_component_names = component_names_2
+      method c_l = location_ids_2
+      method c_c = component_ids_2
+      method c_type = c#c_type
+      method get_local_component = c#get_local_component
+      method get_local_package   = c#get_local_package
+      method get_location_id     = c#get_location_id
+      method get_component_id    = c#get_component_id
+      method get_location_name   = c#get_location_name
+      method get_component_name  = c#get_component_name
+    end )
+
+
