@@ -208,16 +208,17 @@ module Catalog :
 
     (* A modifiable catalog with id <-> object mapping. *)
     class type obj_catalog_iface = object
-      method ids           : Id_set.t           (* All the ids. *)
-      method objs          : Obj_set.t          (* All the objs. *)
-      method obj_of_id     : id  -> obj         (* Mapping obj -> id. May throw Not_found exception. *)
-      method id_of_obj     : obj -> id          (* Mapping id -> obj. May throw Not_found exception. *)
-      method set_id_of_obj : obj -> id -> unit  (* Adds the obj to objs and makes it correspond to a given id   (only one way, we have obj -> id, but not id -> obj!). *)
-      method set_obj_of_id : id  -> obj -> unit (* Adds the id   to ids   and makes it correspond to a given obj (only one way, we have id -> obj, but not obj -> id!). *)
-      method get_or_add    : obj -> id          (* Get the id corresponding to a obj. If it does not exist, create a new fresh id for this obj, update the data structures and the return the id. *)
-      method add           : obj -> unit        (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
-      method id_to_obj_map : obj Id_map.t
-      method obj_to_id_map : id Obj_map.t
+      method ids             : Id_set.t           (* All the ids. *)
+      method objs            : Obj_set.t          (* All the objs. *)
+      method obj_of_id       : id  -> obj         (* Mapping obj -> id. May throw Not_found exception. *)
+      method id_of_obj       : obj -> id          (* Mapping id -> obj. May throw Not_found exception. *)
+      method set_id_of_obj   : obj -> id  -> unit (* Adds the obj to objs and makes it correspond to a given id   (only one way, we have obj -> id, but not id -> obj!). *)
+      method set_obj_of_id   : id  -> obj -> unit (* Adds the id   to ids   and makes it correspond to a given obj (only one way, we have id -> obj, but not obj -> id!). *)
+      method get_or_add      : obj -> id          (* Get the id corresponding to a obj. If it does not exist, create a new fresh id for this obj, update the data structures and the return the id. *)
+      method add             : obj -> unit        (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
+      method add_obj_with_id : obj -> id  -> unit (* As above, but use the given id no matter what. *)
+      method id_to_obj_map   : obj Id_map.t
+      method obj_to_id_map   : id Obj_map.t
     end
 
     (* Implementation of the catalog. *)
@@ -232,14 +233,14 @@ module Catalog :
 
     (* A modifiable catalog with name <-> id mapping. *)
     class type catalog_iface = object
-      method ids            : Id_set.t           (* All the ids. *)
-      method names          : Obj_set.t          (* All the names. *)
-      method name_of_id     : id   -> name       (* Mapping name -> id. May throw Not_found exception. *)
-      method id_of_name     : name -> id         (* Mapping id -> name. May throw Not_found exception. *)
-      method set_id_of_name : name -> id -> unit (* Adds the name to names and makes it correspond to a given id   (only one way, we have name -> id, but not id -> name!). *)
-      method set_name_of_id : id -> name -> unit (* Adds the id   to ids   and makes it correspond to a given name (only one way, we have id -> name, but not name -> id!). *)
-      method get_or_add     : name -> id         (* Get the id corresponding to a name. If it does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
-      method add            : name -> unit       (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
+      method ids             : Id_set.t           (* All the ids. *)
+      method names           : Obj_set.t          (* All the names. *)
+      method name_of_id      : id   -> name       (* Mapping name -> id. May throw Not_found exception. *)
+      method id_of_name      : name -> id         (* Mapping id -> name. May throw Not_found exception. *)
+      method set_id_of_name  : name -> id -> unit (* Adds the name to names and makes it correspond to a given id   (only one way, we have name -> id, but not id -> name!). *)
+      method set_name_of_id  : id -> name -> unit (* Adds the id   to ids   and makes it correspond to a given name (only one way, we have id -> name, but not name -> id!). *)
+      method get_or_add      : name -> id         (* Get the id corresponding to a name. If it does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
+      method add             : name -> unit       (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
     end
 
     (* Implementation of the catalog. *)

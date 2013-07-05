@@ -264,8 +264,8 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   
   (* store the component type in parameter *)
   let new_component_type t =                
-    let id = catalog#component_type#id_of_name t#name in 
-    component_type#set_obj_of_id id t in
+    let id = catalog#component_type#id_of_name t#name in
+    component_type#add_obj_with_id t id in
 
 
   (* packages *)
@@ -275,7 +275,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   (* store the package *)
   let new_package r k = 
     let id = catalog#package#id_of_name (r, k#name) in 
-    package#set_obj_of_id id k;
+    package#add_obj_with_id k id;
     package_id_to_repo_id_map := Package_id_map.add id r !package_id_to_repo_id_map;
     (id, k) in (* <- this pair looks strange: LOOK INTO THIS *)
 
@@ -286,7 +286,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   (* store the repository *)
   let new_repository r =
     let id = catalog#repository#id_of_name r#name in
-    repository#set_obj_of_id id r in
+    repository#add_obj_with_id r id in
 
   (* annex function, for the implementation relation *)
   let find_repository r = 
@@ -522,7 +522,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   (* create all the structure to store the new location l *)
   let new_location (l : location) =  
     let id = catalog#location#id_of_name l#name in 
-    location#set_obj_of_id id l in
+    location#add_obj_with_id l id in
 
   (* annex function, used for components *)
   let find_location l = 
@@ -535,7 +535,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   (* create all the structure to store the new component c *)
   let new_component c =
     let id = catalog#component#id_of_name c#name in
-    component#set_obj_of_id id c in
+    component#add_obj_with_id c id in
 
   (* annex function, used for the bindings *)
   let find_component c = 
