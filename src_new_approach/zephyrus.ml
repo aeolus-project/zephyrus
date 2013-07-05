@@ -87,7 +87,9 @@ let () =
   Zephyrus_log.log_execution "\nTrimming configuration...";
   let (core_conf, annex_conf) = Trim.configuration c (Location_categories.fold (fun s res -> Location_id_set.union s res) cat' Location_id_set.empty) in
   Zephyrus_log.log_data "\n\n\n  ==> TRIMMED CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string core_conf u r));
-
+  Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
+  Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r);
+  print_string ("annex   configuration = " ^ (Json_of.configuration_string annex_conf u r) ^ "\n");
   (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
   Data_state.initial_configuration_full := Some(core_conf);
 
@@ -113,6 +115,12 @@ let () =
   | Some(solution) -> (
     Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
 
+    let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
+    let final_configuration = Configuration_of.merge annex_conf partial_final_configuration in
+    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r);
+    Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration u r);
+
+(*
     let final_configuration = 
       let solution = fst solution in
       match !Data_state.universe_full with
@@ -130,7 +138,7 @@ let () =
               end;
               Some(final_configuration)
         end
-  in
+  in*)
 
   print_string "\n\n\n <==========> THE END <==========>  \n\n")
 

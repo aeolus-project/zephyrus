@@ -476,7 +476,8 @@ let transitive_closure_location_id_set c domain = (* TODO: maybe the initial fit
     Component_set.fold (fun c res -> Location_id_set.add c#location res) components' Location_id_set.empty in
   Data_model.Location_id_set.fold (fun l_id res -> Location_id_set.union (depends_on l_id) res) domain domain
 
-let configuration c domain = 
+let configuration c domain =
+  let get_location = c#get_location in
   let domain = transitive_closure_location_id_set c domain in
   let locations_1 = Location_set.filter (fun l -> Location_id_set.mem l#id domain) c#get_locations in
   let locations_2 = Location_set.diff c#get_locations locations_1 in
@@ -492,8 +493,9 @@ let configuration c domain =
   let location_names_2 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_2 Location_name_set.empty in
   let component_names_1 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_1 Component_name_set.empty in
   let component_names_2 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_2 Component_name_set.empty in
+  print_string ("annex conf location domain = " ^ (String_of.location_id_set location_ids_2) ^ "\n");
  ( object
-      method get_location   = c#get_location
+      method get_location   = get_location
       method get_component  = c#get_component
       method get_locations  = locations_1
       method get_components = components_1

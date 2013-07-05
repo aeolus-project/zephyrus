@@ -390,3 +390,39 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     method get_location_name  = location_name_of_id
     method get_component_name = component_name_of_id
   end
+
+(*/************************************************************************\*)
+(*| 4. Merge.                                                              |*)
+(*\************************************************************************/*)
+
+let merge c1 c2 = object(self)
+ (* we suppose that
+   - the two configurations are totally disjoints (which is the case when we merge the annex part of the configuration with the partial solution)
+   - except for mappings, where it is tolerated if the two mappings have the same image on the common domain *)
+    method get_location l_id  = try c1#get_location l_id with Failure _ -> c2#get_location l_id
+    method get_component c_id = try c1#get_component c_id with Failure _ -> c2#get_component c_id
+    method get_locations  = Location_set.union c1#get_locations c2#get_locations
+    method get_components = Component_set.union c1#get_components c2#get_components
+    method get_bindings   = Binding_set.union c1#get_bindings c2#get_bindings
+
+    method get_location_ids  = Location_id_set.union c1#get_location_ids c2#get_location_ids
+    method get_component_ids = Component_id_set.union c1#get_component_ids c2#get_component_ids
+
+    method get_location_names  = Location_name_set.union c1#get_location_names c2#get_location_names
+    method get_component_names = Component_name_set.union c1#get_component_names c2#get_component_names
+
+    method c_l      = self#get_location_ids
+    method c_c      = self#get_component_ids
+    method c_type c = (self#get_component c)#typ
+
+    method get_local_component l c = try c1#get_local_component l c with Failure _ -> c2#get_local_component l c
+    method get_local_package   l k = try c1#get_local_package l k with Failure _ -> c2#get_local_package l k
+
+    method get_location_id  l = try c1#get_location_id l with Failure _ -> c2#get_location_id l
+    method get_component_id c = try c1#get_component_id c with Failure _ -> c2#get_component_id c
+
+    method get_location_name  l = try c1#get_location_name l with Failure _ -> c2#get_location_name l
+    method get_component_name c = try c1#get_component_name c with Failure _ -> c2#get_component_name c
+ end
+
+
