@@ -120,6 +120,7 @@ let () =
     Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r);
     Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration u r);
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
+    Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);
 
 (*
     let final_configuration = 
