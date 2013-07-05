@@ -153,26 +153,77 @@ end
 (*| 2. Unique identifier management                                        |*)
 (*\************************************************************************/*)
 
+(* Modules for used tokens (names, ids, etc.) management. *)
+module type Used_tokens_type =
+sig
+  type t
+  type token
+  val empty : t
+  val mem   : token -> t -> bool
+  val add   : token -> t -> unit
+end
+
+module Used_tokens_set =
+functor (Token_set : Set.S) ->
+struct
+  type t     = Token_set.t ref
+  type token = Token_set.elt
+  let empty                 = ref Token_set.empty
+  let mem token used_tokens = Token_set.mem token !used_tokens
+  let add token used_tokens = used_tokens := Token_set.add token !used_tokens
+end
+
+module Used_tokens_string : Used_tokens_type with type token = string = Used_tokens_set(SetString)
+module Used_tokens_int    : Used_tokens_type with type token = int    = Used_tokens_set(SetInt)
+
 (* Modules for unique identifier creation *)
 module type Fresh =
 sig
   type t
   type id
-  val create  : unit -> t
-  val current : t -> id
-  val next    : t -> id
+  val create    : unit -> t
+  val current   : t -> id
+  val next      : t -> id
+  val is_used   : t -> id -> bool
+  val mark_used : t -> id -> unit
 end
 
 module Fresh_integer : Fresh with type id = int =
 struct
-  type t = int ref
+
+  type t_record = { 
+    current : int;
+    used    : Used_tokens_int.t;
+  }
+
+  type t = t_record ref
+
   type id = int
-  let create () = ref 0
-  let current t = !t
-  let next t =
-    let value = !t in
-    t := !t + 1;
-    value
+
+  let create () = ref {
+    current = 0;
+    used    = Used_tokens_int.empty
+  }
+
+  let is_used t id =
+    Used_tokens_int.mem id (!t).used
+
+  let mark_used t id =
+    Used_tokens_int.add id (!t).used
+
+  let current t = (!t).current
+
+  let rec next (t : t) : id =
+    let value      = current t in
+    let next_value = value + 1 in
+    t := {
+      current = next_value;
+      used    = (!t).used;
+    };
+    if   is_used t value
+    then next t
+    else (mark_used t value; value)
+
 end
 
 (* Unique identifiers plus special identifier requests *)
@@ -244,10 +295,13 @@ module Catalog =
       let obj_to_id_map : (id Obj_map.t) ref = ref Obj_map.empty in  (* Mapping obj -> id *)
       let id_to_obj_map : (obj Id_map.t) ref = ref Id_map.empty  in  (* Mapping id -> obj *)
     
-      (* Mapping functions. *)
+      (* For unique identifier creation. *)
+      let current_id = Fresh_id.create () in
+      
+      (* Mapping functions. May throw Not_found exception. *)
       let id_of_obj (obj : obj) : id  = Obj_map.find obj !obj_to_id_map in
       let obj_of_id (id  : id)  : obj = Id_map .find id  !id_to_obj_map in
-
+      
       (* Add the obj to objs and make it correspond to a given id (obj -> id). *)
       let set_id_of_obj obj id =
         objs          := Obj_set.add obj    (!objs);
@@ -256,7 +310,8 @@ module Catalog =
       (* Add the id to ids and make it correspond to a given obj (id -> obj). *)
       let set_obj_of_id id obj =
         ids           := Id_set.add id     (!ids);
-        id_to_obj_map := Id_map.add id obj (!id_to_obj_map) in
+        id_to_obj_map := Id_map.add id obj (!id_to_obj_map);
+        Fresh_id.mark_used current_id id in
           
       (* Adds new obj and id to appropriate sets 
          and add the relation id <-> obj to both maps. *)
@@ -264,8 +319,6 @@ module Catalog =
         set_id_of_obj obj id;
         set_obj_of_id id obj in
 
-      (* For unique identifier creation. *)
-      let current_id = Fresh_id.create () in
 
       (* Look for the obj in the maps, if it does not exist create it and give it a fresh id. *)
       let get_else_add obj = 

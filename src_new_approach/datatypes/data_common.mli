@@ -161,18 +161,32 @@ end
 (*| 2. Unique identifier management                                        |*)
 (*\************************************************************************/*)
 
+(* Modules for used tokens (names, ids, etc.) management. *)
+module type Used_tokens_type =
+sig
+  type t
+  type token
+  val empty : t
+  val mem   : token -> t -> bool
+  val add   : token -> t -> unit
+end
+
+module Used_tokens_string : Used_tokens_type with type token = string
+module Used_tokens_int    : Used_tokens_type with type token = int
+
 (* Modules for unique identifier creation *)
 module type Fresh =
 sig
   type t
   type id
-  val create  : unit -> t
-  val current : t -> id
-  val next    : t -> id
+  val create    : unit -> t
+  val current   : t -> id
+  val next      : t -> id
+  val is_used   : t -> id -> bool
+  val mark_used : t -> id -> unit
 end
 
 module Fresh_integer : Fresh with type id = int
-
 
 (* Unique identifiers plus special identifier requests *)
 module type Fresh_with_special =

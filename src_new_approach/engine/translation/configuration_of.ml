@@ -91,9 +91,10 @@ class extended_solution (solution : solution) : extended_solution_iface =
 
 
 (* Utility to generate fresh names for components. *)
-type used_names = Component_name_set.t
+module Used_names = Used_tokens_string
+type used_names = Used_names.t
 
-let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names ref) : component_name =
+let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names) : component_name =
 
   let build_component_name = 
     Printf.sprintf
@@ -104,18 +105,18 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   let i = ref 1 in
   let component_name = ref (build_component_name !i) in
-  while Component_name_set.mem !component_name !used_names do
+  while Used_names.mem !component_name used_names do
     i := !i + 1;
     component_name := build_component_name !i;
   done;
 
-  used_names := Component_name_set.add !component_name !used_names;
+  Used_names.add !component_name used_names;
   !component_name
 
 (* Intermediary type to represent a component which will be present in the final configuration. *)
 type almost_done_component =
   | ReusedComponent of component                     (* Either it is a component which was already present in the initial configuration. In this case he will have the same name as before. *)
-  | NewComponent    of (used_names ref -> component) (* Or it is a new component, it will need a new name, but in order to give him one we need to know all the component names which have been already used in the configuration. *)
+  | NewComponent    of (used_names -> component) (* Or it is a new component, it will need a new name, but in order to give him one we need to know all the component names which have been already used in the configuration. *)
 
 
 (* Generate the components which will be present in the final configuration. *)
@@ -159,7 +160,7 @@ let generate_components
           new_components := ReusedComponent(component_to_reuse) :: !new_components
         end else begin
           (* If we don't have any more initial components left we create new ones. *)
-          let new_component : (used_names ref -> component) =
+          let new_component : (used_names -> component) =
             (fun used_names -> 
               let component_name = fresh_component_name (location_name_of_id location_id) (component_type_name_of_id component_type_id) used_names
               in 
@@ -181,11 +182,13 @@ let generate_components
   (* We have prepared all the almost-done-components. Now we can extract all their names
      and we will have the initial set of names already used in the configuration
      (all coming from reused components, cause the new ones are unnamed for now). *)
-  let (used_names : used_names ref) = ref (Component_name_set.set_of_direct_list (
-    Output_helper.filter_map (function
+  let reused_component_names = Output_helper.filter_map (function
     | ReusedComponent component -> Some component#name
     | NewComponent    _         -> None
-    ) !almost_done_components)) in
+  ) !almost_done_components in
+
+  let (used_names : used_names) = Used_names.empty in 
+  List.iter (fun name -> Used_names.add name used_names) reused_component_names;
 
   (* Now we proceed to name the new components and make them "done" (in opposition to "almost-done"). 
      We pass the "used_names" around in order to do that: it is a reference and it will not only serve
