@@ -90,7 +90,7 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
   let add_repository r =
     let open Json_t in
     let r_name = convert_repository_name r.repository_name in (* name *)
-    let r_id   = repository#get_or_add r_name in              (* id *)
+    let r_id   = repository#get_else_add r_name in              (* id *)
     List.iter (add_package r_id r_name) r.repository_packages (* packages: add packages *)
   in
 
@@ -140,7 +140,7 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
     let open Json_t in
     location#add (convert_location_name l.location_name);                                                         (* name *)
     List.iter resource#add (List.map convert_resource_name (List.map fst l.location_provide_resources));          (* provide_resources *)
-    let r_id = repository#get_or_add (convert_repository_name l.location_repository) in                           (* repository id *) (* TODO: What if the repository does not exist in the universe? *)
+    let r_id = repository#get_else_add (convert_repository_name l.location_repository) in                           (* repository id *) (* TODO: What if the repository does not exist in the universe? *)
     List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name "") l.location_packages_installed) (* packages *)
   in
 
@@ -265,7 +265,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   (* store the component type in parameter *)
   let new_component_type t =                
     let id = catalog#component_type#id_of_name t#name in
-    component_type#add_obj_with_id t id in
+    component_type#add_id_obj_pair id t in
 
 
   (* packages *)
@@ -275,7 +275,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   (* store the package *)
   let new_package r k = 
     let id = catalog#package#id_of_name (r, k#name) in 
-    package#add_obj_with_id k id;
+    package#add_id_obj_pair id k;
     package_id_to_repo_id_map := Package_id_map.add id r !package_id_to_repo_id_map;
     (id, k) in (* <- this pair looks strange: LOOK INTO THIS *)
 
@@ -286,7 +286,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   (* store the repository *)
   let new_repository r =
     let id = catalog#repository#id_of_name r#name in
-    repository#add_obj_with_id r id in
+    repository#add_id_obj_pair id r in
 
   (* annex function, for the implementation relation *)
   let find_repository r = 
@@ -522,7 +522,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   (* create all the structure to store the new location l *)
   let new_location (l : location) =  
     let id = catalog#location#id_of_name l#name in 
-    location#add_obj_with_id l id in
+    location#add_id_obj_pair id l in
 
   (* annex function, used for components *)
   let find_location l = 
@@ -535,7 +535,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   (* create all the structure to store the new component c *)
   let new_component c =
     let id = catalog#component#id_of_name c#name in
-    component#add_obj_with_id c id in
+    component#add_id_obj_pair id c in
 
   (* annex function, used for the bindings *)
   let find_component c = 

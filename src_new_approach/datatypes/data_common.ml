@@ -219,17 +219,20 @@ module Catalog =
 
     (* A modifiable catalog with id <-> object mapping. *)
     class type obj_catalog_iface = object
+      (* Access *)
       method ids             : Id_set.t           (* All the ids. *)
-      method objs            : Obj_set.t          (* All the objs. *)
-      method obj_of_id       : id  -> obj         (* Mapping obj -> id. May throw Not_found exception. *)
-      method id_of_obj       : obj -> id          (* Mapping id -> obj. May throw Not_found exception. *)
-      method set_id_of_obj   : obj -> id  -> unit (* Adds the obj to objs and makes it correspond to a given id   (only one way, we have obj -> id, but not id -> obj!). *)
-      method set_obj_of_id   : id  -> obj -> unit (* Adds the id   to ids   and makes it correspond to a given obj (only one way, we have id -> obj, but not obj -> id!). *)
-      method get_or_add      : obj -> id          (* Get the id corresponding to a obj. If it does not exist, create a new fresh id for this obj, update the data structures and the return the id. *)
-      method add             : obj -> unit        (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
-      method add_obj_with_id : obj -> id  -> unit (* As above, but use the given id no matter what. *)
-      method id_to_obj_map   : obj Id_map.t
-      method obj_to_id_map   : id Obj_map.t
+      method objs            : Obj_set.t          (* All the objects. *)
+      method obj_of_id       : id  -> obj         (* Get the object corresponding to the given id. May throw Not_found exception. *)
+      method id_of_obj       : obj -> id          (* Get the id corresponding to the given object. May throw Not_found exception. *)
+      (* Modify *)
+      method get_else_add    : obj -> id          (* Get the id corresponding to the given object. If the object does not exist, create a new fresh id for this object, update the data structures and the return the id. *)
+      method add             : obj -> unit        (* If the object does not exist, create a new fresh id for this object and update the data structures. *)
+      method add_id_obj_pair : id  -> obj -> unit (* Update the data structures with the given (id, object) pair. *)
+      (* Lower level manipulation *)
+      method set_id_of_obj   : obj -> id  -> unit (* Adds the object to objs and makes it correspond to the given id     (only one way, we have obj -> id, but not id -> obj!). *)
+      method set_obj_of_id   : id  -> obj -> unit (* Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
+      method id_to_obj_map   : obj Id_map.t       (* Retrieve directly the id -> object map. *)
+      method obj_to_id_map   : id Obj_map.t       (* Retrieve directly the object -> id map. *)
     end
 
     (* Implementation of the catalog. *)
@@ -257,7 +260,7 @@ module Catalog =
           
       (* Adds new obj and id to appropriate sets 
          and add the relation id <-> obj to both maps. *)
-      let add_new_obj_id_pair obj id =
+      let add_new_id_obj_pair id obj =
         set_id_of_obj obj id;
         set_obj_of_id id obj in
 
@@ -265,82 +268,95 @@ module Catalog =
       let current_id = Fresh_id.create () in
 
       (* Look for the obj in the maps, if it does not exist create it and give it a fresh id. *)
-      let get_or_add obj = 
+      let get_else_add obj = 
         try id_of_obj obj
-        with Not_found -> let id = Fresh_id.next current_id in add_new_obj_id_pair obj id; id in
+        with Not_found -> let id = Fresh_id.next current_id in add_new_id_obj_pair id obj; id in
 
       (* As above, but don't return anything. *)
       let add obj =
-        let _ = get_or_add obj in () in
+        let _ = get_else_add obj in () in
 
       (* The object catalog: *)
       object
-        method ids             = !ids
-        method objs            = !objs
-        method id_of_obj       = id_of_obj
-        method obj_of_id       = obj_of_id
-        method set_id_of_obj   = set_id_of_obj
-        method set_obj_of_id   = set_obj_of_id
-        method get_or_add      = get_or_add
-        method add             = add
-        method add_obj_with_id = add_new_obj_id_pair
-        method id_to_obj_map   = !id_to_obj_map
-        method obj_to_id_map   = !obj_to_id_map
+        method ids             = !ids                
+        method objs            = !objs               
+        method id_of_obj       = id_of_obj           
+        method obj_of_id       = obj_of_id           
+        method get_else_add    = get_else_add        
+        method add             = add                 
+        method add_id_obj_pair = add_new_id_obj_pair 
+        method set_id_of_obj   = set_id_of_obj       
+        method set_obj_of_id   = set_obj_of_id       
+        method id_to_obj_map   = !id_to_obj_map      
+        method obj_to_id_map   = !obj_to_id_map      
       end
 
+    (* Create a new catalog by taking a set of objects and adding them all. *)
     let of_set_of_objs (objs : Obj_set.t) : obj_catalog_iface = 
       let catalog = new obj_catalog in
       Obj_set.iter catalog#add objs;
       catalog
 
+    (* Create a new catalog corresponding to a given id -> object map. *)
     let of_id_to_obj_map (id_to_obj_map : obj Id_map.t) : obj_catalog_iface =
       let catalog = new obj_catalog in
-      Id_map.iter (fun id obj ->
-        catalog#set_id_of_obj obj id;
-        catalog#set_obj_of_id id obj
-      ) id_to_obj_map;
+      Id_map.iter catalog#add_id_obj_pair id_to_obj_map;
       catalog
 
 
+
+    (* A catalog variation with just one purely syntactic difference - we have names not objects. *)
     type name = obj
 
     (* A modifiable catalog with name <-> id mapping. *)
     class type catalog_iface = object
-      method ids            : Id_set.t           (* All the ids. *)
-      method names          : Obj_set.t          (* All the names. *)
-      method name_of_id     : id   -> name       (* Mapping name -> id. May throw Not_found exception. *)
-      method id_of_name     : name -> id         (* Mapping id -> name. May throw Not_found exception. *)
-      method set_id_of_name : name -> id -> unit (* Adds the name to names and makes it correspond to a given id   (only one way, we have name -> id, but not id -> name!). *)
-      method set_name_of_id : id -> name -> unit (* Adds the id   to ids   and makes it correspond to a given name (only one way, we have id -> name, but not name -> id!). *)
-      method get_or_add     : name -> id         (* Get the id corresponding to a name. If it does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
-      method add            : name -> unit       (* As above, but do not return anything. Useful to avoid type warnings (when we discard the returned value). *)
+      (* Access *)
+      method ids              : Id_set.t           (* All the ids. *)
+      method names            : Obj_set.t          (* All the names. *)
+      method name_of_id       : id   -> name       (* Get the name corresponding to the given id. May throw Not_found exception. *)
+      method id_of_name       : name -> id         (* Get the id corresponding to the given name. May throw Not_found exception. *)
+      (* Modify *)
+      method get_else_add     : name -> id         (* Get the id corresponding to the given name. If the name does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
+      method add              : name -> unit       (* If the name does not exist, create a new fresh id for this name and update the data structures. *)
+      method add_id_name_pair : id -> name -> unit (* Update the data structures with the given (id, name) pair. *)
+      (* Lower level manipulation *)
+      method set_id_of_name   : name -> id -> unit (* Adds the name to names and makes it correspond to the given id     (only one way, we have name -> id, but not id -> name!). *)
+      method set_name_of_id   : id -> name -> unit (* Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
+      method id_to_name_map   : name Id_map.t      (* Retrieve directly the id -> object map. *)
+      method name_to_id_map   : id Obj_map.t       (* Retrieve directly the object -> id map. *)
     end
 
     let catalog_of_obj_catalog (obj_catalog : obj_catalog) : catalog_iface =
       (* The name catalog: *)
       object
-        method ids            = obj_catalog#ids
-        method names          = obj_catalog#objs
-        method id_of_name     = obj_catalog#id_of_obj
-        method name_of_id     = obj_catalog#obj_of_id
-        method set_id_of_name = obj_catalog#set_id_of_obj
-        method set_name_of_id = obj_catalog#set_obj_of_id
-        method get_or_add     = obj_catalog#get_or_add
-        method add            = obj_catalog#add
+        method ids              = obj_catalog#ids
+        method names            = obj_catalog#objs
+        method id_of_name       = obj_catalog#id_of_obj
+        method name_of_id       = obj_catalog#obj_of_id
+        method get_else_add     = obj_catalog#get_else_add
+        method add_id_name_pair = obj_catalog#add_id_obj_pair
+        method add              = obj_catalog#add
+        method set_id_of_name   = obj_catalog#set_id_of_obj
+        method set_name_of_id   = obj_catalog#set_obj_of_id
+        method id_to_name_map   = obj_catalog#id_to_obj_map
+        method name_to_id_map   = obj_catalog#obj_to_id_map
       end
 
     class catalog : catalog_iface = 
       let obj_catalog = new obj_catalog in 
-      (* The name catalog: *)
+      (* TODO: Why cannot we just write "catalog_of_obj_catalog obj_catalog" here?! *)
       object
-        method ids            = obj_catalog#ids
-        method names          = obj_catalog#objs
-        method id_of_name     = obj_catalog#id_of_obj
-        method name_of_id     = obj_catalog#obj_of_id
-        method set_id_of_name = obj_catalog#set_id_of_obj
-        method set_name_of_id = obj_catalog#set_obj_of_id
-        method get_or_add     = obj_catalog#get_or_add
-        method add            = obj_catalog#add
+        method ids              = obj_catalog#ids
+        method names            = obj_catalog#objs
+        method id_of_name       = obj_catalog#id_of_obj
+        method name_of_id       = obj_catalog#obj_of_id
+        method get_else_add     = obj_catalog#get_else_add
+        method add_id_name_pair = obj_catalog#add_id_obj_pair
+        method add              = obj_catalog#add
+        method set_id_of_name   = obj_catalog#set_id_of_obj
+        method set_name_of_id   = obj_catalog#set_obj_of_id
+        method id_to_name_map   = obj_catalog#id_to_obj_map
+        method name_to_id_map   = obj_catalog#obj_to_id_map
       end
 
     (* A closed catalog (closed means that it cannot be modified. *)
@@ -359,9 +375,11 @@ module Catalog =
       method id_of_name name = try catalog#id_of_name name with Not_found -> failwith (Printf.sprintf "%s#id_of_name %s" catalog_name (string_of_name name))
     end
     
+    (* Create a new catalog by taking a set of names and adding them all. *)
     let of_set_of_names (names : Obj_set.t) : catalog_iface = 
       catalog_of_obj_catalog (of_set_of_objs names)
 
+    (* Create a new catalog corresponding to a given id -> name map. *)
     let of_id_to_name_map (id_to_name_map : name Id_map.t) : catalog_iface =
       catalog_of_obj_catalog (of_id_to_obj_map id_to_name_map)      
 
