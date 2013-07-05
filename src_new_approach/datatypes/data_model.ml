@@ -134,7 +134,7 @@ module Component_type = struct
 end 
 module Component_type_set = Set.Make(Component_type) 
 module Component_type_map = Map.Make(Component_type)
-
+module Id_map_of_component_types = Map.Convert(Component_type_map)(Component_type_id_map)
 
   (** 2.2. Packages *)
 
@@ -461,6 +461,48 @@ type specification =
   | Spec_or of (specification * specification)
   | Spec_impl of (specification * specification)
   | Spec_not of specification
+
+let uv_empty = (Port_set.empty, Component_type_id_set.empty, Package_id_set.empty)
+let uv_union (s1,s2,s3) (s1',s2',s3') = (Port_set.union s1 s1', Component_type_id_set.union s2 s2', Package_id_set.union s3 s3')
+
+let uv_of_spec_local_element e = match e with 
+  | Spec_local_element_package       (k) -> (Port_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
+  | Spec_local_element_component_type(t) -> (Port_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
+  | Spec_local_element_port          (p) -> (Port_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
+let rec uv_of_spec_local_expr e = match e with
+  | Spec_local_expr_var   _ -> uv_empty
+  | Spec_local_expr_const _ -> uv_empty
+  | Spec_local_expr_arity e' -> uv_of_spec_local_element e'
+  | Spec_local_expr_add(e1,e2) -> uv_union (uv_of_spec_local_expr e1) (uv_of_spec_local_expr e2)
+  | Spec_local_expr_sub(e1,e2) -> uv_union (uv_of_spec_local_expr e1) (uv_of_spec_local_expr e2)
+  | Spec_local_expr_mul(c ,e') -> uv_of_spec_local_expr e'
+let rec uv_of_spec_local_specification ls = match ls with
+  | Spec_local_true -> uv_empty
+  | Spec_local_op(e1,_,e2) -> uv_union (uv_of_spec_local_expr e1) (uv_of_spec_local_expr e2)
+  | Spec_local_and (s1,s2) -> uv_union (uv_of_spec_local_specification s1) (uv_of_spec_local_specification s2)
+  | Spec_local_or  (s1,s2) -> uv_union (uv_of_spec_local_specification s1) (uv_of_spec_local_specification s2)
+  | Spec_local_impl(s1,s2) -> uv_union (uv_of_spec_local_specification s1) (uv_of_spec_local_specification s2)
+  | Spec_local_not (s')    -> uv_of_spec_local_specification s'
+
+let rec uv_of_spec_element e = match e with
+  | Spec_element_package       (k) -> (Port_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
+  | Spec_element_component_type(t) -> (Port_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
+  | Spec_element_port          (p) -> (Port_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
+  | Spec_element_location (_,_,ls) -> uv_of_spec_local_specification ls
+let rec uv_of_spec_expr e = match e with
+  | Spec_expr_var   _ -> uv_empty
+  | Spec_expr_const _ -> uv_empty
+  | Spec_expr_arity e' -> uv_of_spec_element e'
+  | Spec_expr_add(e1,e2) -> uv_union (uv_of_spec_expr e1) (uv_of_spec_expr e2)
+  | Spec_expr_sub(e1,e2) -> uv_union (uv_of_spec_expr e1) (uv_of_spec_expr e2)
+  | Spec_expr_mul(c ,e') -> uv_of_spec_expr e'
+let rec uv_of_specification s = match s with
+  | Spec_true -> uv_empty
+  | Spec_op(e1,_,e2) -> uv_union (uv_of_spec_expr e1) (uv_of_spec_expr e2)
+  | Spec_and (s1,s2) -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_or  (s1,s2) -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_impl(s1,s2) -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_not (s')    -> uv_of_specification s'
 
 
 (*/************************************************************************\*)

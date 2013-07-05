@@ -79,17 +79,30 @@ let () =
   let u = universe_trimmed_package in
 
   let cat = Location_categories.full_categories r u c in
-  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
-  let cat' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat with
+  Zephyrus_log.log_data "\n\n\n     ==> INITIAL CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
+  
+  let cat' = cat (* match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
+  | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
+  | Some(sol) -> let fu = Variable_bounds.create u in print_string "flat universe created";
+    Variable_bounds.add_bound_min_all sol fu; (* <- should fail, as the domain of universe is not set right *) print_string "my pont exactly";
+    Variable_bounds.propagate_lower_bound fu; Variable_bounds.propagate_conflicts fu; Variable_bounds.propagate_upper_bound fu;
+    Variable_bounds.finalize_bound_roots fu; Variable_bounds.minimize_upper_bound fu;
+    (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
+    Data_state.constraint_variable_bounds := Some(Variable_bounds.variable_bounds c#get_location fu);  
+    Variable_bounds.trim_categories cat fu *) in (* TODO: debug Graph operations. *)
+  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FIRST TRIM <==  \n\n" (lazy (String_of.location_categories cat'));
+    
+  let cat'' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat' with
       | None -> Location_categories.empty
       | Some(cat') -> cat' in
-  Zephyrus_log.log_data "\n\n\n     ==> NEW CATEGORIES <==  \n" (lazy (String_of.location_categories cat'));
+  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FULLY TRIMMED <==  \n" (lazy (String_of.location_categories cat'));
   Zephyrus_log.log_execution "\nTrimming configuration...";
-  let (core_conf, annex_conf) = Trim.configuration c (Location_categories.fold (fun s res -> Location_id_set.union s res) cat' Location_id_set.empty) in
+  let (core_conf, annex_conf) = Trim.configuration c (Location_categories.domain cat'') in
   Zephyrus_log.log_data "\n\n\n  ==> TRIMMED CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string core_conf u r));
   Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
   Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r);
   print_string ("annex   configuration = " ^ (Json_of.configuration_string annex_conf u r) ^ "\n");
+  
   (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
   Data_state.initial_configuration_full := Some(core_conf);
 

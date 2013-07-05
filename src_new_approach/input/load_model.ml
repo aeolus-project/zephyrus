@@ -183,7 +183,7 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
     method location       = location
     method component      = component
 
-    method to_string =
+    method to_string = (* TODO: Not safe, as when we remove names, String_of will use the catalog itself for printing ... *)
       let module Component_type_id_map_extract_key   = Component_type_id_map  .Set_of_keys(Component_type_id_set)   in
       let module Component_type_name_map_extract_key = Component_type_name_map.Set_of_keys(Component_type_name_set) in
       let module Extract_package_names = Data_common.Set.Convert(Repository_id_package_name_set)(Package_name_set) in

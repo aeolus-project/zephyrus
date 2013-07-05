@@ -35,7 +35,7 @@ module V_data : sig
   exception Invalid_operation
   
   val of_port : Data_model.port -> t
-  val of_component_type : Data_model.component_type -> t
+  val of_component_type : Data_model.component_type_id -> t
 
   val bound_combine : t -> Data_constraint.Bound.t -> unit
   val bound_add_min : t -> Data_constraint.Value.t -> unit
@@ -57,7 +57,7 @@ module V_data : sig
   val is_port            : t -> bool
   val is_component_type  : t -> bool
   val get_port           : t -> Data_model.port
-  val get_component_type : t -> Data_model.component_type
+  val get_component_type : t -> Data_model.component_type_id
 end
 
 type flat_universe
@@ -73,15 +73,18 @@ val vertices : flat_universe -> Graph.Vertice_set.t
 val edges    : flat_universe -> Graph.Edge_set.t
 
 
+val get_initial_mins : Solvers.t -> Data_model.universe -> Data_model.specification -> Data_model.Location_id_set.t -> Data_constraint.solution option
 
 (*/************************************************************************\*)
 (*| 3. Bounds Propagation Algorithms                                       |*)
 (*\************************************************************************/*)
 
+val add_bound_min_all : Data_constraint.solution -> flat_universe -> unit
+
 val add_bound_min_p : Data_model.port -> Data_constraint.Value.t -> flat_universe -> unit
 val add_bound_max_p : Data_model.port -> Data_constraint.Value.t -> flat_universe -> unit
-val add_bound_min_t : Data_model.component_type -> Data_constraint.Value.t -> flat_universe -> unit
-val add_bound_max_t : Data_model.component_type -> Data_constraint.Value.t -> flat_universe -> unit
+val add_bound_min_t : Data_model.component_type_id -> Data_constraint.Value.t -> flat_universe -> unit
+val add_bound_max_t : Data_model.component_type_id -> Data_constraint.Value.t -> flat_universe -> unit
 
 val propagate_lower_bound : flat_universe -> unit
 val propagate_conflicts   : flat_universe -> unit
@@ -94,7 +97,8 @@ val minimize_upper_bound  : flat_universe -> unit
 (*| 5. Bounds Function Definition                                          |*)
 (*\************************************************************************/*)
 
-val variable_bounds : (Data_model.component_type_id -> Data_model.component_type) ->
-                       (Data_model.location_id -> Data_model.location) -> Data_model.Location_id_set_set.t -> flat_universe -> (Data_constraint.variable -> Data_constraint.Bound.t)
+val trim_categories : Location_categories.t -> flat_universe -> Location_categories.t
+
+val variable_bounds : (Data_model.location_id -> Data_model.location) -> flat_universe -> (Data_constraint.variable -> Data_constraint.Bound.t)
 
 

@@ -196,6 +196,12 @@ let used_locations u_dt u_dk c_l =
 
 
 
+let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
+  ("location ports"          , Data_constraint.conj (location_port u_dp c_l));
+  ("location component types", Data_constraint.conj (location_component_type u_dt c_l));
+  ("location packages"       , Data_constraint.conj (location_package u_dk c_l));
+  ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) ]
+
 let universe resources locations universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ;
@@ -207,7 +213,7 @@ let universe resources locations universe = [ (* TODO: replace the references wi
     (Data_state.constraint_universe_location_port           , location_port universe#u_dp locations) ;
     (Data_state.constraint_universe_definition_port         , location_port_equation universe#u_dp locations universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_repository_unicity      , repository_unique locations universe#u_dr) ;
-    (Data_state.constraint_universe_repository_package      ,  repository_package locations universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ;
+    (Data_state.constraint_universe_repository_package      , repository_package locations universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ;
     (Data_state.constraint_universe_package_dependency      , package_dependency locations universe#u_dk universe#get_package) ;
     (Data_state.constraint_universe_package_conflict        , package_conflict locations universe#u_dk universe#get_package) ;
     (Data_state.constraint_universe_resource_consumption    , resource_consumption locations resources universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ;
@@ -238,6 +244,8 @@ let universe_full () =
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.resources_full) with
     | (Some(u), Some(c), Some(r)) -> f u c r
     | _ -> ()
+
+
 
 
 (*******************************************)

@@ -24,6 +24,10 @@
 
 open Data_constraint
 
+val location_all_variables : Data_model.Port_set.t -> Data_model.Component_type_id_set.t -> Data_model.Package_id_set.t ->
+    Data_model.Location_id_set.t -> (Data_model.port -> Data_model.Component_type_id_set.t) -> (Data_model.component_type_id -> Data_model.component_type) ->
+    (string * (konstraint)) list
+
 val universe      : Data_model.Resource_set.t -> Data_model.Location_id_set.t -> Data_model.universe -> ((konstraint list ref) * (konstraint list)) list
 val specification : Data_model.Location_id_set.t -> Data_model.specification -> ((konstraint option ref) * (konstraint)) list
 val locations     : Data_model.Resource_set.t -> Data_model.Location_set.t -> ((konstraint list ref) * (konstraint list)) list

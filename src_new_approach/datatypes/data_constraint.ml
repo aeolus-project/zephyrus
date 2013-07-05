@@ -272,6 +272,8 @@ type solution = {
   variable_values : variable -> int; (** solution of a constraint, can be implemented with a [Variable_map.t] *)
 }
 
+let is_empty sol = 
+  Variable_set.fold (fun v res -> if not res then (if (sol.variable_values v) != 0 then false else res) else res) sol.domain true
 
 (*
 let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
