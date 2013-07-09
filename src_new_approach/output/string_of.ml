@@ -33,6 +33,8 @@ let string_set_set s = "[ " ^ (String.concat "; " (List.map string_set (Data_com
 let int_set s =  int_list (Data_common.SetInt.elements s)
 let int_set_set s = "[ " ^ (String.concat "; " (List.map int_set (Data_common.SetSetInt.elements s))) ^ " ]"
 
+let string_map f m = string_list (List.map (fun (k,a) -> k ^ ": " ^ (f a)) (Data_common.MapString.bindings m))
+let int_map    f m = string_list (List.map (fun (k,a) -> (string_of_int k) ^ ": " ^ (f a)) (Data_common.MapInt.bindings m))
 
 (************************************)
 (** Model                           *)
@@ -250,6 +252,9 @@ let constraint_optimization_function f =
   | Data_constraint.Minimize e -> "Minimize " ^  (expression e)
   | Data_constraint.Maximize e -> "Maximize " ^  (expression e)
   | Data_constraint.Lexicographic l -> String.concat ("\n" ^ accu ^ "then ") (List.map (inner (accu ^ "  ")) l) in inner "  " f
+
+
+let bound b = "(" ^ (value (Data_constraint.Bound.min b))  ^ ", " ^ (value (Data_constraint.Bound.max b)) ^ ")"
 
 (************************************)
 (** Solution                        *)

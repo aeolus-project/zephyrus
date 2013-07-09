@@ -84,7 +84,7 @@ module MiniZinc_generic = struct
       let res = core_translation v_map settings.bounds c in
       Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy res.mzn_main_constraint); res
     ) else (
-      Zephyrus_log.log_solver_execution ("no\n");
+      Zephyrus_log.log_solver_execution (" no\n");
       Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n")
 
   let solve_step settings data f =
@@ -102,7 +102,7 @@ module MiniZinc_generic = struct
       match Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) with
       | None -> None
       | Some solution_tmp -> (
-(*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map int_of_string solution_tmp));*)
+(*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map string_of_int solution_tmp)); *)
         let cost = Name_map.find cost_variable_name solution_tmp in
         let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
             data.mzn_variables#variables Variable_map.empty in
@@ -118,9 +118,11 @@ module MiniZinc_generic = struct
   let postprocess data f cost = match f with
     | Data_constraint.Minimize(e) -> add_extra_constraint data e cost
     | Data_constraint.Maximize(e) -> add_extra_constraint data e cost
-    | _ -> data
+    | Data_constraint.Lexicographic([]) -> data
+    | _ -> raise Wrong_optimization_function
+(*    | _ -> data
     (* Kuba: Ad-hoc bug correction, I don't know if it's what should be done, but it works... *)
-    (* | _ -> raise Wrong_optimization_function *)
+    (* | _ -> raise Wrong_optimization_function *) *)
 end
 
 (* 3. Main Modules *)

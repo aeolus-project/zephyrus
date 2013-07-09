@@ -82,17 +82,34 @@ let () =
   let cat = Location_categories.full_categories r u c in
   Zephyrus_log.log_data "\n\n\n     ==> INITIAL CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
   
-  let cat' = ( cat ) (* match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
+  let cat' = (* cat *) ( match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
-  | Some(sol) -> let fu = Variable_bounds.create u in print_string "flat universe created";
-    Variable_bounds.add_bound_min_all sol fu; (* <- should fail, as the domain of universe is not set right *) print_string "my pont exactly";
-    Variable_bounds.propagate_lower_bound fu; Variable_bounds.propagate_conflicts fu; Variable_bounds.propagate_upper_bound fu;
-    Variable_bounds.finalize_bound_roots fu; Variable_bounds.minimize_upper_bound fu;
+  | Some(sol) ->
+(*    Zephyrus_log.log_data "Found non null lower bounds for some variables : " (lazy (String_of.solution sol)); *)
+    let (mp, mt) =  Variable_bounds.core_solution sol in
+    print_string ("Core lower bounds :\n  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n");
+    let fu = Variable_bounds.create u in
+    Zephyrus_log.log_data "\nflat universe created:\n" (lazy (Variable_bounds.to_string_full fu));
+    Variable_bounds.add_bound_min_all sol fu;
+    Zephyrus_log.log_data "\nFlat universe with the lower bounds:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_lower_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with lower bounds propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_conflicts fu;
+    Zephyrus_log.log_data "\nFlat universe with conflicts propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_upper_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bounds propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.finalize_bound_roots fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bound minimization first step:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.minimize_upper_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bounds minimized:\n" (lazy (Variable_bounds.to_string fu));
+    
     (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
     Data_state.constraint_variable_bounds := Some(Variable_bounds.variable_bounds c#get_location fu);  
-    Variable_bounds.trim_categories cat fu *) in (* TODO: debug Graph operations. *)
+    Variable_bounds.trim_categories cat fu ) in 
+    let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
+    let main_solver = Solvers.of_settings Solvers.Main in
     
-  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FIRST TRIM <==  \n\n" (lazy (String_of.location_categories cat'));
+    Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FIRST TRIM <==  \n\n" (lazy (String_of.location_categories cat'));
     
   let cat'' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat' with
       | None -> Location_categories.empty

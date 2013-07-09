@@ -24,6 +24,15 @@
     - datatypes/Data_helper
 *)
 
+val string_list : string list -> string
+val int_list    : int list -> string
+
+val string_set  : Data_common.SetString.t -> string
+val int_set     : Data_common.SetInt.t    -> string
+
+val string_map  : ('a -> string) -> 'a Data_common.MapString.t -> string
+val int_map     : ('a -> string) -> 'a Data_common.MapInt.t -> string
+
 (*/********************************\*)
 (*  Model                           *)
 (*\********************************/*)
@@ -105,6 +114,8 @@ val described_konstraint : string * Data_constraint.konstraint -> string
 val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
 
 val constraint_optimization_function : Data_constraint.optimization_function -> string
+
+val bound : Data_constraint.Bound.t -> string
 
 (************************************)
 (** Solution                        *)

@@ -99,6 +99,9 @@ module Map = struct
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
+    val keys : 'a t -> key list
+    val values : 'a t -> 'a list
+
     module Set_of_keys(Set_target : Set.S with type elt = key) : sig
       val set_of_keys : 'a t -> Set_target.t
     end
@@ -114,7 +117,10 @@ module Map = struct
   
     let map_of_list f l = List.fold_left (fun res el -> let (k,v) = f el in add k v res) empty l
     let map_of_associated_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
-    let map f m = fold (fun k v res -> add k (f v) res) m empty    
+    let map f m = fold (fun k v res -> add k (f v) res) m empty
+    
+    let values m = fold (fun _ v res -> v::res) m []
+    let keys   m = fold (fun k _ res -> k::res) m []
 
     module Set_of_keys(Set_target : Set.S with type elt = key) = struct
       let set_of_keys map = fold (fun k _ res -> Set_target.add k res) map Set_target.empty 
@@ -646,7 +652,7 @@ module Graph = struct
       type t = edge
       let id = Fresh_integer.create ()
       let create o data t = let res = { e_id = Fresh_integer.next id; e_data = data; e_origin = o; e_target = t; e_loop_tag = Edge_no_loop } in
-        o.v_successors <- Edge_set.add res o.v_successors; o.v_predecessors <- Edge_set.add res o.v_predecessors; res
+        o.v_successors <- Edge_set.add res o.v_successors; t.v_predecessors <- Edge_set.add res t.v_predecessors; res
       let data e  = e.e_data
       let origin e = e.e_origin
       let target e = e.e_target
@@ -877,7 +883,7 @@ module Graph = struct
       let generic_iter init (pred_v, next_v) (pred_l, next_l)  step_v step_l g =
         let q = ref init in (* create the queue *)
         graph_parse_untag_all g;
-        let check v = let preds = if Vertice.is_loop v then pred_v v else pred_l (Vertice.loop_get v) in
+        let check v = let preds = if Vertice.is_loop v then pred_l (Vertice.loop_get v) else pred_v v in
           Vertice_set.fold (fun v res -> res && (Vertice.is_parsed v)) preds true in
         let add v = if check v then (if Vertice.is_loop v then q := El_set.add (El.L (Vertice.loop_get v)) !q else q := El_set.add (El.V v) !q) in
         while not (El_set.is_empty !q) do

@@ -82,6 +82,9 @@ module Map : sig
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
+    val keys : 'a t -> key list
+    val values : 'a t -> 'a list
+    
     module Set_of_keys(Set_target : Set.S with type elt = key) : sig
       val set_of_keys : 'a t -> Set_target.t
     end

@@ -29,6 +29,7 @@ open Data_constraint
 include Location_id_set_set
 
 
+(* compute the domain for a set of location categories *)
 let domain ss = fold (fun s res -> Location_id_set.union s res) ss Location_id_set.empty
 
 (*/************************************)

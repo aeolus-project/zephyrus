@@ -72,8 +72,11 @@ val create   : Data_model.universe -> flat_universe
 val vertices : flat_universe -> Graph.Vertice_set.t
 val edges    : flat_universe -> Graph.Edge_set.t
 
+val to_string : flat_universe -> string
+val to_string_full : flat_universe -> string
 
 val get_initial_mins : Solvers.t -> Data_model.universe -> Data_model.specification -> Data_model.Location_id_set.t -> Data_constraint.solution option
+val core_solution : Data_constraint.solution -> (int Data_model.Port_map.t) * (int Data_model.Component_type_id_map.t)
 
 (*/************************************************************************\*)
 (*| 3. Bounds Propagation Algorithms                                       |*)
@@ -97,6 +100,7 @@ val minimize_upper_bound  : flat_universe -> unit
 (*| 5. Bounds Function Definition                                          |*)
 (*\************************************************************************/*)
 
+val nb_max_location : flat_universe -> Data_constraint.Value.t
 val trim_categories : Location_categories.t -> flat_universe -> Location_categories.t
 
 val variable_bounds : (Data_model.location_id -> Data_model.location) -> flat_universe -> (Data_constraint.variable -> Data_constraint.Bound.t)
