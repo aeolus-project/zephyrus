@@ -466,19 +466,22 @@ let trim_repositories universe configuration specification =
 (*| 4. Configuration.                                                      |*)
 (*\************************************************************************/*)
 
-let transitive_closure_location_id_set c domain = (* TODO: maybe the initial fit of location categories should ensure that there was no broken links *)
-  let depends_on l_id =
-    let components = Component_set.filter (fun c -> c#location = l_id) c#get_components in
-    let component_ids = Id_set_of_components.convert (fun c -> c#id) components in
-    let component_ids' = Binding_set.fold (fun b res -> if Component_id_set.mem b#provider component_ids then Component_id_set.add b#requirer res else res)
-      c#get_bindings Component_id_set.empty in
-    let components' = Component_set_of_ids.convert (fun c_id -> c#get_component c_id) component_ids' in
-    Component_set.fold (fun c res -> Location_id_set.add c#location res) components' Location_id_set.empty in
-  Data_model.Location_id_set.fold (fun l_id res -> Location_id_set.union (depends_on l_id) res) domain domain
+let transitive_closure_domain c domain =
+  let add lprov lreq map = let s = try Location_id_map.find lprov map with | Not_found -> Location_id_set.empty in
+    Location_id_map.add lprov (Location_id_set.add lreq s) map in
+  let map = ref (Binding_set.fold (fun b res -> add (c#get_component (b#provider))#location (c#get_component (b#requirer))#location res) c#get_bindings Location_id_map.empty) in
+  let to_add = ref domain in
+  let res = ref Location_id_set.empty in
+  while not (Location_id_set.is_empty !to_add) do
+    let l = Location_id_set.choose !to_add in
+    res := Location_id_set.add l !res;
+    to_add := Location_id_set.remove l !to_add;
+    to_add := Location_id_set.union (try Location_id_map.find l !map with Not_found -> Location_id_set.empty) !to_add;
+    map := Location_id_map.remove l !map;
+  done; !res
 
 let configuration c domain =
   let get_location = c#get_location in
-  let domain = transitive_closure_location_id_set c domain in
   let locations_1 = Location_set.filter (fun l -> Location_id_set.mem l#id domain) c#get_locations in
   let locations_2 = Location_set.diff c#get_locations locations_1 in
   let location_ids_1 = domain in
@@ -533,5 +536,37 @@ let configuration c domain =
       method get_location_name   = c#get_location_name
       method get_component_name  = c#get_component_name
     end )
+
+let empty c = 
+  let inner l (set, map) = let l' = object
+      method name = l#name
+      method id = l#id
+      method repository = l#repository
+      method packages_installed = Package_id_set.empty
+      method provide_resources  = l#provide_resources
+      method cost               = l#cost
+    end in (Location_set.add l' set, Location_id_map.add l#id l' map) in
+  let (set, map) = Location_set.fold inner c#get_locations (Location_set.empty, Location_id_map.empty) in object(self)
+    method get_location   = (fun id -> try Location_id_map.find id map with Not_found -> failwith "engine/preprocess/Trim.ml #550")
+    method get_component  = (fun _ -> failwith "engine/preprocess/Trim.ml #551")
+    method get_locations  = set
+    method get_components = Component_set.empty
+    method get_bindings   = Binding_set.empty
+    method get_location_ids  = c#get_location_ids
+    method get_component_ids = Component_id_set.empty
+    method get_location_names  = c#get_location_names
+    method get_component_names = Component_name_set.empty
+    method c_l = c#c_l
+    method c_c = Component_id_set.empty
+    method c_type = (fun c -> (self#get_component c)#typ)
+    method get_local_component = (fun _ _ -> Component_id_set.empty)
+    method get_local_package   = (fun _ _ -> false)
+    method get_location_id     = c#get_location_id
+    method get_component_id    = c#get_component_id
+    method get_location_name   = c#get_location_name
+    method get_component_name  = c#get_component_name
+  end
+  
+
 
 

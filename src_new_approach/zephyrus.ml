@@ -56,6 +56,7 @@ let () =
   let c = check_option "configuration"         !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
+  let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
   let main_solver = Solvers.of_settings Solvers.Main in
   Zephyrus_log.log_data "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string c u r));
@@ -81,7 +82,7 @@ let () =
   let cat = Location_categories.full_categories r u c in
   Zephyrus_log.log_data "\n\n\n     ==> INITIAL CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
   
-  let cat' = cat (* match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
+  let cat' = ( cat ) (* match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
   | Some(sol) -> let fu = Variable_bounds.create u in print_string "flat universe created";
     Variable_bounds.add_bound_min_all sol fu; (* <- should fail, as the domain of universe is not set right *) print_string "my pont exactly";
@@ -90,6 +91,7 @@ let () =
     (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
     Data_state.constraint_variable_bounds := Some(Variable_bounds.variable_bounds c#get_location fu);  
     Variable_bounds.trim_categories cat fu *) in (* TODO: debug Graph operations. *)
+    
   Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FIRST TRIM <==  \n\n" (lazy (String_of.location_categories cat'));
     
   let cat'' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat' with
@@ -97,7 +99,10 @@ let () =
       | Some(cat') -> cat' in
   Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FULLY TRIMMED <==  \n" (lazy (String_of.location_categories cat'));
   Zephyrus_log.log_execution "\nTrimming configuration...";
-  let (core_conf, annex_conf) = Trim.configuration c (Location_categories.domain cat'') in
+  let domain_init = Location_categories.domain cat'' in
+  let domain = if keep_initial_configuration then Trim.transitive_closure_domain c domain_init else domain_init in
+  let (core_conf, annex_conf_init) = Trim.configuration c domain in
+  let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
   Zephyrus_log.log_data "\n\n\n  ==> TRIMMED CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string core_conf u r));
   Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
   Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r);
@@ -132,10 +137,12 @@ let () =
     let final_configuration = Configuration_of.merge annex_conf partial_final_configuration in
     Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r);
     Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration u r);
+    
+(*
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
     Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);
 
-(*
+
     let final_configuration = 
       let solution = fst solution in
       match !Data_state.universe_full with

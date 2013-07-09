@@ -42,4 +42,8 @@ open Data_model
 val trim_component_types : universe -> configuration -> specification -> universe
 val trim_repositories    : universe -> configuration -> specification -> universe
  
+
+val transitive_closure_domain : configuration -> Location_id_set.t -> Location_id_set.t
 val configuration : configuration -> Location_id_set.t -> configuration * configuration
+val empty : configuration -> configuration (* returns the same configuration, without packages or components *)
+
