@@ -18,8 +18,19 @@
 (****************************************************************************)
 
 (* Depends on
-  MUST DEPEND ON NOTHING !!
+    - datatypes/Data_common
 *)
+
+module Settings_log = struct
+  let out_channel = stdout
+  let log_input_settings_unknown_setting setting = Output_helper.print out_channel ("Error in settings: the setting \"" ^ setting ^ "\" is unknown. Skiping its definition\n")
+  let log_input_settings_wrong_value setting value list = Output_helper.print out_channel (
+      "Error in settings: unexpected value \"" ^ value ^ " found in the definition of the setting \"" ^ setting ^ "\" "
+    ^ "(valid value in [" ^ (String.concat ", " list) ^ "]). Skipping its definition\n")
+end
+
+let convert setting list map value = try Some(Data_common.String_map.find value map) with
+ | Not_found -> Settings_log.log_input_settings_wrong_value setting value list; None
 
 let get_bool_basic r = match !r with | None -> false | Some(b) -> b
 
@@ -32,12 +43,20 @@ type mode =
  
 
 (* the different kind of optimization in zephyrus *)
+
 type optim =
   | Optim_none
   | Optim_simple
   | Optim_compact
   | Optim_spread
   | Optim_conservative
+let optimization_function_names = ["simple"; "compact"; "conservative"; "spread"; "none"]
+let optimization_function_map = Data_common.String_map.of_direct_list [
+  ("simple", Optim_simple);
+  ("compact", Optim_compact);
+  ("conservative", Optim_conservative);
+  ("spread", Optim_spread);
+  ("none", Optim_none) ]
 
 (* the different kind of solver available in zephyrus *)
 type solver =
@@ -45,6 +64,12 @@ type solver =
   | Solver_gcode
   | Solver_g12
   | Solver_facile
+let solver_names = ["facile"; "g12"; "gecode"; "none"]
+let solver_map = Data_common.String_map.of_direct_list [
+  ("facile", Solver_facile);
+  ("g12"   , Solver_g12);
+  ("gcode" , Solver_gcode);
+  ("none"  , Solver_none) ]
 
 type solver_bin_packing = 
   | Solver_bin_packing_unknown
@@ -67,6 +92,14 @@ type out_file =
   | Out_file_graph_simplified
   | Out_file_graph_components
   | Out_file_graph_packages
+let out_kinds = ["plain"; "json"; "graph"; "deployment-graph"; "simplified-deployment-graph"; "components-graph"; "packages-graph"]
+let out_map = Data_common.String_map.of_direct_list [
+  ("plain"                      , Out_file_plain);
+  ("json"                       , Out_file_json);
+  ("simplified-deployment-graph", Out_file_graph_simplified);
+  ("components-graph"           , Out_file_graph_components);
+  ("packages-graph"             , Out_file_graph_packages);
+  ("graph-deployment"           , Out_file_graph_deployment) ]
 
 (* No Need For A Number: Essencial *)
 
@@ -80,7 +113,17 @@ let input_file_initial_configuration : string option ref          = ref None (* 
 let input_file_specification         : string option ref          = ref None (* specification file *)
 let input_optimization_function      : optim option ref           = ref None (* Optimization function *)
 
-let input_file_settings              : string list ref          = ref []  (* NotUsedYet *)
+let input_file_settings              : string list ref          = ref []
+
+let set_universe_input_file file = input_file_universe := Some(file)
+let add_external_repository name file = input_file_repositories := (name, file)::!input_file_repositories
+let set_input_configuration_file file = input_file_initial_configuration := Some(file)
+let set_specification_file file = input_file_specification := Some(file)
+
+let set_optimization_function n = input_optimization_function := (convert "optimization function" optimization_function_names optimization_function_map n)
+
+
+let add_settings_file file = input_file_settings := file::!input_file_settings
 
 
 (* TODO: Add options for the syntax of files ? *)
@@ -102,6 +145,8 @@ let get_input_optimization_function () = if !data_generation_optimization_functi
 
 
 let data_package_name_extended : bool option ref = ref None
+let set_package_name_extended b = data_package_name_extended := Some(b)
+let extend_package_name_with_repository () = set_package_name_extended true
 
 let data_check_universe              : bool option ref = ref None (* NotUsedYet *)
 let data_check_repositories          : bool option ref = ref None (* NotUsedYet *)
@@ -136,11 +181,13 @@ let constraint_solver_classic_linear   : bool option ref = ref None (* NotUsedYe
 let constraint_preprocess_solver       : solver option ref = ref None (* NotUsedYet *)
 let constraint_main_solver             : solver option ref = ref None (* NotUsedYet *)
 
+let set_constraint_main_solver n = constraint_main_solver := (convert "main constraint solver" solver_names solver_map n)
 let get_constraint_main_solver () = match !constraint_main_solver with
   | None    -> Solver_g12
   | Some(s) -> s
 let get_main_solver_file_extension () = ".mzn"
 
+let set_constraint_preprocess_solver n = constraint_preprocess_solver := (convert "preprocess constraint solver" solver_names solver_map n)
 let get_constraint_preprocess_solver () = match !constraint_preprocess_solver with
   | None    -> Solver_g12
   | Some(s) -> s
@@ -193,7 +240,9 @@ let configuration_generation_packages : conf_gen_packages option ref = ref None 
 (* 07. Output Configuration *)
 
 let output_file                  : (out_file * string) list ref = ref [] (* NotUsedYet *)
-
+let add_output_file kind file = let kind' = (convert "output file kind" out_kinds out_map kind) in match kind' with
+ | Some(kind'') -> output_file := (kind'', file)::!output_file
+ | None -> ()
 
 (* 08. Verbose Options *)
 

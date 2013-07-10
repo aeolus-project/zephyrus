@@ -37,13 +37,14 @@ let rec string_of_value value =
   | PairValue  (v1, v2) -> Printf.sprintf "(%s, %s)" (string_of_value v1) (string_of_value v2)
   | ListValue  l        -> Printf.sprintf "[%s]" (String.concat ", " (List.map string_of_value l))
 
-exception Wrong_value
+exception Wrong_conversion of string
+exception Wrong_value 
 
-let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise Wrong_value
-let get_int   v = match v with | IntValue(i)      -> i       | _ -> raise Wrong_value
-let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise Wrong_value
-let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
-let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise Wrong_value
+let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise (Wrong_conversion "boolean")
+let get_int   v = match v with | IntValue(i)      -> i       | _ -> raise (Wrong_conversion "int")
+let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise (Wrong_conversion "identifier")
+let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise (Wrong_conversion "pair")
+let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise (Wrong_conversion "list")
 
 (* Here are where you define your functions, and put them in the [functions] list *)
 
@@ -54,20 +55,7 @@ let mode_of_string s = match s with
   | "bin-packing" -> Settings.Mode_bin_packing
   | _             -> raise Wrong_value
  
-let optim_of_string s = match s with
-  | "simple"       -> Settings.Optim_simple
-  | "compact"      -> Settings.Optim_compact
-  | "conservative" -> Settings.Optim_conservative
-  | "spread"       -> Settings.Optim_spread
-  | "none"         -> Settings.Optim_none
-  | _              -> raise Wrong_value
 
-let solver_kind_of_string str =  match str with
-  | "facile" -> Settings.Solver_facile
-  | "g12"    -> Settings.Solver_g12
-  | "gcode"  -> Settings.Solver_gcode
-  | "none"   -> Settings.Solver_none
-  | _        -> raise Wrong_value
 
 let solver_bin_packing_of_string s = match s with 
   | "unknown" -> Settings.Solver_bin_packing_unknown
@@ -84,27 +72,18 @@ let conf_gen_packages_of_string s = match s with
   | "universe" -> Settings.Conf_gen_packages_universe
   | _          -> raise Wrong_value
 
-let out_file_of_string kind = match kind with
-  | "plain"                       -> Settings.Out_file_plain
-  | "json"                        -> Settings.Out_file_json
-  | "simplified-deployment-graph" -> Settings.Out_file_graph_simplified
-  | "components-graph"            -> Settings.Out_file_graph_components
-  | "packages-graph"              -> Settings.Out_file_graph_packages
-  | "graph-deployment"            -> Settings.Out_file_graph_deployment
-  | _                             -> raise Wrong_value
-
 
 
 let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "zephyrus-mode" , fun v -> Settings.zephyrus_mode := Some(mode_of_string (get_ident v)));
 
 (* 01. Input Files *)
-  ("input-file-universe"         , fun v -> Settings.input_file_universe              := Some(get_ident v));
+  ("input-file-universe"         , fun v -> Settings.set_universe_input_file (get_ident v));
   ("input-file-configuration"    , fun v -> Settings.input_file_initial_configuration := Some(get_ident v));
   ("input-file-specification"    , fun v -> Settings.input_file_specification         := Some(get_ident v));
   ("input-file-repositories"     , fun v -> List.iter 
     (fun v' -> let (v1,v2) = get_pair v' in Settings.input_file_repositories := (get_ident v1, get_ident v2)::!Settings.input_file_repositories) (get_list v));
-  ("input-optimization-function" , fun v -> Settings.input_optimization_function := Some(optim_of_string (get_ident v)));
+  ("input-optimization-function" , fun v -> Settings.set_optimization_function (get_ident v));
 
 (* 02. Which initial Data to Generate *)
   ("import-universe"              , fun v -> Settings.data_generation_universe              := Some(get_bool v));
@@ -125,7 +104,7 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
 
   ( "detect-spec-well-formedness"      , fun v -> Settings.pre_process_spec_wf_detection           := Some(get_bool v));
   ( "detect-spec-is-empty"             , fun v -> Settings.pre_process_spec_empty_detection        := Some(get_bool v));
-  ( "detect-spec-solver"               , fun v -> Settings.pre_process_spec_empty_detection_solver := Some(solver_kind_of_string (get_ident v)));
+  ( "detect-spec-solver"               , fun v -> Settings.set_constraint_preprocess_solver (get_ident v));
 
   ( "detect-component-types-have-loop" , fun v -> Settings.pre_process_universe_loop_detection    := Some(get_bool v));
   ( "detect-component-types-bounds"    , fun v -> Settings.pre_process_universe_bound_computation := Some(get_bool v));
@@ -141,7 +120,7 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
   ( "weight-packages"         , fun v -> Settings.constraint_weight_packages        := Some(get_int v));
 
   ( "solver-use-linear-constraint" , fun v -> Settings.constraint_solver_classic_linear   := Some(get_bool v));
-  ( "solver"                       , fun v -> Settings.constraint_main_solver     := Some(solver_kind_of_string (get_ident v)));
+  ( "solver"                       , fun v -> Settings.set_constraint_main_solver (get_ident v));
   ( "solver-bin-packing"           , fun v -> Settings.constraint_solver_bin_packing_kind := Some(solver_bin_packing_of_string (get_ident v)));
 
 
@@ -171,9 +150,8 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
 
 (* 07. Output Configuration *)
 
-  ( "results"                           , fun v -> List.iter 
-    (fun v' -> let (v1,v2) = get_pair v' in Settings.output_file := (out_file_of_string (get_ident v1), get_ident v2)::!Settings.output_file) (get_list v));
-  ( "append-repository-to-package-name" , fun v -> Settings.data_package_name_extended := Some(get_bool v));
+  ( "results"                           , fun v -> List.iter (fun v' -> let (v1,v2) = get_pair v' in Settings.add_output_file (get_ident v1) (get_ident v2)) (get_list v));
+  ( "append-repository-to-package-name" , fun v -> Settings.set_package_name_extended (get_bool v));
 
 
 (* 08. Verbose Options *)
@@ -237,18 +215,19 @@ let assign_values_to_settings_functions : (string * (value -> unit)) list = [
 ]
 
 
-let map = Data_common.MapString.map_of_associated_list assign_values_to_settings_functions
+let map = Data_common.String_map.of_direct_list assign_values_to_settings_functions
 
 let manage_element ident value = 
   try 
     let ident = String.lowercase ident in
-    let assign_value_to_setting_function = Data_common.MapString.find ident map 
+    let assign_value_to_setting_function = Data_common.String_map.find ident map 
     in
     Printf.printf "setting %-45s := %s\n" ident (string_of_value value);
     assign_value_to_setting_function value
   with
-  | Not_found   -> Zephyrus_log.log_input_settings_unknown_setting ident
-  | Wrong_value -> Zephyrus_log.log_input_settings_wrong_value     ident
+  | Not_found   -> Settings.Settings_log.log_input_settings_unknown_setting ident
+  | Wrong_conversion str -> Printf.printf "the setting \"%s\" must be set with a value of the type \"%s\"" ident str
+  | Wrong_value -> ()
 
 %}
 

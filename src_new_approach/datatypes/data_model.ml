@@ -35,16 +35,16 @@ open Data_common
   (** A name of a resource provided by a location or consumed by a component type or a package. *)
 type resource_name = string
 module Resource_name = String
-module Resource_name_set     = SetString
-module Resource_name_set_set = SetSetString
-module Resource_name_map     = MapString
+module Resource_name_set     = String_set
+module Resource_name_set_set = String_set_set
+module Resource_name_map     = String_map
 
 type resource_id = int
 module Resource_id = Int
-module Resource_id_set     = SetInt
-module Resource_id_set_set = SetSetInt
-module Resource_id_map     = MapInt
-module Resource_id_map_extract_key = Keys_of_MapInt
+module Resource_id_set     = Int_set
+module Resource_id_set_set = Int_set_set
+module Resource_id_map     = Int_map
+module Resource_id_map_extract_key = Keys_of_Int_map
 
 type resource = resource_id
 module Resource = Resource_id
@@ -74,29 +74,29 @@ end
   (** The name of a component type in the universe. *)
 type component_type_name = string
 module Component_type_name     = String
-module Component_type_name_set = SetString
-module Component_type_name_map = MapString
+module Component_type_name_set = String_set
+module Component_type_name_map = String_map
 
 type component_type_id = int
 let deprecated_component_type_id = -1
 module Component_type_id     = Int
-module Component_type_id_set = SetInt
-module Component_type_id_map = MapInt
-module Component_type_id_map_extract_key = Keys_of_MapInt
+module Component_type_id_set = Int_set
+module Component_type_id_map = Int_map
+module Component_type_id_map_extract_key = Keys_of_Int_map
 
   (** The name of a port in provided or required or conflicted by a component type. *)
 type port_name = string
 module Port_name         = String
-module Port_name_set     = SetString
-module Port_name_set_set = SetSetString
-module Port_name_map     = MapString
+module Port_name_set     = String_set
+module Port_name_set_set = String_set_set
+module Port_name_map     = String_map
 
 type port_id = int
 module Port_id         = Int
-module Port_id_set     = SetInt
-module Port_id_set_set = SetSetInt
-module Port_id_map     = MapInt
-module Port_id_map_extract_key = Keys_of_MapInt
+module Port_id_set     = Int_set
+module Port_id_set_set = Int_set_set
+module Port_id_map     = Int_map
+module Port_id_map_extract_key = Keys_of_Int_map
 
 type port = port_id
 module Port         = Port_id
@@ -141,17 +141,17 @@ module Id_map_of_component_types = Map.Convert(Component_type_map)(Component_typ
   (** A name of a package in a repository. *)
 type package_name = string
 module Package_name         = String
-module Package_name_set     = SetString
-module Package_name_set_set = SetSetString
-module Package_name_map     = MapString
+module Package_name_set     = String_set
+module Package_name_set_set = String_set_set
+module Package_name_map     = String_map
 
 type package_id = int
 let deprecated_package_id = -1
 module Package_id         = Int
-module Package_id_set     = SetInt
-module Package_id_set_set = SetSetInt
-module Package_id_map     = MapInt
-module Package_id_map_extract_key   = Keys_of_MapInt
+module Package_id_set     = Int_set
+module Package_id_set_set = Int_set_set
+module Package_id_map     = Int_map
+module Package_id_map_extract_key   = Keys_of_Int_map
 
 
   (** Package. *)
@@ -177,16 +177,16 @@ module Package_map = Map.Make(Package)
   (** A name of a repository in the universe. *)
 type repository_name = string
 module Repository_name = String
-module Repository_name_set     = SetString
-module Repository_name_set_set = SetSetString
-module Repository_name_map     = MapString
+module Repository_name_set     = String_set
+module Repository_name_set_set = String_set_set
+module Repository_name_map     = String_map
 
 type repository_id = int
 module Repository_id = Int
-module Repository_id_set     = SetInt
-module Repository_id_set_set = SetSetInt
-module Repository_id_map     = MapInt
-module Repository_id_map_extract_key = Keys_of_MapInt
+module Repository_id_set     = Int_set
+module Repository_id_set_set = Int_set_set
+module Repository_id_map     = Int_map
+module Repository_id_map_extract_key = Keys_of_Int_map
 
   (** Repository. *)
 class type repository = object
@@ -266,15 +266,15 @@ end
   (** A name of a location in the configuration. *)
 type location_name = string
 module Location_name = String
-module Location_name_set = SetString
-module Location_name_map = MapString
+module Location_name_set = String_set
+module Location_name_map = String_map
 
 type location_id = int
 module Location_id = Int
-module Location_id_set = SetInt
-module Location_id_set_set = SetSetInt
-module Location_id_map = MapInt
-module Location_id_map_extract_key = Keys_of_MapInt
+module Location_id_set = Int_set
+module Location_id_set_set = Int_set_set
+module Location_id_map = Int_map
+module Location_id_map_extract_key = Keys_of_Int_map
 
 type location_cost = int
 module Location_cost = Int
@@ -308,14 +308,14 @@ module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
   (** A name of a component in the configuration. *)
 type component_name = string
 module Component_name = String
-module Component_name_set = SetString
-module Component_name_map = MapString
+module Component_name_set = String_set
+module Component_name_map = String_map
 
 type component_id = int
 module Component_id = Int
-module Component_id_set = SetInt
-module Component_id_map = MapInt
-module Component_id_map_extract_key = Keys_of_MapInt
+module Component_id_set = Int_set
+module Component_id_map = Int_map
+module Component_id_map_extract_key = Keys_of_Int_map
 
   (** Components *)
 class type component = object

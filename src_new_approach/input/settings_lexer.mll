@@ -35,12 +35,9 @@
     ("n",     Bool(false));
   ]
 
-  let keyword_map = Data_common.MapString.map_of_associated_list keywords
+  let keyword_map = Data_common.String_map.of_direct_list keywords
 
-  let process_string s = 
-    try 
-      Data_common.MapString.find (String.lowercase s) keyword_map
-    with
+  let process_string s = try  Data_common.String_map.find (String.lowercase s) keyword_map with
     | Not_found -> Ident(s)
 }
 

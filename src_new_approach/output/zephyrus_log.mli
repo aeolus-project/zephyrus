@@ -33,8 +33,6 @@ val log_missing_data : string -> string -> string -> 'a
 val log_execution : string -> unit
 
 (* setting logging *)
-val log_input_settings_unknown_setting : string -> unit
-val log_input_settings_wrong_value : string -> unit
 val log_setting_not_set : string -> unit
 val log_settings : string -> unit
 

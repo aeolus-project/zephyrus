@@ -65,12 +65,12 @@ module Set : sig
 
 end
 
-module SetInt       : Set.S with type elt = int
-module SetSetInt    : Set.S with type elt = SetInt.t
-module SetString    : Set.S with type elt = string
-module SetSetString : Set.S with type elt = SetString.t
+module Int_set       : Set.S with type elt = int
+module Int_set_set    : Set.S with type elt = Int_set.t
+module String_set    : Set.S with type elt = string
+module String_set_set : Set.S with type elt = String_set.t
 
-val setstring_of_setint : SetInt.t -> SetString.t
+val setstring_of_setint : Int_set.t -> String_set.t
 
 (** Extension of the Map module from the standard library with Construction, Conversion and Extraction **)
 module Map : sig
@@ -78,7 +78,7 @@ module Map : sig
   module type S = sig
     include Map_from_stblib
     
-    val map_of_associated_list: (key * 'a) list -> 'a t
+    val of_direct_list: (key * 'a) list -> 'a t
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
@@ -101,11 +101,11 @@ module Map : sig
   end
 end
 
-module MapInt : Map.S with type key = int
-module MapString : Map.S with type key = string
+module Int_map : Map.S with type key = int
+module String_map : Map.S with type key = string
 
-module Keys_of_MapInt    : sig val set_of_keys : 'a MapInt.t -> SetInt.t end
-module Keys_of_MapString : sig val set_of_keys : 'a MapString.t -> SetString.t end
+module Keys_of_Int_map    : sig val set_of_keys : 'a Int_map.t -> Int_set.t end
+module Keys_of_String_map : sig val set_of_keys : 'a String_map.t -> String_set.t end
 
 module List : sig
   val is_empty : 'a list -> bool

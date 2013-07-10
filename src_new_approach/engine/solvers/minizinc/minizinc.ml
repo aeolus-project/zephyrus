@@ -21,8 +21,8 @@
 open Data_constraint
 
 type name = string
-module Name_set = Data_common.SetString
-module Name_map = Data_common.MapString
+module Name_set = Data_common.String_set
+module Name_map = Data_common.String_map
 
 class type named_variables = object
   method variables : Variable_set.t

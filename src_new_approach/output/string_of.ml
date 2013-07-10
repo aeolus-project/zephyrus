@@ -28,13 +28,13 @@ let identity = fun x -> x
 let string_list s = "{" ^ (String.concat ", " s) ^ "}"
 let int_list    s = string_list (List.map string_of_int s)
 
-let string_set s = string_list (Data_common.SetString.elements s)
-let string_set_set s = "[ " ^ (String.concat "; " (List.map string_set (Data_common.SetSetString.elements s))) ^ " ]"
-let int_set s =  int_list (Data_common.SetInt.elements s)
-let int_set_set s = "[ " ^ (String.concat "; " (List.map int_set (Data_common.SetSetInt.elements s))) ^ " ]"
+let string_set s = string_list (Data_common.String_set.elements s)
+let string_set_set s = "[ " ^ (String.concat "; " (List.map string_set (Data_common.String_set_set.elements s))) ^ " ]"
+let int_set s =  int_list (Data_common.Int_set.elements s)
+let int_set_set s = "[ " ^ (String.concat "; " (List.map int_set (Data_common.Int_set_set.elements s))) ^ " ]"
 
-let string_map f m = string_list (List.map (fun (k,a) -> k ^ ": " ^ (f a)) (Data_common.MapString.bindings m))
-let int_map    f m = string_list (List.map (fun (k,a) -> (string_of_int k) ^ ": " ^ (f a)) (Data_common.MapInt.bindings m))
+let string_map f m = string_list (List.map (fun (k,a) -> k ^ ": " ^ (f a)) (Data_common.String_map.bindings m))
+let int_map    f m = string_list (List.map (fun (k,a) -> (string_of_int k) ^ ": " ^ (f a)) (Data_common.Int_map.bindings m))
 
 (************************************)
 (** Model                           *)

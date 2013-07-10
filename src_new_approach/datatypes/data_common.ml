@@ -83,19 +83,19 @@ module Set = struct
   end
 end
 
-module SetInt       = Set.Make(Int)
-module SetSetInt    = Set.Make(SetInt)
-module SetString    = Set.Make(String)
-module SetSetString = Set.Make(SetString)
-module SetInt_to_SetString = Set.Convert(SetInt)(SetString)
-let setstring_of_setint s = SetInt_to_SetString.convert string_of_int s
+module Int_set       = Set.Make(Int)
+module Int_set_set    = Set.Make(Int_set)
+module String_set    = Set.Make(String)
+module String_set_set = Set.Make(String_set)
+module Int_set_to_String_set = Set.Convert(Int_set)(String_set)
+let setstring_of_setint s = Int_set_to_String_set.convert string_of_int s
 
 module Map = struct
 
   module type S = sig
     include Map_from_stblib
     
-    val map_of_associated_list: (key * 'a) list -> 'a t
+    val of_direct_list: (key * 'a) list -> 'a t
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
     val map : ('a -> 'b) -> 'a t -> 'b t
 
@@ -116,7 +116,7 @@ module Map = struct
     include Map_tmp
   
     let map_of_list f l = List.fold_left (fun res el -> let (k,v) = f el in add k v res) empty l
-    let map_of_associated_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
+    let of_direct_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
     let map f m = fold (fun k v res -> add k (f v) res) m empty
     
     let values m = fold (fun _ v res -> v::res) m []
@@ -138,11 +138,11 @@ module Map = struct
 
 end
 
-module MapInt = Map.Make(Int)
-module MapString = Map.Make(String)
+module Int_map = Map.Make(Int)
+module String_map = Map.Make(String)
 
-module Keys_of_MapInt    = MapInt.Set_of_keys(SetInt)
-module Keys_of_MapString = MapString.Set_of_keys(SetString)
+module Keys_of_Int_map    = Int_map.Set_of_keys(Int_set)
+module Keys_of_String_map = String_map.Set_of_keys(String_set)
 
 
 module List_from_stdlib = List
@@ -179,8 +179,8 @@ struct
   let add token used_tokens = used_tokens := Token_set.add token !used_tokens
 end
 
-module Used_tokens_string : Used_tokens_type with type token = string = Used_tokens_set(SetString)
-module Used_tokens_int    : Used_tokens_type with type token = int    = Used_tokens_set(SetInt)
+module Used_tokens_string : Used_tokens_type with type token = string = Used_tokens_set(String_set)
+module Used_tokens_int    : Used_tokens_type with type token = int    = Used_tokens_set(Int_set)
 
 (* Modules for unique identifier creation *)
 module type Fresh =

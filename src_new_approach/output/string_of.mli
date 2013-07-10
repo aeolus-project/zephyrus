@@ -27,11 +27,11 @@
 val string_list : string list -> string
 val int_list    : int list -> string
 
-val string_set  : Data_common.SetString.t -> string
-val int_set     : Data_common.SetInt.t    -> string
+val string_set  : Data_common.String_set.t -> string
+val int_set     : Data_common.Int_set.t    -> string
 
-val string_map  : ('a -> string) -> 'a Data_common.MapString.t -> string
-val int_map     : ('a -> string) -> 'a Data_common.MapInt.t -> string
+val string_map  : ('a -> string) -> 'a Data_common.String_map.t -> string
+val int_map     : ('a -> string) -> 'a Data_common.Int_map.t -> string
 
 (*/********************************\*)
 (*  Model                           *)
