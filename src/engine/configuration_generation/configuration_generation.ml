@@ -162,8 +162,7 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   let build_component_name = 
     Printf.sprintf
-    "%s-%s-%d" 
-    (string_of_location_name location_name)
+    "%s-%d" 
     (string_of_component_type_name component_type_name)
 
   in

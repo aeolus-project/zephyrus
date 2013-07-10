@@ -2,14 +2,14 @@
 	"component_types": [
 		{
 			"name"     : "DNS-load-balancer",
-			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]], ["@dns", ["FiniteProvide", 1]]],
+			"provide"  : [["@wordpress-frontend", ["FiniteProvide", 1]], ["@dns", ["FiniteProvide", 1]]],
 			"require"  : [["@wordpress-backend", 7]],
 			"conflict" : ["@dns"],
-			"consume"  : [["ram", 2048]]
+			"consume"  : [["ram", 256]]
 		},
 		{
 			"name"     : "HTTP-proxy-load-balancer",
-			"provide"  : [["@serious-wordpress", ["FiniteProvide", 1]]],
+			"provide"  : [["@wordpress-frontend", ["FiniteProvide", 1]]],
 			"require"  : [["@wordpress-backend", 3]],
 			"consume"  : [["ram", 2048]]
 		},
