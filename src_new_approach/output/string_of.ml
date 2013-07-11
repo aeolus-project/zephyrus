@@ -54,6 +54,7 @@ let port_name     = identity
 let port_name_set = string_set
 let port_id       = string_of_int
 let port_id_set   = int_set
+let port          = port_id
 
 let component_type_name     = identity
 let component_type_name_set = string_set

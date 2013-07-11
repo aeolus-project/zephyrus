@@ -38,6 +38,8 @@ open Json_of
 open Variable_bounds
 open Location_bound
 
+open Dot_of
+
 let check_option desc o = match o with
   | Some(a) -> a
   | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")

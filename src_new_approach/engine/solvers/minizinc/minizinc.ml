@@ -42,7 +42,8 @@ type minizinc = string
 (* TODO: put get variables somewhere else, and use a catalog. This algorithm is really unsafe *)
 
   (* unsafe name creation *)
-let sanitize_name name = Str.global_replace (Str.regexp "[^a-z0-9]") "_" (String.lowercase name)
+let my_regexp = Str.regexp "[^a-z0-9]"
+let sanitize_name name = Str.global_replace my_regexp "_" (String.lowercase name)
 let name_of_t t = (sanitize_name (String_of.component_type_id t))
 let name_of_p p = (sanitize_name (String_of.port_id p))
 let name_of_k k = (sanitize_name (String_of.package_id k))

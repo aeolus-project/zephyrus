@@ -51,6 +51,7 @@ val port_name     : Data_model.port_name -> string
 val port_name_set : Data_model.Port_name_set.t -> string
 val port_id       : Data_model.port_id -> string
 val port_id_set   : Data_model.Port_id_set.t -> string
+val port          : Data_model.port -> string
 
 val component_type_name     : Data_model.component_type_name       -> string
 val component_type_name_set : Data_model.Component_type_name_set.t -> string
