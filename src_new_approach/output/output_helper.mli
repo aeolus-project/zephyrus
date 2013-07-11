@@ -32,5 +32,9 @@ val get_current_indent   : unit -> string (** deprecated *)
 val print : out_channel -> string -> unit
 val print_capo : out_channel -> string -> unit
 
+val print_output : string -> string -> unit
 
-val filter_map : ('a -> 'b option) -> ('a list) -> ('b list)
+
+val filter_map : ('a -> 'b option) -> ('a list) -> ('b list) (* TODO: should go in datatypes/Data_common.List *)
+
+

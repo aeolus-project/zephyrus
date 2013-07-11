@@ -39,9 +39,13 @@ let new_line_regexp = Str.regexp "\n"
 let print file s = Printf.fprintf file "%s%s" (!indent_stage) (Str.global_replace new_line_regexp ("\n" ^ (!indent_stage)) s); flush file
 let print_capo file s = Printf.fprintf file "%s\n" s
 
+(* 3. print output *)
 
+let print_output filename s = let file = Pervasives.open_out filename in
+  Pervasives.output_string file s;
+  Pervasives.close_out file
 
-(* Because there is no general Helper module... *)
+(* Because there is no general Helper module... *) (* TODO: should go in datatypes/Data_common.List *)
 let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
   List.fold_right (fun (el : 'a) (l : 'b list) -> 
     match f el with

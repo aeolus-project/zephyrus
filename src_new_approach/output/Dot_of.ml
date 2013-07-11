@@ -33,7 +33,7 @@ type graph_type =
   | Components_graph
   | Packages_graph
 
-let graph_settings_of_graph_type = function
+let settings_of = function
   | Deployment_graph ->  {
       show_components = true;
       show_ports      = true;
@@ -132,12 +132,12 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
     let strings_of_component_with_ports (component : component) : string = 
       let t = universe#get_component_type component#typ  in
       let required_ports_table =
-        let inner p res = let p_name = String_of.port p in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id p_name) p_name)::res in
+        let inner p res = let p_name = String_of.port_name (universe#get_port_name p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id p_name) p_name)::res in
         let required_ports_strings = Port_set.fold inner t#require_domain [] in
         if required_ports_strings = [] then " "
         else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (String.concat "\n" required_ports_strings) in
       let provided_ports_table =
-        let inner p res = let p_name = String_of.port p in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id p_name) p_name)::res in
+        let inner p res = let p_name = String_of.port_name (universe#get_port_name p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id p_name) p_name)::res in
         let provided_ports_strings = Port_set.fold inner t#provide_domain [] in
         if provided_ports_strings = [] then " "
         else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"green\">%s</table>" (String.concat "\n" provided_ports_strings)
@@ -148,10 +148,10 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   in
       
   let strings_of_binding (b: binding) : string list = (* could be string *)
-    let requirer_id  = component_id (String_of.component_id b#requirer) in
-    let provider_id  = component_id (String_of.component_id b#provider) in
+    let requirer_id  = component_id (String_of.component_name (configuration#get_component_name b#requirer)) in
+    let provider_id  = component_id (String_of.component_name (configuration#get_component_name b#provider)) in
     let strings_of_binding_without_ports (b : binding) =  [requirer_id ^ " -> " ^ provider_id ^ ";"] in
-    let strings_of_binding_with_ports (binding : binding) = let p_name = String_of.port_id b#port in
+    let strings_of_binding_with_ports (binding : binding) = let p_name = String_of.port_name (universe#get_port_name b#port) in
       [ requirer_id ^ ":" ^ (required_port_id p_name) ^ " -> " ^ provider_id ^ ":" ^ (provided_port_id p_name) ]  in
     if graph_settings.show_ports then strings_of_binding_with_ports b else strings_of_binding_without_ports b
   in
@@ -182,7 +182,7 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   let strings_of_location (location : location) : string list =
     let name  = String_of.location_name location#name in
     let id    = location_id name in
-    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_id location#repository) in
+    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (universe#get_repository_name location#repository)) in
     let location_component_strings : string list = (* the components inside the location *)
       if graph_settings.show_components
       then (List.map strings_of_component (Component_set.elements (Component_set.filter (fun c -> c#location = location#id) configuration#get_components)))

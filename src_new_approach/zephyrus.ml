@@ -44,6 +44,15 @@ let check_option desc o = match o with
   | Some(a) -> a
   | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
 
+let print_to_file kind filename r u c = Output_helper.print_output filename (match kind with
+    | Settings.Out_file_plain            -> String_of.configuration u c
+    | Settings.Out_file_json             -> Json_of.configuration_string c u r
+    | Settings.Out_file_graph_deployment -> Dot_of.configuration (Dot_of.settings_of Dot_of.Deployment_graph) u c
+    | Settings.Out_file_graph_simplified -> Dot_of.configuration (Dot_of.settings_of Dot_of.Simplified_deployment_graph) u c
+    | Settings.Out_file_graph_components -> Dot_of.configuration (Dot_of.settings_of Dot_of.Components_graph) u c
+    | Settings.Out_file_graph_packages   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
+  )
+
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
   Zephyrus_log.log_settings (Settings.string_of_settings ())
@@ -150,13 +159,15 @@ let () =
   match main_solver solver_input_k solver_input_f with
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
-    Printf.printf "=== SOLUTION ===\n%s\n" (String_of.solution (fst solution));
+    Zephyrus_log.log_data "=== SOLUTION ===" (lazy (String_of.solution (fst solution)));
 
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
     let final_configuration = Configuration_of.merge annex_conf partial_final_configuration in
-    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r);
-    Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration u r);
+(*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r); *)
+    Zephyrus_log.log_data "Final Configuration" (lazy (Json_of.configuration_string final_configuration u r));
     
+    
+    List.iter (fun (kind, filename) -> print_to_file kind filename r u final_configuration) (Settings.get_output_files ());
 (*
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
     Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);

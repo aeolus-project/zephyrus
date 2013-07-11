@@ -243,6 +243,7 @@ let output_file                  : (out_file * string) list ref = ref [] (* NotU
 let add_output_file kind file = let kind' = (convert "output file kind" out_kinds out_map kind) in match kind' with
  | Some(kind'') -> output_file := (kind'', file)::!output_file
  | None -> ()
+let get_output_files () = !output_file
 
 (* 08. Verbose Options *)
 
