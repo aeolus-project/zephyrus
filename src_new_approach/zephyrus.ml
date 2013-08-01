@@ -56,32 +56,43 @@ let print_to_file kind filename r u c = Output_helper.print_output filename (mat
 
 
 (* test the database *)
-type 'a tmp = int
+module DBBase = struct
+  type ('a, 'b) column = int
+  type key = int
+  let compare = (-)
+end
+
 
 module DBBool = struct
+  include DBBase
   type t = bool
-  type 'a column = 'a tmp
-  let name : bool column = 1
+  let name : (bool, bool) column = 1
 end
 
 module DBString = struct
+  include DBBase
   type t = string
-  type 'a column = 'a tmp
-  let name : string column = 2
+  let name : (string, string) column = 2
 end
 
-module T = Data_common.DataBase.Table.AddOptionalColumn(
-             Data_common.DataBase.Table.AddOptionalColumn(
-               Data_common.DataBase.Table.Make(struct include Data_common.Int type 'a column = 'a tmp end)
-             )(DBString)
-           )(DBBool)
+module T = Data_common.DataBase.Table.Optional(
+             Data_common.DataBase.Table.Optional(
+               Data_common.DataBase.Table.Empty(struct include DBBase type t = key end)
+             )(Data_common.DataBase.Table.WithDefaultValue(Data_common.DataBase.Table.WithoutChecking(Data_common.DataBase.Table.WithoutConversion(DBString)))
+                (struct let default = "no one" end))
+           )(Data_common.DataBase.Table.WithDefaultValue(Data_common.DataBase.Table.WithoutChecking(Data_common.DataBase.Table.WithoutConversion(DBBool)))
+                (struct let default = false end))
 
 let () = 
   let table = T.create 5 in
     T.add table 0;
     T.add_to_column table 0 DBString.name "is_working? ";
     T.add_to_column table 0 DBBool.name true;
-    print_string ((T.get table 0 DBString.name) ^ (string_of_bool (T.get table 0 DBBool.name)) ^ "\n")
+    print_string ((T.get table 0 DBString.name) ^ (string_of_bool (T.get table 0 DBBool.name)) ^ "\n");
+    T.add table 1;
+    print_string ((T.get table 1 DBString.name) ^ (string_of_bool (T.get table 1 DBBool.name)) ^ "\n")
+
+
 
 (* === Handling the arguments === *)
 let () = Load_settings.load ();

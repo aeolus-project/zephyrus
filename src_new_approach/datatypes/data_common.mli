@@ -301,42 +301,67 @@ module DataBase : sig
   exception Table_not_found
   exception Column_not_found
 
-  module type Key    = sig type t type 'a column val compare : t -> t -> int end
-  module type Column = sig type t type 'a column val name : t column end
-  module type ColumnWithDefault = sig include Column val default : t end
-
   module Table : sig
+(*    module type Key    = sig type t type 'a column val compare : t -> t -> int end
+    module type Column = sig type t type 'a column val name : t column end
+    module type ColumnWithDefault = sig include Column val default : t end*)
+
+
+
     module type S = sig
       type t
       type key
-      type 'a column
+      type ('a, 'b) column
 
       val create : int -> t
       
+      val mem : t -> key -> bool
+      val mem_in_column : t -> key -> ('a, 'b) column -> bool
+      
       type add_type
       val add : t -> key -> add_type
-      val add_to_column : t -> key -> 'a column -> 'a -> unit
+      val add_to_column : t -> key -> ('a, 'b) column -> 'a -> unit
     
-      val get : t -> key -> 'a column -> 'a
-      val get_list : t -> key -> 'a column -> 'a list
-      val get_key : t -> 'a column -> 'a -> key
-      
-      val mem : t -> key -> bool
-      val mem_in_column : t -> key -> 'a column -> bool
+      val get : t -> key -> ('a, 'b) column -> 'b
+      val get_list : t -> key -> ('a, 'b) column -> 'b list
+      val get_key : t -> ('a, 'b) column -> 'a -> key
     end
 
-    module Make(K : Key) : S with type key = K.t and type 'a column = 'a K.column and type add_type = unit
-    
-    module AddColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
-    
-    module AddOptionalColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = T.add_type
-    
-    module AddOptionalColumnWithDefault(T : S)(C : ColumnWithDefault with type 'a column = 'a T.column)
-      : S with type key = T.key and type 'a column = 'a T.column and type add_type = T.add_type
-    
-    module AddKeyColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
+    module Empty(K : sig type t type ('a, 'b) column val compare : t -> t -> int end) 
+      : S with type key = K.t and type ('a, 'b) column = ('a, 'b) K.column and type add_type = unit
 
-    module AddListColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
+
+    module type General_input = sig type input type t type key type ('a, 'b) column val name : (input, t) column val convert : input -> t end
+    module type Lesser_intermediate  = sig include General_input val check : (key, t) Hashtbl.t -> key -> t -> unit end
+    module type Greater_intermediate = sig include Lesser_intermediate val find : (key, t) Hashtbl.t -> key -> t end
+
+    module WithConversion(C : General_input)
+      : General_input with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+    module WithoutConversion(C : sig type t type key type ('a, 'b) column val name : (t, t) column end)
+      : General_input with type input = C.t and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column
+
+    module WithChecking(C : General_input)(P : sig val check : C.key -> C.t -> C.t option -> unit end)
+      : Lesser_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+    module WithoutChecking(C : General_input)
+      : Lesser_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+
+    module WithDefaultValue(C : Lesser_intermediate)(P : sig val default : C.t end)
+      : Greater_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+    module WithoutDefaultValue(C : Lesser_intermediate)
+      : Greater_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+
+    module Mandatory(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = C.input -> T.add_type
+
+    module Optional(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = T.add_type
+
+    module List(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = T.add_type
+
+    module Secondary_key(T : S)(C : Lesser_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = C.input -> T.add_type
+
   end
 
 end
