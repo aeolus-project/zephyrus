@@ -53,6 +53,36 @@ let print_to_file kind filename r u c = Output_helper.print_output filename (mat
     | Settings.Out_file_graph_packages   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
   )
 
+
+
+(* test the database *)
+type 'a tmp = int
+
+module DBBool = struct
+  type t = bool
+  type 'a column = 'a tmp
+  let name : bool column = 1
+end
+
+module DBString = struct
+  type t = string
+  type 'a column = 'a tmp
+  let name : string column = 2
+end
+
+module T = Data_common.DataBase.Table.AddOptionalColumn(
+             Data_common.DataBase.Table.AddOptionalColumn(
+               Data_common.DataBase.Table.Make(struct include Data_common.Int type 'a column = 'a tmp end)
+             )(DBString)
+           )(DBBool)
+
+let () = 
+  let table = T.create 5 in
+    T.add table 0;
+    T.add_to_column table 0 DBString.name "is_working? ";
+    T.add_to_column table 0 DBBool.name true;
+    print_string ((T.get table 0 DBString.name) ^ (string_of_bool (T.get table 0 DBBool.name)) ^ "\n")
+
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
   Zephyrus_log.log_settings (Settings.string_of_settings ())

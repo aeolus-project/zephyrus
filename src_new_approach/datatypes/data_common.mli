@@ -293,6 +293,54 @@ module Catalog :
 
   end
 
+(*/************************************************************************\*)
+(*| 4. Basic Data Base                                                     |*)
+(*\************************************************************************/*)
+
+module DataBase : sig
+  exception Table_not_found
+  exception Column_not_found
+
+  module type Key    = sig type t type 'a column val compare : t -> t -> int end
+  module type Column = sig type t type 'a column val name : t column end
+  module type ColumnWithDefault = sig include Column val default : t end
+
+  module Table : sig
+    module type S = sig
+      type t
+      type key
+      type 'a column
+
+      val create : int -> t
+      
+      type add_type
+      val add : t -> key -> add_type
+      val add_to_column : t -> key -> 'a column -> 'a -> unit
+    
+      val get : t -> key -> 'a column -> 'a
+      val get_list : t -> key -> 'a column -> 'a list
+      val get_key : t -> 'a column -> 'a -> key
+      
+      val mem : t -> key -> bool
+      val mem_in_column : t -> key -> 'a column -> bool
+    end
+
+    module Make(K : Key) : S with type key = K.t and type 'a column = 'a K.column and type add_type = unit
+    
+    module AddColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
+    
+    module AddOptionalColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = T.add_type
+    
+    module AddOptionalColumnWithDefault(T : S)(C : ColumnWithDefault with type 'a column = 'a T.column)
+      : S with type key = T.key and type 'a column = 'a T.column and type add_type = T.add_type
+    
+    module AddKeyColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
+
+    module AddListColumn(T : S)(C : Column with type 'a column = 'a T.column) : S with type key = T.key and type 'a column = 'a T.column and type add_type = C.t -> T.add_type
+  end
+
+end
+
 
 
 (*/************************************************************************\*)
