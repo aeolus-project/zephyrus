@@ -64,7 +64,7 @@ let speclist =
     ("-prefix-repos", Arg.Unit (Settings.extend_package_name_with_repository), " Prefix all package names in imported repositories by the repository name.");
 
     (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( Settings.optimization_function_names, Settings.set_optimization_function  ), " The optimization function");
+    ("-opt",        Arg.Symbol ( Settings.optim_names, Settings.set_optimization_function  ), " The optimization function");
     ("-solver",     Arg.Symbol ( Settings.solver_names,                Settings.set_constraint_main_solver ), " The solver choice"); 
 
     (* Output arguments *)

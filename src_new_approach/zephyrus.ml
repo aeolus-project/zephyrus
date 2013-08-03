@@ -74,13 +74,13 @@ module DBString = struct
   type t = string
   let name : (string, string) column = 2
 end
-
-module T = Data_common.DataBase.Table.Optional(
-             Data_common.DataBase.Table.Optional(
-               Data_common.DataBase.Table.Empty(struct include DBBase type t = key end)
-             )(Data_common.DataBase.Table.WithDefaultValue(Data_common.DataBase.Table.WithoutChecking(Data_common.DataBase.Table.WithoutConversion(DBString)))
+(*
+module T = Data_common.Database.Table.AddOptional(
+             Data_common.Database.Table.AddOptional(
+               Data_common.Database.Table.Empty(struct include DBBase type t = key end)
+             )(Data_common.Database.Table.WithDefaultValue(Data_common.Database.Table.WithoutChecking(Data_common.Database.Table.WithoutConversion(DBString)))
                 (struct let default = "no one" end))
-           )(Data_common.DataBase.Table.WithDefaultValue(Data_common.DataBase.Table.WithoutChecking(Data_common.DataBase.Table.WithoutConversion(DBBool)))
+           )(Data_common.Database.Table.WithDefaultValue(Data_common.Database.Table.WithoutChecking(Data_common.Database.Table.WithoutConversion(DBBool)))
                 (struct let default = false end))
 
 let () = 
@@ -98,7 +98,7 @@ let () =
     print_string "step 6\n"; flush stdout;
     print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
     print_string "step 7\n"; flush stdout
-
+*)
 
 
 (* === Handling the arguments === *)

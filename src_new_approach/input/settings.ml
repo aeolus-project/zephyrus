@@ -21,20 +21,76 @@
     - datatypes/Data_common
 *)
 
+open Data_common
+
 let get_bool_basic r = match !r with | None -> false | Some(b) -> b
 
 
-exception Wrong_value
-exception Wrong_key
-
 (*/************************************************************************\*)
-(*| 1. Local Data Types with Conversion functions                         |*)
+(*| 1. Generic, Static value type, extraction function, and column functor |*)
 (*\************************************************************************/*)
 
-(* 1.1. Conversion generator *)
-let extract_names l = List.fold_left (fun res (n,v) -> n::res) [] l
+type value =
+  | BoolValue  of bool
+  | IntValue   of int
+  | IdentValue of string
+  | PairValue  of value * value
+  | ListValue  of value list
+
+let string_of_string s = "\"" ^ s ^ "\""
+let string_of_pair e1 e2 = "(" ^ e1 ^ ", " ^ e2 ^ ")"
+let string_of_list l = "[" ^ (String.concat "; " l) ^ "]"
+
+let rec string_of_value value = 
+  match value with
+  | BoolValue  b        -> string_of_bool b
+  | IntValue   i        -> string_of_int i
+  | IdentValue s        -> string_of_string s
+  | PairValue  (v1, v2) -> string_of_pair (string_of_value v1) (string_of_value v2)
+  | ListValue  l        -> string_of_list (List.map string_of_value l)
+
+exception Wrong_value 
+
+let get_bool  v = match v with | BoolValue(b)     -> b       | _ -> raise Wrong_value
+let get_int   v = match v with | IntValue(i)      -> i       | _ -> raise Wrong_value
+let get_ident v = match v with | IdentValue(s)    -> s       | _ -> raise Wrong_value
+let get_pair  v = match v with | PairValue(v1,v2) -> (v1,v2) | _ -> raise Wrong_value
+let get_list  v = match v with | ListValue(l)     -> l       | _ -> raise Wrong_value
+
+
+
+(*/************************************************************************\*)
+(*| 1. Setting kind, with conversion functions and domain                  |*)
+(*\************************************************************************/*)
+
+(* let revert : ('a * 'b) list -> ('b * 'a) list = List.map (fun (a,b) -> (b,a)) *)
+let revert : ('a * 'b) list -> ('b * 'a) list = fun l -> List.fold_left (fun res (a,b) -> (b,a)::res) [] l
+
+let extract_names l = List.fold_left (fun res (n,v) -> ("\"" ^ n ^ "\"")::res) [] l
 let convert map value = try Data_common.String_map.find value map with Not_found -> raise Wrong_value
 
+let toto = revert [ (1, None); (2, Some ()) ]
+
+(* 1.1. allkinds of settings *)
+type setting_kind = Bool | String | Int
+  | Mode
+  | Repository
+  | Optim
+  | Constraint_kind
+  | Solver
+  | Solver_bin_packing
+  | Gen_bindings
+  | Gen_packages
+  | Out_file
+
+let bool_names    = ["false"; "true"]
+let convert_false = get_bool
+
+let string_names         = ["any string"]
+let convert_string       = get_ident
+
+let int_names            = ["any integer"]
+let convert_int          = get_int
 
 (* 1.2. Zephyrus Execution mode. *) (* not used for now *)
 type mode = 
@@ -45,28 +101,38 @@ let mode_assoc = [
   ("classic", Mode_classic);
   ("flat", Mode_flat);
   ("bin-packing", Mode_bin_packing) ]
+let mode_assoc_revert = revert mode_assoc
+
 let mode_names = extract_names mode_assoc
 let mode_map = Data_common.String_map.of_direct_list mode_assoc
-let convert_mode = convert mode_map
+let convert_mode v = convert mode_map (get_ident v)
+let string_of_mode v = string_of_string (List.assoc v mode_assoc_revert)
 let default_mode = Mode_classic
 
+(* 1.3. conversion of repository input *)
+let repository_names = ["a pair of a a file name containing a repository, with the repository's name"]
+let convert_repository v = List.map (fun e res -> let (f,r) = get_pair e in (get_ident f, get_ident r)) (get_list v)
+let string_of_repository (f,n) = string_of_pair f n
 
-(* 1.3. the different kind of optimization in zephyrus *)
+(* 1.4. the different kind of optimization in zephyrus *)
 type optim =
   | Optim_none
   | Optim_simple
   | Optim_compact
   | Optim_spread
   | Optim_conservative
-let optimization_function_assoc = [
+let optim_assoc = [
   ("simple", Optim_simple);
   ("compact", Optim_compact);
   ("conservative", Optim_conservative);
   ("spread", Optim_spread);
   ("none", Optim_none) ]
-let optimization_function_names = extract_names optimization_function_assoc
-let optimization_function_map = Data_common.String_map.of_direct_list optimization_function_assoc
-let convert_optim = convert optimization_function_map
+let optim_assoc_revert = revert optim_assoc
+
+let optim_names = extract_names optim_assoc
+let optim_map = Data_common.String_map.of_direct_list optim_assoc
+let convert_optim v = convert optim_map (get_ident v)
+let string_of_optim v = string_of_string (List.assoc v optim_assoc_revert)
 let default_optim = Optim_none
 
 
@@ -79,9 +145,12 @@ let constraint_kind_assoc = [
   ("classic", Constraint_classic);
   ("linear", Constraint_linear);
   ("bin-packing", Bin_packing) ]
+let constraint_kind_assoc_revert = revert constraint_kind_assoc
+
 let constraint_kind_names = extract_names constraint_kind_assoc
 let constraint_kind_map = Data_common.String_map.of_direct_list constraint_kind_assoc
-let convert_constraint_kind = convert constraint_kind_map
+let convert_constraint_kind v = convert constraint_kind_map (get_ident v)
+let string_of_constraint_kind v = string_of_string (List.assoc v constraint_kind_assoc_revert)
 let default_constraint_kind = Constraint_classic
 
 type solver =
@@ -94,17 +163,23 @@ let solver_assoc = [
   ("g12"   , Solver_g12);
   ("gcode" , Solver_gcode);
   ("none"  , Solver_none) ]
+let solver_assoc_revert = revert solver_assoc
+
 let solver_names = extract_names solver_assoc
 let solver_map = Data_common.String_map.of_direct_list solver_assoc
-let convert_solver = convert solver_map
+let convert_solver v = convert solver_map (get_ident v)
+let string_of_solver v = string_of_string (List.assoc v solver_assoc_revert)
 let default_solver = Solver_gcode
 
 type solver_bin_packing = (* not used yet, lacking a bin packing solver ... *)
   | Solver_bin_packing_unknown
 let solver_bin_packing_assoc =  []
+let solver_bin_packing_assoc_revert = revert solver_bin_packing_assoc
+
 let solver_bin_packing_names = extract_names solver_bin_packing_assoc
 let solver_bin_packing_map = Data_common.String_map.of_direct_list solver_bin_packing_assoc
-let convert_solver_bin_packing = convert solver_bin_packing_map
+let convert_solver_bin_packing v = convert solver_bin_packing_map (get_ident v)
+let string_of_solver_bin_packing v = string_of_string (List.assoc v solver_bin_packing_assoc_revert)
 let default_solver_bin_packing = Solver_bin_packing_unknown
 
 
@@ -115,9 +190,12 @@ type gen_bindings =
 let gen_bindings_assoc = [
   ("candy", Gen_bindings_candy);
   ("constraint", Gen_bindings_constraint) ]
+let gen_bindings_assoc_revert = revert gen_bindings_assoc
+
 let gen_bindings_names = extract_names gen_bindings_assoc
 let gen_bindings_map = Data_common.String_map.of_direct_list gen_bindings_assoc
-let convert_gen_bindings = convert gen_bindings_map
+let convert_gen_bindings v = convert gen_bindings_map (get_ident v)
+let string_of_gen_bindings v = string_of_string (List.assoc v gen_bindings_assoc_revert)
 let default_gen_bindings = Gen_bindings_candy
 
 
@@ -128,9 +206,12 @@ type gen_packages =
   | Gen_packages_all
 let gen_packages_assoc = [
   ("none", Gen_packages_none); ("one", Gen_packages_one); ("all", Gen_packages_all)]
+let gen_packages_assoc_revert = revert gen_packages_assoc
+
 let gen_packages_names = extract_names gen_packages_assoc
 let gen_packages_map = Data_common.String_map.of_direct_list gen_packages_assoc
-let convert_gen_packages = convert gen_packages_map
+let convert_gen_packages v = convert gen_packages_map (get_ident v)
+let string_of_gen_packages v = string_of_string (List.assoc v gen_packages_assoc_revert)
 let default_gen_packages = Gen_packages_one
 
 
@@ -149,25 +230,19 @@ let out_file_assoc = [
   ("components-graph"           , Out_file_graph_components);
   ("packages-graph"             , Out_file_graph_packages);
   ("graph-deployment"           , Out_file_graph_deployment) ]
+let out_file_assoc_revert = revert out_file_assoc
+
 let out_file_names = extract_names out_file_assoc
 let out_file_map = Data_common.String_map.of_direct_list out_file_assoc
-let convert_out_file (f,k) = (f, convert out_file_map k)
+let convert_out_file v = List.map (fun e -> let (f,k) = get_pair e in (get_ident f, convert out_file_map (get_ident k))) (get_list v)
+let string_of_out_file v = string_of_list (List.map (fun (f,k) -> string_of_pair (string_of_string f) (string_of_string (List.assoc k out_file_assoc_revert))) v)
 
 
 (*/************************************************************************\*)
 (*| 2. List of all settings with their kind                                |*)
 (*\************************************************************************/*)
 
-type setting_kind = BoolFalse | BoolTrue | String | Int
-  | Mode
-  | Repository_file
-  | Optim
-  | Constraint_kind
-  | Solver
-  | Solver_bin_packing
-  | Gen_bindings
-  | Gen_package
-  | Out_file
+
 
 let settings = [
     ("mode", Mode);
@@ -176,33 +251,33 @@ let settings = [
     ("input-file-universe", String);
     ("input-file-configuration", String);
     ("input-file-specification", String);
-    ("input-file-repositories", Repository_file);
+    ("input-file-repositories", Repository);
     ("input-optimization-function", String);
-    ("import-universe", BoolTrue);
-    ("import-repositories", BoolTrue);
-    ("import-initial-configuration", BoolTrue);
-    ("import-specification", BoolTrue);
-    ("import-optimization-function", BoolTrue);
+    ("import-universe", Bool);
+    ("import-repositories", Bool);
+    ("import-initial-configuration", Bool);
+    ("import-specification", Bool);
+    ("import-optimization-function", Bool);
 
-    ("append-repository-to-package-name", BoolTrue);
+    ("append-repository-to-package-name", Bool);
 
     (* 2. Checking the input *)
-    ("check-universe", BoolFalse);
-    ("check-repositories", BoolFalse);
-    ("check-initial-configuration", BoolFalse);
-    ("check-universe_full", BoolFalse);
-    ("check-specification", BoolFalse);
+    ("check-universe", Bool);
+    ("check-repositories", Bool);
+    ("check-initial-configuration", Bool);
+    ("check-universe_full", Bool);
+    ("check-specification", Bool);
 
-    ("check-settings", BoolFalse);
+    ("check-settings", Bool);
 
     (* 3. Pre-Processing *)
-    ("detect-spec-is-empty", BoolTrue);
-    ("component-types-trim", BoolTrue);
+    ("detect-spec-is-empty", Bool);
+    ("component-types-trim", Bool);
   
-    ("detect-component-types-have-loop", BoolTrue);
-    ("detect-component-types-bounds", BoolTrue);
+    ("detect-component-types-have-loop", Bool);
+    ("detect-component-types-bounds", Bool);
 
-    ("package-trim", BoolTrue);
+    ("package-trim", Bool);
 
     (* 4. Solvers *)
     ("constraint-kind", Constraint_kind);
@@ -213,32 +288,136 @@ let settings = [
     (* 5. Temporary Files *)
     ("preprocess-constraint-file", String);
     ("preprocess-solution-file", String);
-    ("preprocess-keep-constraint-file", BoolFalse);
-    ("preprocess-empty-keep-solution-file", BoolFalse);
+    ("preprocess-keep-constraint-file", Bool);
+    ("preprocess-empty-keep-solution-file", Bool);
 
     ("solver-constraint-file", String);
     ("solver-solution-file", String);
-    ("solver-keep-constraint-file", BoolFalse);
-    ("solver-keep-solution-file", BoolFalse);
+    ("solver-keep-constraint-file", Bool);
+    ("solver-keep-solution-file", Bool);
 
     (* 6. Configuration Generation *)
-    ("generate-bindings", BoolTrue);
-    ("generate-packages", BoolTrue);
+    ("generate-bindings", Gen_bindings);
+    ("generate-packages", Gen_packages);
 
 
     (* 7. Output Configuration *)
-    ("results", BoolTrue);
+    ("results", Bool);
 
     (* 8. Verbose Options *)
     ("verbose-level", Int);
-    ("verbose-stage", BoolFalse);
-    ("verbose-data", BoolFalse);
-    ("verbose-execution", BoolFalse);
+    ("verbose-stage", Bool);
+    ("verbose-data", Bool);
+    ("verbose-execution", Bool);
   ]
 
 (*/************************************************************************\*)
 (*| 3. Database and functions                                              |*)
 (*\************************************************************************/*)
+
+exception Wrong_key
+exception Wrong_data of setting_kind
+
+(*
+module Column : sig
+  type ('a,'b) column
+  
+  val bool : (value, bool) column
+  val string : (value, string) column
+  val int : (value, int) column
+  val mode : (value, mode) column
+  val repositories : (value, (string * string) list) column
+  val optim : (value, optim) column
+  val constraint_kind : (value, constraint_kind) column
+  val solver : (value, solver) column
+  val solver_bin_packing : (value, solver_bin_packing) column
+  val gen_bindings : (value, gen_bindings) column
+  val gen_packages : (value, gen_packages) column
+  val out_files : (value, (string * out_file) list) column
+  
+  val string_of_column : (value, 'b) column -> 'b -> string
+end = struct
+Bool | String | Int
+  | Mode
+  | Repository
+  | Optim
+  | Constraint_kind
+  | Solver
+  | Solver_bin_packing
+  | Gen_bindings
+  | Gen_packages
+  | Out_file
+end
+
+module Common_base = struct type t = String.t let compare = String.compare type 'a key = t type key_param = string type ('a,'b) table = setting_kind type ('a,'b) column = int end
+module Empty = Database.Empty(Common_base)
+module EmptyTable = Database.Table.Empty(Common_base)
+let check_global c k v vp = if not (List.mem (k,c) settings) then
+  if not (List.mem_assoc k settings) then raise Wrong_key
+  else raise (Wrong_data (List.assoc k settings))
+*)
+(*
+module type Table_input = sig type t val name : setting_kind val convert : value -> t val default : t end
+
+
+module AddTable(T : Table_input)(DB : Database.S with type 'a key = string and type ('a,'b) table = setting_kind and type ('a,'b) column = int) =
+  Database.AddTable(DB)(Database.Table.AddMandatory(EmptyTable)(Database.Table.WithDefaultValue(Database.Table.WithChecking(
+      struct type input = value type t = T.t type key = string type ('a,'b) column = int let name = 0 let convert = T.convert end)(struct let check = check_global T.name end))(T)))(
+    struct include Common_base let name = T.name end)
+
+(* 3.2. construction of the database *)
+
+module DB = AddTable(struct type t = bool let name = Bool let convert = convert_bool let default = false end)(
+            AddTable(struct type t = String let name = String let convert = convert_string let default = "" end)(
+            AddTable(struct type t = int let name = Int let convert = convert_int let default = -1 end)(
+            AddTable(struct type t = repository let name = Repository let convert = convert_repository let default = default_repository end)(
+            AddTable(struct type t = optim let name = Optim let convert = convert_optim let default = default_optim end)(
+            AddTable(struct type t = constraint_kind let name = Constraint_kind let convert = convert_constraint_kind let default = default_constraint_kind end)(
+            AddTable(struct type t = solver let name = Solver let convert = convert_solver let default = default_solver end)(
+            AddTable(struct type t = solver_bin_packing let name = Solver_bin_packing let convert = convert_solver_bin_packing let default = default_solver_bin_packing end)(
+            AddTable(struct type t = gen_bindings let name = Gen_bindings let convert = convert_gen_bindings let default = default_gen_bindings end)(
+            AddTable(struct type t = gen_packages let name = Gen_packages let convert = convert_gen_packages let default = default_gen_packages end)(
+            AddTable(struct type t = (string * out_file) list let name = Out_file let convert = convert_out_file let default = ("", Out_file_json) end)(
+              Empty)))))))))))           
+
+
+let string_of : ('a, 'b) column -> 'b -> string =
+  fun c -> Obj.magic(List.assoc c [
+    (Bool, Obj.magic string_of_bool);
+    (String, Obj.magic string_of_string);
+    (Int, Obj.magic string_of_int);
+    (Mode, Obj.magic string_of_mode);
+    (Repository, Obj.magic string_of_repository);
+    (Optim, Obj.magic string_of_optim);
+    (Constraint_kind, Obj.magic string_of_constraint_kind);
+    (Solver, Obj.magic string_of_solver);
+    (Solver_bin_packing, Obj.magic string_of_solver_bin_packing);
+    (Gen_bindings, Obj.magic string_of_gen_bindings);
+    (Gen_packages, Obj.magic string_of_gen_packages);
+    (Out_file, Obj.magic string_of_out_file) ])
+
+
+*)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+(*
+let add
+let get
+let mem
+*)
 
 
 
@@ -286,7 +465,7 @@ let add_external_repository name file = input_file_repositories := (name, file):
 let set_input_configuration_file file = input_file_initial_configuration := Some(file)
 let set_specification_file file = input_file_specification := Some(file)
 
-let set_optimization_function n = input_optimization_function := (convert "optimization function" optimization_function_names optimization_function_map n)
+let set_optimization_function n = input_optimization_function := (convert "optimization function" optim_names optim_map n)
 
 
 let add_settings_file file = input_file_settings := file::!input_file_settings

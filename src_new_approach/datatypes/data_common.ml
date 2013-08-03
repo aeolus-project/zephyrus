@@ -449,7 +449,7 @@ module Catalog =
 (*\************************************************************************/*)
 
 
-module DataBase = struct
+module Database = struct
   exception Table_not_found
   exception Column_not_found
 
@@ -494,32 +494,37 @@ module DataBase = struct
       let find_key m c v  = raise Column_not_found
     end
 
-    module type General_input = sig type input type t type key type ('a, 'b) column val name : (input, t) column val convert : input -> t end
-    module type Lesser_intermediate  = sig include General_input val check : (key, t) Hashtbl.t -> key -> t -> unit end
-    module type Greater_intermediate = sig include Lesser_intermediate val find : (key, t) Hashtbl.t -> key -> t end
-    
-    
-    
-    module WithConversion(C : General_input) = C
-    module WithoutConversion(C : sig type t type key type ('a, 'b) column val name : (t, t) column end) = struct
-      include C type input = C.t let convert = fun x -> x end
-  
-    module WithChecking(C : General_input)(P : sig val check : C.key -> C.t -> C.t option -> unit end) = struct
-      include C let check m k v = P.check k v (try Some (Hashtbl.find m k) with Not_found -> None)
-    end module WithoutChecking(C : General_input) = struct
-      include C let check m k v = ()
-    end
 
-    module WithDefaultValue(C : Lesser_intermediate)(P : sig val default : C.t end) = struct
+
+    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column val compare : t -> t -> int end
+    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column val compare : t -> t -> int end
+    module type First_intermediate  = sig include Input_with_conversion val convert : input -> t end
+    module type Second_intermediate = sig include First_intermediate val check : (key, t) Hashtbl.t -> key -> t -> unit end
+    module type Third_intermediate  = sig include Second_intermediate val find : (key, t) Hashtbl.t -> key -> t end
+    module type Fourth_intermediate = sig include Third_intermediate val aggregate : ((key, t) Hashtbl.t) -> ((t, key) Hashtbl.t) -> key -> t -> t end
+    
+  
+    module WithConversion(C : Input_with_conversion)(P : sig val convert : C.input -> C.t end) = struct include C include P end
+    module WithoutConversion(C : Input_without_conversion) = struct include C type input = C.t let convert = fun x -> x end
+  
+    module WithChecking(C : First_intermediate)(P : sig val check : C.key -> C.t -> C.t option -> unit end) = struct
+      include C let check m k v = P.check k v (try Some (Hashtbl.find m k) with Not_found -> None) end
+    module WithoutChecking(C : First_intermediate) = struct
+      include C let check m k v = () end
+
+    module WithDefaultValue(C : Second_intermediate)(P : sig val default : C.t end) = struct
       include C let find m k = try Hashtbl.find m k with Not_found -> P.default
-    end module WithoutDefaultValue(C : Lesser_intermediate) = struct
+    end module WithoutDefaultValue(C : Second_intermediate) = struct
       include C let find m k = Hashtbl.find m k
     end
+    
+    module WithAggregate(C : Third_intermediate)(P : sig val aggregate : C.t -> C.t -> C.t end) = struct
+      include C let aggregate m1 m2 k v = try let v' = Hashtbl.find m1 k in Hashtbl.remove m2 v'; P.aggregate v' v with Not_found -> v end
+    module WithoutAggregate(C : Third_intermediate) = struct
+      include C let aggregate m1 m2 k v = v end
 
-    module type Is_list_kind = sig val inner_add : ('a,'b) Hashtbl.t -> 'a -> 'b -> unit end
-    module Is_list = struct let inner_add = Hashtbl.add end
-    module Isnt_list = struct let inner_add = Hashtbl.replace end
-    module Structure(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)(L : Is_list_kind) = struct
+
+    module Structure(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
       type t = (((C.key, C.t) Hashtbl.t) * ((C.t, C.key) Hashtbl.t)) * T.t
       type key = T.key
       type ('a, 'b) column = ('a, 'b) T.column
@@ -529,7 +534,9 @@ module DataBase = struct
       let mem (_,p) = T.mem p
       let mem_in_column ((m1,m2),p) c k = if (Obj.magic c) == C.name then Hashtbl.mem m1 k else T.mem_in_column p c k
     
-      let local_add (m1,m2) k v' = let v : C.t = C.convert (Obj.magic v') in C.check m1 k v; L.inner_add m1 k v; L.inner_add m2 v k
+      let local_add (m1,m2) k v' =
+        let v_tmp : C.t = C.convert (Obj.magic v') in C.check m1 k v_tmp;
+        let v = C.aggregate m1 m2 k v_tmp in Hashtbl.replace m1 k v; Hashtbl.replace m2 v k
 
       let add_to_column (m,p) c k v = if (Obj.magic c) != C.name then T.add_to_column p c k v
         else (if not (T.mem p k) then raise Not_found else local_add m k v)
@@ -540,27 +547,20 @@ module DataBase = struct
     end
 
 
-    module Mandatory(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Structure(T)(C)(Isnt_list)
+    module AddMandatory(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
+      include Structure(C)(T)
 
       type add_type = C.input -> T.add_type
       let add (m,p) k v = local_add m k v; T.add p k
     end
 
-    module Optional(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Structure(T)(C)(Isnt_list)
+    module AddOptional(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
+      include Structure(C)(T)
 
       type add_type = T.add_type
       let add (_,p) = T.add p
     end
     
-    module List(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Structure(T)(C)(Is_list)
-
-      type add_type = T.add_type
-      let add (_,p) = T.add p
-    end
-
   end
 
   module type S = sig

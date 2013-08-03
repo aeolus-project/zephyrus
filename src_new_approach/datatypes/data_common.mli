@@ -39,7 +39,34 @@ module type Map_from_stblib = Map.S
 module type Set_from_stblib = Set.S
 
 module Int : sig type t = int val compare : t -> t -> int end
-module String : sig type t = string val compare : t -> t -> int end
+module String : sig
+  type t = string
+  val compare: t -> t -> int
+
+  val length : string -> int
+  val get : string -> int -> char
+  val set : string -> int -> char -> unit
+  val create : int -> string
+  val make : int -> char -> string
+  val copy : string -> string
+  val sub : string -> int -> int -> string
+  val fill : string -> int -> int -> char -> unit
+  val blit : string -> int -> string -> int -> int -> unit
+  val concat : string -> string list -> string
+  val iter : (char -> unit) -> string -> unit
+  val escaped : string -> string
+  val index : string -> char -> int
+  val rindex : string -> char -> int
+  val index_from : string -> int -> char -> int
+  val rindex_from : string -> int -> char -> int
+  val contains : string -> char -> bool
+  val contains_from : string -> int -> char -> bool
+  val rcontains_from : string -> int -> char -> bool
+  val uppercase : string -> string
+  val lowercase : string -> string
+  val capitalize : string -> string
+  val uncapitalize : string -> string
+end
 
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set : sig
@@ -299,7 +326,7 @@ module Catalog :
 
 
 (* type safe modules and functors for a data base. Support for SQL is not planned *)
-module DataBase : sig 
+module Database : sig 
   exception Table_not_found  (* raised when trying to access a table not present in the data base *)
   exception Column_not_found (* raised with trying to access a column that is not present in a table *)
 
@@ -345,33 +372,38 @@ module DataBase : sig
             The list of everything that was inserted for a key can be accessed with [find_list]
    *)
 
-    module type General_input = sig type input type t type key type ('a, 'b) column val name : (input, t) column val convert : input -> t end
-    module type Lesser_intermediate  = sig include General_input val check : (key, t) Hashtbl.t -> key -> t -> unit end
-    module type Greater_intermediate = sig include Lesser_intermediate val find : (key, t) Hashtbl.t -> key -> t end
+    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column val compare : t -> t -> int end
+    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column val compare : t -> t -> int end
+    module type First_intermediate  = sig include Input_with_conversion val convert : input -> t end
+    module type Second_intermediate = sig include First_intermediate val check : (key, t) Hashtbl.t -> key -> t -> unit end
+    module type Third_intermediate  = sig include Second_intermediate val find : (key, t) Hashtbl.t -> key -> t end
+    module type Fourth_intermediate = sig include Third_intermediate val aggregate : ((key, t) Hashtbl.t) -> ((t, key) Hashtbl.t) -> key -> t -> t end
+    
+    module WithConversion(C : Input_with_conversion)(P : sig val convert : C.input -> C.t end)
+      : First_intermediate  with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
+    module WithoutConversion(C : Input_without_conversion)
+      : First_intermediate  with type input = C.t     and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
 
-    module WithConversion(C : General_input)
-      : General_input with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
-    module WithoutConversion(C : sig type t type key type ('a, 'b) column val name : (t, t) column end)
-      : General_input with type input = C.t and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column
+    module WithChecking(C : First_intermediate)(P : sig val check : C.key -> C.t -> C.t option -> unit end)
+      : Second_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
+    module WithoutChecking(C : First_intermediate)
+      : Second_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
 
-    module WithChecking(C : General_input)(P : sig val check : C.key -> C.t -> C.t option -> unit end)
-      : Lesser_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
-    module WithoutChecking(C : General_input)
-      : Lesser_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+    module WithDefaultValue(C : Second_intermediate)(P : sig val default : C.t end)
+      : Third_intermediate  with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
+    module WithoutDefaultValue(C : Second_intermediate)
+      : Third_intermediate  with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
 
-    module WithDefaultValue(C : Lesser_intermediate)(P : sig val default : C.t end)
-      : Greater_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
-    module WithoutDefaultValue(C : Lesser_intermediate)
-      : Greater_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
+    module WithAggregate(C : Third_intermediate)(P : sig val aggregate : C.t -> C.t -> C.t end)
+      : Fourth_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
+    module WithoutAggregate(C : Third_intermediate)
+      : Fourth_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a, 'b) C.column
 
 
-    module Mandatory(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+    module AddMandatory(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column)
       : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = C.input -> T.add_type
 
-    module Optional(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
-      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = T.add_type
-
-    module List(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
+    module AddOptional (C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column)
       : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = T.add_type
   end
 
