@@ -21,6 +21,232 @@
     - datatypes/Data_common
 *)
 
+let get_bool_basic r = match !r with | None -> false | Some(b) -> b
+
+
+exception Wrong_value
+exception Wrong_key
+
+(*/************************************************************************\*)
+(*| 1. Local Data Types with Conversion functions                         |*)
+(*\************************************************************************/*)
+
+(* 1.1. Conversion generator *)
+let extract_names l = List.fold_left (fun res (n,v) -> n::res) [] l
+let convert map value = try Data_common.String_map.find value map with Not_found -> raise Wrong_value
+
+
+(* 1.2. Zephyrus Execution mode. *) (* not used for now *)
+type mode = 
+  | Mode_classic
+  | Mode_flat
+  | Mode_bin_packing
+let mode_assoc = [
+  ("classic", Mode_classic);
+  ("flat", Mode_flat);
+  ("bin-packing", Mode_bin_packing) ]
+let mode_names = extract_names mode_assoc
+let mode_map = Data_common.String_map.of_direct_list mode_assoc
+let convert_mode = convert mode_map
+let default_mode = Mode_classic
+
+
+(* 1.3. the different kind of optimization in zephyrus *)
+type optim =
+  | Optim_none
+  | Optim_simple
+  | Optim_compact
+  | Optim_spread
+  | Optim_conservative
+let optimization_function_assoc = [
+  ("simple", Optim_simple);
+  ("compact", Optim_compact);
+  ("conservative", Optim_conservative);
+  ("spread", Optim_spread);
+  ("none", Optim_none) ]
+let optimization_function_names = extract_names optimization_function_assoc
+let optimization_function_map = Data_common.String_map.of_direct_list optimization_function_assoc
+let convert_optim = convert optimization_function_map
+let default_optim = Optim_none
+
+
+(* 1.4. the different kind of solver available in zephyrus *)
+type constraint_kind =
+  | Constraint_classic
+  | Constraint_linear
+  | Bin_packing
+let constraint_kind_assoc = [
+  ("classic", Constraint_classic);
+  ("linear", Constraint_linear);
+  ("bin-packing", Bin_packing) ]
+let constraint_kind_names = extract_names constraint_kind_assoc
+let constraint_kind_map = Data_common.String_map.of_direct_list constraint_kind_assoc
+let convert_constraint_kind = convert constraint_kind_map
+let default_constraint_kind = Constraint_classic
+
+type solver =
+  | Solver_none
+  | Solver_gcode
+  | Solver_g12
+  | Solver_facile
+let solver_assoc = [
+  ("facile", Solver_facile);
+  ("g12"   , Solver_g12);
+  ("gcode" , Solver_gcode);
+  ("none"  , Solver_none) ]
+let solver_names = extract_names solver_assoc
+let solver_map = Data_common.String_map.of_direct_list solver_assoc
+let convert_solver = convert solver_map
+let default_solver = Solver_gcode
+
+type solver_bin_packing = (* not used yet, lacking a bin packing solver ... *)
+  | Solver_bin_packing_unknown
+let solver_bin_packing_assoc =  []
+let solver_bin_packing_names = extract_names solver_bin_packing_assoc
+let solver_bin_packing_map = Data_common.String_map.of_direct_list solver_bin_packing_assoc
+let convert_solver_bin_packing = convert solver_bin_packing_map
+let default_solver_bin_packing = Solver_bin_packing_unknown
+
+
+(* 1.5. the different mean we have to generate the final configuration *)
+type gen_bindings =
+  | Gen_bindings_candy
+  | Gen_bindings_constraint
+let gen_bindings_assoc = [
+  ("candy", Gen_bindings_candy);
+  ("constraint", Gen_bindings_constraint) ]
+let gen_bindings_names = extract_names gen_bindings_assoc
+let gen_bindings_map = Data_common.String_map.of_direct_list gen_bindings_assoc
+let convert_gen_bindings = convert gen_bindings_map
+let default_gen_bindings = Gen_bindings_candy
+
+
+(* 1.6. the different mean we have to generate the packages we need to install *)
+type gen_packages =
+  | Gen_packages_none
+  | Gen_packages_one
+  | Gen_packages_all
+let gen_packages_assoc = [
+  ("none", Gen_packages_none); ("one", Gen_packages_one); ("all", Gen_packages_all)]
+let gen_packages_names = extract_names gen_packages_assoc
+let gen_packages_map = Data_common.String_map.of_direct_list gen_packages_assoc
+let convert_gen_packages = convert gen_packages_map
+let default_gen_packages = Gen_packages_one
+
+
+(* 1.7. the different kind of output files *)
+type out_file = 
+  | Out_file_plain
+  | Out_file_json
+  | Out_file_graph_deployment
+  | Out_file_graph_simplified
+  | Out_file_graph_components
+  | Out_file_graph_packages
+let out_file_assoc = [
+  ("plain"                      , Out_file_plain);
+  ("json"                       , Out_file_json);
+  ("simplified-deployment-graph", Out_file_graph_simplified);
+  ("components-graph"           , Out_file_graph_components);
+  ("packages-graph"             , Out_file_graph_packages);
+  ("graph-deployment"           , Out_file_graph_deployment) ]
+let out_file_names = extract_names out_file_assoc
+let out_file_map = Data_common.String_map.of_direct_list out_file_assoc
+let convert_out_file (f,k) = (f, convert out_file_map k)
+
+
+(*/************************************************************************\*)
+(*| 2. List of all settings with their kind                                |*)
+(*\************************************************************************/*)
+
+type setting_kind = BoolFalse | BoolTrue | String | Int
+  | Mode
+  | Repository_file
+  | Optim
+  | Constraint_kind
+  | Solver
+  | Solver_bin_packing
+  | Gen_bindings
+  | Gen_package
+  | Out_file
+
+let settings = [
+    ("mode", Mode);
+    
+    (* 1. Importing *)
+    ("input-file-universe", String);
+    ("input-file-configuration", String);
+    ("input-file-specification", String);
+    ("input-file-repositories", Repository_file);
+    ("input-optimization-function", String);
+    ("import-universe", BoolTrue);
+    ("import-repositories", BoolTrue);
+    ("import-initial-configuration", BoolTrue);
+    ("import-specification", BoolTrue);
+    ("import-optimization-function", BoolTrue);
+
+    ("append-repository-to-package-name", BoolTrue);
+
+    (* 2. Checking the input *)
+    ("check-universe", BoolFalse);
+    ("check-repositories", BoolFalse);
+    ("check-initial-configuration", BoolFalse);
+    ("check-universe_full", BoolFalse);
+    ("check-specification", BoolFalse);
+
+    ("check-settings", BoolFalse);
+
+    (* 3. Pre-Processing *)
+    ("detect-spec-is-empty", BoolTrue);
+    ("component-types-trim", BoolTrue);
+  
+    ("detect-component-types-have-loop", BoolTrue);
+    ("detect-component-types-bounds", BoolTrue);
+
+    ("package-trim", BoolTrue);
+
+    (* 4. Solvers *)
+    ("constraint-kind", Constraint_kind);
+    ("preprocess-solver", Solver);
+    ("solver", Solver);
+    ("solver-bin-packing", Solver_bin_packing);
+
+    (* 5. Temporary Files *)
+    ("preprocess-constraint-file", String);
+    ("preprocess-solution-file", String);
+    ("preprocess-keep-constraint-file", BoolFalse);
+    ("preprocess-empty-keep-solution-file", BoolFalse);
+
+    ("solver-constraint-file", String);
+    ("solver-solution-file", String);
+    ("solver-keep-constraint-file", BoolFalse);
+    ("solver-keep-solution-file", BoolFalse);
+
+    (* 6. Configuration Generation *)
+    ("generate-bindings", BoolTrue);
+    ("generate-packages", BoolTrue);
+
+
+    (* 7. Output Configuration *)
+    ("results", BoolTrue);
+
+    (* 8. Verbose Options *)
+    ("verbose-level", Int);
+    ("verbose-stage", BoolFalse);
+    ("verbose-data", BoolFalse);
+    ("verbose-execution", BoolFalse);
+  ]
+
+(*/************************************************************************\*)
+(*| 3. Database and functions                                              |*)
+(*\************************************************************************/*)
+
+
+
+
+(*/************************************************************************\*)
+(*| 4. Previous version of the file                                        |*)
+(*\************************************************************************/*)
+
 module Settings_log = struct
   let out_channel = stdout
   let log_input_settings_unknown_setting setting = Output_helper.print out_channel ("Error in settings: the setting \"" ^ setting ^ "\" is unknown. Skiping its definition\n")
@@ -32,74 +258,14 @@ end
 let convert setting list map value = try Some(Data_common.String_map.find value map) with
  | Not_found -> Settings_log.log_input_settings_wrong_value setting value list; None
 
-let get_bool_basic r = match !r with | None -> false | Some(b) -> b
 
 
-(* 00. DataTypes *)
-type mode = 
- | Mode_classic
- | Mode_flat
- | Mode_bin_packing
- 
 
-(* the different kind of optimization in zephyrus *)
 
-type optim =
-  | Optim_none
-  | Optim_simple
-  | Optim_compact
-  | Optim_spread
-  | Optim_conservative
-let optimization_function_names = ["simple"; "compact"; "conservative"; "spread"; "none"]
-let optimization_function_map = Data_common.String_map.of_direct_list [
-  ("simple", Optim_simple);
-  ("compact", Optim_compact);
-  ("conservative", Optim_conservative);
-  ("spread", Optim_spread);
-  ("none", Optim_none) ]
 
-(* the different kind of solver available in zephyrus *)
-type solver =
-  | Solver_none
-  | Solver_gcode
-  | Solver_g12
-  | Solver_facile
-let solver_names = ["facile"; "g12"; "gecode"; "none"]
-let solver_map = Data_common.String_map.of_direct_list [
-  ("facile", Solver_facile);
-  ("g12"   , Solver_g12);
-  ("gcode" , Solver_gcode);
-  ("none"  , Solver_none) ]
 
-type solver_bin_packing = 
-  | Solver_bin_packing_unknown
 
-(* the different mean we have to generate the final configuration *)
-type conf_gen_bindings =
-  | Conf_gen_bindings_none
-  | Conf_gen_bindings_candy
-  | Conf_gen_bindings_constraint
 
-(* the different mean we have to generate the packages we need to install *)
-type conf_gen_packages =
-  | Conf_gen_packages_none
-  | Conf_gen_packages_universe
-
-type out_file = 
-  | Out_file_plain
-  | Out_file_json
-  | Out_file_graph_deployment
-  | Out_file_graph_simplified
-  | Out_file_graph_components
-  | Out_file_graph_packages
-let out_kinds = ["plain"; "json"; "graph"; "deployment-graph"; "simplified-deployment-graph"; "components-graph"; "packages-graph"]
-let out_map = Data_common.String_map.of_direct_list [
-  ("plain"                      , Out_file_plain);
-  ("json"                       , Out_file_json);
-  ("simplified-deployment-graph", Out_file_graph_simplified);
-  ("components-graph"           , Out_file_graph_components);
-  ("packages-graph"             , Out_file_graph_packages);
-  ("graph-deployment"           , Out_file_graph_deployment) ]
 
 (* No Need For A Number: Essencial *)
 
@@ -233,14 +399,14 @@ let get_main_file_informations () =
 
 (* 06. Configuration Generation *)
 
-let configuration_generation_bindings : conf_gen_bindings option ref = ref None (* NotUsedYet *)
-let configuration_generation_packages : conf_gen_packages option ref = ref None (* NotUsedYet *)
+let configuration_generation_bindings : gen_bindings option ref = ref None (* NotUsedYet *)
+let configuration_generation_packages : gen_packages option ref = ref None (* NotUsedYet *)
 
 
 (* 07. Output Configuration *)
 
 let output_file                  : (out_file * string) list ref = ref [] (* NotUsedYet *)
-let add_output_file kind file = let kind' = (convert "output file kind" out_kinds out_map kind) in match kind' with
+let add_output_file kind file = let kind' = (convert "output file kind" out_file_names out_file_map kind) in match kind' with
  | Some(kind'') -> output_file := (kind'', file)::!output_file
  | None -> ()
 let get_output_files () = !output_file
@@ -337,8 +503,8 @@ type setting =
   | OptimizationFunctionSetting of optim option
   | SolverKindSetting           of solver option
   | SolverBinPackingKindSetting of solver_bin_packing option
-  | ConfGenBindingsSetting      of conf_gen_bindings option
-  | ConfGenPackagesSetting      of conf_gen_packages option
+  | ConfGenBindingsSetting      of gen_bindings option
+  | ConfGenPackagesSetting      of gen_packages option
   | OutputFileSetting           of (out_file * string) list
 
 let string_of_mode = function
@@ -363,13 +529,13 @@ let string_of_solver_bin_packing = function
   | Solver_bin_packing_unknown -> "Solver_bin_packing_unknown"
 
 let string_of_conf_gen_bindings = function
-  | Conf_gen_bindings_none       -> "Conf_gen_bindings_none"
-  | Conf_gen_bindings_candy      -> "Conf_gen_bindings_candy"
-  | Conf_gen_bindings_constraint -> "Conf_gen_bindings_constraint"
+  | Gen_bindings_candy      -> "Gen_bindings_candy"
+  | Gen_bindings_constraint -> "Gen_bindings_constraint"
 
 let string_of_conf_gen_packages = function
-  | Conf_gen_packages_none     -> "Conf_gen_packages_none"
-  | Conf_gen_packages_universe -> "Conf_gen_packages_universe"
+  | Gen_packages_none -> "Gen_packages_none"
+  | Gen_packages_one  -> "Gen_packages_one"
+  | Gen_packages_all  -> "Gen_packages_all"
 
 let string_of_out_file = function
   | Out_file_plain            -> "Out_file_plain"

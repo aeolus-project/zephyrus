@@ -297,39 +297,53 @@ module Catalog :
 (*| 4. Basic Data Base                                                     |*)
 (*\************************************************************************/*)
 
-module DataBase : sig
-  exception Table_not_found
-  exception Column_not_found
 
+(* type safe modules and functors for a data base. Support for SQL is not planned *)
+module DataBase : sig 
+  exception Table_not_found  (* raised when trying to access a table not present in the data base *)
+  exception Column_not_found (* raised with trying to access a column that is not present in a table *)
+
+  (* type safe modules and functors for the definition of a data base table *)
   module Table : sig
-(*    module type Key    = sig type t type 'a column val compare : t -> t -> int end
-    module type Column = sig type t type 'a column val name : t column end
-    module type ColumnWithDefault = sig include Column val default : t end*)
-
-
-
+    (* type of a table module *)
     module type S = sig
-      type t
-      type key
-      type ('a, 'b) column
+      type t                (* type of the table *)
+      type key              (* type of the main key of the table *)
+      type ('a, 'b) column  (* type for columns: we support value conversion, so ['a] is what is inserted, and ['b] is what is stored *)
 
-      val create : int -> t
+      val create : int -> t (* create an empty table *)
       
-      val mem : t -> key -> bool
-      val mem_in_column : t -> key -> ('a, 'b) column -> bool
+      val mem : t -> key -> bool (* check if an entry was inserted for the given key *)
+      val mem_in_column : t -> ('a, 'b) column -> key -> bool (* check if an entry was inserted on the specific column -- has sense as we all columns to be optional *)
       
-      type add_type
-      val add : t -> key -> add_type
-      val add_to_column : t -> key -> ('a, 'b) column -> 'a -> unit
+      type add_type (* the part of the type of [add] that varies.
+           It has the form ['a -> 'b -> 'c -> unit] where ['a] is the type of the last non optional column, ['b] the second last, etc *)
+      val add : t -> key -> add_type (* the function to insert an entry in the table. If present, replace the previous entry with the same key *)
+      val add_to_column : t -> ('a, 'b) column -> key -> 'a -> unit (* Used for insertion in optional columns *)
     
-      val get : t -> key -> ('a, 'b) column -> 'b
-      val get_list : t -> key -> ('a, 'b) column -> 'b list
-      val get_key : t -> ('a, 'b) column -> 'a -> key
+      val find : t -> ('a, 'b) column -> key -> 'b (* get the value stored in a column for a given key (or the default value, if one is given) *)
+      val find_list : t -> ('a, 'b) column -> key -> 'b list (* get the list of all what was inserted in a given list-column *)
+      val find_key : t -> ('a, 'b) column -> 'a -> key (* returns the key corresponding to the value *)
     end
 
     module Empty(K : sig type t type ('a, 'b) column val compare : t -> t -> int end) 
       : S with type key = K.t and type ('a, 'b) column = ('a, 'b) K.column and type add_type = unit
 
+   (* The creation of a table work in several steps:
+        1. first, you create an empty table module using the [Empty] functor
+        2-n. then, you iteratively add columns of the desired type and the desired functionality.
+      The addition of a new column is done in 4 or 5 steps:
+        1. first you define a module of type [General_input], with or without the [convert] function
+        2. You feed this module to either [WithConversion] or [WithoutConversion] to enable or not value conversion during insertion in the column
+        3. You feed the resulting module to either [WithChecking] or [WithoutChecking] to enable or not checking what is inserted in the table.
+           This way, insertion can be canceled if an exception is raise by the [check] function
+        4. You feed the resulting module to either [WithDefaultValue] or [WithoutDefaultValue] to set a default value for the column
+        5. Finally, you finalize the addition by feeding the module you have to one of the following functors, each of then giving you different functionalities:
+          - [Mandatory] has the classic column features: when inserting a new entry, you have to specify a value for that column
+          - [Optional] do not require a value for a given entry (a value for that column can be inserted separately using [add_to_column])
+          - [List] is a find of optional column, that keeps, instead of replacing previous value upon re-insertion of a key.
+            The list of everything that was inserted for a key can be accessed with [find_list]
+   *)
 
     module type General_input = sig type input type t type key type ('a, 'b) column val name : (input, t) column val convert : input -> t end
     module type Lesser_intermediate  = sig include General_input val check : (key, t) Hashtbl.t -> key -> t -> unit end
@@ -350,6 +364,7 @@ module DataBase : sig
     module WithoutDefaultValue(C : Lesser_intermediate)
       : Greater_intermediate with type input = C.input and type t = C.t and type key = C.key and type ('a, 'b) column = ('a,'b) C.column    
 
+
     module Mandatory(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
       : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = C.input -> T.add_type
 
@@ -358,12 +373,34 @@ module DataBase : sig
 
     module List(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
       : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = T.add_type
-
-    module Secondary_key(T : S)(C : Lesser_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)
-      : S with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column and type add_type = C.input -> T.add_type
-
   end
 
+  (* type of a database module *)
+  module type S = sig
+    type t               (* type of a database *)
+    type 'a key          (* type of keys. The parameter 'a allows different table in the database to use different kind of keys *)
+    type ('a, 'b) table  (* type for tables: 'a if the kind of key of the table, and 'b is its type [add_type] *)
+    type ('a, 'b) column (* type for columns: we support value conversion, so ['a] is what is inserted, and ['b] is what is stored *)
+
+    val create : int -> t
+      
+    val mem : t -> ('a, 'b) table -> 'a key -> bool
+    val mem_in_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> bool
+      
+    val add : t -> ('a, 'b) table -> 'a key -> 'b
+    val add_to_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'c -> unit
+    
+    val find : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd
+    val find_list : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd list
+    val find_key : t -> ('a, 'b) table -> ('c, 'd) column -> 'c -> 'a key
+  end
+
+  module Empty(K : sig type 'a key type ('a, 'b) table type ('a, 'b) column end)
+    : S with type 'a key = 'a K.key and type ('a, 'b) table = ('a, 'b) K.table and type ('a, 'b) column = ('a, 'b) K.column
+
+  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
+      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key)
+    : S with type 'a key = 'a DB.key and type ('a, 'b) table = ('a, 'b) DB.table and type ('a, 'b) column = ('a, 'b) DB.column
 end
 
 

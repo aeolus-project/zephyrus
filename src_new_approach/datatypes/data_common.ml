@@ -455,9 +455,6 @@ module DataBase = struct
 
 
   module Table = struct
-(*    module type Column = sig type t type 'a column val name : t column end
-    module type ColumnWithDefault = sig include Column val default : t end *)
-
     module type S = sig
       type t
       type key
@@ -466,15 +463,15 @@ module DataBase = struct
       val create : int -> t
       
       val mem : t -> key -> bool
-      val mem_in_column : t -> key -> ('a, 'b) column -> bool
+      val mem_in_column : t -> ('a, 'b) column -> key -> bool
       
       type add_type
       val add : t -> key -> add_type
-      val add_to_column : t -> key -> ('a, 'b) column -> 'a -> unit
+      val add_to_column : t -> ('a, 'b) column ->  key ->'a -> unit
     
-      val get : t -> key -> ('a, 'b) column -> 'b
-      val get_list : t -> key -> ('a, 'b) column -> 'b list
-      val get_key : t -> ('a, 'b) column -> 'a -> key
+      val find : t -> ('a, 'b) column -> key -> 'b
+      val find_list : t -> ('a, 'b) column -> key -> 'b list
+      val find_key : t -> ('a, 'b) column -> 'a -> key
     end
 
     module Empty(K : sig type t type ('a, 'b) column val compare : t -> t -> int end) = struct
@@ -486,15 +483,15 @@ module DataBase = struct
       let create _ = { mem = Key_set.empty }
       
       let mem m k = Key_set.mem k m.mem
-      let mem_in_column m k c = raise Column_not_found
+      let mem_in_column m c k = raise Column_not_found
       
       type add_type = unit
       let add m k = m.mem <- Key_set.add k m.mem
-      let add_to_column m k c v = raise Column_not_found
+      let add_to_column m c k v = raise Column_not_found
     
-      let get m k c      = raise Column_not_found
-      let get_list m k c = raise Column_not_found
-      let get_key m v    = raise Column_not_found
+      let find m c k      = raise Column_not_found
+      let find_list m c k = raise Column_not_found
+      let find_key m c v  = raise Column_not_found
     end
 
     module type General_input = sig type input type t type key type ('a, 'b) column val name : (input, t) column val convert : input -> t end
@@ -519,87 +516,110 @@ module DataBase = struct
       include C let find m k = Hashtbl.find m k
     end
 
-
-    module type Structure = sig
-      type ('a, 'b) local_structure
-      val local_create : int -> ('a, 'b) local_structure
-      val main_map : ('a, 'b) local_structure -> ('a, 'b) Hashtbl.t
-    end module Normal_structure = struct
-      type ('a, 'b) local_structure = ('a, 'b) Hashtbl.t
-      let local_create n = Hashtbl.create n let main_map m = m
-    end module Key_structure = struct
-      type ('a, 'b) local_structure = (('a, 'b) Hashtbl.t) * (('b, 'a) Hashtbl.t)
-      let local_create n = (Hashtbl.create n, Hashtbl.create n) let main_map (m1,m2) = m1
-    end
-      
-
-
-    module Common_data(T : S)(S : Structure)(C : Lesser_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      type t = ((C.key, C.t) S.local_structure) * T.t
+    module type Is_list_kind = sig val inner_add : ('a,'b) Hashtbl.t -> 'a -> 'b -> unit end
+    module Is_list = struct let inner_add = Hashtbl.add end
+    module Isnt_list = struct let inner_add = Hashtbl.replace end
+    module Structure(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column)(L : Is_list_kind) = struct
+      type t = (((C.key, C.t) Hashtbl.t) * ((C.t, C.key) Hashtbl.t)) * T.t
       type key = T.key
       type ('a, 'b) column = ('a, 'b) T.column
-      
-      let create n = (S.local_create n, T. create n)
+
+      let create n = ((Hashtbl.create n, Hashtbl.create n), T.create n)
+
       let mem (_,p) = T.mem p
-      let mem_in_column (m,p) k c = if (Obj.magic c) == C.name then Hashtbl.mem (S.main_map m) k else T.mem_in_column p k c
-    end module Lesser_data(T : S)(S : Structure with type ('a, 'b) local_structure = (('a, 'b) Hashtbl.t) * (('b, 'a) Hashtbl.t))
-        (C : Lesser_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Common_data(T)(S)(C)
-      let get ((m1,m2),p) k c = if (Obj.magic c) == C.name then Obj.magic (Hashtbl.find m1 k) else T.get p k c
-      let get_list (_,p) = T.get_list p
-      let get_key ((m1,m2),p) c v = if (Obj.magic c) == C.name then Hashtbl.find m2 (Obj.magic v) else T.get_key p c v
-    end module Greater_data(T : S)(S : Structure)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Common_data(T)(S)(C)
-      let get (m,p) k c = if (Obj.magic c) == C.name then Obj.magic (C.find m k) else T.get p k c
-      let get_key (_,p) = T.get_key p
-    end module Greatest_data(T : S)(S : Structure)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Greater_data(T)(S)(C)
-      type add_type = T.add_type
-      let add (_,p) = T.add p
+      let mem_in_column ((m1,m2),p) c k = if (Obj.magic c) == C.name then Hashtbl.mem m1 k else T.mem_in_column p c k
+    
+      let local_add (m1,m2) k v' = let v : C.t = C.convert (Obj.magic v') in C.check m1 k v; L.inner_add m1 k v; L.inner_add m2 v k
+
+      let add_to_column (m,p) c k v = if (Obj.magic c) != C.name then T.add_to_column p c k v
+        else (if not (T.mem p k) then raise Not_found else local_add m k v)
+
+      let find ((m1,m2),p) c k = if (Obj.magic c) == C.name then Obj.magic (C.find m1 k) else T.find p c k
+      let find_list ((m1,m2),p) c k = if (Obj.magic c) == C.name then Obj.magic (try Hashtbl.find_all m1 k with Not_found -> []) else T.find_list p c k
+      let find_key ((m1,m2),p) c v = if (Obj.magic c) == C.name then Hashtbl.find m2 (Obj.magic v) else T.find_key p c v
     end
-      
+
+
     module Mandatory(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Greater_data(T)(Normal_structure)(C)
+      include Structure(T)(C)(Isnt_list)
 
       type add_type = C.input -> T.add_type
-      let add (m,p) k v' = let v = C.convert v' in C.check m k v; Hashtbl.replace m k v; T.add p k
-      let add_to_column (m,p) k c v = if (Obj.magic c) != C.name then T.add_to_column p k c v
-        else ( (if not (T.mem p k) then raise Not_found);
-               let v' : C.t = C.convert (Obj.magic v) in C.check m k v'; Hashtbl.replace m k v')
-      let get_list (_,p) = T.get_list p
+      let add (m,p) k v = local_add m k v; T.add p k
     end
 
     module Optional(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Greatest_data(T)(Normal_structure)(C)
+      include Structure(T)(C)(Isnt_list)
 
-      let add_to_column (m,p) k c v = if (Obj.magic c) != C.name then T.add_to_column p k c v
-        else ( (if not (T.mem p k) then raise Not_found);
-               let v' : C.t = C.convert (Obj.magic v) in C.check m k v'; Hashtbl.replace m k v')
-      let get_list (_,p) = T.get_list p
+      type add_type = T.add_type
+      let add (_,p) = T.add p
     end
     
     module List(T : S)(C : Greater_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Greatest_data(T)(Normal_structure)(C)
+      include Structure(T)(C)(Is_list)
 
-      let add (m,p) k = (if not (T.mem p k) then let l = try Hashtbl.find_all m k with Not_found -> [] in List.iter (fun _ -> Hashtbl.remove m k) l); T.add p k
-      let add_to_column (m,p) k c v = if (Obj.magic c) != C.name then T.add_to_column p k c v
-        else ( (if not (T.mem p k) then raise Not_found);
-               let v' : C.t = C.convert (Obj.magic v) in C.check m k v'; Hashtbl.add m k v')
-      let get_list (m,p) k c = if (Obj.magic c) == C.name then Obj.magic (try Hashtbl.find_all m k with Not_found -> []) else T.get_list p k c
+      type add_type = T.add_type
+      let add (_,p) = T.add p
     end
 
-    module Secondary_key(T : S)(C : Lesser_intermediate with type key = T.key and type ('a, 'b) column = ('a, 'b) T.column) = struct
-      include Lesser_data(T)(Key_structure)(C)
+  end
 
-      type add_type = C.input -> T.add_type
-      let add ((m1,m2),p) k v' = let v : C.t = C.convert v' in C.check m1 k v; Hashtbl.replace m1 k v; Hashtbl.replace m2 v k; T.add p k
+  module type S = sig
+    type t
+    type 'a key
+    type ('a, 'b) table
+    type ('a, 'b) column
 
-      let add_to_column ((m1,m2),p) k c v = if (Obj.magic c) != C.name then T.add_to_column p k c v
-        else ( (if not (T.mem p k) then raise Not_found);
-               let v' : C.t = C.convert (Obj.magic v) in C.check m1 k v'; Hashtbl.replace m1 k v'; Hashtbl.replace m2 v' k)
-    end
-          
-  end 
+    val create : int -> t
+      
+    val mem : t -> ('a, 'b) table -> 'a key -> bool
+    val mem_in_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> bool
+      
+    val add : t -> ('a, 'b) table -> 'a key -> 'b
+    val add_to_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'c -> unit
+    
+    val find : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd
+    val find_list : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd list
+    val find_key : t -> ('a, 'b) table -> ('c, 'd) column -> 'c -> 'a key
+  end
+
+  module Empty(K : sig type 'a key type ('a, 'b) table type ('a, 'b) column end) = struct
+    type t = unit
+    type 'a key = 'a K.key
+    type ('a, 'b) table = ('a, 'b) K.table
+    type ('a, 'b) column = ('a, 'b) K.column
+      
+    let create _ = ()
+      
+    let mem m t k             = raise Table_not_found
+    let mem_in_column m t c k = raise Table_not_found
+      
+    let add m t k               = raise Table_not_found
+    let add_to_column m t c k v = raise Table_not_found
+    
+    let find m t c k      = raise Table_not_found
+    let find_list m t c k = raise Table_not_found
+    let find_key m t c v  = raise Table_not_found
+  end
+
+  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
+      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key) = struct
+    type t = T.t * DB.t
+    type 'a key = 'a DB.key
+    type ('a, 'b) table = ('a, 'b) DB.table
+    type ('a, 'b) column = ('a, 'b) DB.column
+    
+    let create n = (T.create n, DB.create n)
+    
+    let mem (m,p) t k = if (Obj.magic t) == Id.name then T.mem m (Obj.magic k) else DB.mem p t k
+    let mem_in_column (m,p) t c k = if (Obj.magic t) == Id.name then T.mem_in_column m c (Obj.magic k) else DB.mem_in_column p t c k
+    
+    let add (m,p) t k = if (Obj.magic t) == Id.name then Obj.magic (T.add m (Obj.magic k)) else DB.add p t k
+    let add_to_column (m,p) t c k v = if (Obj.magic t) == Id.name then T.add_to_column m c (Obj.magic k) v else DB.add_to_column p t c k v
+    
+    let find (m,p) t c k      = if (Obj.magic t) == Id.name then Obj.magic (T.find m c (Obj.magic k)) else DB.find p t c k
+    let find_list (m,p) t c k = if (Obj.magic t) == Id.name then Obj.magic (T.find_list m c (Obj.magic k)) else DB.find_list p t c k
+    let find_key (m,p) t c v  = if (Obj.magic t) == Id.name then Obj.magic (T.find_key m c v) else DB.find_key p t c v
+  end
 
 end
 

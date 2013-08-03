@@ -69,7 +69,7 @@ let speclist =
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (
-                      [Arg.Symbol ( Settings.out_kinds,  (fun s -> out_kinds := s::!out_kinds));
+                      [Arg.Symbol ( Settings.out_file_names,  (fun s -> out_kinds := s::!out_kinds));
                        Arg.String (fun filename -> out_files := filename::!out_files) ]
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
   ]

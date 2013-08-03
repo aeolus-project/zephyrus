@@ -85,12 +85,19 @@ module T = Data_common.DataBase.Table.Optional(
 
 let () = 
   let table = T.create 5 in
+    print_string "step 1\n"; flush stdout;
     T.add table 0;
-    T.add_to_column table 0 DBString.name "is_working? ";
-    T.add_to_column table 0 DBBool.name true;
-    print_string ((T.get table 0 DBString.name) ^ (string_of_bool (T.get table 0 DBBool.name)) ^ "\n");
+    print_string "step 2\n"; flush stdout;
+    T.add_to_column table DBString.name 0 "is_working? ";
+    print_string "step 3\n"; flush stdout;
+    T.add_to_column table DBBool.name 0 true;
+    print_string "step 4\n"; flush stdout;
+    print_string ((T.find table DBString.name 0) ^ (string_of_bool (T.find table DBBool.name 0)) ^ "\n");
+    print_string "step 5\n"; flush stdout;
     T.add table 1;
-    print_string ((T.get table 1 DBString.name) ^ (string_of_bool (T.get table 1 DBBool.name)) ^ "\n")
+    print_string "step 6\n"; flush stdout;
+    print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
+    print_string "step 7\n"; flush stdout
 
 
 

@@ -62,14 +62,14 @@ let solver_bin_packing_of_string s = match s with
   | _         -> raise Wrong_value
 
 let conf_gen_bindings_of_string s = match s with
-  | "none"       -> Settings.Conf_gen_bindings_none
-  | "candy"      -> Settings.Conf_gen_bindings_candy
-  | "constraint" -> Settings.Conf_gen_bindings_constraint
+  | "candy"      -> Settings.Gen_bindings_candy
+  | "constraint" -> Settings.Gen_bindings_constraint
   | _            -> raise Wrong_value
 
 let conf_gen_packages_of_string s = match s with 
-  | "none"     -> Settings.Conf_gen_packages_none
-  | "universe" -> Settings.Conf_gen_packages_universe
+  | "none"     -> Settings.Gen_packages_none
+  | "one"     -> Settings.Gen_packages_one
+  | "all" -> Settings.Gen_packages_all
   | _          -> raise Wrong_value
 
 
