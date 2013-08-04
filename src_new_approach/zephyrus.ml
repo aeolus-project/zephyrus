@@ -54,51 +54,46 @@ let print_to_file kind filename r u c = Output_helper.print_output filename (mat
   )
 
 
-
 (* test the database *)
-module DBBase = struct
-  type ('a, 'b) column = int
-  type key = int
-  let compare = (-)
-end
+module Database_test = struct
+  open Data_common.Database
+  module DBBase = struct
+    type ('a, 'b) column = int
+    type key = int
+    let compare = (-)
+  end
 
+  module DBBool = struct
+    include DBBase
+    type t = bool
+    let name : (bool, bool) column = 1
+  end
 
-module DBBool = struct
-  include DBBase
-  type t = bool
-  let name : (bool, bool) column = 1
-end
+  module DBString = struct
+    include DBBase
+    type t = string
+    let name : (string, string) column = 2
+  end
 
-module DBString = struct
-  include DBBase
-  type t = string
-  let name : (string, string) column = 2
-end
-(*
-module T = Data_common.Database.Table.AddOptional(
-             Data_common.Database.Table.AddOptional(
-               Data_common.Database.Table.Empty(struct include DBBase type t = key end)
-             )(Data_common.Database.Table.WithDefaultValue(Data_common.Database.Table.WithoutChecking(Data_common.Database.Table.WithoutConversion(DBString)))
-                (struct let default = "no one" end))
-           )(Data_common.Database.Table.WithDefaultValue(Data_common.Database.Table.WithoutChecking(Data_common.Database.Table.WithoutConversion(DBBool)))
-                (struct let default = false end))
-
-let () = 
-  let table = T.create 5 in
-    print_string "step 1\n"; flush stdout;
-    T.add table 0;
-    print_string "step 2\n"; flush stdout;
-    T.add_to_column table DBString.name 0 "is_working? ";
-    print_string "step 3\n"; flush stdout;
-    T.add_to_column table DBBool.name 0 true;
-    print_string "step 4\n"; flush stdout;
-    print_string ((T.find table DBString.name 0) ^ (string_of_bool (T.find table DBBool.name 0)) ^ "\n");
-    print_string "step 5\n"; flush stdout;
-    T.add table 1;
-    print_string "step 6\n"; flush stdout;
-    print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
-    print_string "step 7\n"; flush stdout
-*)
+  module T = Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking(Table.WithoutConversion(DBBool)))(struct let default = false end))) (
+             Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking(Table.WithoutConversion(DBString)))(struct let default = "no one" end))) (
+               Data_common.Database.Table.Empty(struct include DBBase type t = key end)))
+  let () = 
+    let table = T.create 5 in
+      print_string "step 1\n"; flush stdout;
+      T.add table 0;
+      print_string "step 2\n"; flush stdout;
+      T.add_to_column table DBString.name 0 "is_working? ";
+      print_string "step 3\n"; flush stdout;
+      T.add_to_column table DBBool.name 0 true;
+      print_string "step 4\n"; flush stdout;
+      print_string ((T.find table DBString.name 0) ^ (string_of_bool (T.find table DBBool.name 0)) ^ "\n");
+      print_string "step 5\n"; flush stdout;
+      T.add table 1;
+      print_string "step 6\n"; flush stdout;
+      print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
+      print_string "step 7\n"; flush stdout
+  end
 
 
 (* === Handling the arguments === *)

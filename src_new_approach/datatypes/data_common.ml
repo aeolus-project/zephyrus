@@ -496,8 +496,8 @@ module Database = struct
 
 
 
-    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column val compare : t -> t -> int end
-    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column val compare : t -> t -> int end
+    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column end
+    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column end
     module type First_intermediate  = sig include Input_with_conversion val convert : input -> t end
     module type Second_intermediate = sig include First_intermediate val check : (key, t) Hashtbl.t -> key -> t -> unit end
     module type Third_intermediate  = sig include Second_intermediate val find : (key, t) Hashtbl.t -> key -> t end
@@ -601,8 +601,8 @@ module Database = struct
     let find_key m t c v  = raise Table_not_found
   end
 
-  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
-      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key) = struct
+  module AddTable(T : Table.S)(Id : sig type ('a, 'b) table val name : (T.key, T.add_type) table end)
+      (DB : S with type ('a, 'b) table = ('a, 'b) Id.table and type ('a, 'b) column = ('a, 'b) T.column) = struct
     type t = T.t * DB.t
     type 'a key = 'a DB.key
     type ('a, 'b) table = ('a, 'b) DB.table
@@ -620,6 +620,27 @@ module Database = struct
     let find_list (m,p) t c k = if (Obj.magic t) == Id.name then Obj.magic (T.find_list m c (Obj.magic k)) else DB.find_list p t c k
     let find_key (m,p) t c v  = if (Obj.magic t) == Id.name then Obj.magic (T.find_key m c v) else DB.find_key p t c v
   end
+
+
+(*  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
+      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key) = struct
+    type t = T.t * DB.t
+    type 'a key = 'a DB.key
+    type ('a, 'b) table = ('a, 'b) DB.table
+    type ('a, 'b) column = ('a, 'b) DB.column
+    
+    let create n = (T.create n, DB.create n)
+    
+    let mem (m,p) t k = if (Obj.magic t) == Id.name then T.mem m (Obj.magic k) else DB.mem p t k
+    let mem_in_column (m,p) t c k = if (Obj.magic t) == Id.name then T.mem_in_column m c (Obj.magic k) else DB.mem_in_column p t c k
+    
+    let add (m,p) t k = if (Obj.magic t) == Id.name then Obj.magic (T.add m (Obj.magic k)) else DB.add p t k
+    let add_to_column (m,p) t c k v = if (Obj.magic t) == Id.name then T.add_to_column m c (Obj.magic k) v else DB.add_to_column p t c k v
+    
+    let find (m,p) t c k      = if (Obj.magic t) == Id.name then Obj.magic (T.find m c (Obj.magic k)) else DB.find p t c k
+    let find_list (m,p) t c k = if (Obj.magic t) == Id.name then Obj.magic (T.find_list m c (Obj.magic k)) else DB.find_list p t c k
+    let find_key (m,p) t c v  = if (Obj.magic t) == Id.name then Obj.magic (T.find_key m c v) else DB.find_key p t c v
+  end *)
 
 end
 

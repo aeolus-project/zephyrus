@@ -372,8 +372,8 @@ module Database : sig
             The list of everything that was inserted for a key can be accessed with [find_list]
    *)
 
-    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column val compare : t -> t -> int end
-    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column val compare : t -> t -> int end
+    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column end
+    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column end
     module type First_intermediate  = sig include Input_with_conversion val convert : input -> t end
     module type Second_intermediate = sig include First_intermediate val check : (key, t) Hashtbl.t -> key -> t -> unit end
     module type Third_intermediate  = sig include Second_intermediate val find : (key, t) Hashtbl.t -> key -> t end
@@ -430,9 +430,14 @@ module Database : sig
   module Empty(K : sig type 'a key type ('a, 'b) table type ('a, 'b) column end)
     : S with type 'a key = 'a K.key and type ('a, 'b) table = ('a, 'b) K.table and type ('a, 'b) column = ('a, 'b) K.column
 
-  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
-      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key)
+
+  module AddTable(T : Table.S)(Id : sig type ('a, 'b) table val name : (T.key, T.add_type) table end)
+      (DB : S with type ('a, 'b) table = ('a, 'b) Id.table and type ('a, 'b) column = ('a, 'b) T.column)
     : S with type 'a key = 'a DB.key and type ('a, 'b) table = ('a, 'b) DB.table and type ('a, 'b) column = ('a, 'b) DB.column
+
+(*  module AddTable(DB : S)(T : Table.S with type ('a, 'b) column = ('a, 'b) DB.column)
+      (Id : sig type 'a key type key_param val name : (key_param, T.add_type) DB.table end with type 'a key = 'a DB.key and type key_param = T.key)
+    : S with type 'a key = 'a DB.key and type ('a, 'b) table = ('a, 'b) DB.table and type ('a, 'b) column = ('a, 'b) DB.column*)
 end
 
 
