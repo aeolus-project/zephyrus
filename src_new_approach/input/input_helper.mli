@@ -19,7 +19,7 @@
 
 (* Depends on
     - Pervasives (standard library: files, opening and closing)
-    - input/Settings (for configuration)
+    - Yojson     (for json importing)
     - output/Zephyrus_log (for logging)
 *)
 

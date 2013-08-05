@@ -22,30 +22,34 @@
     - Printf (standard library, for logging of course)
 *)
 
-val log_stage_new : string -> unit
-val log_stage_end : unit -> unit
-
 
 (* core logging *)
 val log_panic : string -> 'a
-val log_missing_data : string -> string -> string -> 'a
 
+val log_stage_new : string -> unit
+val log_stage_end : unit -> unit
+
+(* main logging functions *)
 val log_execution : string -> unit
-
-(* setting logging *)
-val log_setting_not_set : string -> unit
-val log_settings : string -> unit
-
-(* loading logging *)
-val log_input_file_error : string -> string -> unit
 val log_data : string -> string Lazy.t -> unit
 
-(* translation into constraint logging *)
-
+  (* translation into constraint logging *)
 val log_constraint_execution : string -> unit
 val log_constraint_data : string -> string Lazy.t -> unit (* desc -> data -> print *)
 
-(* solver logging *)
+  (* solver logging *)
 val log_solver_execution : string -> unit
 val log_solver_data : string -> string Lazy.t -> unit (* desc -> data -> print *)
 
+(* annex logging functions *)
+val log_missing_data : string -> string -> string -> 'a
+val log_settings : unit -> unit (* setting logging *)
+val log_input_file_error : string -> string -> unit (* loading logging *)
+
+
+
+
+
+(*
+val log_setting_not_set : string -> unit
+*)

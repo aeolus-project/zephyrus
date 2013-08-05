@@ -52,20 +52,20 @@ let out_files = ref []
 let speclist = 
   Arg.align [
     (* Input arguments *)
-    ("-settings", Arg.String (fun filename -> Settings.add_settings_file filename; load_file filename), " The settings file");
-    ("-u",        Arg.String (fun filename -> Settings.set_universe_input_file filename), " The universe input file");
-    ("-ic",       Arg.String (fun filename -> Settings.set_input_configuration_file filename), " The initial configuration input file");
-    ("-spec",     Arg.String (fun filename -> Settings.set_specification_file filename), " The specification input file");
+    ("-settings", Arg.String (fun filename -> load_file filename), " The settings file");
+    ("-u",        Arg.String (fun filename -> Settings.add_string Settings.input_file_universe filename), " The universe input file");
+    ("-ic",       Arg.String (fun filename -> Settings.add_string Settings.input_file_configuration filename), " The initial configuration input file");
+    ("-spec",     Arg.String (fun filename -> Settings.add_string Settings.input_file_specification filename), " The specification input file");
     ("-repo",     Arg.Tuple (
                      [Arg.String (fun repository_name -> repository_names := repository_name::!repository_names);
                       Arg.String (fun repository_file -> repository_files := repository_file::!repository_files) ]
                     ), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
 
-    ("-prefix-repos", Arg.Unit (Settings.extend_package_name_with_repository), " Prefix all package names in imported repositories by the repository name.");
+    ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
 
     (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( Settings.optim_names, Settings.set_optimization_function  ), " The optimization function");
-    ("-solver",     Arg.Symbol ( Settings.solver_names,                Settings.set_constraint_main_solver ), " The solver choice"); 
+    ("-opt",        Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function");
+    ("-solver",     Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver ), " The solver choice"); 
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (
@@ -74,12 +74,19 @@ let speclist =
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
   ]
 
+open Settings
 
 let load () = Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x))) usage;
-  List.iter2 (fun name file -> Settings.add_external_repository name file) !repository_names !repository_files;
-  List.iter2 (fun kind file -> Settings.add_output_file kind file) !out_kinds !out_files
+  Settings.add_double_lists Settings.input_file_repositories !repository_names !repository_files;
+  Settings.add_double_lists Settings.results !out_kinds !out_files;
+  Zephyrus_log.log_settings ();
+  (if not (Settings.mem Settings.import_universe) then Settings.add Settings.import_universe (Settings.BoolValue true));
+  (if not (Settings.mem Settings.import_repositories) then Settings.add Settings.import_repositories (Settings.BoolValue true));
+  (if not (Settings.mem Settings.import_initial_configuration) then Settings.add Settings.import_initial_configuration (Settings.BoolValue true));
+  (if not (Settings.mem Settings.import_specification) then Settings.add Settings.import_specification (Settings.BoolValue true));
+  (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true))
 
-let check_settings () = (* TODO *) ()
+let check_settings () = (* TODO : what to do? *) ()
 
 
 

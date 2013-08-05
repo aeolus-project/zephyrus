@@ -22,6 +22,7 @@
     - datatypes/Data_common (for the map)
 *)
 
+(*
 type value =
   | BoolValue  of bool
   | IntValue   of int
@@ -228,6 +229,10 @@ let manage_element ident value =
   | Not_found   -> Settings.Settings_log.log_input_settings_unknown_setting ident
   | Wrong_conversion str -> Printf.printf "the setting \"%s\" must be set with a value of the type \"%s\"" ident str
   | Wrong_value -> ()
+*)
+
+let manage_element ident value = try Settings.add (Settings.setting_of_string ident) value with
+  | Not_found   -> Settings.Settings_log.log_wrong_setting ident
 
 %}
 
@@ -251,12 +256,12 @@ element:
   | Ident Equals value { manage_element $1 $3 }
 
 value:
-  | Bool                                      { BoolValue($1) }
-  | Int                                       { IntValue($1) }
-  | Ident                                     { IdentValue($1) }
-  | Left_paren value Comma value Right_paren  { PairValue($2,$4) }
-  | Left_bracket Right_bracket                { ListValue([]) }
-  | Left_bracket list Right_bracket           { ListValue($2) }
+  | Bool                                      { Settings.BoolValue($1) }
+  | Int                                       { Settings.IntValue($1) }
+  | Ident                                     { Settings.IdentValue($1) }
+  | Left_paren value Comma value Right_paren  { Settings.PairValue($2,$4) }
+  | Left_bracket Right_bracket                { Settings.ListValue([]) }
+  | Left_bracket list Right_bracket           { Settings.ListValue($2) }
 
 list:
   | value                { [$1] }

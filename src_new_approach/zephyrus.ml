@@ -58,7 +58,7 @@ let print_to_file kind filename r u c = Output_helper.print_output filename (mat
 module Database_test = struct
   open Data_common.Database
   module DBBase = struct
-    type ('a, 'b) column = int
+    type 'a column = int
     type key = int
     let compare = (-)
   end
@@ -66,17 +66,17 @@ module Database_test = struct
   module DBBool = struct
     include DBBase
     type t = bool
-    let name : (bool, bool) column = 1
+    let name : bool column = 1
   end
 
   module DBString = struct
     include DBBase
     type t = string
-    let name : (string, string) column = 2
+    let name : string column = 2
   end
 
-  module T = Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking(Table.WithoutConversion(DBBool)))(struct let default = false end))) (
-             Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking(Table.WithoutConversion(DBString)))(struct let default = "no one" end))) (
+  module T = Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking((DBBool)))(struct let default = false end))) (
+             Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking((DBString)))(struct let default = "no one" end))) (
                Data_common.Database.Table.Empty(struct include DBBase type t = key end)))
   let () = 
     let table = T.create 5 in
@@ -98,7 +98,7 @@ module Database_test = struct
 
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
-  Zephyrus_log.log_settings (Settings.string_of_settings ())
+  Zephyrus_log.log_settings ()
 (* === Set up everything === *)
 
 let () =
@@ -127,7 +127,7 @@ let () =
   Zephyrus_log.log_execution " ok";
   Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
 
-  (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
+  (* TODO: we should never re-assign variables in Data_state *)
   Data_state.universe_full := Some(universe_trimmed_package);
 
 
@@ -157,7 +157,7 @@ let () =
     Variable_bounds.minimize_upper_bound fu;
     Zephyrus_log.log_data "\nFlat universe with upper bounds minimized:\n" (lazy (Variable_bounds.to_string fu));
     
-    (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
+    (* TODO: we should never re-assign variables in Data_state *)
     Data_state.constraint_variable_bounds := Some(Variable_bounds.variable_bounds c#get_location fu);  
     Variable_bounds.trim_categories cat fu ) in 
     let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
@@ -179,7 +179,7 @@ let () =
   Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r);
   print_string ("annex   configuration = " ^ (Json_of.configuration_string annex_conf u r) ^ "\n");
   
-  (* TODO: we should never re-assign variables in Data_state (or in Settings) *)
+  (* TODO: we should never re-assign variables in Data_state *)
   Data_state.initial_configuration_full := Some(core_conf);
 
   Zephyrus_log.log_stage_end ();
@@ -210,7 +210,7 @@ let () =
     Zephyrus_log.log_data "Final Configuration" (lazy (Json_of.configuration_string final_configuration u r));
     
     
-    List.iter (fun (kind, filename) -> print_to_file kind filename r u final_configuration) (Settings.get_output_files ());
+    List.iter (fun (kind, filename) -> print_to_file kind filename r u final_configuration) (Settings.find Settings.results);
 (*
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
     Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);

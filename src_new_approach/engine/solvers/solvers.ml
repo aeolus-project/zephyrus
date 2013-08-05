@@ -151,7 +151,7 @@ let settings_of_settings kind =
   keep_output_file  = out_keep
 }
 
-let full_of_settings kind = match (match kind with Preprocess -> Settings.get_constraint_preprocess_solver () | Main -> Settings.get_constraint_main_solver ()) with
+let full_of_settings kind = match (match kind with Preprocess -> Settings.find Settings.preprocess_solver | Main -> Settings.find Settings.solver) with
   | Settings.Solver_gcode  -> GeCode.solve
   | Settings.Solver_g12    -> G12.solve
   | Settings.Solver_facile -> GeCode.solve (* default *)
