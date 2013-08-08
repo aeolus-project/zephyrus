@@ -1,0 +1,12 @@
+
+# 01. Input Files
+
+input-file-universe         = "example-inputs/u-ex-2-3.json"
+input-file-configuration    = "example-inputs/ic-ex-empty-6loc.json"
+input-file-specification    = "example-inputs/spec-ex.spec"
+input-file-repositories     = [("debian-squeeze", "repositories/repo-debian-squeeze.json")]
+input-optimization-function = compact
+
+# 07. Output Configuration
+
+results                     = [("json", "example-inputs/ic-ex-first-output-6loc-result.json"); ("graph-deployment", "example-inputs/result-first-output-6loc.dot")]

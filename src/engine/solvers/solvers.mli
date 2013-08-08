@@ -17,36 +17,36 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* Depends on
+    - datatypes/Data_constraint
+*)
+
+(* the prints should be handled by Zephyrus log directly. Moreover maybe we should use the Lazy library, in case the string will never be printed *)
 type solver_settings = {
-  print_solver_vars            : bool;
-  print_solver_cstrs           : bool;
-  print_solver_exe             : bool;
-  print_intermediate_solutions : bool;
+  bounds                : Data_constraint.variable_bounds;
+  input_file            : string;
+  output_file           : string;
+  keep_input_file       : bool;
+  keep_output_file      : bool;  
 }
 
-module type SOLVER =
-  sig
-    
-    val solve : 
-      Constraints_generation.generated_constraints ->
-      Optimization_functions.optimization_function -> (* A single optimization function. *)
-      solver_settings ->
-      Solution.solution_with_cost (* It returns the solution and its cost. *)
-      
-  end
+type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t_full = solver_settings -> t
 
-module type SOLVER_LEX =
-  sig 
-    include SOLVER
+type settings_kind = Preprocess | Main
+val settings_of_settings : settings_kind -> solver_settings
 
-    val solve_lex : 
-      Constraints_generation.generated_constraints ->
-      Optimization_functions.optimization_function list -> (* List of optimization functions. *)
-      solver_settings ->
-      Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
+val full_of_settings     : settings_kind -> t_full
+val of_settings          : settings_kind -> t
 
-  end
 
-module G12    : SOLVER_LEX
-module GeCode : SOLVER_LEX
-module FaCiLe : SOLVER
+
+module type SOLVER = sig
+  val solve : t_full (* It returns the solution and its cost. *)
+end
+
+module G12    : SOLVER
+module GeCode : SOLVER
+
+
+

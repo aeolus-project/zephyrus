@@ -25,472 +25,235 @@
    Zephyrus : one of the Anemoi and the Greek god of the west wind.
 *)
 
-open Model_t
+(* for now, I just trigger the compilation of all files with the opening of the different key modules *)
 
-open Helpers
+open Input_helper
 
-open Facile
-open Easy
+open Load_settings
+open Data_model
+open Load_model
+open Constraint_of
+open Solvers
+open Json_of
+open Variable_bounds
+open Location_bound
 
-open Typing_context
-open Facile_variables
-open Facile_constraints
-open Constraints_generation
-open Solution
-open Configuration_generation
+open Dot_of
 
-open Configuration_output
+let check_option desc o = match o with
+  | Some(a) -> a
+  | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
 
-module TestCompile1 = Model_translation
-module TestCompile2 = Typing_context_new
-(* module TestCompile3 = Component_type_global_constraints_new *)
+let print_to_file kind filename r u c = Output_helper.print_output filename (match kind with
+    | Settings.Out_file_plain            -> String_of.configuration u c
+    | Settings.Out_file_json             -> Json_of.configuration_string c u r
+    | Settings.Out_file_graph_deployment -> Dot_of.configuration (Dot_of.settings_of Dot_of.Deployment_graph) u c
+    | Settings.Out_file_graph_simplified -> Dot_of.configuration (Dot_of.settings_of Dot_of.Simplified_deployment_graph) u c
+    | Settings.Out_file_graph_components -> Dot_of.configuration (Dot_of.settings_of Dot_of.Components_graph) u c
+    | Settings.Out_file_graph_packages   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
+  )
+
+
+(* test the database *)
+module Database_test = struct
+  open Data_common.Database
+  module DBBase = struct
+    type 'a column = int
+    type key = int
+    let compare = (-)
+  end
+
+  module DBBool = struct
+    include DBBase
+    type t = bool
+    let name : bool column = 1
+  end
+
+  module DBString = struct
+    include DBBase
+    type t = string
+    let name : string column = 2
+  end
+
+  module T = Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking((DBBool)))(struct let default = false end))) (
+             Table.AddOptional(Table.WithoutAggregate(Table.WithDefaultValue(Table.WithoutChecking((DBString)))(struct let default = "no one" end))) (
+               Data_common.Database.Table.Empty(struct include DBBase type t = key end)))
+  let () = 
+    let table = T.create 5 in
+      print_string "step 1\n"; flush stdout;
+      T.add table 0;
+      print_string "step 2\n"; flush stdout;
+      T.add_to_column table DBString.name 0 "is_working? ";
+      print_string "step 3\n"; flush stdout;
+      T.add_to_column table DBBool.name 0 true;
+      print_string "step 4\n"; flush stdout;
+      print_string ((T.find table DBString.name 0) ^ (string_of_bool (T.find table DBBool.name 0)) ^ "\n");
+      print_string "step 5\n"; flush stdout;
+      T.add table 1;
+      print_string "step 6\n"; flush stdout;
+      print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
+      print_string "step 7\n"; flush stdout
+  end
 
 
 (* === Handling the arguments === *)
-
-(* Variables corresponding to arguments *)
-
-(* input / output *)
-let universe_channel              = ref stdin
-let specification_channel         = ref stdin
-let initial_configuration_channel = ref stdin
-
-let output_channels               = ref [stdout]
-let output_format_strings         = ref ["plain"]
-
-let optimization_function_string  = ref "simple"
-let solver_choice_string          = ref "g12"
-
-let import_repository_names       = ref []
-let import_repository_filenames   = ref []
-let prefix_repositories           = ref false
-
-let raw_specification             = ref false
-let only_check_spec               = ref false
-
-let do_not_solve                  = ref false
-
-(* printing settings *)
-let print_u                       = ref false
-let print_tu                      = ref false
-let print_ic                      = ref false
-let print_spec                    = ref false
-let print_cstrs                   = ref false
-let print_solver_vars             = ref false
-let print_solver_cstrs            = ref false
-let print_solver_exe              = ref false
-let print_intermediate_solutions  = ref false
-let print_solution                = ref false
-let print_all                     = ref false
-
-(* Arg module settings *)
-
-let usage = 
-  Printf.sprintf
-    "usage: %s %s %s %s %s %s %s %s"
-    Sys.argv.(0)
-    "[-u universe-file]"
-    "[-ic initial-configuration-file]"
-    "[-spec specification-file]"
-    "[-repo repository-name packages-file]*" 
-    "[-opt optimization-function]"
-    "[-solver solver]"
-    "[-out output-format output-file]*"
-
-let speclist = 
-  Arg.align [
-    (* Input arguments *)
-    ("-u",          Arg.String (fun filename -> universe_channel              := (open_in filename)), " The universe input file");
-    ("-ic",         Arg.String (fun filename -> initial_configuration_channel := (open_in filename)), " The initial configuration input file");
-    ("-spec",       Arg.String (fun filename -> specification_channel         := (open_in filename)), " The specification input file");
-    ("-raw-spec",   Arg.Set (raw_specification),                                                      " The specification is given directly in JSON, not using the nice syntax");
-    
-    ("-repo",       Arg.Tuple 
-                    (
-                      [Arg.String (fun repository_name     -> import_repository_names     := (!import_repository_names     @ [repository_name]    ));
-                       Arg.String (fun repository_filename -> import_repository_filenames := (!import_repository_filenames @ [repository_filename]))]
-                    ),
-                    " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
-
-    ("-prefix-repos", Arg.Set (prefix_repositories), " Prefix all package names in imported repositories by the repository name.");
-
-    (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( ["simple"; "compact"; "conservative"; "spread"; "none"], (fun s -> optimization_function_string := s) ), " The optimization function");
-    ("-solver",     Arg.Symbol ( ["facile"; "g12"; "gecode"],                     (fun s -> solver_choice_string         := s) ), " The solver choice"); 
-
-    (* Output arguments *)
-    ("-out",        Arg.Tuple
-                    (
-                      [Arg.Symbol ( ["plain"; 
-                                     "json"; 
-                                     "graph"; 
-                                     "deployment-graph"; 
-                                     "simplified-deployment-graph"; 
-                                     "components-graph"; 
-                                     "packages-graph"], 
-                                     (fun s -> output_format_strings := !output_format_strings @ [s]));
-
-                       Arg.String (fun filename -> output_channels := (!output_channels @ [(open_out filename)]))]
-                    ),
-                    " The final configuration output file and the output format (you can specify multiple output files with different formats). Output formats available: {plain|json|graph|deployment-graph|simplified-deployment-graph|components-graph|packages-graph}");
-
-    ("-only-check-spec", Arg.Set (only_check_spec),  " Just parse specification and exit");
-    ("-do-not-solve",    Arg.Set (do_not_solve),     " Do not use the solver (exit directly after generating generic constraints)");
-
-    (* Printing options arguments *)
-    ("-print-u",             Arg.Set (print_u),                      " Print the raw universe");
-    ("-print-tu",            Arg.Set (print_tu),                     " Print the trimmed universe");
-    ("-print-ic",            Arg.Set (print_ic),                     " Print the raw initial configuration");
-    ("-print-spec",          Arg.Set (print_spec),                   " Print the raw specification");
-    ("-print-cstrs",         Arg.Set (print_cstrs),                  " Print the constraints");
-    ("-print-solver-vars",   Arg.Set (print_solver_vars),            " Print the solver specific variables");
-    ("-print-solver-cstrs",  Arg.Set (print_solver_cstrs),           " Print the solver specific constraints");
-    ("-print-solver-exe",    Arg.Set (print_solver_exe),             " Print the solver execution details");
-    ("-print-all-solutions", Arg.Set (print_intermediate_solutions), " Print all the intermediate solutions found");
-    ("-print-solution",      Arg.Set (print_solution),               " Print the final solution");
-    ("-print-all",           Arg.Set (print_all),                    " Print everything");
-  ]
-
-(* Read the arguments *)
-let () =
-  Arg.parse
-    speclist
-    (fun x -> raise (Arg.Bad ("Bad argument : " ^ x)))
-    usage
-
-(* Handle the print-all argument. *)
-let () =
-  if !print_all
-  then (
-  (*print_u                      := true;*) (* If we have any imported repositories the untrimmed universe gets huge and illisible so we don't print it by default. *)
-    print_tu                     := true;
-    print_ic                     := true;
-    print_spec                   := true;
-    print_cstrs                  := true;
-    print_solver_vars            := true;
-    print_solver_cstrs           := true;
-    print_solver_exe             := true;
-    print_intermediate_solutions := true;
-    print_solution               := true;
-  )
-
-(* Handle the output format choice argument. *)
-type output_format = Plain_output | JSON_output | Graph_output of graph_type
-
-let output_channels = !output_channels
-
-let output_formats =
-
-  List.map (fun output_format_string ->
-    match output_format_string with
-    | "plain"                       ->  Plain_output
-    | "json"                        ->  JSON_output
-    | "graph"                       ->  Graph_output Deployment_graph (* default *)
-    | "deployment-graph"            ->  Graph_output Deployment_graph
-    | "simplified-deployment-graph" ->  Graph_output Simplified_deployment_graph
-    | "components-graph"            ->  Graph_output Components_graph
-    | "packages-graph"              ->  Graph_output Packages_graph
-    | _ -> failwith "Invalid output format have passed through the Arg.Symbol!"
-  ) !output_format_strings
-
-(* Handle the optimization function choice argument. *)
-type optimization_function = 
-  | Simple_optimization_function
-  | Compact_optimization_function
-  | Conservative_optimization_function
-  | Spread_optimization_function
-  | None_optimization_function
-
-let optimization_function =
-  match !optimization_function_string with
-  | "simple"       -> Simple_optimization_function
-  | "compact"      -> Compact_optimization_function
-  | "conservative" -> Conservative_optimization_function
-  | "spread"       -> Spread_optimization_function
-  | "none"         -> None_optimization_function
-  | _ -> failwith "Invalid optimization function choice have passed through the Arg.Symbol!"
-
-(* Handle the solver choice argument. *)
-type solver_choice = 
-  | FaCiLeSolver
-  | G12Solver
-  | GeCodeSolver
-
-let solver_choice =
-  match !solver_choice_string with
-  | "facile" -> FaCiLeSolver
-  | "g12"    -> G12Solver
-  | "gecode" -> GeCodeSolver
-  | _ -> failwith "Invalid solver choice have passed through the Arg.Symbol!"
-
-
-
+let () = Load_settings.load ();
+  Zephyrus_log.log_settings ()
 (* === Set up everything === *)
 
+let () =
+(* === load everything  === *)
+  Load_model.set_initial_model_of_settings ();
+  Zephyrus_log.log_stage_new "LOAD SECTION";
+  let r = check_option "resources"             !Data_state.resources_full in
+  let u = check_option "universe"              !Data_state.universe_full in
+  let c = check_option "configuration"         !Data_state.initial_configuration_full in
+  let s = check_option "specification"         !Data_state.specification_full in
+  let f = check_option "optimization function" !Data_state.optimization_function in
+  let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
+  let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
+  let main_solver = Solvers.of_settings Solvers.Main in
+  Zephyrus_log.log_data "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string c u r));
+  Zephyrus_log.log_data "\n\n\n     ==> SPECIFICATION <==      \n\n" (lazy (String_of.specification s));
+  Zephyrus_log.log_data "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n" (lazy (String_of.model_optimization_function f));
 
-(* Handle the imported repositories. *)
+(* === Perform the trimming === *)
+  Zephyrus_log.log_execution "\nTrimming component types...";
+  let universe_trimmed_component_types = Trim.trim_component_types u c s in
+  Zephyrus_log.log_execution " ok";
+  (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
+  Zephyrus_log.log_execution "\nTrimming repositories...";
+  let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
+  Zephyrus_log.log_execution " ok";
+  Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
 
-(* Prefix all package names in the repository with the repository name. *)
-let prefix_repository repository = 
-  let open Model_output.Plain 
-  in
-  let prefix package_name = Printf.sprintf "%s-%s" (string_of_repository_name repository.repository_name) (string_of_package_name package_name)
-  in
-  {
-    repository_name     = repository.repository_name;
-    repository_packages = 
-      List.map (fun package ->
-        {
-          package_name     = prefix package.package_name;
-          package_depend   = List.map (fun disj -> List.map prefix disj) package.package_depend;
-          package_conflict = List.map prefix package.package_conflict;
-          package_consume  = package.package_consume;
-        }
-      )
-      repository.repository_packages;
-  }
-
-(* Import the repositories. *)
-let imported_repositories =
-  try
-    List.rev (List.map2 (fun repository_name repository_filename -> 
-      let open Model_output.Plain 
-      in
-      Printf.printf "Importing repository %s from file %s...\n" (string_of_repository_name repository_name) repository_filename;
-      flush stdout;
-
-      let repository_channel = (open_in repository_filename) 
-      in
-      let packages = 
-        Universe_input.JSON.packages_of_string (string_of_input_channel repository_channel)
-      in
-
-      (* The imported repository : *)
-      let repository =
-      {
-        repository_name     = repository_name;
-        repository_packages = packages;
-      }
-
-      in
-
-      (* Return the repository, prefix all packages inside with the repository name if needed. *)
-      if !prefix_repositories 
-      then prefix_repository repository
-      else repository
-
-    ) !import_repository_names !import_repository_filenames)
-  with
-  Invalid_argument s -> 
-    failwith (Printf.sprintf "Number of imported repository names does not match the number of imported repository filenames! %s" s)
+  (* TODO: we should never re-assign variables in Data_state *)
+  Data_state.universe_full := Some(universe_trimmed_package);
 
 
+  let u = universe_trimmed_package in
+
+  let cat = Location_categories.full_categories r u c in
+  Zephyrus_log.log_data "\n\n\n     ==> INITIAL CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
+  
+  let cat' = (* cat *) ( match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
+  | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
+  | Some(sol) ->
+(*    Zephyrus_log.log_data "Found non null lower bounds for some variables : " (lazy (String_of.solution sol)); *)
+    let (mp, mt) =  Variable_bounds.core_solution sol in
+    print_string ("Core lower bounds :\n  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n");
+    let fu = Variable_bounds.create u in
+    Zephyrus_log.log_data "\nflat universe created:\n" (lazy (Variable_bounds.to_string_full fu));
+    Variable_bounds.add_bound_min_all sol fu;
+    Zephyrus_log.log_data "\nFlat universe with the lower bounds:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_lower_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with lower bounds propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_conflicts fu;
+    Zephyrus_log.log_data "\nFlat universe with conflicts propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.propagate_upper_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bounds propagated:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.finalize_bound_roots fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bound minimization first step:\n" (lazy (Variable_bounds.to_string fu));
+    Variable_bounds.minimize_upper_bound fu;
+    Zephyrus_log.log_data "\nFlat universe with upper bounds minimized:\n" (lazy (Variable_bounds.to_string fu));
+    
+    (* TODO: we should never re-assign variables in Data_state *)
+    Data_state.constraint_variable_bounds := Some(Variable_bounds.variable_bounds c#get_location fu);  
+    Variable_bounds.trim_categories cat fu ) in 
+    let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
+    let main_solver = Solvers.of_settings Solvers.Main in
+    
+    Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FIRST TRIM <==  \n\n" (lazy (String_of.location_categories cat'));
+    
+  let cat'' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat' with
+      | None -> Location_categories.empty
+      | Some(cat') -> cat' in
+  Zephyrus_log.log_data "\n\n\n     ==> CATEGORIES FULLY TRIMMED <==  \n" (lazy (String_of.location_categories cat'));
+  Zephyrus_log.log_execution "\nTrimming configuration...";
+  let domain_init = Location_categories.domain cat'' in
+  let domain = if keep_initial_configuration then Trim.transitive_closure_domain c domain_init else domain_init in
+  let (core_conf, annex_conf_init) = Trim.configuration c domain in
+  let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
+  Zephyrus_log.log_data "\n\n\n  ==> TRIMMED CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string core_conf u r));
+  Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
+  Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r);
+  print_string ("annex   configuration = " ^ (Json_of.configuration_string annex_conf u r) ^ "\n");
+  
+  (* TODO: we should never re-assign variables in Data_state *)
+  Data_state.initial_configuration_full := Some(core_conf);
+
+  Zephyrus_log.log_stage_end ();
+  Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
+
+  Constraint_of.universe_full ();
+  Constraint_of.specification_full ();
+  Constraint_of.configuration_full ();
+  Constraint_of.optimization_function_full ();
+  Location_categories.generate_categories ();
+  let cat_constraint = Location_categories.generate_constraint () in
+
+  Zephyrus_log.log_stage_end ();
+  Zephyrus_log.log_stage_new "SOLVING SECTION";
+
+  let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full ()) in
+  Zephyrus_log.log_data "All constraints" (lazy (String_of.described_konstraint_list solver_input_k));
+  let solver_input_f = Data_state.get_constraint_optimization_function () in
+  Zephyrus_log.log_data "Optimization function" (lazy (String_of.constraint_optimization_function solver_input_f));
+  match main_solver solver_input_k solver_input_f with
+  | None -> Zephyrus_log.log_panic "no solution for the given input"
+  | Some(solution) -> (
+    Zephyrus_log.log_data "=== SOLUTION ===" (lazy (String_of.solution (fst solution)));
+
+    let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
+    let final_configuration = Configuration_of.merge annex_conf partial_final_configuration in
+(*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r); *)
+    Zephyrus_log.log_data "Final Configuration" (lazy (Json_of.configuration_string final_configuration u r));
+    
+    
+    List.iter (fun (kind, filename) -> print_to_file kind filename r u final_configuration) (Settings.find Settings.results);
+(*
+    Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
+    Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);
 
 
-(* Read the input. *)
-
-(* Read the universe. *)
-let my_universe =
-  let universe =
-    Universe_input.JSON.universe_of_string (string_of_input_channel !universe_channel)
-  in
-  (* Append the imported repositories.*)
-  {
-    universe_component_types = universe.universe_component_types;
-    universe_implementation = universe.universe_implementation;
-    universe_repositories = universe.universe_repositories @ imported_repositories
-  }
-
-(* Read the initial configuration. *)
-let my_initial_configuration =
-  Configuration_input.JSON.configuration_of_string (string_of_input_channel !initial_configuration_channel)
-
-(* Read the specification. *)
-let specification_string = string_of_input_channel !specification_channel
-
-let my_specification =
-  if (!raw_specification)
-  then
-    (* If specification is in JSON format we read it directly through ATD. *)
-    Specification_input.JSON.specification_of_string specification_string
-  else
-    (* If specification is written in Aeolus specifiaction syntax, we parse it using our parser. *)
-    (
-      let specification = Specification_input.Aeolus_specification_language.specification_of_string specification_string
-      in
-
-      if !only_check_spec 
-      then
+    let final_configuration = 
+      let solution = fst solution in
+      match !Data_state.universe_full with
+      | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"; None
+      | Some universe -> 
         begin
-          Printf.printf "%s\n\n" specification_string;
-          Printf.printf "%s\n" (Yojson.Safe.prettify (Model_j.string_of_specification specification));
-          exit 0;
-        end;
-      
-      specification
-    )
+          match !Data_state.initial_configuration_full with
+          | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
+          | Some initial_configuration -> 
+              let final_configuration = Configuration_of.solution universe initial_configuration solution in
+              begin
+                match !Data_state.resources_full with
+                | None           -> Printf.printf "\nZephyrus is proud to announce you, that resources are not set!...\n"
+                | Some resources -> Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration universe resources) (* (String_of.configuration universe final_configuration) *)
+              end;
+              Some(final_configuration)
+        end
+  in*)
 
+  print_string "\n\n\n <==========> THE END <==========>  \n\n")
 
-
-(* Print the input. *)
-
-let () = 
-
-  if(!print_u)
-  then (
-    Printf.printf "\n===> THE UNIVERSE <===\n\n";    
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Model_j.string_of_universe my_universe));
-    flush stdout;
-  );
-
-  if(!print_ic)
-  then (
-    Printf.printf "\n===> THE INITIAL CONFIGURATION <===\n\n";
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Model_j.string_of_configuration my_initial_configuration));
-    flush stdout;
-  );
-
-  if(!print_spec)
-  then (
-    Printf.printf "\n===> THE SPECIFICATION <===\n\n";
-
-    if(not !raw_specification)
-    then begin 
-      Printf.printf "> Unparsed specification:\n\n%s\n\n" specification_string;
-      Printf.printf "> Parsed specification:\n\n";
-      flush stdout;
-    end;
-
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Model_j.string_of_specification my_specification));
-    flush stdout;
-  )
-
-
-(* Trim the universe. *)
-let my_universe = 
-  Universe_trimming.trim my_universe my_initial_configuration my_specification
-
-let () = 
-  if(!print_tu)
-  then (
-    Printf.printf "\n===> THE UNIVERSE AFTER TRIMMING <===\n\n";    
-    Printf.printf "%s\n" (Yojson.Safe.prettify (Model_j.string_of_universe my_universe));
-    flush stdout;
-  )
-
-
-(* Generate the constraints from the resource types and the specification *)
-let my_universe_constraints = 
-  translate_universe_and_initial_configuration my_universe my_initial_configuration
-
-let my_specification_constraints =
-  translate_specification my_specification my_initial_configuration
-
-let my_generated_constraints = 
-  my_universe_constraints @ my_specification_constraints
-
-(* Print the generated constraints. *)
-let () =
-  if(!print_cstrs)
-  then (
-    Printf.printf "\n===> THE CONSTRAINTS <===\n";
-    Printf.printf "%s" (string_of_generated_constraints my_generated_constraints);
-    flush stdout;
-  )
-
-(* Prepare the optimization expression. *)
-
-
-let optimization_exprs =
-    let open Optimization_functions 
-    in
-    match optimization_function with
-    | Simple_optimization_function       -> [Minimize (cost_expr_number_of_all_components my_universe)]
-    | Compact_optimization_function      -> compact      my_initial_configuration my_universe
-    | Conservative_optimization_function -> conservative my_initial_configuration my_universe
-    | Spread_optimization_function       -> spread       my_initial_configuration my_universe
-    | None_optimization_function         -> [Satisfy]
-
-
-(* Solve! *)
+(*
+(* just a test! *)
+let my_universe =
+  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
 
 let () =
-  if !do_not_solve 
-  then exit 0
+  match my_universe with
+  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
+  | Some json_universe -> Printf.printf "\nThe universe:\n%s\n" (Yojson.Safe.prettify (Json_j.string_of_universe json_universe))
 
-let solution =
-  
-  let open Solvers in
-
-  let solver_settings = {
-    print_solver_vars            = !print_solver_vars;
-    print_solver_cstrs           = !print_solver_cstrs;
-    print_solver_exe             = !print_solver_exe;
-    print_intermediate_solutions = !print_intermediate_solutions;
-  }
-  in
-
-  match solver_choice with
-
-  | G12Solver ->
-    fst (
-      G12.solve_lex
-        my_generated_constraints
-        optimization_exprs
-        solver_settings
-    )
-
-  | GeCodeSolver ->
-    fst (
-      GeCode.solve_lex
-        my_generated_constraints
-        optimization_exprs
-        solver_settings
-    )
-
-  | FaCiLeSolver ->
-      fst (
-        FaCiLe.solve
-          my_generated_constraints
-          (List.hd optimization_exprs)
-          solver_settings
-      )
-
-
-(* Print the solution. *)
+(* just a test! *)
+let my_specification =
+  Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification
 
 let () =
-  if(!print_solution)
-  then (
-    Printf.printf "\n===> THE SOLUTION <===\n";
-    Printf.printf "%s" (string_of_solution solution);
-    flush stdout;
-  )
-
-  
-(* Convert the constraint problem solution to a configuration. *)
-let final_configuration = 
-  configuration_of_solution my_universe my_initial_configuration solution
-
-
-(* Output the final configuration. *)
-let () =
-
-  List.iter2 (fun output_channel output_format -> 
-
-    let output_string = (match output_format with
-     | Plain_output            -> Simple  .string_of_configuration final_configuration
-     | JSON_output             -> JSON    .string_of_configuration final_configuration
-     | Graph_output graph_type -> Graphviz.string_of_configuration (graph_settings_of_graph_type graph_type) my_universe final_configuration
-    )
-    in
-
-    Printf.fprintf output_channel "%s" output_string;
-    flush output_channel
-
-  ) output_channels output_formats;
-
-  (* Then we print the plain text version on the standard output anyway. *)
-  Printf.printf "\n===> THE GENERATED CONFIGURATION <===\n";
-  Printf.printf "\n%s\n\n" (Simple.string_of_configuration final_configuration);
-  flush stdout
+  Load_model.load_model ();
+  match !Data_state.universe_full with
+  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
+  | Some u -> ()
+*)

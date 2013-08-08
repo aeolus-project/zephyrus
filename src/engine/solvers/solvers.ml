@@ -17,346 +17,144 @@
 (*                                                                          *)
 (****************************************************************************)
 
-open Helpers
-open Optimization_functions
+(* Depends on
+    - datatypes/Data_constraint
+    - engine/Engine_helper
+*)
 
-let get_all_variables 
-  (generated_constraints : Constraints_generation.generated_constraints)
-  (optimization_function : Optimization_functions.optimization_function)
-  : Variables.variable list
-  =
-
-  (* Extract variables from all constraints *)
-  let constraints_vars =
-    List.flatten_map Constraints.extract_variables_of_cstr (Constraints_generation.constraints_of_generated_constraints generated_constraints)
-
-  (* Extract variables from the optimization function *)
-  and optimization_function_vars =
-    match optimization_function with
-    | Satisfy -> []
-    | Maximize (expr)
-    | Minimize (expr) -> Constraints.extract_variables_of_expr expr
-
-  in
-
-  (* Put all the variables together, remove doubles *)
-  List.unique (constraints_vars @ optimization_function_vars)
-
+(* TODO: replace the log_panic with option types, or exceptions *)
 
 type solver_settings = {
-  print_solver_vars            : bool;
-  print_solver_cstrs           : bool;
-  print_solver_exe             : bool;
-  print_intermediate_solutions : bool;
+  bounds                : Data_constraint.variable_bounds;
+  input_file            : string;
+  output_file           : string;
+  keep_input_file       : bool;
+  keep_output_file      : bool;  
 }
 
-type solve_function =
-  Constraints_generation.generated_constraints ->
-  Optimization_functions.optimization_function -> (* A single optimization function. *)
-  solver_settings ->
-  Solution.solution_with_cost (* It returns the solution and its cost. *)
-
-module type SOLVER =
-  sig
-    val solve : solve_function
-  end
-
-type solve_lex_function =
-  Constraints_generation.generated_constraints ->
-  Optimization_functions.optimization_function list -> (* List of optimization functions. *)
-  solver_settings ->
-  Solution.solution_with_costs (* It returns the solution and a list of costs (one for each optimization expression). *)
-
-module type SOLVER_LEX =
-  sig 
-    include SOLVER
-    val solve_lex : solve_lex_function
-  end
-
-let solve_lex 
-  (solve_function : solve_function) 
-  generated_constraints
-  optimization_functions
-  solver_settings
-  =
-
-  let (solution, costs, _) = 
-    List.fold_left 
-    ( 
-      fun 
-        
-        ( (_, previous_costs, additional_constraints) : (Solution.solution * int list * Constraints.cstr list) ) 
-        (optimization_function : Optimization_functions.optimization_function) 
-
-      -> 
-    
-        (* Constraints for the problem should include:
-           1. the standard generated constraints
-           2. constraints which embody the results of previous optimizations. *)
-        let constraints =
-          generated_constraints @ [("previous optimization"), additional_constraints]
-
-        in
-
-        (* Solve the problem using the current optimization function. *)
-        let (solution, cost) =
-          solve_function
-            constraints           (* Our generated constraints + previous optimizations constraints. *)
-            optimization_function (* The current optimization function. *)
-            solver_settings
-
-        in
-
-        (* Create a new constraint representing the current optimization result. *)
-        let new_constraint =
-          let open Constraints in
-          (* For all the subsequent steps this expression's value must be equal to the optimal value found. *)
-          match optimization_function with
-          | Satisfy                -> truecstr
-          | Minimize optimize_expr
-          | Maximize optimize_expr -> optimize_expr =~ (int2expr cost)
-
-        in
-
-        (
-          solution,                                (* Pass on the current solution (which takes into account all previous optimizations). *)
-          cost :: previous_costs,                  (* Append the optimal cost for the current optimization expression to the accumulator. *)
-          new_constraint :: additional_constraints (* Append the new optimization constraint to the accumulator. *)
-        )
-
-  ) ([], [], []) optimization_functions
-
-  in
-  (solution, costs)
-
-
-
-let standard_flatzinc_command_line_solver 
-
-  (minizinc_to_flatzinc_converter : in_out_program)
-  (flatzinc_solver                : in_out_program)
-
-  (generated_constraints : Constraints_generation.generated_constraints)
-  (optimization_function : Optimization_functions.optimization_function)
-  (solver_settings       : solver_settings) 
-
-  : Solution.solution_with_cost
-  
-  =
-
-  let variables = get_all_variables generated_constraints optimization_function in
-
-  let open Minizinc_constraints in
-
-  (* Solver execution details printing. *)
-  let solver_exe_printf = 
-    if solver_settings.print_solver_exe
-    then (fun (s : string) -> print_string s; flush stdout)
-    else (fun (s : string) -> ())
-
-  in
-
-  (* Checking if required programs are available. *)
-  solver_exe_printf (Printf.sprintf "\n===> Checking if required programs are available...\n");
-  check_if_programs_available [minizinc_to_flatzinc_converter; flatzinc_solver];
-  solver_exe_printf (Printf.sprintf "\nOK!\n");
-
-  (* Preparing variables for MiniZinc translation. *)
-  solver_exe_printf (Printf.sprintf "\n===> Preparing variables for MiniZinc translation...\n");
-  let minizinc_variables = 
-    create_minizinc_variables variables
-  in
-
-  if(solver_settings.print_solver_vars)
-  then (
-    Printf.printf "\n===> THE MINIZINC VARIABLES <===\n\n";
-    Printf.printf "%s\n" (string_of_minizinc_variables minizinc_variables);
-    flush stdout;
-  );
-
-
-  (* Translating constraints into MiniZinc. *)
-  solver_exe_printf (Printf.sprintf "\n===> Translating constraints into MiniZinc...\n");
-  let minizinc_constraints = 
-    translate_constraints 
-      minizinc_variables
-      generated_constraints
-      optimization_function
-  in
-
-  if(solver_settings.print_solver_cstrs)
-  then (
-    Printf.printf "\n===> THE MINIZINC CONSTRAINTS <===\n\n";
-    Printf.printf "%s" minizinc_constraints;
-    flush stdout;
-  );
-
-
-  (* Printing the MiniZinc constraints to a temporary .mzn file. *)
-  solver_exe_printf (Printf.sprintf "\n===> Printing the MiniZinc constraints to a temporary .mzn file...\n");
-  let (minizinc_filepath, minizinc_out) = Filename.open_temp_file "zephyrus" ".mzn" in
-  Printf.fprintf minizinc_out "%s" minizinc_constraints;
-  flush minizinc_out;
-  close_out minizinc_out;
-
-
-  (* Converting MiniZinc to FlatZinc. *)
-  solver_exe_printf (Printf.sprintf "\n===> Converting MiniZinc to FlatZinc using converter %s...\n" minizinc_to_flatzinc_converter.name);
-  let flatzinc_filepath = Filename.temp_file "zephyrus" ".fzn" in
-  let minizinc_to_flatzinc_converter_exe = minizinc_to_flatzinc_converter.exe minizinc_filepath flatzinc_filepath in
-  solver_exe_printf (Printf.sprintf "\nExecuting command: %s\n" minizinc_to_flatzinc_converter_exe);
-  let mzn2fzn_process_status = Unix.system minizinc_to_flatzinc_converter_exe in
-  (if not (did_process_exit_ok mzn2fzn_process_status)
-  then failwith (Printf.sprintf "%s error!" minizinc_to_flatzinc_converter.command));
-  Sys.remove minizinc_filepath;
-
-  (* Solving the problem encoded in FlatZinc using an external solver. *)
-  let solution_filepath = Filename.temp_file "zephyrus" ".solution" in
-  solver_exe_printf (Printf.sprintf "\n===> Solving the problem using flatzinc solver %s...\n" flatzinc_solver.name);
-  let flatzinc_solver_exe = flatzinc_solver.exe flatzinc_filepath solution_filepath in
-  solver_exe_printf (Printf.sprintf "\nExecuting command: %s\n" flatzinc_solver_exe);
-  let flatzinc_process_status = Unix.system flatzinc_solver_exe in
-  (if not (did_process_exit_ok flatzinc_process_status)
-  then failwith (Printf.sprintf "%s error!" flatzinc_solver.command));
-  Sys.remove flatzinc_filepath;
-
-  (* Reading the solution found by the an external solver. *)
-  solver_exe_printf (Printf.sprintf "\n===> Getting the solution found by the flatzinc solver...\n");
-  let solution_in = (open_in solution_filepath) in
-  let solution_string = string_of_input_channel solution_in in
-  close_in solution_in;
-  Sys.remove solution_filepath;
-
-  if(solver_settings.print_intermediate_solutions)
-  then (
-    Printf.printf "\nThe solution:\n%s\n" solution_string;
-    flush stdout;
-  );
-  
-  (* Parsing the solution. *)
-  solver_exe_printf (Printf.sprintf "\n===> Parsing the solution found by the flatzinc solver...\n");
-  let lexbuf = Lexing.from_string solution_string in
-  let minizinc_solution = Flatzinc_solution_parser.main Flatzinc_solution_lexer.token lexbuf in
-  let solution_with_cost = solution_of_bound_minizinc_variables minizinc_variables minizinc_solution in
-
-  (* Returning the solution in the right format. *)
-  solution_with_cost
-
-
-let mzn2fzn = {
-  name    = "G12 mzn2fzn";
-  command = "mzn2fzn";
-  exe     = (fun input_minizinc_filepath output_flatzinc_filepath ->
-              Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" output_flatzinc_filepath input_minizinc_filepath)
-}
-
-module G12 : SOLVER_LEX =
-  struct
-
-    let g12_flatzinc_solver = {
-      name    = "G12";
-      command = "flatzinc";
-      exe     = (fun input_flatzinc_file output_solution_file ->
-                  Printf.sprintf "flatzinc -o %s %s" output_solution_file input_flatzinc_file)
-    }
-
-    let solve = standard_flatzinc_command_line_solver mzn2fzn g12_flatzinc_solver
-
-    let solve_lex = solve_lex solve
-
-  end
-
-module GeCode : SOLVER_LEX =
-  struct
-
-    let gecode_flatzinc_solver = {
-      name    = "GeCode";
-      command = "fz";
-      exe     = (fun input_flatzinc_file output_solution_file ->
-                  Printf.sprintf "fz -o %s %s" output_solution_file input_flatzinc_file)
-    }
-
-    let solve = standard_flatzinc_command_line_solver mzn2fzn gecode_flatzinc_solver
-
-    let solve_lex = solve_lex solve
-
-  end
-
-
-module FaCiLe : SOLVER =
-  struct
-
-    let solve 
-      generated_constraints
-      optimization_function
-      solver_settings
-
-      =
-
-      let variables = get_all_variables generated_constraints optimization_function in
-
-      let open Facile_variables in
-      let open Facile_constraints in
-      let open Facile in
-      let open Easy in
-
-      (* Prepare the problem: FaCiLe variables, FaCiLe constraints, optimization function and the goal. *)
-
-      let minimize_expr =
-        let open Constraints 
-        in
-        match optimization_function with 
-        | Satisfy                -> failwith "Sorry, satisfy problems are not implemented in Zephyrus FaCiLe interface..."
-        | Minimize minimize_expr -> minimize_expr
-        | Maximize maximize_expr -> ((int2expr 0) -~ maximize_expr)
-      in
-
-      let facile_variables =
-        create_facile_variables variables
-      in
-
-      let facile_constraints : generated_constraints = 
-        List.map (fun (constraints_group_name, constraints) ->
-          let facile_constraints = 
-            List.map 
-              (Facile_constraints.translate_cstr facile_variables)
-              constraints
-          in
-          (constraints_group_name, facile_constraints)
-        ) generated_constraints
+type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t_full = solver_settings -> t
       
-      and cost_expr = Facile_constraints.translate_expr facile_variables minimize_expr
 
-      (* A placeholder for the solution.*)
-      and facile_solution = ref []
-      in
+module type SOLVER = sig
+  val solve : t_full (* It returns the solution and its cost. *)
+end
 
-      (* The goal.*)
-      let goal = create_optimized_goal facile_variables cost_expr facile_solution solver_settings.print_intermediate_solutions
-      in
 
-      Printf.printf "\n===> INITIALIZING THE FACILE CONSTRAINTS... <===\n\n";
-      post_translation_constraints facile_constraints;
+(* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
+exception No_solution (* to break the normal controlflow of solution computation in case there are none. Too painful to deal with options *)
 
-      if(solver_settings.print_solver_vars)
-      then (
-        Printf.printf "\n===> THE FACILE VARIABLES <===\n";
-        Printf.printf "%s" (string_of_facile_variables facile_variables);
-        flush stdout;
-      );
+let solve_lexicographic settings preprocess solve_step postprocess c f = 
+  let initial_data = preprocess settings c f in
+  let rec iterative_solve data f = match f with
+    | Data_constraint.Lexicographic(f1::l1) -> 
+      let (data , solution , costs ) = iterative_solve data f1 in
+      let (data', solution', costs') = iterative_solve data (Data_constraint.Lexicographic(l1)) in 
+      (data', solution', costs @ costs')
+    | _ -> match solve_step settings data f with
+      | None -> raise No_solution
+      | Some(solution, cost) -> (postprocess data f cost, solution, [cost]) in
+    try (let (_, solution, costs) = iterative_solve initial_data f in Some(solution, costs)) with | No_solution -> None
 
-      if(solver_settings.print_solver_cstrs)
-      then (
-        Printf.printf "\n===> THE FACILE CONSTRAINTS <===\n";
-        Printf.printf "%s" (string_of_constraints facile_constraints);
-        flush stdout;
-      );
 
-      Printf.printf "\n===> SOLVING! <===\n"; 
-      flush stdout;
+(* 2. generic minizinc handling *)
 
-      let _ = Goals.solve (goal ||~ Goals.success) in
 
-      (!facile_solution, 0)
+module MiniZinc_generic = struct
+  open Data_constraint
+  open Minizinc
 
-  end
+  let solver : Engine_helper.program ref = ref Engine_helper.gecode_minizinc_solver
+  let input  : Engine_helper.file ref = ref Engine_helper.file_default
+  let output : Engine_helper.file ref = ref Engine_helper.file_default
+
+  let preprocess settings c f =
+    Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
+    if Engine_helper.program_is_available !solver then (
+      Zephyrus_log.log_solver_execution "yes\n";
+      Zephyrus_log.log_solver_execution ("Preparing file names for minizinc and solution storage...\n");
+      input  := Engine_helper.file_process_name settings.input_file;
+      output := Engine_helper.file_process_name settings.output_file;
+      Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...");
+      let vs = List.fold_left (fun res (_, k) -> Variable_set.union (variables_of_konstraint k) res) (variables_of_optimization_function f) c in
+      Zephyrus_log.log_solver_execution ("  we have " ^ (string_of_int (Variable_set.cardinal vs)) ^ " variables\n");
+      let v_map = get_named_variables vs in
+(*      Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
+      Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
+      let res = core_translation v_map settings.bounds c in
+      Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy res.mzn_main_constraint); res
+    ) else (
+      Zephyrus_log.log_solver_execution (" no\n");
+      Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n")
+
+  let solve_step settings data f =
+    let mzn_constraint = add_optimization_goal data f in
+    Zephyrus_log.log_solver_execution "Printing the MiniZinc constraints to the file...\n";
+    let filename_input = Engine_helper.file_print settings.keep_input_file !input mzn_constraint in
+    Zephyrus_log.log_solver_execution "Creating the file for the solution...\n";
+    let filename_output = Engine_helper.file_create settings.keep_output_file !output in
+    Zephyrus_log.log_solver_execution "Solving the constraints...\n";
+    let status = Engine_helper.program_sync_exec !solver [filename_input; filename_output] in
+    if not (Engine_helper.program_did_exit_ok status) then
+      Zephyrus_log.log_panic "Error during the solving of the constraint. Aborting execution\n"
+    else (
+      Zephyrus_log.log_solver_execution "Getting the solution found by the flatzinc solver...\n";
+      match Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) with
+      | None -> None
+      | Some solution_tmp -> (
+(*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map string_of_int solution_tmp)); *)
+        let cost = Name_map.find cost_variable_name solution_tmp in
+        let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
+            data.mzn_variables#variables Variable_map.empty in
+        let solution =
+        let domain = data.mzn_variables#variables 
+        and variable_values = (fun v -> try Data_constraint.Variable_map.find v minizinc_solution with Not_found -> -1)
+        in {
+          Data_constraint.domain          = domain;
+          Data_constraint.variable_values = variable_values;
+        } in Some(solution, cost))
+    )
+
+  let postprocess data f cost = match f with
+    | Data_constraint.Minimize(e) -> add_extra_constraint data e cost
+    | Data_constraint.Maximize(e) -> add_extra_constraint data e cost
+    | Data_constraint.Lexicographic([]) -> data
+    | _ -> raise Wrong_optimization_function
+(*    | _ -> data
+    (* Kuba: Ad-hoc bug correction, I don't know if it's what should be done, but it works... *)
+    (* | _ -> raise Wrong_optimization_function *) *)
+end
+
+(* 3. Main Modules *)
+
+module G12 : SOLVER = struct
+  let solve settings cs f = MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
+    solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+end
+
+module GeCode : SOLVER = struct
+  let solve settings cs f = MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
+    solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+end
+
+(* Annex functions *)
+type settings_kind = Preprocess | Main
+
+let settings_of_settings kind =
+  let ((in_file, in_keep), (out_file, out_keep)) = match kind with
+    | Preprocess -> Settings.get_preprocess_file_informations ()
+    | Main -> Settings.get_main_file_informations () in {
+  bounds            = Data_state.get_variable_bounds ();
+  input_file        = in_file;
+  output_file       = out_file;
+  keep_input_file   = in_keep;
+  keep_output_file  = out_keep
+}
+
+let full_of_settings kind = match (match kind with Preprocess -> Settings.find Settings.preprocess_solver | Main -> Settings.find Settings.solver) with
+  | Settings.Solver_gcode  -> GeCode.solve
+  | Settings.Solver_g12    -> G12.solve
+  | Settings.Solver_facile -> GeCode.solve (* default *)
+  | Settings.Solver_none   -> GeCode.solve (* default *)
+let of_settings kind = (full_of_settings kind) (settings_of_settings kind)
+

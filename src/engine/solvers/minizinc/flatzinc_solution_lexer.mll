@@ -23,6 +23,7 @@
 }
 
 rule token = parse
+  | "=====UNSATISFIABLE====="             { UNSATISFIABLE }
 
   (* Blanks *)
   | [' ' '\t']                            { token lexbuf }     (* skip blanks *)
