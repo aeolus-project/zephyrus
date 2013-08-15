@@ -1,0 +1,34 @@
+{
+	"component_types": [
+		{
+			"name": "Master",
+			"require": [["@work", 10]],
+			"consume": [["ram", 1024]]
+		},
+		{
+			"name": "Worker",
+			"provide": [["@work", ["FiniteProvide", 1]]],
+			"consume": [["ram", 1024]]
+		}
+	],
+	"implementation": [
+		[
+			"Master",
+			[["repository-1", "common_package"]]
+		],
+		[
+			"Worker",
+			[["repository-1", "common_package"]]
+		]
+	],
+	"repositories": [
+		{
+			"name": "repository-1",
+			"packages": [
+				{
+					"name": "common_package"
+				}
+			]
+		}
+	]
+}

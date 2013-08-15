@@ -1,0 +1,52 @@
+{
+	"component_types": [
+		{
+			"name": "Master",
+			"require": [["@work", 10]],
+			"consume": [["ram", 1024]]
+		},
+		{
+			"name": "Worker-A",
+			"provide": [["@work", ["FiniteProvide", 1]]],
+			"consume": [["ram", 1024]]
+		},
+		{
+			"name": "Worker-B",
+			"provide": [["@work", ["FiniteProvide", 1]]],
+			"consume": [["ram", 1024]]
+		}
+	],
+	"implementation": [
+		[
+			"Master",
+			[["repository-1", "common_package"]]
+		],
+		[
+			"Worker-A",
+			[["repository-1", "worker_a_package"]]
+		],
+		[
+			"Worker-B",
+			[["repository-1", "worker_b_package"]]
+		]
+	],
+	"repositories": [
+		{
+			"name": "repository-1",
+			"packages": [
+				{
+					"name": "common_package"
+				},
+				{
+					"name": "worker_a_package",
+					"conflict": ["worker_b_package"]
+				},
+				{
+					"name": "worker_b_package",
+					"conflict": ["worker_a_package"]
+				}
+
+			]
+		}
+	]
+}

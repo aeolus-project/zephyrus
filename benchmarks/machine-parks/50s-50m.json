@@ -1,0 +1,604 @@
+{
+	"locations" : [
+		{
+			"name" : "small-location-1",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-2",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-3",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-4",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-5",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-6",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-7",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-8",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-9",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-10",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-11",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-12",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-13",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-14",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-15",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-16",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-17",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-18",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-19",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-20",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		}		,
+		{
+			"name" : "small-location-21",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-22",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-23",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-24",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-25",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-26",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-27",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-28",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-29",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-30",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-31",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-32",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-33",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-34",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-35",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-36",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-37",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-38",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-39",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-40",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-41",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-42",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-43",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-44",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-45",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-46",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-47",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-48",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-49",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "small-location-50",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 2048]],
+			"cost" : 1
+		},
+		{
+			"name" : "medium-location-1",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-2",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-3",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-4",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-5",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-6",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-7",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-8",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-9",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-10",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-11",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-12",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-13",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-14",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-15",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-16",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-17",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-18",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-19",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-20",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		}		,
+		{
+			"name" : "medium-location-21",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-22",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-23",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-24",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-25",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-26",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-27",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-28",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-29",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-30",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-31",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-32",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-33",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-34",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-35",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-36",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-37",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-38",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-39",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-40",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-41",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-42",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-43",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-44",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-45",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-46",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-47",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-48",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-49",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		},
+		{
+			"name" : "medium-location-50",
+			"repository" : "repository-1",
+			"provide_resources" : [["ram", 8192]],
+			"cost" : 3
+		}
+	]
+}
