@@ -214,46 +214,6 @@ let () =
 (*
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
     Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);
-
-
-    let final_configuration = 
-      let solution = fst solution in
-      match !Data_state.universe_full with
-      | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n"; None
-      | Some universe -> 
-        begin
-          match !Data_state.initial_configuration_full with
-          | None -> Printf.printf "\nZephyrus is proud to announce you, that the initial configuration does not exist!...\n"; None
-          | Some initial_configuration -> 
-              let final_configuration = Configuration_of.solution universe initial_configuration solution in
-              begin
-                match !Data_state.resources_full with
-                | None           -> Printf.printf "\nZephyrus is proud to announce you, that resources are not set!...\n"
-                | Some resources -> Printf.printf "\nFinal Configuration\n\n%s" (Json_of.configuration_string final_configuration universe resources) (* (String_of.configuration universe final_configuration) *)
-              end;
-              Some(final_configuration)
-        end
-  in*)
+*)
 
   print_string "\n\n\n <==========> THE END <==========>  \n\n")
-
-(*
-(* just a test! *)
-let my_universe =
-  Input_helper.parse_json Json_j.read_universe Settings.input_file_universe
-
-let () =
-  match my_universe with
-  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
-  | Some json_universe -> Printf.printf "\nThe universe:\n%s\n" (Yojson.Safe.prettify (Json_j.string_of_universe json_universe))
-
-(* just a test! *)
-let my_specification =
-  Input_helper.parse_standard Specification_parser.main Specification_lexer.token Settings.input_file_specification
-
-let () =
-  Load_model.load_model ();
-  match !Data_state.universe_full with
-  | None -> Printf.printf "\nZephyrus is proud to announce you, that the universe does not exist!...\n" 
-  | Some u -> ()
-*)
