@@ -767,8 +767,28 @@ let model_of_settings () = model_of_file_options
     (Settings.get_input_file_specification ()) (Settings.get_input_optimization_function ())
 
 let set_initial_model_of_settings () = let (catalog, resources, universe, initial_configuration, specification, f) = model_of_settings () in
-  Data_state.universe_full := universe;
+  Data_state.universe_full              := universe;
   Data_state.initial_configuration_full := initial_configuration;
-  Data_state.specification_full := specification;
-  Data_state.resources_full := Some(resources);
-  Data_state.optimization_function := f
+  Data_state.specification_full         := specification;
+  Data_state.resources_full             := Some(resources);
+  Data_state.optimization_function      := f
+
+let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
+  (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
+  let u  : Json_t.universe                  = benchmark#universe in
+  let rs = [] in
+  let c  : Json_t.configuration             = benchmark#initial_configuration in
+  let s  : Json_t.specification             = benchmark#specification in
+  let f  : Data_model.optimization_function = benchmark#optimisation_function in
+
+  let catalog               = load_catalog (Some u) rs (Some c) (Some s) in
+  let universe              = load_universe      catalog rs u in
+  let initial_configuration = load_configuration catalog c in
+  let specification         = load_specification catalog s in
+  let resources             = load_resources     catalog in
+
+  Data_state.universe_full              := Some(universe);
+  Data_state.initial_configuration_full := Some(initial_configuration);
+  Data_state.specification_full         := Some(specification);
+  Data_state.resources_full             := Some(resources);
+  Data_state.optimization_function      := Some(f)

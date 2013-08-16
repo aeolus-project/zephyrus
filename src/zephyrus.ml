@@ -104,6 +104,7 @@ let () = Load_settings.load ();
 let () =
 (* === load everything  === *)
   Load_model.set_initial_model_of_settings ();
+  (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
   let r = check_option "resources"             !Data_state.resources_full in
   let u = check_option "universe"              !Data_state.universe_full in
