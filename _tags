@@ -1,47 +1,45 @@
-<*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 true: use_menhir
 
-<src/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src>: include
 
-<src/atd/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/atd/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/atd>: include
 
-<src/datatypes/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/datatypes/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/datatypes>: include
 
-<src/input/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/input/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/input>: include
 
-<src/output/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/output/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/output>: include
 
-<src/constraints/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/constraints/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/constraints>: include
 
-<src/engine/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine>: include
 
-<src/engine/translation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/translation/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/translation>: include
 
-<src/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/solvers>: include
 
-<src/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers/minizinc/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/solvers/minizinc>: include
 
-
-<src/engine/preprocess/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/preprocess/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/preprocess>: include
 
-<src/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/constraint_generation>: include
 
 
-<src/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/solvers/facile>: include
 
-
-<src/engine/configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(biniou),package(extlib),package(facile),package(unix)
+<src/engine/configuration_generation/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/configuration_generation>: include
