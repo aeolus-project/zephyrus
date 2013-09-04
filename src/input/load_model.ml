@@ -767,6 +767,7 @@ let model_of_settings () = model_of_file_options
     (Settings.get_input_file_specification ()) (Settings.get_input_optimization_function ())
 
 let set_initial_model_of_settings () = let (catalog, resources, universe, initial_configuration, specification, f) = model_of_settings () in
+  Data_state.catalog_full               := Some catalog;
   Data_state.universe_full              := universe;
   Data_state.initial_configuration_full := initial_configuration;
   Data_state.specification_full         := specification;

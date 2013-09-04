@@ -36,7 +36,7 @@ let universe_full              : universe option ref = ref None
 let initial_configuration_full : configuration option ref = ref None
 let specification_full         : specification option ref = ref None
 let optimization_function      : optimization_function option ref = ref None
-
+let catalog_full               : Data_model_catalog.closed_model_catalog option ref = ref None
 
 let universe_trim_component    : universe option ref = ref None
 let universe_trim_package      : universe option ref = ref None
