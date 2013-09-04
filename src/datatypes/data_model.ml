@@ -130,7 +130,7 @@ end
 
 module Component_type = struct
   type t = component_type
-  let compare t1 t2 = Component_type_id.compare t1#id t2#id 
+  let compare = compare
 end 
 module Component_type_set = Set.Make(Component_type) 
 module Component_type_map = Map.Make(Component_type)
@@ -165,7 +165,7 @@ end
 
 module Package = struct
   type t = package
-  let compare k1 k2 = Package_id.compare k1#id k2#id 
+  let compare = compare
 end
 module Package_set = Set.Make(Package)
 module Package_set_set = Set.Make(Package_set)
@@ -200,7 +200,7 @@ end
 
 module Repository = struct
   type t = repository
-  let compare r1 r2 = Repository_id.compare r1#id r2#id 
+  let compare = compare
 end
 module Repository_set = Set.Make(Repository)
 module Repository_map = Map.Make(Repository)
@@ -291,7 +291,7 @@ end
 
 module Location = struct
   type t = location
-  let compare l1 l2 = Location_id.compare l1#id l2#id 
+  let compare = compare
 end 
 module Location_set = Set.Make(Location) module Location_map = Map.Make(Location)
 module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
@@ -327,7 +327,7 @@ end
 
 module Component = struct
   type t = component
-  let compare c1 c2 = Component_name.compare c1#name c2#name
+  let compare = compare
 end 
 module Component_set = Set.Make(Component)
 module Component_map = Map.Make(Component)
@@ -351,12 +351,7 @@ end
 
 module Binding = struct
   type t = binding
-  let compare b1 b2 =
-    let r1 = b1#port - b2#port in if r1 = 0 then
-      let r2 = Component_id.compare b1#requirer b2#requirer in if r2 = 0 then
-        Component_id.compare b1#provider b2#provider
-      else r2
-    else r1
+  let compare = compare
 end 
 module Binding_set = Set.Make(Binding)
 
