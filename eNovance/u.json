@@ -1,0 +1,167 @@
+{
+	"component_types": [
+		{
+            "name"     : "MySQL-LB",
+            "provide"  : [["@mysql", ["FiniteProvide", 100]]],
+            "require"  : [["@mysql-backend", 3]]
+		},
+		{
+			"name"     : "MySQL-backend",
+			"provide"  : [["@mysql-backend", ["FiniteProvide", 1]]]
+		},
+		{
+			"name"     : "Keystone-LB",
+			"provide"  : [["@keystone", ["FiniteProvide", 10]]],
+			"require"  : [["@keystone-backend", 4]]
+		},
+		{
+			"name"     : "Keystone-backend",
+			"provide"  : [["@keystone", ["FiniteProvide", 10]]],
+			"require"  : [["@keystone-data-backend", 4]]
+		},
+		{
+			"name"     : "Plugin-keystone-data-backend-to-mysql",
+			"provide"  : [["@keystone-data-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Glance-API-LB",
+			"provide"  : [["@glance-api", ["FiniteProvide", 1]]],
+			"require"  : [["@glance-api-backend", 1]]
+		},
+		{
+			"name"     : "Glance-API-backend",
+			"provide"  : [["@glance-api-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@glance-registry", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-Registry-LB",
+			"provide"  : [["@glance-registry", ["FiniteProvide", 10]]],
+			"require"  : [["@glance-registry-backend", 1]]
+		},
+		{
+			"name"     : "Glance-Registry-backend",
+			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-DB",
+			"provide"  : [["@glance-db", ["FiniteProvide", 10]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Nova-API-LB",
+			"provide"  : [["@nova-api", ["FiniteProvide", 1]]],
+			"require"  : [["@nova-api-backend", 1]]
+		},
+		{
+			"name"     : "Nova-API-backend",
+			"provide"  : [["@nova-api-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Scheduler",
+			"provide"  : [["@nova-scheduler", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Conductor",
+			"provide"  : [["@nova-conductor", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Compute",
+			"provide"  : [["@nova-compute", ["FiniteProvide", 1]]],
+			"require"  : [["@keystone", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-DB",
+			"provide"  : [["@nova-db", ["FiniteProvide", 10]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Queue-LB",
+			"provide"  : [["@queue", ["FiniteProvide", 1]]],
+			"require"  : [["@queue-backend", 2]]
+		},
+		{
+			"name"     : "Queue-backend",
+			"provide"  : [["@queue-backend", ["FiniteProvide", 1]]],
+			"require"  : [["@mysql", 1]]
+		}
+	],
+	"implementation": [
+		[
+			"MySQL-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"MySQL-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Keystone-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Keystone-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Plugin-keystone-data-backend-to-mysql",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Glance-API-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Glance-API-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Glance-Registry-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Glance-Registry-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Glance-DB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-API-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-API-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-Scheduler",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-Conductor",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-Compute",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Nova-DB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Queue-LB",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		],
+		[
+			"Queue-backend",
+			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+		]
+	]
+}
