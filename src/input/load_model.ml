@@ -263,8 +263,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let component_type           : Component_type_obj_catalog.obj_catalog_iface = new Component_type_obj_catalog.obj_catalog in
   
   (* store the component type in parameter *)
-  let new_component_type t =                
-    let id = catalog#component_type#id_of_name t#name in
+  let new_component_type id t =
     component_type#add_id_obj_pair id t in
 
 
@@ -273,8 +272,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let package_id_to_repo_id_map : (repository_id Package_id_map.t) ref  = ref Package_id_map.empty in (* mapping package id -> repository id *)
 
   (* store the package *)
-  let new_package r k = 
-    let id = catalog#package#id_of_name (r, k#name) in 
+  let new_package r id k =
     package#add_id_obj_pair id k;
     package_id_to_repo_id_map := Package_id_map.add id r !package_id_to_repo_id_map;
     (id, k) in (* <- this pair looks strange: LOOK INTO THIS *)
@@ -284,8 +282,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
   let repository : Repository_obj_catalog.obj_catalog_iface = new Repository_obj_catalog.obj_catalog in
     
   (* store the repository *)
-  let new_repository r =
-    let id = catalog#repository#id_of_name r#name in
+  let new_repository id r =
     repository#add_id_obj_pair id r in
 
   (* annex function, for the implementation relation *)
@@ -298,9 +295,12 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     
   (* component types *)
   let convert_component_type t =
-  
+
     (* name *)  
     let name = convert_component_type_name t.Json_t.component_type_name in
+
+    (* id *)
+    let id = catalog#component_type#id_of_name name in
 
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
@@ -332,16 +332,16 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     let port_local_provide : Port_id_set.t = Port_id_map_extract_key.set_of_keys provide in 
     let port_local_require : Port_id_set.t = Port_id_map_extract_key.set_of_keys require in
 
-    new_component_type (object(self)
+    new_component_type id (object(self)
       method name           = name
-      method id             = catalog#component_type#id_of_name name
+      method id             = id
       method provide      p = try Port_id_map.find p provide with
                               | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-                                Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ (self#name) ^ "\"")
+                                Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ name ^ "\"")
       method provide_domain = port_local_provide
       method require      p = try Port_id_map.find p require with
                               | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-                                Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ (self#name) ^ "\"")
+                                Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ name ^ "\"")
       method require_domain = port_local_require
       method conflict       = conflict
       method consume      r = try Resource_id_map.find r consume with Not_found -> 0
@@ -353,6 +353,9 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
     (* name *)
     let name = convert_package_name r_name k.Json_t.package_name in
+
+    (* id *)
+    let id = catalog#package#id_of_name (r_id, name) in
 
     (* create the dependency sets *)
     let depend : Package_id_set_set.t = 
@@ -373,9 +376,9 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (catalog#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
       ) k.Json_t.package_consume in
 
-    new_package r_id (object
+    new_package r_id id (object
       method name      = name
-      method id        = catalog#package#id_of_name (r_id, name)
+      method id        = id
       method depend    = depend
       method conflict  = conflict
       method consume r = try Resource_id_map.find r_id consume with Not_found -> 0
@@ -388,8 +391,10 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     (* name *)
     let name = convert_repository_name r.Json_t.repository_name in
 
-    (* packages *)
+    (* id *)
     let id = catalog#repository#id_of_name name in
+
+    (* packages *)
     let packages : package Package_id_map.t = 
       Package_id_map.map_of_list (fun k -> 
         convert_package id name k
@@ -400,14 +405,14 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     let local_package_ids : Package_id_set.t = Package_id_map_extract_key.set_of_keys     packages in 
     let local_packages    : Package_set.t    = Package_id_map_extract_value.set_of_values packages in
     
-    new_repository (object(self) 
+    new_repository id (object(self) 
       method name          = name
-      method id            = catalog#repository#id_of_name name
+      method id            = id
       method get_package k = 
         try Package_id_map.find k packages 
         with Not_found -> 
           let package_desc = "(" ^ (string_of_int k) ^ "," ^ (try snd (catalog#package#name_of_id k) with Not_found -> "") ^ ")" in
-          Zephyrus_log.log_missing_data "package" package_desc ("package of the repository \"" ^ (self#name) ^ "\"")
+          Zephyrus_log.log_missing_data "package" package_desc ("package of the repository \"" ^ name ^ "\"")
       method packages    = local_packages
       method package_ids = local_package_ids
     end) in
@@ -520,8 +525,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   let location : Location_obj_catalog.obj_catalog_iface = new Location_obj_catalog.obj_catalog in
   
   (* create all the structure to store the new location l *)
-  let new_location (l : location) =  
-    let id = catalog#location#id_of_name l#name in 
+  let new_location id (l : location) =
     location#add_id_obj_pair id l in
 
   (* annex function, used for components *)
@@ -533,8 +537,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
   let component : Component_obj_catalog.obj_catalog_iface = new Component_obj_catalog.obj_catalog in
   
   (* create all the structure to store the new component c *)
-  let new_component c =
-    let id = catalog#component#id_of_name c#name in
+  let new_component id c =
     component#add_id_obj_pair id c in
 
   (* annex function, used for the bindings *)
@@ -549,6 +552,9 @@ class convert_configuration (catalog : closed_model_catalog) c =
 
     (* name *)
     let name = convert_location_name l.Json_t.location_name in
+
+    (* id *)
+    let id = catalog#location#id_of_name name in
 
     (* repository *)
     let r_name = convert_repository_name l.Json_t.location_repository in 
@@ -566,9 +572,9 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* cost *)
     let cost = convert_location_cost l.Json_t.location_cost in
 
-    new_location (object
+    new_location id (object
       method name                = name
-      method id                  = catalog#location#id_of_name name
+      method id                  = id
       method repository          = repository
       method packages_installed  = packages_installed
       method provide_resources r = try Resource_id_map.find r resources with Not_found -> 0 
@@ -581,15 +587,18 @@ class convert_configuration (catalog : closed_model_catalog) c =
     (* name *)
     let name = convert_component_name c.Json_t.component_name in
 
+    (* id *)
+    let id = catalog#component#id_of_name name in
+
     (* type *)
     let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
 
     (* location *)
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
-    new_component (object
+    new_component id (object
       method name     = name
-      method id       = catalog#component#id_of_name name
+      method id       = id
       method typ      = typ
       method location = location 
     end) in
