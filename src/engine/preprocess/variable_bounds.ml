@@ -294,12 +294,12 @@ module rec V_data_init : sig
   type port = { p_data : Data_model.port; mutable p_replica : Bound.t; }
   type component_type = Data_model.component_type_id
   type t_inner = Component_type of component_type | Port of port
-  type t = { mutable bounds : Bound.t; mutable conflict : Graph.Vertice_set.t; inner : t_inner}
+  type t = { id : int; mutable bounds : Bound.t; mutable conflict : Graph.Vertice_set.t; inner : t_inner}
 end = struct
   type port = { p_data : Data_model.port; mutable p_replica : Bound.t; }
   type component_type = Data_model.component_type_id
   type t_inner = Component_type of component_type | Port of port
-  type t = { mutable bounds : Bound.t; mutable conflict : Graph.Vertice_set.t; inner : t_inner}
+  type t = { id : int; mutable bounds : Bound.t; mutable conflict : Graph.Vertice_set.t; inner : t_inner}
 end and E_data : sig
   type t = Value.t
   
@@ -307,6 +307,8 @@ end and E_data : sig
   val of_require_arity : Data_model.require_arity -> t
   val of_provide_arity : Data_model.provide_arity -> t
   val value_of : t -> Data_constraint.Value.t
+
+  val to_string : t -> string
 end = struct
   type t = Value.t
   
@@ -314,6 +316,8 @@ end = struct
   let of_require_arity = Value.of_require_arity
   let of_provide_arity = Value.of_provide_arity
   let value_of v = v
+
+  let to_string = String_of.value
 end and Graph : Data_common.Graph.S with type vertice_data = V_data_init.t and type edge_data = E_data.t = Data_common.Graph.Make(V_data_init)(E_data)
 
 
@@ -350,13 +354,15 @@ module V_data : sig
   val get_component_type : t -> Data_model.component_type_id
   
 (*  val to_string : (Graph.Vertice.t -> int) -> Graph.Vertice.t -> string*)
-  val to_string : string -> (Graph.Vertice.t -> string) -> t -> string
+  val name : t -> string
+  val to_string : t -> string * string
 end = struct
   include V_data_init
   exception Invalid_operation
 
-  let of_port p = { bounds = default_bound; conflict = Graph.Vertice_set.empty; inner = Port {p_data = p; p_replica = default_bound } }
-  let of_component_type t = { bounds = default_bound; conflict = Graph.Vertice_set.empty; inner = Component_type t }
+  let local_id = Data_common.Fresh_integer.create ()
+  let of_port p = { id = Data_common.Fresh_integer.next local_id; bounds = default_bound; conflict = Graph.Vertice_set.empty; inner = Port {p_data = p; p_replica = default_bound } }
+  let of_component_type t = { id = Data_common.Fresh_integer.next local_id; bounds = default_bound; conflict = Graph.Vertice_set.empty; inner = Component_type t }
   
   let bound_set v_data b = v_data.bounds <- b
   let bound_combine v_data b = v_data.bounds <- Bound.combine v_data.bounds b
@@ -382,11 +388,14 @@ end = struct
   let get_port v_data =  match v_data.inner with | Port d -> d.p_data | Component_type _ -> raise Invalid_operation
   let get_component_type v_data =  match v_data.inner with | Port _ -> raise Invalid_operation  | Component_type t -> t
 
-(*let to_string map v = let v_data = (Graph.Vertice.data v) in "  " ^ (Printf.sprintf "%3d" (map v)) ^ " => " ^ (match v_data.inner with *)
-let to_string id map v_data = "  " ^ id ^ " => " ^ (match v_data.inner with
-    | Component_type d -> "type \"" ^ (String_of.component_type_id d) ^ "\""
-    | Port d -> "port \"" ^ (String_of.port_id d.p_data) ^ "\" ( replica = " ^ (String_of.bound d.p_replica) ^ ")")
-  ^ " : bound = " ^ (String_of.bound v_data.bounds) ^ " ; conflicts = " ^ (String_of.string_list (List.map map (Graph.Vertice_set.elements v_data.conflict))) 
+  (*let to_string map v = let v_data = (Graph.Vertice.data v) in "  " ^ (Printf.sprintf "%3d" (map v)) ^ " => " ^ (match v_data.inner with *)
+  let name v = "node" ^ (string_of_int v.id)
+  
+  let to_string v_data = let my_name = name v_data in let n = "  " ^ my_name  ^ (match v_data.inner with
+      | Component_type d -> " [shape=box,label=\"" ^ (String_of.component_type_id d) ^ "\\nbounds = " ^ (String_of.bound v_data.bounds) ^ "\"];\n"
+      | Port d -> " [label=\"" ^ (String_of.port_id d.p_data) ^ "\\nbounds = " ^ (String_of.bound v_data.bounds) ^ "\\nreplica = " ^ (String_of.bound d.p_replica) ^ "\"];\n") in
+    let e = Graph.Vertice_set.fold (fun v res -> res ^ "  " ^ my_name ^ " -> " ^ (name (Graph.Vertice.data v)) ^ " [color=red,style=dotted]\n") v_data.conflict "" in
+    (n,e)
 end
 
 type flat_universe = { f_graph : Graph.t;
@@ -525,8 +534,8 @@ let minimize_upper_bound fu =
 
 (* solve the specification `alone', to see if we have some lower bounds *)
 let get_initial_mins solver universe spec domain =
-  let (spv, stv, skv) = Data_model.uv_of_specification spec in
-  let main_k = Constraint_of.specification domain spec in
+  let (spv, stv, skv) = Data_model.uv_of_specification spec in (* get the port, component type and package variables in the specification *)
+  let main_k = Constraint_of.specification domain spec in      (* generate the constraint corresponding to the specification *)
   let annex_k = Constraint_of.location_all_variables spv stv skv domain universe#up universe#get_component_type in
   let full_k = annex_k @ (List.map (fun (_,k) -> ("",k)) main_k) in
   let vs = variables_of_konstraint (Data_constraint.conj (List.map snd main_k)) in
@@ -618,10 +627,19 @@ let variable_bounds get_location fu v =
 (*\************************************************************************/*)
 
 
-let to_string fu = 
-  let r_id =  ref 0 in let map = ref Graph.Vertice_map.empty in
-  Graph.Vertice_set.iter (fun v -> let id = !r_id in r_id := id + 1; map := Graph.Vertice_map.add v (Printf.sprintf "%3d" id) !map) (vertices fu);
-  let find v = Graph.Vertice_map.find v !map in
+let v_name v = V_data.name (Graph.Vertice.data v)
+
+let to_string fu = (* print the nodes of the graph *)
+  let (ns,es) = Graph.Vertice_set.fold (fun v (ns,es) -> let (n,e) = V_data.to_string (Graph.Vertice.data v) in (ns ^ n, es ^ e)) (vertices fu) ("","") in
+  "digraph flat_universe {\n/* Vertices */\n" ^ ns ^ "\n/* Edges */\n"
+    ^ (Graph.Edge_set.fold (fun e res -> "  " ^ (v_name (Graph.Edge.origin e)) ^ " -> "
+        ^ (v_name (Graph.Edge.target e)) ^ " [label=\"" ^ (E_data.to_string (Graph.Edge.data e)) ^ "\"];\n" ^ res) (edges fu) "")
+    ^ "\n/* Conflicts */\n" ^ es
+    ^ "}"
+
+let to_string_full = to_string
+    
+(*
   " flat universe:\n vertices =\n" ^ (String.concat "\n" (List.map (fun v -> V_data.to_string (find v) find (Graph.Vertice.data v)) (Graph.Vertice_map.keys !map)))
 (*  ^ "\n edges =\n" ^ (String.concat "\n" (List.map (fun e -> (find (Graph.Edge.origin e)) ^ " -> " ^ (String_of.value (E_data.value_of (Graph.Edge.data e)))
             ^ " -> " ^ (find (Graph.Edge.target e))) (Graph.Edge_set.elements (edges fu))))
@@ -634,7 +652,7 @@ let to_string fu =
   *)
 
 
-let to_string_full fu = 
+let to_string_full fu = (* print the nodes and the edges of the graph *)
   let r_id =  ref 0 in let map = ref Graph.Vertice_map.empty in
   Graph.Vertice_set.iter (fun v -> let id = !r_id in r_id := id + 1; map := Graph.Vertice_map.add v (Printf.sprintf "%3d" id) !map) (vertices fu);
   let find v = Graph.Vertice_map.find v !map in
@@ -649,5 +667,5 @@ let to_string_full fu =
   ^ "\n Leafs =\n" ^ (String_of.string_list (List.map find (Graph.Vertice_set.elements (Graph.vertice_leafs (fu.f_graph)))))
   *)
 
-
+*)
 

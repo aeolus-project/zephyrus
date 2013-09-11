@@ -53,7 +53,21 @@ let print_to_file kind filename r u c = Output_helper.print_output filename (mat
     | Settings.Out_file_graph_packages   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
   )
 
+(*
+(* test the output *)
+let () = 
+  Zephyrus_log.log_stage_new "TESTING OUTPUT FORMAT";
 
+  Output_helper.println stdout "|- hello";
+  Output_helper.println stdout "|- Comment ca va ?\n - je vais bien, et toi ?";
+  Output_helper.println stdout "|- pas mal\n\n\n\n";
+  Zephyrus_log.log_stage_end ()
+*)
+
+
+
+
+(*
 (* test the database *)
 module Database_test = struct
   open Data_common.Database
@@ -94,16 +108,15 @@ module Database_test = struct
       print_string ((T.find table DBString.name 1) ^ (string_of_bool (T.find table DBBool.name 1)) ^ "\n");
       print_string "step 7\n"; flush stdout
   end
-
+*)
 
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
   Zephyrus_log.log_settings ()
-(* === Set up everything === *)
 
-let () =
+
 (* === load everything  === *)
-  Load_model.set_initial_model_of_settings ();
+let () = Load_model.set_initial_model_of_settings ();
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
   let r = check_option "resources"             !Data_state.resources_full in
@@ -114,19 +127,22 @@ let () =
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
   let main_solver = Solvers.of_settings Solvers.Main in
-  Zephyrus_log.log_data "\n\n\n  ==> INITIAL CONFIGURATION <== \n\n" (lazy (Json_of.configuration_string c u r));
-  Zephyrus_log.log_data "\n\n\n     ==> SPECIFICATION <==      \n\n" (lazy (String_of.specification s));
-  Zephyrus_log.log_data "\n\n\n ==> OPTIMIZATION FUNCTION <==  \n\n" (lazy (String_of.model_optimization_function f));
+  Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string c u r));
+  Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
+  Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> " (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
+  Zephyrus_log.log_stage_end ();
+
 
 (* === Perform the trimming === *)
-  Zephyrus_log.log_execution "\nTrimming component types...";
+  Zephyrus_log.log_stage_new "TRIMMING SECTION";
+  Zephyrus_log.log_execution "Trimming component types...";
   let universe_trimmed_component_types = Trim.trim_component_types u c s in
-  Zephyrus_log.log_execution " ok";
+  Zephyrus_log.log_execution " ok\n";
   (* print_string (Json_of.universe_string universe_trimmed_component_types r); *)
-  Zephyrus_log.log_execution "\nTrimming repositories...";
+  Zephyrus_log.log_execution "Trimming repositories...";
   let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
-  Zephyrus_log.log_execution " ok";
-  Zephyrus_log.log_data "\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
+  Zephyrus_log.log_execution " ok\n";
+  Zephyrus_log.log_data "TRIMMED UNIVERSE ==>\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
 
   (* TODO: we should never re-assign variables in Data_state *)
   Data_state.universe_full := Some(universe_trimmed_package);
@@ -135,14 +151,14 @@ let () =
   let u = universe_trimmed_package in
 
   let cat = Location_categories.full_categories r u c in
-  Zephyrus_log.log_data "\n\n\n     ==> INITIAL CATEGORIES <==  \n\n" (lazy (String_of.location_categories cat));
+  Zephyrus_log.log_data "INITIAL CATEGORIES ==> " (lazy ((String_of.location_categories cat) ^ "\n"));
   
   let cat' = (* cat *) ( match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
   | Some(sol) ->
 (*    Zephyrus_log.log_data "Found non null lower bounds for some variables : " (lazy (String_of.solution sol)); *)
     let (mp, mt) =  Variable_bounds.core_solution sol in
-    print_string ("Core lower bounds :\n  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n");
+    Zephyrus_log.log_data "\nCORE LOWER BOUNDS ==>\n" (lazy ("  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n"));
     let fu = Variable_bounds.create u in
     Zephyrus_log.log_data "\nflat universe created:\n" (lazy (Variable_bounds.to_string_full fu));
     Variable_bounds.add_bound_min_all sol fu;

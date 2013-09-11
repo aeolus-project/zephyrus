@@ -26,18 +26,28 @@
 
 (* 1. For indentation *) 
 
+let a_capo = ref true
 let indent_stage = ref ""
-let extend_indent_stage () = indent_stage := "  " ^ (!indent_stage)
-let shorten_indent_stage () = indent_stage := String.sub (!indent_stage) 0 ((String.length (!indent_stage)) -2)
+let new_stage () = indent_stage := "  " ^ (!indent_stage)
+let end_stage () = indent_stage := String.sub (!indent_stage) 0 ((String.length (!indent_stage)) -2)
 
 let get_current_indent () = !indent_stage
 
-
 (* 2. for printing *)
+let rec indent_string_rec s =
+  let n = (String.length s) - 1 in
+  let i = try String.index s '\n' with Not_found -> -1 in (* Printf.printf "%i => %b\n" i (n <= i); *)
+  if i = -1 then (a_capo := false; s)
+  else (
+    if n <= i then (a_capo := true; s)
+    else ((String.sub s 0 (i+1)) ^ (!indent_stage) ^ (indent_string_rec (String.sub s (i+1) (n - i))))
+  )
 
-let new_line_regexp = Str.regexp "\n"
-let print file s = Printf.fprintf file "%s%s" (!indent_stage) (Str.global_replace new_line_regexp ("\n" ^ (!indent_stage)) s); flush file
-let print_capo file s = Printf.fprintf file "%s\n" s
+let indent_string s = (* Printf.printf "%b\n" (!a_capo); *) if !a_capo then (!indent_stage) ^ (indent_string_rec s) else (indent_string_rec s)
+
+
+let print file s = Pervasives.output_string file (indent_string s); flush file
+let println file s = print file (s ^ "\n")
 
 (* 3. print output *)
 

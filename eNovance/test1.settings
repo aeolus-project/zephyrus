@@ -9,7 +9,7 @@ input-optimization-function = compact
 
 # 07. Output Configuration
 
-results                     = [("json", "eNovance/eNovance-100loc-result.json"); ("graph-deployment", "eNovance/eNovance-100loc.dot")]
+results                     = [("json", "eNovance/eNovance-6loc-result.json"); ("graph-deployment", "eNovance/eNovance-6loc.dot")]
 
 verbose-level = 2
 verbose-data = y

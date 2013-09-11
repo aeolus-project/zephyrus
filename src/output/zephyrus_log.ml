@@ -27,8 +27,8 @@
 let out_channel = stdout
 
 (* core logging *)
-let log_panic str = Output_helper.print_capo out_channel ("Zephyrus panic: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(-1)
-let log_error str = Output_helper.print_capo out_channel ("Zephyrus error: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(-1)
+let log_panic str = Output_helper.println out_channel ("Zephyrus panic: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(-1)
+let log_error str = Output_helper.println out_channel ("Zephyrus error: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(-1)
 let log_warning str = Output_helper.print out_channel ("Zephyrus warning: " ^ str); flush out_channel
 let log_normal str = Output_helper.print out_channel str
 
@@ -36,13 +36,20 @@ let log_normal str = Output_helper.print out_channel str
 let current_stages : (string list) ref = ref []
 let stage_condition () = (Settings.find Settings.verbose_level) > 1
 let log_stage_new str = if stage_condition () then
-    Output_helper.print out_channel ("+++++++++++++\nNew Stage: \"" ^ str ^ "\"\n+++++++++++++");
-    Output_helper.extend_indent_stage ()
+    let str' = "| New Stage: \"" ^ str ^ "\" |" in
+    let n = (String.length str') - 2 in
+    let line = "+" ^ (String.make n '-') ^ "+\n" in
+    Output_helper.println out_channel (line ^ str' ^ "\n" ^ line);
+    current_stages := str::(!current_stages);
+    Output_helper.new_stage ()
 
 let log_stage_end () =  if stage_condition () then
     let str = List.hd (!current_stages) in current_stages := List.tl (!current_stages);
-    Output_helper.print out_channel ("-------------\nEnd Stage: \"" ^ str ^ "\"\n-------------");
-    Output_helper.shorten_indent_stage ()
+    let str' = "| End Stage: \"" ^ str ^ "\" |" in
+    let n = (String.length str') - 2 in
+    let line = "+" ^ (String.make n '-') ^ "+\n" in
+    Output_helper.end_stage ();
+    Output_helper.println out_channel (line ^ str' ^ "\n" ^ line)
 
 
 (* setting logging *)

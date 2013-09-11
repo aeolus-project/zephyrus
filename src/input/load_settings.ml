@@ -30,7 +30,7 @@
 (* TODO: change everything *)
 
 let usage = "usage: " ^ Sys.argv.(0)
-  ^ "[-s settings-file]"
+  ^ "[-settings settings-file]"
   ^ "[-u universe-file]"
   ^ "[-ic initial-configuration-file]"
   ^ "[-spec specification-file]"

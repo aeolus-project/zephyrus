@@ -300,8 +300,7 @@ let rec spec_expr location_ids e = match e with
   | Data_model.Spec_expr_sub (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
   | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_expr location_ids e2)
 
-let rec specification_simple location_ids s =
-  Zephyrus_log.log_constraint_execution "Compute Specification\n"; match s with
+let rec specification_simple location_ids s = match s with
   | Data_model.Spec_true -> True
   | Data_model.Spec_op (e1, op, e2) -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
   | Data_model.Spec_and (s1, s2) -> (specification_simple location_ids s1) &&~~ (specification_simple location_ids s2)
@@ -309,7 +308,8 @@ let rec specification_simple location_ids s =
   | Data_model.Spec_impl (s1, s2) -> (specification_simple location_ids s1) =>~~ (specification_simple location_ids s2)
   | Data_model.Spec_not (s') -> !~ (specification_simple location_ids s')
 
-let specification locations s = [(Data_state.constraint_specification_full, specification_simple locations s) ]
+let specification locations s = Zephyrus_log.log_constraint_execution "Compute Specification\n"; 
+  [(Data_state.constraint_specification_full, specification_simple locations s) ]
 
 let specification_full () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with
   | (Some(s), Some(c)) -> Data_state.constraint_specification_full := Some(specification_simple c#get_location_ids s)

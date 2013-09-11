@@ -23,6 +23,10 @@
     - datatypes/Data_common
 *)
 
+(*/************************************************************************\*)
+(*| 1. Modules and types for the flat universe                             |*)
+(*\************************************************************************/*)
+
 module rec V_data_init : sig
   type t
 end and E_data : sig
@@ -75,7 +79,8 @@ val edges    : flat_universe -> Graph.Edge_set.t
 val to_string : flat_universe -> string
 val to_string_full : flat_universe -> string
 
-val get_initial_mins : Solvers.t -> Data_model.universe -> Data_model.specification -> Data_model.Location_id_set.t -> Data_constraint.solution option
+val get_initial_mins : Solvers.t -> Data_model.universe -> Data_model.specification
+  -> Data_model.Location_id_set.t -> Data_constraint.solution option (* Solves the specification alone to get minimal bounds on required components and ports *)
 val core_solution : Data_constraint.solution -> (int Data_model.Port_map.t) * (int Data_model.Component_type_id_map.t)
 
 (*/************************************************************************\*)
