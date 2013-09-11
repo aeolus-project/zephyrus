@@ -496,7 +496,7 @@ let configuration c domain =
   let location_names_2 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_2 Location_name_set.empty in
   let component_names_1 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_1 Component_name_set.empty in
   let component_names_2 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_2 Component_name_set.empty in
-  print_string ("annex conf location domain = " ^ (String_of.location_id_set location_ids_2) ^ "\n");
+  (* print_string ("annex conf location domain = " ^ (String_of.location_id_set location_ids_2) ^ "\n"); *)
  ( object
       method get_location   = get_location
       method get_component  = c#get_component

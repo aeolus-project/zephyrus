@@ -98,6 +98,7 @@ val propagate_lower_bound : flat_universe -> unit
 val propagate_conflicts   : flat_universe -> unit
 val propagate_upper_bound : flat_universe -> unit
 val finalize_bound_roots  : flat_universe -> unit
+val mirror_bounds         : flat_universe -> unit
 val minimize_upper_bound  : flat_universe -> unit
 
 

@@ -70,11 +70,13 @@ module Value = struct
     | (Finite_value n1, Finite_value n2) -> of_int (min n1 n2)
     | (Finite_value _ , _              ) -> v1
     | (_              , Finite_value _ ) -> v2
-    | _  -> Infinite_value
+    | _  -> infty
+  let mins l = Data_common.List.fold_combine (fun x -> x) min l infty
 
   let max v1 v2 = match (v1,v2) with
     | (Finite_value n1, Finite_value n2) -> of_int (max n1 n2)
     | _ -> Infinite_value
+  let maxs l = Data_common.List.fold_combine (fun x -> x) max l zero
 
   let sum v1 v2 = match (v1,v2) with
     | (Finite_value n1, Finite_value n2) -> of_int (n1 + n2)
@@ -249,6 +251,7 @@ module Bound = struct
   let combine b1 b2 = { min = Value.max b1.min b2.min; max = Value.min b1.max b2.max }
   let add_min b v = { min = Value.max b.min v; max = b.max }
   let add_max b v = { min = b.min; max = Value.min b.max v }
+  let ext_max b v = { min = b.min; max = if b.max = Value.infty then v else Value.max b.max v }
 
   let min b = b.min
   let max b = b.max
