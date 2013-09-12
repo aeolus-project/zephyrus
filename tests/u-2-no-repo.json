@@ -1,0 +1,33 @@
+{
+	"component_types": [
+		{
+			"name": "Provider",
+			"provide": [["@port", ["FiniteProvide", 3]]],
+			"consume": [["resource", 5]]
+		},
+		{
+			"name": "Requirer",
+			"require": [["@port", 2]],
+			"consume": [["resource", 3]]
+		},
+		{
+			"name": "Conflicter",
+			"conflict": ["@port"],
+			"consume": [["resource", 7]]
+		}
+	],
+	"implementation": [
+		[
+			"Provider",
+			[["repository", "common_package"]]
+		],
+		[
+			"Requirer",
+			[["repository", "common_package"]]
+		],
+		[
+			"Conflicter",
+			[["repository", "common_package"]]
+		]
+	]
+}

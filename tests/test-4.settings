@@ -1,0 +1,15 @@
+
+# 01. Input Files
+
+input-file-universe         = "tests/u-2-no-repo.json"
+input-file-configuration    = "tests/ic-single-location.json"
+input-file-specification    = "tests/spec-1.spec"
+input-file-repositories     = [("repository", "tests/repo-single-package.json")]
+input-optimization-function = compact
+
+# 07. Output Configuration
+
+results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot")]
+
+verbose-level = 2
+verbose-data = y
