@@ -196,7 +196,7 @@ module type Used_tokens_type =
 sig
   type t
   type token
-  val empty : t
+  val empty : unit -> t
   val mem   : token -> t -> bool
   val add   : token -> t -> unit
 end

@@ -164,7 +164,7 @@ module type Used_tokens_type =
 sig
   type t
   type token
-  val empty : t
+  val empty : unit -> t
   val mem   : token -> t -> bool
   val add   : token -> t -> unit
 end
@@ -174,7 +174,7 @@ functor (Token_set : Set.S) ->
 struct
   type t     = Token_set.t ref
   type token = Token_set.elt
-  let empty                 = ref Token_set.empty
+  let empty ()              = ref Token_set.empty
   let mem token used_tokens = Token_set.mem token !used_tokens
   let add token used_tokens = used_tokens := Token_set.add token !used_tokens
 end
@@ -207,8 +207,8 @@ struct
   type id = int
 
   let create () = ref {
-    current = 0;
-    used    = Used_tokens_int.empty
+    current = 1;
+    used    = Used_tokens_int.empty ()
   }
 
   let is_used t id =

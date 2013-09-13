@@ -187,7 +187,7 @@ let generate_components
     | NewComponent    _         -> None
   ) !almost_done_components in
 
-  let (used_names : used_names) = Used_names.empty in 
+  let (used_names : used_names) = Used_names.empty () in 
   List.iter (fun name -> Used_names.add name used_names) reused_component_names;
 
   (* Now we proceed to name the new components and make them "done" (in opposition to "almost-done"). 
