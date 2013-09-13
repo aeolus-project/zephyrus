@@ -207,7 +207,7 @@ struct
   type id = int
 
   let create () = ref {
-    current = 1;
+    current = 0;
     used    = Used_tokens_int.empty ()
   }
 
@@ -220,10 +220,9 @@ struct
   let current t = (!t).current
 
   let rec next (t : t) : id =
-    let value      = current t in
-    let next_value = value + 1 in
+    let value = current t + 1 in
     t := {
-      current = next_value;
+      current = value;
       used    = (!t).used;
     };
     if   is_used t value
