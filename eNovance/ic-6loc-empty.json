@@ -1,0 +1,34 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location2",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location3",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location4",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location5",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location6",
+			"repository" : "repository",
+			"provide_resources" : [["ram", 2048]]
+		}
+	]
+}

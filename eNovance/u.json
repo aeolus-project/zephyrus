@@ -93,75 +93,85 @@
 	"implementation": [
 		[
 			"MySQL-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"MySQL-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Keystone-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Keystone-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Plugin-keystone-data-backend-to-mysql",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Glance-API-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Glance-API-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Glance-Registry-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Glance-Registry-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Glance-DB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-API-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-API-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-Scheduler",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-Conductor",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-Compute",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Nova-DB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Queue-LB",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		],
 		[
 			"Queue-backend",
-			[["debian-squeeze", "mysql-server (= 5.1.49-3)"]]
+			[["repository", "common-package"]]
 		]
+	],
+	"repositories": [
+		{
+			"name": "repository",
+			"packages": [
+				{
+					"name": "common-package"
+				}
+			]
+		}
 	]
 }
