@@ -24,6 +24,7 @@ UNINSTALL = $(OCAMLFIND) remove -destdir $(LIBDIR)
 endif
 
 OCAMLBEST=native
+#OCAMLBEST=d.byte
 OCAMLBUILD=ocamlbuild #-ocamlc ocamlc.opt -ocamlopt ocamlopt.opt -ocamldep ocamldep.opt
 INSTALLOPTS=-s
 

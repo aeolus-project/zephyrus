@@ -6,5 +6,6 @@
 *.d
 *.di
 zephyrus.native
+zephyrus.d.byte
 zephyrus-*.tar.gz
 _build/*
