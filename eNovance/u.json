@@ -1,5 +1,9 @@
 {
 	"component_types": [
+	    {
+            "name"     : "LoadBalancer",
+            "consume"  : [["ram", 128]]
+		},
 		{
             "name"     : "MySQL-LB",
             "provide"  : [["@mysql", ["FiniteProvide", 100]]],
@@ -7,16 +11,16 @@
 		},
 		{
 			"name"     : "MySQL-backend",
-			"provide"  : [["@mysql-backend", ["FiniteProvide", 1]]]
+			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]]
 		},
 		{
 			"name"     : "Keystone-LB",
-			"provide"  : [["@keystone", ["FiniteProvide", 10]]],
-			"require"  : [["@keystone-backend", 4]]
+			"provide"  : [["@keystone", "InfiniteProvide"]],
+			"require"  : [["@keystone-backend", 1]]
 		},
 		{
 			"name"     : "Keystone-backend",
-			"provide"  : [["@keystone", ["FiniteProvide", 10]]],
+			"provide"  : [["@keystone-backend", ["FiniteProvide", 1]]],
 			"require"  : [["@keystone-data-backend", 4]]
 		},
 		{
@@ -26,7 +30,7 @@
 		},
 		{
 			"name"     : "Glance-API-LB",
-			"provide"  : [["@glance-api", ["FiniteProvide", 1]]],
+			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
 			"require"  : [["@glance-api-backend", 1]]
 		},
 		{
@@ -36,7 +40,7 @@
 		},
 		{
 			"name"     : "Glance-Registry-LB",
-			"provide"  : [["@glance-registry", ["FiniteProvide", 10]]],
+			"provide"  : [["@glance-registry", "InfiniteProvide"]],
 			"require"  : [["@glance-registry-backend", 1]]
 		},
 		{
@@ -46,12 +50,12 @@
 		},
 		{
 			"name"     : "Glance-DB",
-			"provide"  : [["@glance-db", ["FiniteProvide", 10]]],
+			"provide"  : [["@glance-db", "InfiniteProvide"]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
 			"name"     : "Nova-API-LB",
-			"provide"  : [["@nova-api", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-api", ["FiniteProvide", 100]]],
 			"require"  : [["@nova-api-backend", 1]]
 		},
 		{
@@ -76,7 +80,7 @@
 		},
 		{
 			"name"     : "Nova-DB",
-			"provide"  : [["@nova-db", ["FiniteProvide", 10]]],
+			"provide"  : [["@nova-db", "InfiniteProvide"]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
@@ -91,6 +95,10 @@
 		}
 	],
 	"implementation": [
+	    [
+			"LoadBalancer",
+			[["repository", "common-package"]]
+		],
 		[
 			"MySQL-LB",
 			[["repository", "common-package"]]
