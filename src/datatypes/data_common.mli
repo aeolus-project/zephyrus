@@ -487,7 +487,7 @@ module Graph : sig
       val is_loop      : t -> bool     (* returns if that edge is part of a loop *)
       val is_loop_in   : t -> bool     (* returns if that edge targets a vertice in a loop *)
       val is_loop_out  : t -> bool     (* returns if that edge originates from a vertice in a loop *)
-      val loop_get     : t -> Loop.t   (* returns the loop linked to that edge, or raise Not_found *)
+(*      val loop_get     : t -> Loop.t   (* returns the loop linked to that edge, or raise Not_found *) *)
       
       val compare : t -> t -> int      (* classic comparison function *)
       val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
@@ -511,13 +511,10 @@ module Graph : sig
       val compare : t -> t -> int                 (* classic comparison function *)
       val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
     end and Path_set : (Set.S with type elt = Path.t) and Path_map : (Map.S with type key = Path.t)
-    
+
     and Loop : sig
       type t                                     (* type of loop *)
-      exception Invalid_loop_extension           (* exception raised when erroneous operation is done on a path *)
       
-      val create   : Path.t -> t                 (* create a loop from a looping path, or raise Invalid_loop_extension *)
-      val add      : Path.t -> t -> unit         (* extend a lopp with a new sub-loop, or raise Invalid_loop_extension *)
       val vertices : t -> Vertice_set.t          (* returns the set of vertices that are part of that loop *)
       val edges    : t -> Edge_set.t             (* returns the set of edges that are part of that loop *)
       val succs_e  : t -> Edge_set.t             (* returns the set of edges whose origin is part of the loop (and which are not part of the loop) *)
@@ -527,9 +524,10 @@ module Graph : sig
       
       val mem    : Vertice.t -> t -> bool        (* tests if that vertice is part of that loop *)
       val center : Vertice.t -> t -> unit        (* if that vertice is part of that loop, move the starting point of the main path of the loop on that vertice *)
+      val path   : t -> Edge.t list              (* returns the main path of the loop, once it has been centered *)
       
-      val compare : t -> t -> int                (* classic comparison function *)
-      val equal   : t -> t -> bool               (* comparison that returns a bool instead of an int *)
+      val compare : t -> t -> int                 (* classic comparison function *)
+      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
     end and Loop_set : (Set.S with type elt = Loop.t) and Loop_map : (Map.S with type key = Loop.t)
 
     type t
@@ -540,12 +538,12 @@ module Graph : sig
 
     val vertices : t -> Vertice_set.t  (* returns the set of all vertices in the graph *)
     val edges    : t -> Edge_set.t     (* returns the set of all edges in the graph *)
-    val loops    : t -> Loop_set.t     (* returns the set of all loops in the graph *)
+    val loops    : t -> Loop_set.t     (* returns the set of all loops in the graph *) 
     
     val vertice_roots : t -> Vertice_set.t  (* returns the set of vertices that are roots (no ancestors) in the graph *)
-    val loop_roots    : t -> Loop_set.t     (* returns the set of loops that are roots in the graph *)
+    val loop_roots    : t -> Loop_set.t     (* returns the set of loops that are roots in the graph *) 
     val vertice_leafs : t -> Vertice_set.t  (* returns the set of vertices that are leafs (no children) in the graph *)
-    val loop_leafs    : t -> Loop_set.t     (* returns the set of loops that are leafs in the graph *)
+    val loop_leafs    : t -> Loop_set.t     (* returns the set of loops that are leafs in the graph *) 
     
     module Traverse_depth : sig
       val iter : (Path.t -> Vertice.t -> bool -> (unit -> unit) -> unit) -> t -> unit
@@ -553,7 +551,7 @@ module Graph : sig
     
     module Traverse_topology : sig
       val iter_downward : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
-      val iter_upward   : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit
+      val iter_upward   : (Vertice.t -> unit) -> (Loop.t -> unit) -> t -> unit 
     end    
   end
 
