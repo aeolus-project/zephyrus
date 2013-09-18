@@ -138,6 +138,7 @@ module Set : sig
   module Convert(Set_origin : S) (Set_target : S) : sig
     val convert : (Set_origin.elt -> Set_target.elt) -> Set_origin.t -> Set_target.t
     val filter_convert : (Set_origin.elt -> Set_target.elt option) -> Set_origin.t -> Set_target.t
+    val set_convert : (Set_origin.elt -> Set_target.t) -> Set_origin.t -> Set_target.t
   end
 
   module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) : sig

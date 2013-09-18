@@ -131,6 +131,85 @@ module List = struct
     | el::l' -> combine (conv el) (fold_combine conv combine l' init)
 end
 
+module Linked_list : sig
+  type 'a t
+
+  val create : unit -> 'a t
+  val add_first : 'a -> 'a t -> unit
+  val add_last  : 'a -> 'a t -> unit
+  val add       : 'a -> 'a t -> unit
+
+  val first : 'a t -> 'a
+  val last  : 'a t -> 'a
+
+  val fold_right : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+  val fold_left  : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
+  val fold       : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+
+  val iter_right : ('a -> unit) -> 'a t -> unit
+  val iter_left  : ('a -> unit) -> 'a t -> unit
+  val iter       : ('a -> unit) -> 'a t -> unit
+
+  val prefix : 'a -> 'a t -> 'a t
+  val suffix : 'a -> 'a t -> 'a t
+  val sub    : 'a -> 'a -> 'a t -> 'a t
+
+end = struct
+
+  type 'a elt = { mutable pred : 'a elt option; value : 'a; mutable succ : 'a elt option}
+  type 'a t = { mutable first : 'a elt option; mutable last : 'a elt option}
+
+  let create () = { first = None; last = None }
+
+  let add_first v l = let el = { pred = None; value = v; succ = l.first } in let sel = Some(el) in (match l.first with
+    | None -> l.last <- sel
+    | Some(el') -> el'.pred <- sel); l.first <- Some(el)
+
+  let add_last v l =  let el = { pred = l.last; value = v; succ = None } in let sel = Some(el) in (match l.last with
+    | None -> l.first <- sel
+    | Some(el') -> el'.succ <- sel); l.last <- Some(el)
+
+  let add = add_last
+
+  let first_el l = match l.first with | None -> raise Not_found | Some(el) -> el
+  let last_el  l = match l.last  with | None -> raise Not_found | Some(el) -> el
+  let pred el = match el.pred  with | None -> raise Not_found | Some(el') -> el'
+  let succ el = match el.succ  with | None -> raise Not_found | Some(el') -> el'
+
+  let first l = (first_el l).value
+  let last  l = (last_el  l).value
+
+  let fold_right f l accu = 
+    let rec step el accu = let accu' = f el.value accu in match el.succ with None -> accu' | Some(el') -> step el' accu' in match l.first with
+    | None -> accu | Some(el) -> step el accu
+  let fold_left f accu l = 
+    let rec step el accu = let accu' = f accu el.value in match el.pred with None -> accu' | Some(el') -> step el' accu' in match l.last with
+    | None -> accu | Some(el) -> step el accu
+  let fold = fold_right
+
+  let iter_right f l =
+    let rec step el = f el.value; match el.succ with None -> () | Some(el') -> step el' in match l.first with
+    | None -> () | Some(el) -> step el
+  let iter_left f l = 
+    let rec step el = f el.value; match el.pred with None -> () | Some(el') -> step el' in match l.last with
+    | None -> () | Some(el) -> step el
+  let iter = iter_right
+
+  let rec find_el_el v el  = if el.value = v then el else match el.succ with | None -> raise Not_found | Some(el') -> find_el_el v el'
+  let find_el v l = find_el_el v (first_el l)
+
+  let extract first last =
+    let first' = {pred = None; value = first.value; succ = None } in
+    let rec step pred el = let el' = { pred = Some(pred); value = el.value; succ = None } in
+      pred.succ <- Some(el'); if el = last then el' else step el' (succ el) in
+    let last' = if first = last then first' else step first' (succ first) in { first = Some(first'); last = Some(last') }
+
+  let prefix v l = let el = find_el v l in extract (first_el l) el
+  let suffix v l = let el = find_el v l in extract el (last_el l)
+  let sub v1 v2 l = let el1 = find_el v1 l in let el2 = find_el_el v2 el1 in extract el1 el2
+end
+
+
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set = struct
 
@@ -160,6 +239,8 @@ module Set = struct
         | None   -> s 
         | Some x -> Set_target.add x s
       ) s Set_target.empty
+
+    let set_convert f s = Set_origin.fold (fun v res -> Set_target.union (f v) res) s Set_target.empty
   end
 
   module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) = struct
@@ -1202,7 +1283,8 @@ module Graph = struct
       let equal e1 e2 = (compare e1 e2) = 0
     end and Edge_set : Set.S with type elt = Edge.t = Set.Make(Edge) and Edge_map : Map.S with type key = Edge.t = Map.Make(Edge)
     and Edge_set_to_vertices : sig val convert : (Edge.t -> Vertice.t) -> Edge_set.t -> Vertice_set.t end = Set.Convert(Edge_set)(Vertice_set)
-    
+    and Vertice_set_to_edges : sig val set_convert : (Vertice.t -> Edge_set.t) -> Vertice_set.t -> Edge_set.t end = Set.Convert(Vertice_set)(Edge_set)
+
     and Path : sig
       type t = Data_types.path                               (* Type of paths *)
       exception Invalid_path_extension                       (* Exception raised when trying to extend a path with an edge that does not originate from the right vertice *)
@@ -1252,16 +1334,6 @@ module Graph = struct
       let edges p = Edge_set.set_of_direct_list p.p_path
       let edges_rev p = p.p_path
       
-(*      (* create a path from a list of edges. Used internally for split *)
-      let of_edge_list l = (* the list l must not be empty, and consistent with a path structure. Not exported for general use *)
-       let rec f l accu = match l with
-         | []    -> raise Invalid_path_extension
-         | [e]   -> (Edge.origin e, Vertice_set.add (Edge.origin e) accu)
-         | e::l' -> f l' (Vertice_set.add (Edge.origin e) accu) in
-       let target = try Edge.target (List.hd l) with  Failure _ -> raise Invalid_path_extension in
-       let (origin, vs) = f l (Vertice_set.singleton target) in
-         { p_origin = origin; p_end = target; p_vertices = vs; p_path = l }
-*)      
       let extract v1 v2 p =
         let rec remove_end l = match l with
           | [] -> raise Not_found
@@ -1278,7 +1350,7 @@ module Graph = struct
         if is_empty p then [p]
         else (
           let (p', ps) = f p.p_path in
-          if List.is_empty p' then List.map of_edges (*of_edge_list*) ps else List.map of_edges (*of_edge_list*) (p'::ps) )
+          if List.is_empty p' then List.map of_edges ps else List.map of_edges (p'::ps) )
         
       let concat p1 p2 = if Vertice.equal (origin p2) (target p1) then {
         p_origin = p1.p_origin;
@@ -1392,23 +1464,23 @@ module Graph = struct
     and Loop : sig
       type t = Data_types.loop                                      (* type of loops *)
       
-      val create : Edge_set.t -> t                                    (* create a loop and its abstract representation from a path that must be a loop *)
+      val create : Edge_set.t -> t                                  (* create a loop and its abstract representation from a set of edges that must be a loop (no check performed). *)
       
-      val vertices : t -> Vertice_set.t
-      val edges    : t -> Edge_set.t
-      val succs_e : t -> Edge_set.t
-      val preds_e : t -> Edge_set.t
-      val succs_v : t -> Vertice_set.t
-      val preds_v : t -> Vertice_set.t
+      val vertices : t -> Vertice_set.t                             (* access the vertices that are part of the loop *)
+      val edges    : t -> Edge_set.t                                (* access the edges that are part thof the loop *)
+      val succs_e  : t -> Edge_set.t                                (* access the edges that exit the loop *)
+      val preds_e  : t -> Edge_set.t                                (* access the edges that enter the loop *)
+      val succs_v  : t -> Vertice_set.t                             (* access the vertices that are pointed by the loop *)
+      val preds_v  : t -> Vertice_set.t                             (* access the vertices that point to the loop *)
       
-      val get_abst : t -> Data_types.to_component
+      val get_abst    : t -> Data_types.to_component                (* returns the abstract representation of the loop *)
       
-      val mem    : Vertice.t -> t -> bool
-      val center : Vertice.t -> t -> unit
-      val path : t -> Edge.t list
+      val mem    : Vertice.t -> t -> bool                           (* tests if the vertice is part of the loop *)
+      val center : Vertice.t -> t -> unit                           (* set the origin and target of the inner path of the loop to the vertice in parameter *)
+      val path : t -> Edge.t list                                   (* returns the list of ordered edges starting at the centered vertice, to parse the loop *)
       
-      val compare : t -> t -> int
-      val equal : t -> t -> bool
+      val compare : t -> t -> int                                   (* compare two loops *)
+      val equal   : t -> t -> bool                                  (* wrapper over compare for simple equality test between two loops *)
     end = struct open Data_types
       type t = Data_types.loop                                      (* type of loops *)
 
@@ -1422,7 +1494,7 @@ module Graph = struct
       let mem v l = Vertice_set.mem v (vertices l)
       let get_abst l = Lazy.force l.l_abst
 
-      let new_abst l =                  (* the initial abstract representation of a vertice *)
+      let new_abst l =                  (* the initial abstract representation of a loop *)
         let root = if Edge_set.is_empty l.l_edges_in then Data_types.to_status_root else Data_types.to_status_inner in
         let leaf = if Edge_set.is_empty l.l_edges_out then Data_types.to_status_leaf else Data_types.to_status_inner in
         { to_position = 0; to_data = Data_types.Loop l; to_status = Data_types.to_status_combine root leaf }
@@ -1434,8 +1506,12 @@ module Graph = struct
         let rec res = { l_path = []; l_edges = es; l_edges_in = in_es; l_edges_out = out_es; l_abst = lazy (new_abst res) } in res
 
       let path l = l.l_path
-      (* TODO *)
-      let center v l = ()
+      let center v l =
+        let rec step vs es = 
+          if Edge_set.is_empty es then [] (* we parsed all the edges *)
+          else let next_es = Edge_set.inter es (Vertice_set_to_edges.set_convert Vertice.succs_e vs) in
+          (Edge_set.elements next_es) @ (step (Edge_set_to_vertices.convert Edge.target next_es) (Edge_set.diff es next_es)) in
+        l.l_path <- step (Vertice_set.singleton v) (edges l)
       
       let compare = Pervasives.compare
       let equal l1 l2 = (compare l1 l2) = 0
@@ -1712,8 +1788,10 @@ module Graph = struct
         
       type t = { mutable order : Component.t Queue.t; mutable last : Component.t option }
       
+      (* functions to parse the queue *)
       let iter f o = Queue.iter f o.order
       let fold f o accu = Queue.fold (fun accu c -> f c accu) accu o.order
+
       let reset_order o = Pervasives.ignore (fold (fun c i -> c.to_position <- i; i + 1) o 0)
 
 
@@ -1725,6 +1803,8 @@ module Graph = struct
       
       let create () = { order = Queue.create (); last = None }
       
+     (* let order cs o = *)
+
       let add_vertice v o = let c = Vertice.get_abst v in
         (match o.last with None -> c.to_position <- 0 | Some c' -> c.to_position <- c'.to_position + 1);
         o.last <- Some c; Queue.add c o.order;
