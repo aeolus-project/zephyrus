@@ -122,6 +122,38 @@ module Int : sig type t = int val compare : t -> t -> int end
 module String : String_from_stdlib
 module List : sig include List_from_stdlib val is_empty : 'a list -> bool val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b end
 
+module Linked_list : sig
+  type 'a t                                               (* type of a generic double linked list *)
+
+  val create : unit -> 'a t                               (* create a new empty generic list *)
+  val add_first : 'a -> 'a t -> unit                      (* add a new element at the beginning of the list *)
+  val add_last  : 'a -> 'a t -> unit                      (* add a new element at the end of the list *)
+  val add       : 'a -> 'a t -> unit                      (* synonym of add_last *)
+
+  val first : 'a t -> 'a                                  (* returns the first element of the list, or raise Not_found *)
+  val last  : 'a t -> 'a                                  (* returns the last  element of the list, or raise Not_found *)
+  
+  val rm_first : 'a t -> unit                             (* removes the first element of the list, or raise Not_found *)
+  val rm_last  : 'a t -> unit                             (* removes the last  element of the list, or raise Not_found *)
+
+  val fold_right : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b   (* fold over the list, starting with its first element *)
+  val fold_left  : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b   (* fold over the list, starting with its last  element *)
+  val fold       : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b   (* synonym of fold_right *)
+
+  val iter_right : ('a -> unit) -> 'a t -> unit           (* iter over the list, starting with its first element *)
+  val iter_left  : ('a -> unit) -> 'a t -> unit           (* iter over the list, starting with its last  element *)
+  val iter       : ('a -> unit) -> 'a t -> unit           (* synonym of iter_right *)
+
+  val filter : ('a -> bool) -> 'a t -> 'a t               (* returns a new list keeping in the right order all the elements validating the input predicat *)
+(*
+  val prefix : 'a -> 'a t -> 'a t                         (* returns the smallest sub list that finishes with v in parameter, or raise Not_found *)
+  val suffix : 'a -> 'a t -> 'a t                         (* returns the biggest sub list that starts with v in parameter, or raise Not_found *)
+  val sub    : 'a -> 'a -> 'a t -> 'a t                   (* equivalent to prefix v2 (suffix v1 l) *)
+*)
+  val to_list : 'a t -> 'a list
+
+end
+
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set : sig
 

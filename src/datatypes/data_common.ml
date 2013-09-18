@@ -132,28 +132,48 @@ module List = struct
 end
 
 module Linked_list : sig
-  type 'a t
+  type 'a t                                               (* type of a generic double linked list *)
+  
+  val create : unit -> 'a t                               (* create a new empty generic list *)
+  val add_first : 'a -> 'a t -> unit                      (* add a new element at the beginning of the list *)
+  val add_last  : 'a -> 'a t -> unit                      (* add a new element at the end of the list *)
+  val add       : 'a -> 'a t -> unit                      (* synonym of add_last *)
 
-  val create : unit -> 'a t
-  val add_first : 'a -> 'a t -> unit
-  val add_last  : 'a -> 'a t -> unit
-  val add       : 'a -> 'a t -> unit
+  val first : 'a t -> 'a                                  (* returns the first element of the list, or raise Not_found *)
+  val last  : 'a t -> 'a                                  (* returns the last  element of the list, or raise Not_found *)
+  
+  val rm_first : 'a t -> unit                             (* removes the first element of the list, or raise Not_found *)
+  val rm_last  : 'a t -> unit                             (* removes the last  element of the list, or raise Not_found *)
 
-  val first : 'a t -> 'a
-  val last  : 'a t -> 'a
+  val fold_right : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b   (* fold over the list, starting with its first element *)
+  val fold_left  : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b   (* fold over the list, starting with its last  element *)
+  val fold       : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b   (* synonym of fold_right *)
 
-  val fold_right : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
-  val fold_left  : ('b -> 'a -> 'b) -> 'b -> 'a t -> 'b
-  val fold       : ('a -> 'b -> 'b) -> 'a t -> 'b -> 'b
+  val iter_right : ('a -> unit) -> 'a t -> unit           (* iter over the list, starting with its first element *)
+  val iter_left  : ('a -> unit) -> 'a t -> unit           (* iter over the list, starting with its last  element *)
+  val iter       : ('a -> unit) -> 'a t -> unit           (* synonym of iter_right *)
 
-  val iter_right : ('a -> unit) -> 'a t -> unit
-  val iter_left  : ('a -> unit) -> 'a t -> unit
-  val iter       : ('a -> unit) -> 'a t -> unit
+  val filter : ('a -> bool) -> 'a t -> 'a t               (* returns a new list keeping in the right order all the elements validating the input predicat *)
 
-  val prefix : 'a -> 'a t -> 'a t
-  val suffix : 'a -> 'a t -> 'a t
-  val sub    : 'a -> 'a -> 'a t -> 'a t
+(*
+  val prefix : 'a -> 'a t -> 'a t                         (* returns the smallest sub list that finishes with v in parameter, or raise Not_found *)
+  val suffix : 'a -> 'a t -> 'a t                         (* returns the biggest sub list that starts with v in parameter, or raise Not_found *)
+  val sub    : 'a -> 'a -> 'a t -> 'a t                   (* equivalent to prefix v2 (suffix v1 l) *)
+*)
+  val append : 'a t -> 'a t -> 'a t                       (* concat the two lists together *)
+  val concat : 'a t list -> 'a t                          (* concat all the lists together *)
 
+  val to_list : 'a t -> 'a list
+  
+  
+  type 'a iterator
+  
+  val forward_iterator : 'a t -> 'a iterator
+  val backward_iterator : 'a t -> 'a iterator
+  
+  val has_next : 'a iterator -> bool
+  val next     : 'a iterator -> 'a
+  
 end = struct
 
   type 'a elt = { mutable pred : 'a elt option; value : 'a; mutable succ : 'a elt option}
@@ -179,6 +199,13 @@ end = struct
   let first l = (first_el l).value
   let last  l = (last_el  l).value
 
+  let rm_first l = match l.first with
+    | None -> raise Not_found
+    | Some(el) -> l.first <- el.succ; match l.first with | None -> () | Some(el') -> el.pred <- None
+  let rm_last  l = match l.last with
+    | None -> raise Not_found
+    | Some(el) -> l.last  <- el.pred; match l.last  with | None -> () | Some(el') -> el.succ <- None
+
   let fold_right f l accu = 
     let rec step el accu = let accu' = f el.value accu in match el.succ with None -> accu' | Some(el') -> step el' accu' in match l.first with
     | None -> accu | Some(el) -> step el accu
@@ -195,18 +222,40 @@ end = struct
     | None -> () | Some(el) -> step el
   let iter = iter_right
 
-  let rec find_el_el v el  = if el.value = v then el else match el.succ with | None -> raise Not_found | Some(el') -> find_el_el v el'
+  let filter f l = fold_right (fun v res -> if f v then (add_last v res; res) else res) l (create ())
+
+(*
+  let rec find_el_el v el  = Printf.printf "node "; flush stdout; if el.value = v then (Printf.printf "found\n "; flush stdout; el) else match el.succ with | None -> raise Not_found | Some(el') -> Printf.printf "next "; flush stdout; find_el_el v el'
   let find_el v l = find_el_el v (first_el l)
 
   let extract first last =
     let first' = {pred = None; value = first.value; succ = None } in
-    let rec step pred el = let el' = { pred = Some(pred); value = el.value; succ = None } in
+    let rec step pred el = Printf.printf "toto "; flush stdout; let el' = { pred = Some(pred); value = el.value; succ = None } in
       pred.succ <- Some(el'); if el = last then el' else step el' (succ el) in
     let last' = if first = last then first' else step first' (succ first) in { first = Some(first'); last = Some(last') }
 
   let prefix v l = let el = find_el v l in extract (first_el l) el
   let suffix v l = let el = find_el v l in extract el (last_el l)
   let sub v1 v2 l = let el1 = find_el v1 l in let el2 = find_el_el v2 el1 in extract el1 el2
+*)
+  
+  let append l1 l2 = let res = create () in
+    iter_right (fun v -> add_last v res) l1;
+    iter_right (fun v -> add_last v res) l2; res
+    
+  let rec concat l = match l with | [] -> create () | e::l' -> append e (concat l')
+  
+  
+  let to_list l = fold_left (fun res v -> v::res) [] l
+  
+  type 'a iterator = { mutable element : 'a elt option; step : 'a elt -> 'a elt option }
+  
+  let forward_iterator  l = { element = l.first; step = fun el -> el.succ } 
+  let backward_iterator l = { element = l.last; step = fun el -> el.pred } 
+
+  let has_next i = i.element != None
+  let next i     = match i.element with | None -> raise Not_found | Some(el) -> i.element <- i.step el; el.value
+
 end
 
 
@@ -773,183 +822,6 @@ module Database = struct
 end
 
 
-(*
-module Database = struct
-  exception Table_not_found
-  exception Column_not_found
-
-
-  module Table = struct
-    module type S = sig
-      type t
-      type key
-      type ('a, 'b) column
-
-      val create : int -> t
-      
-      val mem : t -> key -> bool
-      val mem_in_column : t -> ('a, 'b) column -> key -> bool
-      
-      type add_type
-      val add : t -> key -> add_type
-      val add_to_column : t -> ('a, 'b) column ->  key ->'a -> unit
-    
-      val find : t -> ('a, 'b) column -> key -> 'b
-      val find_list : t -> ('a, 'b) column -> key -> 'b list
-      val find_key : t -> ('a, 'b) column -> 'a -> key
-    end
-
-    module Empty(K : sig type t type ('a, 'b) column val compare : t -> t -> int end) = struct
-      module Key_set = Set.Make(K)
-      type t = { mutable mem : Key_set.t }
-      type key = K.t
-      type ('a, 'b) column = ('a, 'b) K.column
-      
-      let create _ = { mem = Key_set.empty }
-      
-      let mem m k = Key_set.mem k m.mem
-      let mem_in_column m c k = raise Column_not_found
-      
-      type add_type = unit
-      let add m k = m.mem <- Key_set.add k m.mem
-      let add_to_column m c k v = raise Column_not_found
-    
-      let find m c k      = raise Column_not_found
-      let find_list m c k = raise Column_not_found
-      let find_key m c v  = raise Column_not_found
-    end
-
-
-
-    module type Input_without_conversion = sig            type t type key type ('a,'b) column val name : (t    , t) column end
-    module type Input_with_conversion    = sig type input type t type key type ('a,'b) column val name : (input, t) column end
-    module type First_intermediate  = sig include Input_with_conversion val convert : input -> t end
-    module type Second_intermediate = sig include First_intermediate val check : (key, t) Hashtbl.t -> key -> t -> unit end
-    module type Third_intermediate  = sig include Second_intermediate val find : (key, t) Hashtbl.t -> key -> t end
-    module type Fourth_intermediate = sig include Third_intermediate val aggregate : ((key, t) Hashtbl.t) -> ((t, key) Hashtbl.t) -> key -> t -> t end
-    
-  
-    module WithConversion(C : Input_with_conversion)(P : sig val convert : C.input -> C.t end) = struct include C include P end
-    module WithoutConversion(C : Input_without_conversion) = struct include C type input = C.t let convert = fun x -> x end
-  
-    module WithChecking(C : First_intermediate)(P : sig val check : C.key -> C.t -> C.t option -> unit end) = struct
-      include C let check m k v = P.check k v (try Some (Hashtbl.find m k) with Not_found -> None) end
-    module WithoutChecking(C : First_intermediate) = struct
-      include C let check m k v = () end
-
-    module WithDefaultValue(C : Second_intermediate)(P : sig val default : C.t end) = struct
-      include C let find m k = try Hashtbl.find m k with Not_found -> P.default
-    end module WithoutDefaultValue(C : Second_intermediate) = struct
-      include C let find m k = Hashtbl.find m k
-    end
-    
-    module WithAggregate(C : Third_intermediate)(P : sig val aggregate : C.t -> C.t -> C.t end) = struct
-      include C let aggregate m1 m2 k v = try let v' = Hashtbl.find m1 k in Hashtbl.remove m2 v'; P.aggregate v' v with Not_found -> v end
-    module WithoutAggregate(C : Third_intermediate) = struct
-      include C let aggregate m1 m2 k v = v end
-
-
-    module Structure(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
-      type t = (((C.key, C.t) Hashtbl.t) * ((C.t, C.key) Hashtbl.t)) * T.t
-      type key = T.key
-      type ('a, 'b) column = ('a, 'b) T.column
-
-      let create n = ((Hashtbl.create n, Hashtbl.create n), T.create n)
-
-      let mem (_,p) = T.mem p
-      let mem_in_column ((m1,m2),p) c k = if (Obj.magic c) == C.name then Hashtbl.mem m1 k else T.mem_in_column p c k
-    
-      let local_add (m1,m2) k v' =
-        let v_tmp : C.t = C.convert (Obj.magic v') in C.check m1 k v_tmp;
-        let v = C.aggregate m1 m2 k v_tmp in Hashtbl.replace m1 k v; Hashtbl.replace m2 v k
-
-      let add_to_column (m,p) c k v = if (Obj.magic c) != C.name then T.add_to_column p c k v
-        else (if not (T.mem p k) then raise Not_found else local_add m k v)
-
-      let find ((m1,m2),p) c k = if (Obj.magic c) == C.name then Obj.magic (C.find m1 k) else T.find p c k
-      let find_list ((m1,m2),p) c k = if (Obj.magic c) == C.name then Obj.magic (try Hashtbl.find_all m1 k with Not_found -> []) else T.find_list p c k
-      let find_key ((m1,m2),p) c v = if (Obj.magic c) == C.name then Hashtbl.find m2 (Obj.magic v) else T.find_key p c v
-    end
-
-
-    module AddMandatory(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
-      include Structure(C)(T)
-
-      type add_type = C.input -> T.add_type
-      let add (m,p) k v = local_add m k v; T.add p k
-    end
-
-    module AddOptional(C : Fourth_intermediate)(T : S with type key = C.key and type ('a, 'b) column = ('a, 'b) C.column) = struct
-      include Structure(C)(T)
-
-      type add_type = T.add_type
-      let add (_,p) = T.add p
-    end
-    
-  end
-
-  module type S = sig
-    type t
-    type 'a key
-    type ('a, 'b) table
-    type ('a, 'b) column
-
-    val create : int -> t
-      
-    val mem : t -> ('a, 'b) table -> 'a key -> bool
-    val mem_in_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> bool
-      
-    val add : t -> ('a, 'b) table -> 'a key -> 'b
-    val add_to_column : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'c -> unit
-    
-    val find : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd
-    val find_list : t -> ('a, 'b) table -> ('c, 'd) column -> 'a key -> 'd list
-    val find_key : t -> ('a, 'b) table -> ('c, 'd) column -> 'c -> 'a key
-  end
-
-  module Empty(K : sig type 'a key type ('a, 'b) table type ('a, 'b) column end) = struct
-    type t = unit
-    type 'a key = 'a K.key
-    type ('a, 'b) table = ('a, 'b) K.table
-    type ('a, 'b) column = ('a, 'b) K.column
-      
-    let create _ = ()
-      
-    let mem m t k             = raise Table_not_found
-    let mem_in_column m t c k = raise Table_not_found
-      
-    let add m t k               = raise Table_not_found
-    let add_to_column m t c k v = raise Table_not_found
-    
-    let find m t c k      = raise Table_not_found
-    let find_list m t c k = raise Table_not_found
-    let find_key m t c v  = raise Table_not_found
-  end
-
-  module AddTable(T : Table.S)(Id : sig type ('a, 'b) table val name : (T.key, T.add_type) table end)
-      (DB : S with type ('a, 'b) table = ('a, 'b) Id.table and type ('a, 'b) column = ('a, 'b) T.column) = struct
-    type t = T.t * DB.t
-    type 'a key = 'a DB.key
-    type ('a, 'b) table = ('a, 'b) DB.table
-    type ('a, 'b) column = ('a, 'b) DB.column
-    
-    let create n = (T.create n, DB.create n)
-    
-    let mem (m,p) t k = if (Obj.magic t) == Id.name then T.mem m (Obj.magic k) else DB.mem p t k
-    let mem_in_column (m,p) t c k = if (Obj.magic t) == Id.name then T.mem_in_column m c (Obj.magic k) else DB.mem_in_column p t c k
-    
-    let add (m,p) t k = if (Obj.magic t) == Id.name then Obj.magic (T.add m (Obj.magic k)) else DB.add p t k
-    let add_to_column (m,p) t c k v = if (Obj.magic t) == Id.name then T.add_to_column m c (Obj.magic k) v else DB.add_to_column p t c k v
-    
-    let find (m,p) t c k      = if (Obj.magic t) == Id.name then Obj.magic (T.find m c (Obj.magic k)) else DB.find p t c k
-    let find_list (m,p) t c k = if (Obj.magic t) == Id.name then Obj.magic (T.find_list m c (Obj.magic k)) else DB.find_list p t c k
-    let find_key (m,p) t c v  = if (Obj.magic t) == Id.name then Obj.magic (T.find_key m c v) else DB.find_key p t c v
-  end
-
-end
-
-*)
-
 (*/************************************************************************\*)
 (*| 5. Generic Graph                                                       |*)
 (*\************************************************************************/*)
@@ -969,15 +841,7 @@ module Graph = struct
       val preds_e: t -> Edge_set.t     (* returns the set of edges targeting that vertice *)
       val succs_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge from that vertice *)
       val preds_v: t -> Vertice_set.t  (* returns the set of vertices that have an edge to that vertice *)
-(*      
-      val parse_tag   : t -> unit
-      val is_parsed   : t -> bool
-      val parse_untag : t -> unit
-      val loop_tag    : Loop.t -> t -> unit
-      val loop_untag  : t -> unit
-      val is_loop     : t -> bool      (* returns if the vertice is part of a loop *)
-      val loop_get    : t -> Loop.t    (* returns the loop in which the vertice is, or raise Not_found *)
-*)      
+
       val compare : t -> t -> int      (* classic comparison function *)
       val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
     end and Vertice_set : (Set.S with type elt = Vertice.t) and Vertice_map : (Map.S with type key = Vertice.t)
@@ -987,16 +851,10 @@ module Graph = struct
       val data   : t -> edge_data      (* returns the data contained in that edge *)
       val origin : t -> Vertice.t      (* returns the origin vertice of that edge *)
       val target : t -> Vertice.t      (* returns the target vertice of that edge *)
-(*      
-      val loop_tag     : Loop.t -> t -> unit
-      val loop_tag_in  : Loop.t -> t -> unit
-      val loop_tag_out : Loop.t -> t -> unit
-      val loop_untag   : t -> unit
-*)
+
       val is_loop      : t -> bool     (* returns if that edge is part of a loop *)
       val is_loop_in   : t -> bool     (* returns if that edge targets a vertice in a loop *)
       val is_loop_out  : t -> bool     (* returns if that edge originates from a vertice in a loop *)
-(*      val loop_get     : t -> Loop.t   (* returns the loop linked to that edge, or raise Not_found *)*)
       
       val compare : t -> t -> int      (* classic comparison function *)
       val equal   : t -> t -> bool     (* comparison that returns a bool instead of an int *)
@@ -1035,25 +893,27 @@ module Graph = struct
       val center : Vertice.t -> t -> unit        (* if that vertice is part of that loop, move the starting point of the main path of the loop on that vertice *)
       val path   : t -> Edge.t list              (* returns the main path of the loop, once it has been centered *)
       
-      val compare : t -> t -> int                 (* classic comparison function *)
-      val equal   : t -> t -> bool                (* comparison that returns a bool instead of an int *)
+      val compare : t -> t -> int                (* classic comparison function *)
+      val equal   : t -> t -> bool               (* comparison that returns a bool instead of an int *)
     end and Loop_set : (Set.S with type elt = Loop.t) and Loop_map : (Map.S with type key = Loop.t)
 
     
     type t
 
-    val create      : unit -> t
-    val add_vertice : vertice_data -> t -> Vertice.t
-    val add_edge    : Vertice.t -> edge_data -> Vertice.t -> t -> Edge.t
-
-    val vertices : t -> Vertice_set.t
-    val edges    : t -> Edge_set.t
-    val loops    : t -> Loop_set.t 
+    val create      : unit -> t                                           (* create a new empty graph *)
+    val add_vertice : vertice_data -> t -> Vertice.t                      (* add a new vertice to the graph *)
+    val add_edge    : Vertice.t -> edge_data -> Vertice.t -> t -> Edge.t  (* add a new edge to the graph *)
+    
+    val vertices : t -> Vertice_set.t                                     (* returns the set of vertices in the graph *)
+    val edges    : t -> Edge_set.t                                        (* returns the set of edges in the graph *)
+    val loops    : t -> Loop_set.t                                        (* returns the set of loops in the graph *)
     
     val vertice_roots : t -> Vertice_set.t
     val loop_roots    : t -> Loop_set.t 
     val vertice_leafs : t -> Vertice_set.t
     val loop_leafs    : t -> Loop_set.t 
+    
+(*    val to_dot : (vertice_data -> string * string) -> (edge_data -> string * string) -> t -> string*)
     
     module Traverse_depth : sig
       val iter : (Path.t -> Vertice.t -> bool -> (unit -> unit) -> unit) -> t -> unit
@@ -1070,9 +930,9 @@ module Graph = struct
     type vertice_data = V.t  (* data contained in vertices *)
     type edge_data    = E.t  (* data contained in edges *)
 
-    type loop_id    = int  (* unique identifiers for loops *)
-    type vertice_id = int  (* unique identifiers for vertices *)
-    type edge_id    = int  (* unique identifiers for edgess *)
+    type loop_id    = int    (* unique identifiers for loops *)
+    type vertice_id = int    (* unique identifiers for vertices *)
+    type edge_id    = int    (* unique identifiers for edgess *)
   
     module rec Data_types : sig
       type vertice = {                                                            (* a vertice *)
@@ -1094,25 +954,15 @@ module Graph = struct
         p_vertices : Vertice_set.t;                                               (* involves a set of vertices *)
         p_path : edge list }                                                      (* and is an ordered list of edges *)
         
-(*
       and loop = {                                                                (* a loop *)
-        l_id : loop_id;                                                           (* has a unique id *)
-        mutable l_main_path : Path.t;                                             (* is defined by a path going through all the edges of the loop *)
-        mutable l_paths : Path_set.t;                                             (* contains in annex the minimal loops contained in this big one (I don't know if still usefull) *)
-        mutable l_edges_in : Edge_set.t;                                          (* contains in annex the set of edges that enter the loop *)
-        mutable l_edges_out : Edge_set.t;                                         (* contains in annex the set of edges that exit the loop *)
-        mutable l_abst : to_component Lazy.t }                                    (* is part of the abstract graph (its representation can change in case loops are merged) *)
-*)             
-
-      and loop = {                                                                (* a loop *)
-        mutable l_path : Edge.t list;                                      (* is defined by a path going through all the edges of the loop *)
+        mutable l_path : Edge.t list;                                             (* is defined by a path going through all the edges of the loop *)
         l_edges : Edge_set.t;                                                     (* the set of all the edges in the loop *)
         l_edges_in : Edge_set.t;                                                  (* contains in annex the set of edges that enter the loop *)
         l_edges_out : Edge_set.t;                                                 (* contains in annex the set of edges that exit the loop *)
         l_abst : to_component Lazy.t }                                            (* is part of the abstract graph (its representation can change in case loops are merged) *)
              
       and to_component = {                                                        (* An element of the abstract graph (called topological order) *)
-        to_data             : to_data;                                            (* is either a vertice or a loop *)
+        mutable to_data     : to_data;                                            (* is either a vertice or a loop *)
         mutable to_position : int;                                                (* has an position in the order *)
         mutable to_status   : to_status }                                         (* is either a root, a leaf or a inner element *)
       and to_data = Loop of Loop.t | Vertice of Vertice.t  
@@ -1146,16 +996,6 @@ module Graph = struct
         p_vertices : Vertice_set.t;                                               (* involves a set of vertices *)
         p_path : edge list }                                                      (* and is an ordered list of edges *)
 
-(*
-      and loop = {                                                                (* a loop *)
-        l_id : loop_id;                                                           (* has a unique id *)
-        mutable l_main_path : Path.t;                                             (* is defined by a path going through all the edges of the loop *)
-        mutable l_paths : Path_set.t;                                             (* contains in annex the minimal loops contained in this big one (I don't know if still usefull) *)
-        mutable l_edges_in : Edge_set.t;                                          (* contains in annex the set of edges that enter the loop *)
-        mutable l_edges_out : Edge_set.t;                                         (* contains in annex the set of edges that exit the loop *)
-        mutable l_abst : to_component Lazy.t }                                    (* is part of the abstract graph (its representation can change in case loops are merged) *)
-*)             
-
       and loop = {                                                                (* a loop *)
         mutable l_path : Edge.t list;                                             (* is defined by a path going through all the edges of the loop *)
         l_edges : Edge_set.t;                                                     (* the set of all the edges in the loop *)
@@ -1164,7 +1004,7 @@ module Graph = struct
         l_abst : to_component Lazy.t }                                            (* is part of the abstract graph (its representation can change in case loops are merged) *)
 
       and to_component = {                                                        (* An element of the abstract graph (called topological order) *)
-        to_data             : to_data;                                            (* is either a vertice or a loop *)
+        mutable to_data     : to_data;                                            (* is either a vertice or a loop *)
         mutable to_position : int;                                                (* has an position in the order *)
         mutable to_status   : to_status }                                         (* is either a root, a leaf or a inner element *)
       and to_data = Loop of Loop.t | Vertice of Vertice.t
@@ -1194,7 +1034,6 @@ module Graph = struct
       val parse_untag : t -> unit                                  (* set the vertice as not parsed *)
       val mod_abst    : Data_types.to_component -> t -> unit       (* change the abstract representation of the vertice *)
       val get_abst    : t -> Data_types.to_component               (* returns the abstract representation of the vertice *)
-(*      val is_loop     : t -> bool                                  (* returns if the vertice is part of a loop or not *) *)
       
       val compare : t -> t -> int                                  (* compare two vertices *)
       val equal   : t -> t -> bool                                 (* wrapper over compare for simple equality test between two vertices *)
@@ -1225,7 +1064,6 @@ module Graph = struct
       
       let get_abst      v = Lazy.force v.v_abst
       let mod_abst abst v = v.v_abst <- Lazy.lazy_from_val abst
-(*      let is_loop       v = Topological_order.Component.is_loop (get_abst v) *)
       
       let compare v1 v2 = v1.v_id - v2.v_id
       let equal v1 v2 = (compare v1 v2) = 0
@@ -1274,10 +1112,9 @@ module Graph = struct
       let loop_tag_in  id e = e.e_loop_tag <- Edge_loop_in id
       let loop_tag_out id e = e.e_loop_tag <- Edge_loop_out id
       let loop_untag      e = e.e_loop_tag <- Edge_no_loop
-      let is_loop     e = match e.e_loop_tag with | Edge_loop _ -> true | _ -> false
-      let is_loop_in  e = match e.e_loop_tag with | Edge_loop_in _ -> true | _ -> false
-      let is_loop_out e = match e.e_loop_tag with | Edge_loop_out _ -> true | _ -> false
-(*      let loop_get    e = match e.e_loop_tag with | Edge_no_loop -> raise Not_found | Edge_loop id -> id | Edge_loop_in id -> id | Edge_loop_out id -> id *)
+      let is_loop     e = match e.e_loop_tag with | Edge_loop _ -> true | _ -> false (* TODO: replace *)
+      let is_loop_in  e = match e.e_loop_tag with | Edge_loop_in _ -> true | _ -> false (* TODO: replace *)
+      let is_loop_out e = match e.e_loop_tag with | Edge_loop_out _ -> true | _ -> false (* TODO: replace *)
       
       let compare e1 e2 = e1.e_id - e2.e_id
       let equal e1 e2 = (compare e1 e2) = 0
@@ -1505,17 +1342,19 @@ module Graph = struct
         let out_es = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.succs_e v) res) vs Edge_set.empty) es in
         let rec res = { l_path = []; l_edges = es; l_edges_in = in_es; l_edges_out = out_es; l_abst = lazy (new_abst res) } in res
 
-      let path l = l.l_path
       let center v l =
         let rec step vs es = 
           if Edge_set.is_empty es then [] (* we parsed all the edges *)
           else let next_es = Edge_set.inter es (Vertice_set_to_edges.set_convert Vertice.succs_e vs) in
           (Edge_set.elements next_es) @ (step (Edge_set_to_vertices.convert Edge.target next_es) (Edge_set.diff es next_es)) in
         l.l_path <- step (Vertice_set.singleton v) (edges l)
+
+      let path l = (if List.is_empty l.l_path then center (Edge.target (Edge_set.choose (edges l))) l); l.l_path
       
       let compare = Pervasives.compare
       let equal l1 l2 = (compare l1 l2) = 0
     end and Loop_set : Set.S with type elt = Loop.t = Set.Make(Loop) and Loop_map : Map.S with type key = Loop.t = Map.Make(Loop)
+
 
     module Topological_order (*: sig
       module rec Component : sig
@@ -1556,6 +1395,8 @@ module Graph = struct
         type status = Data_types.to_status                 (* an element of the order can be a root of the graph, a leaf, both or none *)
 
         val data : t -> data                               (* the data of the component *)
+        val status : t -> status                           (* the status of the component *)
+        val position : t -> int                            (* the position of the component in the order *)
         val vertices : t -> Vertice_set.t                  (* the vertices contained in the component *)
         val edges    : t -> Edge_set.t
         val succs_v : t -> Vertice_set.t                   (* returns the vertices that follow the given one following the edges of the real graph *)
@@ -1565,21 +1406,20 @@ module Graph = struct
         val preds_e : t -> Edge_set.t                      (* returns the edges that preceed the given one following the edges of the real graph *)
         val preds_c : t -> Component_set.t                 (* returns the components that preceed the given one following the edges of the real graph *)
         
-        (*val path : Vertice.t -> Vertice.t -> Path.t        (* returns a path between the two vertices, using the edges in their component, or raise Not_found *)*)
+        (*val path : Vertice.t -> Vertice.t -> Path.t      (* returns a path between the two vertices, using the edges in their component, or raise Not_found *)*)
         
         val paths_towards : t -> t -> Abstract_path_set.t  (* returns the set of abstract path that goes from c1 until the maximal c such that c <= c2 *)
         
-(*        val succs_until : t -> t -> edge list list         (* returns the all the components that follow the first parameter and which are smaller or equal to the second one *)
-*)
-        val merge : Component_set.t -> Edge.t -> t          (* merge all components together with the edge in a big loop component *)
+        val merge : Abstract_path_set.t -> Edge.t -> t     (* merge all components together with the edge in a big loop component *)
+        val add_edge : Edge.t -> t -> unit                 (* addition of an edge to the component *)
         
         val is_loop : t -> bool                            (* tests if the element is a loop *)
         val is_root : t -> bool                            (* tests if the element is a root *)
         val is_leaf : t -> bool                            (* tests if the element is a leaf *)
-        val isnt_anymore : status -> t -> unit              (* disable the status in parameter from the component *)
+        val isnt_anymore : status -> t -> unit             (* disable the status in parameter from the component *)
 
-        val compare : t -> t -> int
-        val equal   : t -> t -> bool      
+        val compare : t -> t -> int                        (* compare two components *)
+        val equal   : t -> t -> bool                       (* wrapper over compare for simple equality test between two components *)
       end = struct
         type t = Data_types.to_component
         type data = Data_types.to_data  
@@ -1629,19 +1469,36 @@ module Graph = struct
             else Edge_set.fold (fun e res -> Printf.printf "going further -> "; print_c (Edge.target_abst e); Printf.printf "\n"; Abstract_path_set.union (step (Abstract_path.add e accu)) res) succs_e Abstract_path_set.empty in
           step (Abstract_path.create c1)
 
-        let merge cs e = (* function called when the addition of the edge e from c2 to c1 created a loop between c1 and c2, involving the paths ps from c1 to c2  *)
+        let update_vertices c = Vertice_set.iter (fun v -> Printf.printf "updating data for vertice %i\n" (v.v_id);Vertice.mod_abst c v) (vertices c)
+
+        let merge ps e = (* function called when the addition of the edge e from c2 to c1 created a loop between c1 and c2, involving the paths ps from c1 to c2  *)
           (* simply create a new component with all the edges of c1, c2,  ps and e inside *)
-          let l = Loop.create (Component_set.fold (fun c res -> Edge_set.union (edges c) res) cs (Edge_set.singleton e)) in
-          Loop.get_abst l
+          let l = Loop.create (Abstract_path_set.fold (fun p res -> Edge_set.union (Abstract_path.edges p) res) ps (Edge_set.singleton e)) in
+          let res = Loop.get_abst l in update_vertices res; res
 
-
+        let add_edge e c = let res = Loop.get_abst (match data c with
+           | Vertice v -> (Loop.create (Edge_set.singleton e))
+           | Loop l -> (Loop.create (Edge_set.add e (Loop.edges l)))) in
+           c.to_data <- data res;
+           c.to_status <- status res;
+           Vertice.mod_abst c (Edge.origin e); Vertice.mod_abst c (Edge.target e)
+        
         let is_loop c = match data c with Loop _ -> true | _ -> false
         let is_root c = to_status_is_root (status c)
         let is_leaf c = to_status_is_leaf (status c)
         let isnt_anymore s c = c.to_status <- to_status_remove s (status c)
         
         
-      end and Component_set : Set.S with type elt = Component.t = Set.Make(Component)
+      end and Component_set : sig
+        include Set.S with type elt = Component.t
+        val vertices : t -> Vertice_set.t
+        val loops    : t -> Loop_set.t
+      end = struct
+        include Set.Make(Component)
+        
+        let vertices cs = fold (fun c res -> match (Component.data c) with Vertice v -> Vertice_set.add v res | _ -> res) cs Vertice_set.empty
+        let loops cs = fold (fun c res -> match (Component.data c) with Loop l -> Loop_set.add l res | _ -> res) cs Loop_set.empty
+      end
       
       and Abstract_path : sig
         type t = { origin : Component.t; target : Component.t; path : Edge.t list } (* the type of an abstract path *)
@@ -1655,6 +1512,7 @@ module Graph = struct
        val origin : t -> Component.t                                                (* the origin component of the path *)
        val target : t -> Component.t                                                (* the target component of the path *)
        val components : t -> Component_set.t                                        (* the components involved in the path *)
+       val edges  : t -> Edge_set.t
 (*       val path : Vertice.t -> t -> Vertice.t -> Path.t                             (* Compute a real path from an abstract one *) *)
        
        val compare : t -> t -> int                                                  (* compare two paths *)
@@ -1665,6 +1523,7 @@ module Graph = struct
         let origin p = p.origin
         let target p = p.target
         let components p = List.fold_left (fun res e -> Component_set.add (Edge.target_abst e) res) (Component_set.singleton (origin p)) p.path
+        let edges p = Component_set.fold (fun c res -> Edge_set.union (Component.edges c) res) (components p) (Edge_set.set_of_direct_list p.path)
         
         let create o = {origin = o; target = o; path = [] }
         let add e p =  if Component.equal (target p) (Edge.origin_abst e) then
@@ -1688,238 +1547,103 @@ module Graph = struct
         let compare = Pervasives.compare
       end and Abstract_path_set : Set.S with type elt = Abstract_path.t = Set.Make(Abstract_path)
 
-  (* TODO: add_edge, pour les cas simple de pas de reordonnacement, et reordonnancement. Pour les boucles, il faut voir quelles sont les données qu'il faut stocker pour l'analyse *)
-
-(*
-      type t = { mutable start : Component.t option; mutable finish : Component.t option }
       
-      let create () = { start = None; finish = None }
-
-      let start o = match o.start with | None -> raise Not_found | Some(c) -> c
-
-      let fold f o init =
-        let rec fold_inner v accu = match v.to_next with None -> accu | Some(v') -> fold_inner v' (f v' accu) in
-        match o.start with None -> init | Some v' -> fold_inner v' (f v' init)
-      let iter f o =
-        let rec iter_inner v = f v; match v.to_next with None -> () | Some(v') -> iter_inner v' in
-        match o.start with None -> () | Some v' -> iter_inner v'
-(*
-      let extract o cs  = let l = fold (fun c res -> if Component_set.mem c cs then c::res else res) o [] in (* reverse order of the components *)
-        (List.fold_right (fun c res -> res.to_next <- Some(c); c) (List.tl l) (List.hd l), (List.hd l))
-*)        
-       (********************* for debug *)
-       let print_c c = Printf.printf "%i " (Vertice_set.choose (Component.vertices c)).v_id
-       let print_o o = iter (fun c -> print_c c) o
-       (********************* for debug *)
-
-      let reset_order o = Pervasives.ignore (fold (fun c i -> print_c c; c.to_position <- i; i + 1) o 0)
-
-
-      let add_vertice v o = (let res = Vertice.get_abst v in let sres = Some(res) in match o.finish with
-        | None    -> res.to_position <- 0; o.start <- sres; o.finish <- sres
-        | Some(v') -> res.to_position <- v'.to_position + 1; v'.to_next <- sres; o.finish <- sres);
-        Printf.printf "new vertice added. Now the order is : "; iter (fun c -> print_c c) o; Printf.printf "\n"
-
-
-      let add_edge e o = let c1 = Edge.origin_abst e in let c2 = Edge.target_abst e in let value = Component.compare c1 c2 in
-        Printf.printf "Adding a new edge " ; print_c c1; Printf.printf "-> "; print_c c2; Printf.printf "to the graph\n";
-          Component.isnt_anymore to_status_leaf c1;
-          Component.isnt_anymore to_status_root c2;
-        if value < 0 then (
-          Printf.printf "The edge is ok for the order. Nothing to do, yeah\n"
-        
-        ) else if value > 0 then ( (* we need to update the order, and maybe we have a looop *)
-          Printf.printf "The edge is inverted for the order. Computing the paths...";
-          let ps = Component.paths_towards c2 c1 in
-          Printf.printf " ok\n"; flush stdout;
-          let (ps_loop, ps_move) = Abstract_path_set.partition (fun p -> Component.equal c1 (Abstract_path.target p)) ps in
-          Printf.printf " partition of the set of path done\n"; flush stdout;
-          let path_set_to_component_set ps = Abstract_path_set.fold (fun p res -> Component_set.union (Abstract_path.components p) res) ps Component_set.empty in
-          let cs_loop = path_set_to_component_set ps_loop in
-          let cs_move = Component_set.remove c2 (Component_set.diff (path_set_to_component_set ps_move) cs_loop) in
-          Printf.printf "  we need to merge the components : { "; Component_set.iter print_c cs_loop; Printf.printf "}\n"; 
-          Printf.printf "  we need to move the components  : { "; Component_set.iter print_c cs_move; Printf.printf "}\n"; flush stdout;
-          (* until here, seems ok *)
-          
-          (* 1. generate the sub-order that will replace c1 and c2 *)
-          let (c1', c2', next) = 
-            if Component_set.is_empty cs_loop then let next = c1.to_next in (c1.to_next <- Some(c2); c1,c2, next)
-            else let c = Component.merge cs_loop e in (c, c, c1.to_next) in
-          Printf.printf "  the new sub order is : { "; print_c c1'; print_c c2'; Printf.printf "}\n"; flush stdout;
-          
-          Printf.printf "Starting to meddle with the order\n"; flush stdout;
-          (* 2. replace c2 with c1', in the order *)
-          if o.start = Some(c2) then o.start <- Some(c1')
-          else let rec search c = let c' = Component.next c in if Component.equal c' c2 then c.to_next <- Some(c1') else search c' in search (start o);
-          print_c c2; Printf.printf "was found and replaced by "; print_c c1'; Printf.printf "\n";
-
-          if Component_set.is_empty cs_move then (
-            (* 3.1. in the simple case in which there is nothing to move, just set next of c2' to be the next of c1 *)
-            Printf.printf "simple case... ";
-            c2'.to_next <- next
-          ) else (
-            (* 3.2. start from the component after c2 until c1, and keep only the component that we need to move *)
-            let rec extract current_c init_c finish_c =
-              let (init_c', finish_c') = if Component_set.mem current_c cs_move then let scurr = Some(current_c) in
-                ((match init_c with None -> scurr | _ -> init_c) , ((match finish_c with None -> () | Some(c) -> c.to_next <- scurr); scurr))
-                else (init_c, finish_c) in
-              let c_next = Component.next current_c in
-              if Component.equal c_next c1 then (init_c', finish_c')
-              else extract c_next init_c' finish_c' in
-            let (init_c, finish_c) = extract (Component.next c2) None None in
-          
-            (* 3.3. put the resulting sub-order between c2' and the following of c1 *)
-            c2'.to_next <- init_c;
-            (match finish_c with None -> raise Not_found | Some c -> c).to_next <- next
-          );
-          
-          Printf.printf "done\n"; flush stdout;
-          
-          (* 4. finish by regenerating the position for comparison *)
-          reset_order o;
-          Printf.printf "Order modification performed. Now the order is : "; print_o o; Printf.printf "\n"
-          
-          
-        ) else (  (* the edge is either an auto-reference, or connects two vertices inside a loop *)
-          Printf.printf "The edge is inside a component. Skipping for now\n"
-        )
-        
-        *)
-        
-      type t = { mutable order : Component.t Queue.t; mutable last : Component.t option }
+      type t = Component.t Linked_list.t
       
-      (* functions to parse the queue *)
-      let iter f o = Queue.iter f o.order
-      let fold f o accu = Queue.fold (fun accu c -> f c accu) accu o.order
-
-      let reset_order o = Pervasives.ignore (fold (fun c i -> c.to_position <- i; i + 1) o 0)
-
-
-       (********************* for debug *)
-       let string_of_c c = string_of_int (Vertice_set.choose (Component.vertices c)).v_id
-       let string_of_o o = String.concat " " (List.rev (fold (fun c res -> (string_of_c c)::res) o []))
-       (********************* for debug *)
-
+      let iter_right = Linked_list.iter_right
+      let iter_left = Linked_list.iter_left
+      let iter = Linked_list.iter
+      let fold = Linked_list.fold_right
       
-      let create () = { order = Queue.create (); last = None }
+      let prefix c o = Linked_list.filter (fun c' -> (Component.compare c' c) < 0) o
+      let suffix c o = Linked_list.filter (fun c' -> (Component.compare c' c) > 0) o
+      let sub c1 c2 o = Linked_list.filter (fun c' -> ((Component.compare c' c1) > 0) && ((Component.compare c' c2) < 0)) o
       
-     (* let order cs o = *)
-
-      let add_vertice v o = let c = Vertice.get_abst v in
-        (match o.last with None -> c.to_position <- 0 | Some c' -> c.to_position <- c'.to_position + 1);
-        o.last <- Some c; Queue.add c o.order;
+      let reset_order o = Pervasives.ignore (Linked_list.fold_right (fun c i -> c.to_position <- i; i + 1) o 0)
+      
+       (********************* for debug *)
+       let string_of_c c = Printf.sprintf "(%i, % i)" ((Vertice_set.choose (Component.vertices c)).v_id) (Component.position c)
+       let string_of_o o = String.concat " " ((Linked_list.fold_left (fun res c -> (string_of_c c)::res) [] o))
+       (********************* for debug *)
+      
+      let create  = Linked_list.create
+      
+      let add_vertice v o = let c = Vertice.get_abst v in let id = try (Component.position (Linked_list.last o)) + 1 with | Not_found -> 0 in
+        c.to_position <- id; Linked_list.add_last c o;
         Printf.printf "new vertice added. Now the order is : %s\n" (string_of_o o); flush stdout
-        
-        
+      
       let add_edge e o = let c1 = Edge.origin_abst e in let c2 = Edge.target_abst e in let value = Component.compare c1 c2 in
-        Printf.printf "Adding a new edge %s -> %s to the graph" (string_of_c c1) (string_of_c c2);
+        Printf.printf "Adding a new edge %s -> %s to the graph\n" (string_of_c c1) (string_of_c c2);
           Component.isnt_anymore to_status_leaf c1;
           Component.isnt_anymore to_status_root c2;
-        if value < 0 then (
-          Printf.printf "The edge is ok for the order. Nothing to do, yeah\n"
+        if value < 0 then (Printf.printf "The edge is ok for the order. Nothing to do, yeah\n"; o)
         
-        ) else if value > 0 then ( (* we need to update the order, and maybe we have a looop *)
-          Printf.printf "The edge is inverted for the order. Computing the paths...";
+        else if value > 0 then ( (* c2 is before c1, which is against the edge. We thus need to update the order *)
+          Printf.printf "The edge is inverted for the order. Computing the paths from c2 toward c1...";
           let ps = Component.paths_towards c2 c1 in
           Printf.printf " ok\n"; flush stdout;
-          let (ps_loop, ps_move) = Abstract_path_set.partition (fun p -> Component.equal c1 (Abstract_path.target p)) ps in
+          let (ps_loop, ps_unloop) = Abstract_path_set.partition (fun p -> Component.equal c1 (Abstract_path.target p)) ps in
           Printf.printf " partition of the set of path done\n"; flush stdout;
           let path_set_to_component_set ps = Abstract_path_set.fold (fun p res -> Component_set.union (Abstract_path.components p) res) ps Component_set.empty in
+          let cs_in_between = Component_set.set_of_direct_list (Linked_list.to_list (sub c2 c1 o)) in
+          Printf.printf " computation of the components in between done\n"; flush stdout;
           let cs_loop = path_set_to_component_set ps_loop in
-          let cs_move = Component_set.remove c2 (Component_set.diff (path_set_to_component_set ps_move) cs_loop) in
-          Printf.printf "  we need to merge the components : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_loop []));
-          Printf.printf "  we need to move the components  : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_move [])); flush stdout;
+          Printf.printf " computation of the components in loop done\n"; flush stdout;
+          let cs_unloop = path_set_to_component_set ps_unloop in
+          Printf.printf " computation of the components in unloop done\n"; flush stdout;
+          let cs_move = Component_set.diff cs_in_between cs_loop in
+          Printf.printf " computation of the components to move done\n"; flush stdout;
+          let (cs_forward, cs_backward) = Component_set.partition (fun c -> Component_set.mem c cs_unloop) cs_move in
+          Printf.printf " partition of the set of components done\n"; flush stdout;
+          Printf.printf "  we need to merge the components : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_loop [])); flush stdout;
+          Printf.printf "  we need to move backward the components  : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_backward [])); flush stdout;
+          Printf.printf "  we need to move forward the components   : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_forward [])); flush stdout;
           (* until here, seems ok *)
           
-          let cs_remove = Component_set.add c1 cs_loop in
-          Printf.printf "  we need to remove the components  : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_remove [])); flush stdout;
-
           (* create the new order *)
-          let new_order = Queue.create () in
-          let iter_step c = 
-            if Component.equal c2 c then
-              if Component_set.is_empty cs_loop then (Queue.add c1 new_order; Queue.add c2 new_order)
-              else Queue.add (Component.merge cs_loop e) new_order
-            else if not (Component_set.mem c cs_remove) then Queue.add c new_order in
+          let prefix1 = prefix c2 o in                                              (* the ones that are bigger than c1 *)
+          let prefix2 = Linked_list.filter (fun c -> Component_set.mem c cs_backward) o in  (* the ones that must be moved forward *)
+          let center = let o' = Linked_list.create () in
+            (if Component_set.is_empty cs_loop then (Linked_list.add c1 o'; Linked_list.add c2 o')
+             else Linked_list.add (Component.merge ps_loop e) o'); o' in
+          let suffix1 = Linked_list.filter (fun c -> Component_set.mem c cs_forward) o in
+          let suffix2 = suffix c1 o in
+          Printf.printf "The prefix1 is : %s\n" (string_of_o prefix1); flush stdout;
+          Printf.printf "The prefix2 is : %s\n" (string_of_o prefix2); flush stdout;
+          Printf.printf "The center is : %s\n" (string_of_o center); flush stdout;
+          Printf.printf "The suffix1 is : %s\n" (string_of_o suffix1); flush stdout;
+          Printf.printf "The suffix2 is : %s\n" (string_of_o suffix2); flush stdout;
+            
+          let new_o = Linked_list.concat [prefix1; prefix2; center; suffix1; suffix2] in
           
-          Queue.iter iter_step o.order;
-          let new_last = Queue.fold (fun accu c -> c) c2 new_order in (* I put c2 here as a initial value that will always be replaced by the real one *)
-          o.order <- new_order;
-          o.last <- Some(new_last);
-          
-(*          
-          (* 1. generate the sub-order that will replace c1 and c2 *)
-          let (c1', c2', next) = 
-            if Component_set.is_empty cs_loop then let next = c1.to_next in (c1.to_next <- Some(c2); c1,c2, next)
-            else let c = Component.merge cs_loop e in (c, c, c1.to_next) in
-          Printf.printf "  the new sub order is : { "; print_c c1'; print_c c2'; Printf.printf "}\n"; flush stdout;
-          
-          Printf.printf "Starting to meddle with the order\n"; flush stdout;
-          (* 2. replace c2 with c1', in the order *)
-          if o.start = Some(c2) then o.start <- Some(c1')
-          else let rec search c = let c' = Component.next c in if Component.equal c' c2 then c.to_next <- Some(c1') else search c' in search (start o);
-          print_c c2; Printf.printf "was found and replaced by "; print_c c1'; Printf.printf "\n";
+          reset_order new_o;
+          Printf.printf "Order modification performed. Now the order is : %s\n" (string_of_o new_o); flush stdout;
+          new_o
 
-          if Component_set.is_empty cs_move then (
-            (* 3.1. in the simple case in which there is nothing to move, just set next of c2' to be the next of c1 *)
-            Printf.printf "simple case... ";
-            c2'.to_next <- next
-          ) else (
-            (* 3.2. start from the component after c2 until c1, and keep only the component that we need to move *)
-            let rec extract current_c init_c finish_c =
-              let (init_c', finish_c') = if Component_set.mem current_c cs_move then let scurr = Some(current_c) in
-                ((match init_c with None -> scurr | _ -> init_c) , ((match finish_c with None -> () | Some(c) -> c.to_next <- scurr); scurr))
-                else (init_c, finish_c) in
-              let c_next = Component.next current_c in
-              if Component.equal c_next c1 then (init_c', finish_c')
-              else extract c_next init_c' finish_c' in
-            let (init_c, finish_c) = extract (Component.next c2) None None in
-          
-            (* 3.3. put the resulting sub-order between c2' and the following of c1 *)
-            c2'.to_next <- init_c;
-            (match finish_c with None -> raise Not_found | Some c -> c).to_next <- next
-          );
-          
-          Printf.printf "done\n"; flush stdout;
-*)          
-          (* 4. finish by regenerating the position for comparison *)
-          reset_order o;
-          Printf.printf "Order modification performed. Now the order is : %s\n" (string_of_o o); flush stdout
-          
-          
         ) else (  (* the edge is either an auto-reference, or connects two vertices inside a loop *)
-          Printf.printf "The edge is inside a component. Skipping for now\n"
+          Printf.printf "The edge is inside a component. Simply adding it to the component\n";
+          Component.add_edge e c1; o
         )
+        
+        
+        let roots o = 
+          let rec step i =
+            if Linked_list.has_next i then
+              let c = Linked_list.next i in
+              if Data_types.to_status_is_root (Component.status c) then Component_set.add c (step i)
+              else Component_set.empty
+            else Component_set.empty in step (Linked_list.forward_iterator o)
 
+        let leafs o = 
+          let rec step i =
+            if Linked_list.has_next i then
+              let c = Linked_list.next i in
+              if Data_types.to_status_is_leaf (Component.status c) then Component_set.add c (step i)
+              else Component_set.empty
+            else Component_set.empty in step (Linked_list.backward_iterator o)
 
+        let components o = fold (fun c res -> Component_set.add c res) o Component_set.empty
     end
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     module El = struct
       type t = V of Vertice.t | L of Loop.t
@@ -1934,24 +1658,24 @@ module Graph = struct
         | (L(_) , V(_) ) -> 1
     end module El_set = Set.Make(El)
    
-    type t = { mutable g_vertices : Vertice_set.t; mutable g_edges : Edge_set.t; order : Topological_order.t;
+    type t = { mutable g_vertices : Vertice_set.t; mutable g_edges : Edge_set.t; mutable g_order : Topological_order.t;
       mutable g_loops_done : bool; mutable g_loops : Loop_set.t;
       mutable g_roots : El_set.t; mutable g_leafs : El_set.t }
     
-    let create () = { g_vertices = Vertice_set.empty; g_edges = Edge_set.empty; order = Topological_order.create ();
+    let create () = { g_vertices = Vertice_set.empty; g_edges = Edge_set.empty; g_order = Topological_order.create ();
        g_loops_done = false; g_loops = Loop_set.empty;
        g_roots = El_set.empty; g_leafs = El_set.empty }
     
     let add_vertice data g = let v = Vertice.create data in
       g.g_vertices <- Vertice_set.add v g.g_vertices;
       g.g_roots <- El_set.add (El.V v) g.g_roots;
-      g.g_leafs <- El_set.add (El.V v) g.g_leafs; (*Topological_order.add_vertice v g.order;*) v
+      g.g_leafs <- El_set.add (El.V v) g.g_leafs; Topological_order.add_vertice v g.g_order; v
       
     let add_edge o data t g = let e = Edge.create o data t in
       g.g_edges <- Edge_set.add e g.g_edges;
       g.g_loops_done <- false;
       g.g_roots <- El_set.remove (El.V t) g.g_roots;
-      g.g_leafs <- El_set.remove (El.V o) g.g_leafs; (*Topological_order.add_edge e g.order;*) e
+      g.g_leafs <- El_set.remove (El.V o) g.g_leafs; g.g_order <- Topological_order.add_edge e g.g_order; e
     
 
     (* traversal functions *)
@@ -1970,6 +1694,13 @@ module Graph = struct
     end
     
     module Traverse_topology = struct
+      let generic_step step_v step_l c = match (Topological_order.Component.data c) with
+        | Data_types.Vertice v -> step_v v
+        | Data_types.Loop l -> step_l l
+
+      let iter_downward step_v step_l g = Topological_order.iter_right (generic_step step_v step_l) g.g_order
+      let iter_upward   step_v step_l g = Topological_order.iter_left  (generic_step step_v step_l) g.g_order
+(*
     
       let generic_iter init (pred_v, next_v) (pred_l, next_l)  step_v step_l g =
         let q = ref init in (* create the queue *)
@@ -1984,14 +1715,14 @@ module Graph = struct
         done
         
       let iter_downward step_v step_l g = generic_iter g.g_roots (Vertice.preds_v, Vertice.succs_v) (Loop.preds_v, Loop.succs_v) step_v step_l g
-      let iter_upward   step_v step_l g = generic_iter g.g_leafs (Vertice.succs_v, Vertice.preds_v) (Loop.succs_v, Loop.preds_v) step_v step_l g
+      let iter_upward   step_v step_l g = generic_iter g.g_leafs (Vertice.succs_v, Vertice.preds_v) (Loop.succs_v, Loop.preds_v) step_v step_l g *)
     end
     
     (* Access to data *)
     
     let vertices g = g.g_vertices
     let edges    g = g.g_edges
-    let loops    g = Loop_set.empty (* if g.g_loops_done then g.g_loops else (
+    (*let loops    g =  if g.g_loops_done then g.g_loops else (
       let res = ref Loop_set.empty in
       (* 1. compute the set of loops *)
       let step p v is_parsed next =
@@ -2012,13 +1743,21 @@ module Graph = struct
       let sort_loop l =
         if Edge_set.is_empty (Loop.preds_e l) then  g.g_roots <- El_set.add (El.L l) g.g_roots
         else (if Edge_set.is_empty (Loop.succs_e l) then  g.g_leafs <- El_set.add (El.L l) g.g_leafs) in
-      Loop_set.iter sort_loop !res; !res) *)
+      Loop_set.iter sort_loop !res; !res)
+    
     
     let vertice_roots g = El_set.fold (fun el res -> match el with El.V v -> Vertice_set.add v res | El.L _ -> res) g.g_roots Vertice_set.empty
     let loop_roots    g = El_set.fold (fun el res -> match el with El.V _ -> res | El.L v -> Loop_set.add v res) g.g_roots Loop_set.empty
     let vertice_leafs g = El_set.fold (fun el res -> match el with El.V v -> Vertice_set.add v res | El.L _ -> res) g.g_leafs Vertice_set.empty
     let loop_leafs    g = El_set.fold (fun el res -> match el with El.V _ -> res | El.L v -> Loop_set.add v res) g.g_leafs Loop_set.empty
+    *)
     
+    let loops g = Topological_order.Component_set.loops    (Topological_order.components g.g_order)
+    
+    let vertice_roots g = Topological_order.Component_set.vertices (Topological_order.roots g.g_order)
+    let loop_roots    g = Topological_order.Component_set.loops    (Topological_order.roots g.g_order)
+    let vertice_leafs g = Topological_order.Component_set.vertices (Topological_order.leafs g.g_order)
+    let loop_leafs    g = Topological_order.Component_set.loops    (Topological_order.leafs g.g_order)
     
     
   end
