@@ -161,6 +161,13 @@ let () = Load_model.set_initial_model_of_settings ();
   let c = check_option "configuration"         !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
+
+  (* Validator test *)
+  let validation_result = 
+    let (handle, result) = Validate.make_validation_handler () in
+    Validate.model u s c handle;
+    result () in
+
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
   let main_solver = Solvers.of_settings Solvers.Main in
