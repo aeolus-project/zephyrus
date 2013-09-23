@@ -450,6 +450,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method get_component_type_ids = catalog#component_type#ids
       method get_repository_ids     = catalog#repository#ids
       method get_package_ids        = catalog#package#ids
+      method get_resource_ids       = catalog#resource#ids
 
       method get_port_names           = catalog#port#names
       method get_component_type_names = catalog#component_type#names
@@ -459,6 +460,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
                                         (* TODO: *)
                                         (* let module M = Data_common.Set.Convert(Package_set)(Package_id_set) in
                                            M.convert (fun k -> k#name) packages *)
+      method get_resource_names       = catalog#resource#names
 
       (* methods coming from the paper. Usually, aliases for well-named functions *)
       method u_dt = self#get_component_type_ids
@@ -481,11 +483,13 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method get_component_type_id n = try catalog#component_type#id_of_name n with Not_found -> deprecated_component_type_id (* to deal with initial configurations *)
       method get_repository_id     n = catalog#repository#id_of_name n
       method get_package_id      r n = catalog#package#id_of_name (r,n)
+      method get_resource_id       n = catalog#resource#id_of_name n
 
       method get_port_name           id = catalog#port#name_of_id id
       method get_component_type_name id = if id = deprecated_component_type_id then "!!deprecated_component!!" else catalog#component_type#name_of_id id
       method get_repository_name     id = catalog#repository#name_of_id id
       method get_package_name        id = if id = deprecated_package_id then "!!deprecated_package!!" else snd (catalog#package#name_of_id id)
+      method get_resource_name       id = catalog#resource#name_of_id id
     end
 
 (* Possible inconsistencies not detected during generation:

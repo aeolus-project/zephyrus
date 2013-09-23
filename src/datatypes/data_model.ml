@@ -29,8 +29,10 @@ open Data_common
 
 
 (*/************************************************************************\*)
-(*| 1. Resources                                                           |*)
+(*| 2. Universe                                                           |*)
 (*\************************************************************************/*)
+
+  (** 2.0. Resources *)
 
   (** A name of a resource provided by a location or consumed by a component type or a package. *)
 type resource_name = string
@@ -65,10 +67,6 @@ class type resources = object
   method get_id         : resource_name -> resource_id
 end
 
-
-(*/************************************************************************\*)
-(*| 2. Universe                                                           |*)
-(*\************************************************************************/*)
   (** 2.1. Component types *)
 
   (** The name of a component type in the universe. *)
@@ -225,11 +223,13 @@ class type universe = object
   method get_component_type_ids : Component_type_id_set.t
   method get_repository_ids     : Repository_id_set.t
   method get_package_ids        : Package_id_set.t
+  method get_resource_ids       : Resource_id_set.t
 
   method get_port_names           : Port_name_set.t           (* DEPRECATED *)
   method get_component_type_names : Component_type_name_set.t (* DEPRECATED *)
   method get_repository_names     : Repository_name_set.t     (* DEPRECATED *)
   method get_package_names        : Package_name_set.t        (* DEPRECATED *)
+  method get_resource_names       : Resource_name_set.t       (* DEPRECATED *)
 
   (* methods coming from the paper. Usually, aliases for well-named functions *)
   method u_dt : Component_type_id_set.t
@@ -249,11 +249,13 @@ class type universe = object
   method get_component_type_id : component_type_name -> component_type_id
   method get_repository_id     : repository_name -> repository_id
   method get_package_id        : repository_id -> package_name -> package_id
+  method get_resource_id       : resource_name -> resource_id
 
   method get_port_name           : port_id -> port_name
   method get_component_type_name : component_type_id -> component_type_name
   method get_repository_name     : repository_id -> repository_name
   method get_package_name        : package_id -> package_name
+  method get_resource_name       : resource_id -> resource_name
 end
 
 

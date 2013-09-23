@@ -116,6 +116,9 @@ let model (universe : universe) (specification : specification) (configuration :
       (Model_inconsistency (Conflict_port_missing (component_type_id, port_id)))
     ) component_type#conflict;
 
+    (* A component type consumes a resource which does not exist *)
+    (* TODO: Impossible as there is no resource domain in the component type. *)
+
   ) universe#get_component_type_ids;
 
   (* - Repositories and Packages - *)
@@ -167,7 +170,6 @@ let model (universe : universe) (specification : specification) (configuration :
 
   ) universe#get_implementation_domain;
 
-
   (*
     let implementation = universe#implementation component_type_id in
     let repository_ids = universe#get_repository_ids in
@@ -175,7 +177,6 @@ let model (universe : universe) (specification : specification) (configuration :
 
   (* TODO: Argh... Sometimes we have (reposiory_id, package_id) to reference a package, sometimes
      just a package_id. We have to correct this mess. Until then there is nothing more to do here. *)
-
 
   (* - Locations - *)
   Location_id_set.iter (fun location_id ->
@@ -198,8 +199,7 @@ let model (universe : universe) (specification : specification) (configuration :
     ) location#packages_installed;
 
     (* Location_provided_resource_missing *)
-    (* TODO: Location_provided_resource_missing
-       We cannot check the resource incosistency, because the information is not available in the universe. *)
+    (* TODO: Impossible as there is no provided resource domain in a location. *)
 
   ) configuration#get_location_ids;
 
@@ -321,14 +321,25 @@ let model (universe : universe) (specification : specification) (configuration :
     ) packages_installed
 
   ) configuration#get_location_ids;
-  
-  Location_id_set.iter (fun location_id ->
-    (* let location = configuration#get_location location_id in *)
-    ()
-    (* TODO: How to iterate on resources? We have to finally remove the strange "resources" object
-       and put the information where it belongs to... *)
-    (*  Resource_overconsumed            of location_id * resource_id    *)
-  ) configuration#get_location_ids;
+
+  Resource_id_set.iter (fun resource_id ->
+    Location_id_set.iter (fun location_id ->
+      let location = configuration#get_location location_id in
+      let resource_provided = location#provide_resources resource_id in
+
+      let location_component_ids = Component_id_set.filter (fun component_id -> (configuration#get_component component_id)#location = location_id) configuration#get_component_ids in
+      let resource_consumed = Component_id_set.fold (fun component_id resource_consumed -> 
+        let component_type_id = (configuration#get_component component_id)#typ in
+        let component_type = universe#get_component_type component_type_id in
+        resource_consumed + component_type#consume resource_id
+      ) location_component_ids 0 in
+
+      handle_validation
+        (resource_consumed > resource_provided)
+        (Configuration_error (Resource_overconsumed (location_id, resource_id)))
+
+    ) configuration#get_location_ids;
+  ) universe#get_resource_ids;
 
   Component_id_set.iter (fun component_id ->
     let component = configuration#get_component component_id in

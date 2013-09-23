@@ -374,11 +374,13 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     method get_component_type_ids = universe#get_component_type_ids (* Irrelevent to repository trimming. *)
     method get_repository_ids     = repository_ids                  (* Updated! *) 
     method get_package_ids        = package_ids                     (* Updated! *)
+    method get_resource_ids       = universe#get_resource_ids       (* Irrelevant to repository trimming. *)
 
     method get_port_names           = universe#get_port_names           (* Irrelevent to repository trimming. *)
     method get_component_type_names = universe#get_component_type_names (* Irrelevent to repository trimming. *)
     method get_repository_names     = repository_names                  (* Updated! *)
     method get_package_names        = package_names                     (* Updated! *)
+    method get_resource_names       = universe#get_resource_names       (* Irrelevant to repository trimming. *)
 
     (* methods coming from the paper. Usually, aliases for well-named functions *)
     method u_dt = universe#u_dt  (* Irrelevent to repository trimming. *)
@@ -398,11 +400,13 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     method get_component_type_id = universe#get_component_type_id (* Irrelevent to repository trimming. *)
     method get_repository_id     = get_repository_id              (* Domain restricted. *)
     method get_package_id        = universe#get_package_id        (* TODO: Domain should be restricted. *)
+    method get_resource_id       = universe#get_resource_id       (* Irrelevant to repository trimming. *)
 
     method get_port_name           = universe#get_port_name           (* Irrelevent to repository trimming. *)
     method get_component_type_name = universe#get_component_type_name (* Irrelevent to repository trimming. *)
     method get_repository_name     = get_repository_name              (* Domain restricted. *)
     method get_package_name        = get_package_name                 (* Domain restricted. *)
+    method get_resource_name       = universe#get_resource_name       (* Irrelevant to repository trimming. *)
   end
 
 
