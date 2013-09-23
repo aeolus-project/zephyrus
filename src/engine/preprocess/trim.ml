@@ -358,10 +358,11 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
   (* The trimmed universe. *)
   object
     (* basic methods *)
-    method get_component_type = universe#get_component_type (* Irrelevent to repository trimming. *)
-    method get_implementation = universe#get_implementation (* Irrelevent to repository trimming. *)
-    method get_repository     = get_repository              (* Updated! *)
-    method get_package        = get_package                 (* Updated! *)
+    method get_component_type        = universe#get_component_type        (* Irrelevent to repository trimming. *)
+    method get_implementation_domain = universe#get_implementation_domain (* Irrelevent to repository trimming. *)
+    method get_implementation        = universe#get_implementation        (* Irrelevent to repository trimming. *)
+    method get_repository            = get_repository                     (* Updated! *)
+    method get_package               = get_package                        (* Updated! *)
 
     method repository_of_package = repository_of_package (* Updated! *)
 

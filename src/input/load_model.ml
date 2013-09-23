@@ -424,6 +424,8 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     let implementation = Component_type_id_map.map_of_list                     (* may add erroneous packages and component types in the table *)
       (fun (t,ks) -> (catalog#component_type#id_of_name (convert_component_type_name t), Package_id_set.set_of_list
         (fun (r,k) -> let r_name = convert_repository_name r in catalog#package#id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
+    let implementation_domain =
+      Component_type_id_set.set_of_list (fun (t,ks) -> catalog#component_type#id_of_name (convert_component_type_name t)) u.Json_t.universe_implementation in
 
     object(self)
       (* private *)
@@ -435,6 +437,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method get_component_type    = component_type#obj_of_id
       method get_repository        = repository#obj_of_id
       method get_package           = package#obj_of_id
+      method get_implementation_domain = implementation_domain
       method get_implementation id = try Component_type_id_map.find id implementation with | Not_found -> Package_id_set.empty
 
       method repository_of_package id = Package_id_map.find id !package_id_to_repo_id_map

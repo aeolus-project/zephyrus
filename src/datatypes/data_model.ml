@@ -209,26 +209,27 @@ module Repository_map = Map.Make(Repository)
   (** 2.4. Universes *)
 class type universe = object
   (* basic methods *)
-  method get_component_type : component_type_id -> component_type      (** Component types available in this universe. *)
-  method get_implementation : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
-  method get_repository     : repository_id -> repository               (** Package repositories available in this universe. *)
-  method get_package        : package_id -> package
+  method get_component_type        : component_type_id -> component_type      (** Component types available in this universe. *)
+  method get_implementation        : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
+  method get_implementation_domain : Component_type_id_set.t
+  method get_repository            : repository_id -> repository               (** Package repositories available in this universe. *)
+  method get_package               : package_id -> package
 
   method repository_of_package : package_id -> repository_id
 
-  method get_component_types : Component_type_set.t
-  method get_repositories    : Repository_set.t
-  method get_packages        : Package_set.t
+  method get_component_types : Component_type_set.t (* DEPRECATED *)
+  method get_repositories    : Repository_set.t     (* DEPRECATED *)
+  method get_packages        : Package_set.t        (* DEPRECATED *)
 
   method get_port_ids           : Port_id_set.t
   method get_component_type_ids : Component_type_id_set.t
   method get_repository_ids     : Repository_id_set.t
   method get_package_ids        : Package_id_set.t
 
-  method get_port_names           : Port_name_set.t
-  method get_component_type_names : Component_type_name_set.t
-  method get_repository_names     : Repository_name_set.t
-  method get_package_names        : Package_name_set.t
+  method get_port_names           : Port_name_set.t           (* DEPRECATED *)
+  method get_component_type_names : Component_type_name_set.t (* DEPRECATED *)
+  method get_repository_names     : Repository_name_set.t     (* DEPRECATED *)
+  method get_package_names        : Package_name_set.t        (* DEPRECATED *)
 
   (* methods coming from the paper. Usually, aliases for well-named functions *)
   method u_dt : Component_type_id_set.t

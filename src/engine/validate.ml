@@ -147,22 +147,35 @@ let model (universe : universe) (specification : specification) (configuration :
   ) universe#get_repository_ids;
 
   (* - Implementation - *)
+
+
   Component_type_id_set.iter (fun component_type_id -> 
 
-    (* TODO: Currently the implementation domain is not available, so we cannot check neither
-             Implementation_for_a_component_type_missing nor Implementation_component_type_missing. *)
-
-    (*
-    let implementation = universe#implementation component_type_id in
-    let repository_ids = universe#get_repository_ids in
-    *)
-
-    (* TODO: Argh... Sometimes we have (reposiory_id, package_id) to reference a package, sometimes
-       just a package_id. We have to correct this mess. Until then there is nothing to do here. *)
-
-    ()
+    (* Implementation_for_a_component_type_missing *)
+    handle_validation
+      (Component_type_id_set.mem component_type_id universe#get_implementation_domain)
+      (Model_inconsistency (Implementation_for_a_component_type_missing component_type_id));
 
   ) universe#get_component_type_ids;
+
+  Component_type_id_set.iter (fun component_type_id -> 
+
+    (* Implementation_component_type_missing *)
+    handle_validation
+      (Component_type_id_set.mem component_type_id universe#get_component_type_ids)
+      (Model_inconsistency (Implementation_component_type_missing component_type_id));
+
+  ) universe#get_implementation_domain;
+
+
+  (*
+    let implementation = universe#implementation component_type_id in
+    let repository_ids = universe#get_repository_ids in
+  *)
+
+  (* TODO: Argh... Sometimes we have (reposiory_id, package_id) to reference a package, sometimes
+     just a package_id. We have to correct this mess. Until then there is nothing more to do here. *)
+
 
   (* - Locations - *)
   Location_id_set.iter (fun location_id ->
@@ -336,4 +349,3 @@ let model (universe : universe) (specification : specification) (configuration :
       (Configuration_error (Component_not_implemented component_id))
 
   ) configuration#get_component_ids
-  
