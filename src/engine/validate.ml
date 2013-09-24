@@ -347,8 +347,6 @@ let model (universe : universe) (specification : specification) (configuration :
     
     let component_location_id = component#location in
     let location = configuration#get_location component_location_id in
-    (* let repository_id = location#repository in
-    let repository = universe#get_repository repository_id in *)
     let packages_installed = location#packages_installed in
     
     let implementation = universe#get_implementation component_type_id in
@@ -359,4 +357,119 @@ let model (universe : universe) (specification : specification) (configuration :
       ) implementation)
       (Configuration_error (Component_not_implemented component_id))
 
-  ) configuration#get_component_ids
+  ) configuration#get_component_ids;
+
+  let rec number_of_packages_on_location location_id package_id : int =
+    if Package_id_set.mem package_id (configuration#get_location location_id)#packages_installed then 1 else 0
+
+  and number_of_packages_global package_id : int =
+    Location_id_set.fold (fun location_id sum ->
+      sum + (number_of_packages_on_location location_id package_id)
+    ) configuration#get_location_ids 0
+
+  and number_of_components_on_location location_id component_type_id : int =
+    Component_id_set.cardinal (Component_id_set.filter (fun component_id -> 
+      let component = configuration#get_component component_id in
+      (component#location = location_id) && (component#typ = component_type_id)
+    ) configuration#get_component_ids)
+
+  and number_of_components_global component_type_id : int =
+    Component_id_set.cardinal (Component_id_set.filter (fun component_id -> 
+      let component = configuration#get_component component_id in
+      component#typ = component_type_id
+    ) configuration#get_component_ids)
+
+  and number_of_ports_provided_on_location location_id port_id : int =
+    let int_of_provide_arity = function
+      | Infinite_provide -> max_int
+      | Finite_provide a' -> a'
+    in
+    Component_id_set.fold (fun component_id sum -> 
+      let component = configuration#get_component component_id in
+      let provide_arity =
+        if component#location = location_id then 
+          let component_type = universe#get_component_type (component#typ) in
+          if Port_id_set.mem port_id component_type#provide_domain
+          then int_of_provide_arity (component_type#provide port_id)
+          else 0
+        else 0 in
+      (sum + provide_arity)
+    ) configuration#get_component_ids 0
+
+  and number_of_ports_provided_global port_id : int =
+    Location_id_set.fold (fun location_id sum ->
+      sum + (number_of_ports_provided_on_location location_id port_id)
+    ) configuration#get_location_ids 0
+
+  and spec_local_element l e = match e with
+    | Data_model.Spec_local_element_package        (package_id)        -> number_of_packages_on_location       l package_id
+    | Data_model.Spec_local_element_component_type (component_type_id) -> number_of_components_on_location     l component_type_id
+    | Data_model.Spec_local_element_port           (port_id)           -> number_of_ports_provided_on_location l port_id
+        
+
+  and spec_local_expr l e = match e with
+    | Data_model.Spec_local_expr_var   v       -> 0 (* TODO: Treat variables... *)
+    | Data_model.Spec_local_expr_const c       -> c
+    | Data_model.Spec_local_expr_arity e       -> spec_local_element l e
+    | Data_model.Spec_local_expr_add  (e1, e2) -> (spec_local_expr l e1) + (spec_local_expr l e2)
+    | Data_model.Spec_local_expr_sub  (e1, e2) -> (spec_local_expr l e1) - (spec_local_expr l e2)
+    | Data_model.Spec_local_expr_mul  (e1, e2) ->  e1                    * (spec_local_expr l e2)
+
+  and spec_op o = match o with
+    | Data_model.Lt  -> (<) 
+    | Data_model.LEq -> (<=)
+    | Data_model.Eq  -> (=)
+    | Data_model.GEq -> (>=)
+    | Data_model.Gt  -> (>)
+    | Data_model.NEq -> (<>)
+
+  and local_specification l s = match s with
+    | Data_model.Spec_local_true -> true
+    | Data_model.Spec_local_op   (e1, op, e2) ->     (spec_op op) (spec_local_expr l e1) (spec_local_expr l e2)
+    | Data_model.Spec_local_and  (s1, s2)     ->     (local_specification l s1) && (local_specification l s2)
+    | Data_model.Spec_local_or   (s1, s2)     ->     (local_specification l s1) || (local_specification l s2)
+    | Data_model.Spec_local_impl (s1, s2)     -> not (local_specification l s1) || (local_specification l s2)
+    | Data_model.Spec_local_not  (s')         -> not (local_specification l s')
+
+  and spec_resource_constraint l co = 
+    let location = configuration#get_location l in
+    List.for_all (fun (o, op, i) -> (* Are these resources provided on the location. *)
+      (spec_op op) (location#provide_resources o) i
+    ) co
+
+  and spec_repository_constraint l cr = match cr with 
+    | [] -> true (* Special case: any repository. *)
+    | _  -> let location = configuration#get_location l in
+            List.exists (fun repository_id -> location#repository = repository_id) cr (* Is one of repositories on the location. *)
+
+  and spec_element e = match e with
+    | Data_model.Spec_element_package        (package_id)        -> number_of_packages_global       package_id
+    | Data_model.Spec_element_component_type (component_type_id) -> number_of_components_global     component_type_id
+    | Data_model.Spec_element_port           (port_id)           -> number_of_ports_provided_global port_id
+    | Data_model.Spec_element_location       (co, cr, ls) -> (* For all locations fulfilling the conditions, local specification.*)
+        let concerned_locations = List.filter (fun l -> 
+          (spec_resource_constraint l co) && (spec_repository_constraint l cr)
+        ) (Location_id_set.elements configuration#get_location_ids) in
+        List.length (List.filter (fun l -> local_specification l ls) concerned_locations)
+
+  and spec_expr e = match e with
+    | Data_model.Spec_expr_var    v       -> 0 (* TODO: Treat variables... *)
+    | Data_model.Spec_expr_const  c       -> c
+    | Data_model.Spec_expr_arity  e       -> spec_element e
+    | Data_model.Spec_expr_add   (e1, e2) -> (spec_expr e1) + (spec_expr e2)
+    | Data_model.Spec_expr_sub   (e1, e2) -> (spec_expr e1) - (spec_expr e2)
+    | Data_model.Spec_expr_mul   (e1, e2) ->  e1            * (spec_expr e2)
+
+  and sspecification s = match s with
+    | Data_model.Spec_true -> true
+    | Data_model.Spec_op   (e1, op, e2) ->     (spec_op op) (spec_expr e1) (spec_expr e2)
+    | Data_model.Spec_and  (s1, s2)     ->     (sspecification s1) && (sspecification s2)
+    | Data_model.Spec_or   (s1, s2)     ->     (sspecification s1) || (sspecification s2)
+    | Data_model.Spec_impl (s1, s2)     -> not (sspecification s1) || (sspecification s2)
+    | Data_model.Spec_not  (s')         -> not (sspecification s')
+
+  in
+
+  handle_validation
+    (sspecification specification)
+    (Specification_error (Specification_validation_error))
