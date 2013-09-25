@@ -163,7 +163,7 @@ let () = Load_model.set_initial_model_of_settings ();
   let f = check_option "optimization function" !Data_state.optimization_function in
 
   (* Validator test *)
-  let validation_result = 
+  let validation_results = 
     let (handle, result) = Validate.make_validation_handler () in
     Validate.model u s c handle;
     result () in

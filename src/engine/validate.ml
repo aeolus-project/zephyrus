@@ -30,14 +30,14 @@ type model_inconsistency_error =
   | Conflict_port_missing                 of component_type_id * port_id     (* A component type conflicts with a port which does not exist *)
   | Consumed_resource_missing             of component_type_id * resource_id (* A component type consumes a resource which does not exist *)
   (* Package *)
-  | Package_depend_missing                of repository_id * package_id * package_id (* A package depends on another package which does not exist *)
-  | Package_conflict_missing              of repository_id * package_id * package_id (* A package conflicts with another package which does not exist *)
-  (* (* Unnecessary *) | Consumed_resource_missing of component_type_id * resource_id *)
+  | Package_depend_missing                of repository_id * package_id * package_id  (* A package depends on another package which does not exist *)
+  | Package_conflict_missing              of repository_id * package_id * package_id  (* A package conflicts with another package which does not exist *)
+  | Package_consumed_resource_missing     of repository_id * package_id * resource_id (* A package consumes a resource which does not exist *)
   (* Implementation *)
   | Implementation_for_a_component_type_missing of component_type_id
   | Implementation_component_type_missing       of component_type_id          (* Component type referenced in the implementation part does not exist *)
-  | Implementation_repository_missing           of repository_id              (* Repository referenced in the implementation part does not exist *)
-  | Implementation_package_missing              of repository_id * package_id (* A repository referenced in the implementation part does not contain a referenced package *)
+  | Implementation_repository_missing           of component_type_id * repository_id              (* Repository referenced in the implementation part does not exist *)
+  | Implementation_package_missing              of component_type_id * repository_id * package_id (* A repository referenced in the implementation part does not contain a referenced package *)
   (* Location *)
   | Location_repository_missing           of location_id * repository_id
   | Location_installed_package_missing    of location_id * repository_id * package_id
@@ -53,12 +53,12 @@ type model_inconsistency_error =
 type configuration_validation_error =
   | Require_not_satisfied              of component_id * port_id
   | Provide_abused                     of component_id * port_id
-  | Binding_unicity_violated           of component_id * port_id * component_id
+  | Binding_unicity_violated           of port_id * component_id * component_id
   | Conflict_exists                    of component_id * port_id * component_id
   | Package_dependencies_not_satisfied of location_id * package_id
   | Package_in_conflict                of location_id * package_id * package_id
-  | Resource_overconsumed              of location_id * resource_id
-  | Component_not_implemented          of component_id
+  | Resource_overconsumed              of location_id * resource_id * resource_consume_arity * resource_provide_arity
+  | Component_not_implemented          of location_id * component_id
 
 type specification_validation_error =
   | Specification_validation_error
@@ -72,13 +72,109 @@ type validation_result =
   | Ok    of validation_error
   | Error of validation_error
 
-let make_validation_handler () : (validation_result -> unit) * (unit -> (validation_error list * validation_error list)) =
-  let results = ref ([], []) in
-  let handle =
-    let (oks, errors) = !results in
-    function
-    | Ok    (validation_error) -> results := (validation_error::oks,                   errors)
-    | Error (validation_error) -> results := (                  oks, validation_error::errors)
+module String_of = struct
+
+  let model_inconsistency_error = function
+  (* Component type *)
+  | Provided_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is providing port %s which does not exist in the universe"        (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Required_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is requiring port %s which does not exist in the universe"        (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Conflict_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is in conflict with port %s which does not exist in the universe" (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Consumed_resource_missing (component_type_id, resource_id)                                   -> Printf.sprintf "component type %s is consuming resource %s which does not exist in the universe"    (String_of.component_type_id component_type_id) (String_of.resource_id resource_id)
+  (* Package *)
+  | Package_depend_missing            (repository_id, package_id, depended_on_package_id)        -> Printf.sprintf "package %s from repository %s depends on package %s which does not exist in this repository"          (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.package_id depended_on_package_id)
+  | Package_conflict_missing          (repository_id, package_id, conflicted_package_id)         -> Printf.sprintf "package %s from repository %s is in conflict with package %s which does not exist in this repository" (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.package_id conflicted_package_id)
+  | Package_consumed_resource_missing (repository_id, package_id, resource_id)                   -> Printf.sprintf "package %s from repository %s is consuming resource %s which does not exist in the universe"          (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.resource_id resource_id)
+  (* Implementation *)
+  | Implementation_for_a_component_type_missing (component_type_id)                              -> Printf.sprintf "component type %s has no implementation declared" (String_of.component_type_id component_type_id)
+  | Implementation_component_type_missing       (component_type_id)                              -> Printf.sprintf "there is an implementation declared for component type %s which does not exist in the universe" (String_of.component_type_id component_type_id)
+  | Implementation_repository_missing           (component_type_id, repository_id)               -> Printf.sprintf "the implementation for component type %s mentions the repository %s which does not exist in the universe" (String_of.component_type_id component_type_id) (String_of.repository_id repository_id)
+  | Implementation_package_missing              (component_type_id, repository_id, package_id)   -> Printf.sprintf "the implementation for component type %s mentions the repository %s and a package %s which does not exist in this repository" (String_of.component_type_id component_type_id) (String_of.repository_id repository_id) (String_of.package_id package_id)
+  (* Location *)
+  | Location_repository_missing        (location_id, repository_id)                              -> Printf.sprintf "location %s is using the repository %s which does not exist in the universe" (String_of.location_id location_id) (String_of.repository_id repository_id)
+  | Location_installed_package_missing (location_id, repository_id, package_id)                  -> Printf.sprintf "location %s, using the repository %s, contains a package %s which does not exist in this repository" (String_of.location_id location_id) (String_of.repository_id repository_id) (String_of.package_id package_id)
+  | Location_provided_resource_missing (location_id, resource_id)                                -> Printf.sprintf "location %s is providing resource %s which does not exist in the universe" (String_of.location_id location_id) (String_of.resource_id resource_id)
+  (* Component *)
+  | Component_type_missing     (component_id, component_type_id)                                 -> Printf.sprintf "component %s is of component type %s which does not exist in the universe" (String_of.component_id component_id) (String_of.component_type_id component_type_id)
+  | Component_location_missing (component_id, location_id)                                       -> Printf.sprintf "component %s is placed on the location %s which does not exist in the configuration" (String_of.component_id component_id) (String_of.location_id location_id)
+  (* Binding *)
+  | Binding_port_missing     (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the bound port does not exist in the universe" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+  | Binding_requirer_missing (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the requiring component does not exist in the configuration" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+  | Binding_provider_missing (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the providing component does not exist in the configuration" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+
+  let model_inconsistency_ok = function
+  (* Component type *)
+  | Provided_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is providing port %s which is well defined in the universe"        (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Required_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is requiring port %s which is well defined in the universe"        (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Conflict_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is in conflict with port %s which is well defined in the universe" (String_of.component_type_id component_type_id) (String_of.port_id port_id)
+  | Consumed_resource_missing (component_type_id, resource_id)                                   -> Printf.sprintf "component type %s is consuming resource %s which is well defined in the universe"    (String_of.component_type_id component_type_id) (String_of.resource_id resource_id)
+  (* Package *)
+  | Package_depend_missing            (repository_id, package_id, depended_on_package_id)        -> Printf.sprintf "package %s from repository %s depends on package %s which is well present in this repository"          (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.package_id depended_on_package_id)
+  | Package_conflict_missing          (repository_id, package_id, conflicted_package_id)         -> Printf.sprintf "package %s from repository %s is in conflict with package %s which is well present in this repository" (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.package_id conflicted_package_id)
+  | Package_consumed_resource_missing (repository_id, package_id, resource_id)                   -> Printf.sprintf "package %s from repository %s is consuming resource %s which is well defined in the universe"          (String_of.package_id package_id) (String_of.repository_id repository_id) (String_of.resource_id resource_id)
+  (* Implementation *)
+  | Implementation_for_a_component_type_missing (component_type_id)                              -> Printf.sprintf "component type %s has an implementation declared" (String_of.component_type_id component_type_id)
+  | Implementation_component_type_missing       (component_type_id)                              -> Printf.sprintf "there is an implementation declared for component type %s which is well defined in the universe" (String_of.component_type_id component_type_id)
+  | Implementation_repository_missing           (component_type_id, repository_id)               -> Printf.sprintf "the implementation for component type %s mentions the repository %s which is well defined in the universe" (String_of.component_type_id component_type_id) (String_of.repository_id repository_id)
+  | Implementation_package_missing              (component_type_id, repository_id, package_id)   -> Printf.sprintf "the implementation for component type %s mentions the repository %s and a package %s which is well present in this repository" (String_of.component_type_id component_type_id) (String_of.repository_id repository_id) (String_of.package_id package_id)
+  (* Location *)
+  | Location_repository_missing        (location_id, repository_id)                              -> Printf.sprintf "location %s is using the repository %s which is well defined in the universe" (String_of.location_id location_id) (String_of.repository_id repository_id)
+  | Location_installed_package_missing (location_id, repository_id, package_id)                  -> Printf.sprintf "location %s, using the repository %s, contains a package %s which is well present in this repository" (String_of.location_id location_id) (String_of.repository_id repository_id) (String_of.package_id package_id)
+  | Location_provided_resource_missing (location_id, resource_id)                                -> Printf.sprintf "location %s is providing resource %s which is well defined in the universe" (String_of.location_id location_id) (String_of.resource_id resource_id)
+  (* Component *)
+  | Component_type_missing     (component_id, component_type_id)                                 -> Printf.sprintf "component %s is of component type %s which is well defined in the universe" (String_of.component_id component_id) (String_of.component_type_id component_type_id)
+  | Component_location_missing (component_id, location_id)                                       -> Printf.sprintf "component %s is placed on the location %s which is well present in the configuration" (String_of.component_id component_id) (String_of.location_id location_id)
+  (* Binding *)
+  | Binding_port_missing     (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the bound port is well defined in the universe" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+  | Binding_requirer_missing (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the requiring component is well present in the configuration" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+  | Binding_provider_missing (port_id, requiring_component_id, providing_component_id)           -> Printf.sprintf "in the binding on port %s between requiring component %s and providing component %s the providing component is well present in the configuration" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id providing_component_id)
+
+  let configuration_validation_error = function
+  | Require_not_satisfied              (component_id, port_id)                                   -> Printf.sprintf "component's %s requirements on port %s are not satisfied (not enough bindings)"                                  (String_of.component_id component_id) (String_of.port_id port_id)
+  | Provide_abused                     (component_id, port_id)                                   -> Printf.sprintf "component's %s provides on port %s are abused (too much bindings)"                                               (String_of.component_id component_id) (String_of.port_id port_id)
+  | Binding_unicity_violated           (port_id, requiring_component_id, prividing_component_id) -> Printf.sprintf "binding unicity on port %s between requiring component %s and providing component %s is violated"                (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id prividing_component_id)
+  | Conflict_exists                    (component_id, port_id, conflicted_component_id)          -> Printf.sprintf "a conflict exists between component %s, which has a conflict port %s, and component %s which provides this port" (String_of.component_id component_id) (String_of.port_id port_id) (String_of.component_id conflicted_component_id)
+  | Package_dependencies_not_satisfied (location_id, package_id)                                 -> Printf.sprintf "dependencies of package %s on location %s are not satisfied"                                                     (String_of.package_id package_id) (String_of.location_id location_id)
+  | Package_in_conflict                (location_id, package_id, conflicted_package_id)          -> Printf.sprintf "package %s on location %s is in conflict with package %s (on the same location)"                                 (String_of.package_id package_id) (String_of.location_id location_id) (String_of.package_id conflicted_package_id)
+  | Resource_overconsumed              (location_id, resource_id, consumed, provided)            -> Printf.sprintf "there is more of resource %s consumed (%s) than provided (%s) on location %s"                                    (String_of.resource_id resource_id) (String_of.resource_consume_arity consumed) (String_of.resource_provide_arity provided) (String_of.location_id location_id)
+  | Component_not_implemented          (location_id, component_id)                               -> Printf.sprintf "component %s on location %s is not implemented (none of his implementing packages is present on that location)"  (String_of.component_id component_id) (String_of.location_id location_id)
+
+  let configuration_validation_ok = function
+  | Require_not_satisfied              (component_id, port_id)                                   -> Printf.sprintf "component's %s requirements on port %s are well satisfied"                                              (String_of.component_id component_id) (String_of.port_id port_id)
+  | Provide_abused                     (component_id, port_id)                                   -> Printf.sprintf "component's %s provides on port %s are not abused"                                                      (String_of.component_id component_id) (String_of.port_id port_id)
+  | Binding_unicity_violated           (port_id, requiring_component_id, prividing_component_id) -> Printf.sprintf "binding unicity on port %s between requiring component %s and providing component %s is well respected" (String_of.port_id port_id) (String_of.component_id requiring_component_id) (String_of.component_id prividing_component_id)
+  | Conflict_exists                    (component_id, port_id, conflicted_component_id)          -> Printf.sprintf "component %s, which has a conflict port %s, and component %s are not in conflict"                       (String_of.component_id component_id) (String_of.port_id port_id) (String_of.component_id conflicted_component_id)
+  | Package_dependencies_not_satisfied (location_id, package_id)                                 -> Printf.sprintf "dependencies of package %s on location %s are well satisfied"                                           (String_of.package_id package_id) (String_of.location_id location_id)
+  | Package_in_conflict                (location_id, package_id, conflicted_package_id)          -> Printf.sprintf "package %s on location %s is not in conflict with package %s (on the same location)"                    (String_of.package_id package_id) (String_of.location_id location_id) (String_of.package_id conflicted_package_id)
+  | Resource_overconsumed              (location_id, resource_id, consumed, provided)            -> Printf.sprintf "there is enough of resource %s provided (%s) on location %s to well satisfy the total consumption (%s)" (String_of.resource_id resource_id) (String_of.resource_provide_arity provided) (String_of.location_id location_id) (String_of.resource_consume_arity consumed)
+  | Component_not_implemented          (location_id, component_id)                               -> Printf.sprintf "component %s on location %s is well implemented"                                                        (String_of.component_id component_id) (String_of.location_id location_id)
+
+  let specification_validation_error = function
+  | Specification_validation_error -> Printf.sprintf "specification constraints are not satisfied"
+
+  let specification_validation_ok = function
+  | Specification_validation_error -> Printf.sprintf "specification constraints are satisfied"  
+
+  let validation_error = function
+  | Model_inconsistency error -> Printf.sprintf "model incostistency: %s" (model_inconsistency_error error)
+  | Configuration_error error -> Printf.sprintf "configuration validation error: %s" (configuration_validation_error error)
+  | Specification_error error -> Printf.sprintf "specification validation error: %s" (specification_validation_error error)
+
+  let validation_ok = function
+  | Model_inconsistency error -> Printf.sprintf "model consistency: %s" (model_inconsistency_ok error)
+  | Configuration_error error -> Printf.sprintf "configuration validation: %s" (configuration_validation_ok error)
+  | Specification_error error -> Printf.sprintf "specification validation: %s" (specification_validation_ok error)
+
+  let validation_result = function
+  | Ok    error -> Printf.sprintf "OK   : %s" (validation_ok    error)
+  | Error error -> Printf.sprintf "ERROR: %s" (validation_error error)
+
+end
+
+let make_validation_handler () : (validation_result -> unit) * (unit -> validation_result list) =
+  let results = ref [] in
+  let handle result =
+    Printf.printf "%s\n%!" (String_of.validation_result result);
+    results := result::!results
   and return () = !results
   in (handle, return)
 
@@ -144,6 +240,9 @@ let model (universe : universe) (specification : specification) (configuration :
           (Package_id_set.mem conflicted_package_id package_ids)
           (Model_inconsistency (Package_conflict_missing (repository_id, package_id, conflicted_package_id)))
       ) package#conflict;
+
+      (* A package consumes a resource which does not exist *)
+      (* TODO: Impossible as there is no resource domain in the package. *)
 
     ) package_ids;
 
@@ -237,13 +336,13 @@ let model (universe : universe) (specification : specification) (configuration :
 
     (* Binding_requirer_missing *)
     handle_validation
-      (Component_type_id_set.mem requirer_id universe#get_component_type_ids)
+      (Component_id_set.mem requirer_id configuration#get_component_ids)
       (Model_inconsistency (Binding_requirer_missing (port_id, requirer_id, provider_id)));
 
     (* Binding_provider_missing *)
     handle_validation
-      (Component_type_id_set.mem provider_id universe#get_component_type_ids)
-      (Model_inconsistency (Binding_provider_missing (port_id, provider_id, provider_id)));
+      (Component_id_set.mem provider_id configuration#get_component_ids)
+      (Model_inconsistency (Binding_provider_missing (port_id, requirer_id, provider_id)));
 
   ) configuration#get_bindings;
 
@@ -304,17 +403,18 @@ let model (universe : universe) (specification : specification) (configuration :
 
       (* Package_dependencies_not_satisfied *)
       handle_validation
-        (Package_id_set_set.exists (fun depended_on_package_id_set ->
+        (Package_id_set_set.is_empty package#depend ||
+         (Package_id_set_set.exists (fun depended_on_package_id_set ->
           Package_id_set.for_all (fun depended_on_package_id ->
             Package_id_set.mem depended_on_package_id packages_installed
           ) depended_on_package_id_set
-        ) package#depend)
+         ) package#depend))
         (Configuration_error (Package_dependencies_not_satisfied (location_id, installed_package_id)));
 
       (* Package_in_conflict *)
       Package_id_set.iter (fun conflicted_package_id ->
         handle_validation
-          (Package_id_set.mem conflicted_package_id packages_installed)
+          (not (Package_id_set.mem conflicted_package_id packages_installed))
           (Configuration_error (Package_in_conflict (location_id, installed_package_id, conflicted_package_id)))
       ) package#conflict
 
@@ -334,9 +434,10 @@ let model (universe : universe) (specification : specification) (configuration :
         resource_consumed + component_type#consume resource_id
       ) location_component_ids 0 in
 
+      (* Resource_overconsumed *)
       handle_validation
-        (resource_consumed > resource_provided)
-        (Configuration_error (Resource_overconsumed (location_id, resource_id)))
+        (resource_consumed <= resource_provided)
+        (Configuration_error (Resource_overconsumed (location_id, resource_id, resource_consumed, resource_provided)))
 
     ) configuration#get_location_ids;
   ) universe#get_resource_ids;
@@ -351,11 +452,12 @@ let model (universe : universe) (specification : specification) (configuration :
     
     let implementation = universe#get_implementation component_type_id in
 
+    (* Component_not_implemented *)
     handle_validation
       (Package_id_set.exists (fun implementing_package_id ->
         Package_id_set.mem implementing_package_id packages_installed
       ) implementation)
-      (Configuration_error (Component_not_implemented component_id))
+      (Configuration_error (Component_not_implemented (component_location_id, component_id)))
 
   ) configuration#get_component_ids;
 
