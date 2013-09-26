@@ -74,6 +74,8 @@ type validation_result =
 
 module String_of = struct
 
+  module String_of = String_of.Quoted_name_string_of
+
   let model_inconsistency_error = function
   (* Component type *)
   | Provided_port_missing     (component_type_id, port_id)                                       -> Printf.sprintf "component type %s is providing port %s which does not exist in the universe"        (String_of.component_type_id component_type_id) (String_of.port_id port_id)
