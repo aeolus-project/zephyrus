@@ -468,31 +468,7 @@ module Quoted_id_string_of = Make(Quoted_string_of_id(Id_string_of_id)) (** Prin
 
 
 (** Translate identifiers to names. *)
-module Name_string_of_id : STRING_OF_ID = struct
-  let get_catalog () = !Data_state.catalog_full
-
-  let resource_f       = (Id_string_of.resource_id,       (fun catalog -> catalog#resource#name_of_id)      )
-  let component_type_f = (Id_string_of.component_type_id, (fun catalog -> catalog#component_type#name_of_id))
-  let port_f           = (Id_string_of.port_id,           (fun catalog -> catalog#port#name_of_id)          )
-  let package_f        = (Id_string_of.package_id,        (fun catalog -> fun package_id -> let (_, package_name) = catalog#package#name_of_id package_id in package_name))
-  let repository_f     = (Id_string_of.repository_id,     (fun catalog -> catalog#repository#name_of_id)    )
-  let location_f       = (Id_string_of.location_id,       (fun catalog -> catalog#location#name_of_id)      )
-  let component_f      = (Id_string_of.component_id,      (fun catalog -> catalog#component#name_of_id)     )
-
-  let object_name_of_id object_f =
-    match get_catalog () with
-    | None         -> (fst object_f)
-    | Some catalog -> (snd object_f) catalog
-
-  let resource_id       id = object_name_of_id resource_f id
-  let component_type_id id = object_name_of_id component_type_f id
-  let port_id           id = object_name_of_id port_f id
-  let package_id        id = object_name_of_id package_f id
-  let repository_id     id = object_name_of_id repository_f id
-  let location_id       id = object_name_of_id location_f id
-  let component_id      id = object_name_of_id component_f id
-
-end
+module Name_string_of_id : STRING_OF_ID = Name_of
 
 module Name_string_of        = Make(Name_string_of_id)                      (** Translate identifiers to names. *)
 module Quoted_name_string_of = Make(Quoted_string_of_id(Name_string_of_id)) (** Translate identifiers to names and add quotes around. *)
