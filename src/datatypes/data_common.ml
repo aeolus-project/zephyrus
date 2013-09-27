@@ -589,8 +589,8 @@ module Catalog =
       method add              : name -> unit       (* If the name does not exist, create a new fresh id for this name and update the data structures. *)
       method add_id_name_pair : id -> name -> unit (* Update the data structures with the given (id, name) pair. *)
       (* Lower level manipulation *)
-      method set_id_of_name   : name -> id -> unit (* Adds the name to names and makes it correspond to the given id     (only one way, we have name -> id, but not id -> name!). *)
-      method set_name_of_id   : id -> name -> unit (* Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
+      method set_id_of_name   : name -> id -> unit (* Adds the name to names and makes it correspond to the given id     (only one way, we have name -> id,  but not id  -> name!). *)
+      method set_name_of_id   : id -> name -> unit (* Adds the id   to ids  and makes it correspond to the given object  (only one way, we have id   -> obj, but not obj -> id!  ). *)
       method id_to_name_map   : name Id_map.t      (* Retrieve directly the id -> object map. *)
       method name_to_id_map   : id Obj_map.t       (* Retrieve directly the object -> id map. *)
     end
@@ -630,10 +630,12 @@ module Catalog =
 
     (* A closed catalog (closed means that it cannot be modified. *)
     class type closed_catalog_iface = object
-      method ids        : Id_set.t
-      method names      : Obj_set.t
-      method name_of_id : id   -> name
-      method id_of_name : name -> id
+      method ids            : Id_set.t
+      method names          : Obj_set.t
+      method name_of_id     : id   -> name
+      method id_of_name     : name -> id
+      method id_to_name_map : name Id_map.t
+      method name_to_id_map : id Obj_map.t
     end
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
@@ -642,6 +644,8 @@ module Catalog =
       method names           = catalog#names
       method name_of_id id   = try catalog#name_of_id id   with Not_found -> failwith (Printf.sprintf "%s#name_of_id %s" catalog_name (string_of_id id))
       method id_of_name name = try catalog#id_of_name name with Not_found -> failwith (Printf.sprintf "%s#id_of_name %s" catalog_name (string_of_name name))
+      method id_to_name_map  = catalog#id_to_name_map
+      method name_to_id_map  = catalog#name_to_id_map
     end
     
     (* Create a new catalog by taking a set of names and adding them all. *)
@@ -650,7 +654,7 @@ module Catalog =
 
     (* Create a new catalog corresponding to a given id -> name map. *)
     let of_id_to_name_map (id_to_name_map : name Id_map.t) : catalog_iface =
-      catalog_of_obj_catalog (of_id_to_obj_map id_to_name_map)      
+      catalog_of_obj_catalog (of_id_to_obj_map id_to_name_map)
 
   end
 

@@ -340,10 +340,12 @@ module Catalog :
 
     (* A closed catalog (closed means that it cannot be modified. *)
     class type closed_catalog_iface = object
-      method ids        : Id_set.t
-      method names      : Obj_set.t
-      method name_of_id : id   -> name
-      method id_of_name : name -> id
+      method ids            : Id_set.t
+      method names          : Obj_set.t
+      method name_of_id     : id   -> name
+      method id_of_name     : name -> id
+      method id_to_name_map : name Id_map.t
+      method name_to_id_map : id Obj_map.t
     end
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
