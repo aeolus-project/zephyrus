@@ -121,6 +121,7 @@ type almost_done_component =
 
 (* Generate the components which will be present in the final configuration. *)
 let generate_components 
+  (new_component_catalog     : Component_catalog.catalog)
   (initial_components        : Component_set.t)
   (location_ids              : Location_id_set.t)
   (location_name_of_id       : location_id -> location_name)
@@ -166,7 +167,7 @@ let generate_components
               in 
               object
                 method name     = component_name;
-                method id       = -1 (* TODO: to fix when we will add the new components to the catalog ... *) 
+                method id       = new_component_catalog#get_else_add component_name;
                 method typ      = component_type_id;
                 method location = location_id;
               end) in
@@ -183,7 +184,7 @@ let generate_components
      and we will have the initial set of names already used in the configuration
      (all coming from reused components, cause the new ones are unnamed for now). *)
   let reused_component_names = Output_helper.filter_map (function
-    | ReusedComponent component -> Some component#name
+    | ReusedComponent component -> Some (Name_of.component_id component#id)
     | NewComponent    _         -> None
   ) !almost_done_components in
 
@@ -295,7 +296,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     let location = initial_configuration#get_location location_id in
 
     (* name *)
-    let name = location#name in
+    let name = (Name_of.location_id location#id) in
 
     (* repository *)
     let repository = solution#get_repository_id_of_a_location location_id in
@@ -336,10 +337,15 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
   let get_local_package location_id package_id : bool =
     Package_id_set.mem package_id (get_location location_id)#packages_installed in
-  
+
+  let new_component_catalog : Component_catalog.catalog = 
+    match !Data_state.catalog_full with
+    | None         -> new Component_catalog.catalog
+    | Some catalog -> Component_catalog.of_id_to_name_map catalog#component#id_to_name_map  in
 
   (* components *)
   let components : Component_set.t = generate_components
+    new_component_catalog
     initial_configuration#get_components
     location_ids
     location_name_of_id
@@ -347,12 +353,14 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     universe#get_component_type_name
     solution in
 
-  let component_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs components in
-  let component_ids = component_catalog#ids in
-  
-  let get_component : component_id -> component = component_catalog#obj_of_id in
+  (* Update the main catalog with new components catalog. *)
 
-  let component_name_catalog : Component_catalog.catalog_iface = Component_catalog.of_id_to_name_map (Component_id_map.map get_name component_catalog#id_to_obj_map) in
+  let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs components in
+  let component_ids = component_obj_catalog#ids in
+  
+  let get_component : component_id -> component = component_obj_catalog#obj_of_id in
+
+  let component_name_catalog : Component_catalog.catalog_iface = Component_catalog.of_id_to_name_map (Component_id_map.map get_name component_obj_catalog#id_to_obj_map) in
   let component_names        : Component_name_set.t            = component_name_catalog#names in
   let component_name_of_id   : component_id -> component_name  = component_name_catalog#name_of_id in
   let component_id_of_name   : component_name -> component_id  = component_name_catalog#id_of_name in
