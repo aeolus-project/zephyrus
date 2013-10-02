@@ -1,0 +1,404 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location2",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location3",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location4",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location5",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location6",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location7",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location8",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location9",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location10",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location11",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location12",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location13",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location14",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location15",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location16",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location17",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location18",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location19",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location20",
+			"repository" : "debian-squeeze"
+		}		,
+		{
+			"name" : "location21",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location22",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location23",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location24",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location25",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location26",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location27",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location28",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location29",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location30",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location31",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location32",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location33",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location34",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location35",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location36",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location37",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location38",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location39",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location40",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location41",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location42",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location43",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location44",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location45",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location46",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location47",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location48",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location49",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location50",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location51",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location52",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location53",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location54",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location55",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location56",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location57",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location58",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location59",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location60",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location61",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location62",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location63",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location64",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location65",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location66",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location67",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location68",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location69",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location70",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location71",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location72",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location73",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location74",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location75",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location76",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location77",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location78",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location79",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location80",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location81",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location82",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location83",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location84",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location85",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location86",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location87",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location88",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location89",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location90",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location91",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location92",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location93",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location94",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location95",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location96",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location97",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location98",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location99",
+			"repository" : "debian-squeeze"
+		},
+		{
+			"name" : "location100",
+			"repository" : "debian-squeeze"
+		}
+	]
+}

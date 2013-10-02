@@ -82,7 +82,7 @@ module MiniZinc_generic = struct
 (*      Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
       Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
       let res = core_translation v_map settings.bounds c in
-      Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy res.mzn_main_constraint); res
+      Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy (res.mzn_main_constraint ^ "\n% end constraint\n")); res
     ) else (
       Zephyrus_log.log_solver_execution (" no\n");
       Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n")

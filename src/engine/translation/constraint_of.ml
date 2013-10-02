@@ -321,14 +321,18 @@ let specification_full () = match (!Data_state.specification_full, !Data_state.i
 (*******************************************)
 
 let locations resources locations = Zephyrus_log.log_constraint_execution "Compute Resources Provided by Locations\n";
- [ Data_state.constraint_configuration_full , 
-  Data_model.Location_set.fold  (fun l res ->
-    Data_model.Resource_id_set.fold (fun o res ->
-      ((eO (l#id) o) =~ (constant (l#provide_resources o)))::res
-    ) resources res
-  ) locations [] ]
+  if Settings.find Settings.modifiable_configuration then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
+  else
+    [ Data_state.constraint_configuration_full ,
+    Data_model.Location_set.fold  (fun l res ->
+      Data_model.Resource_id_set.fold (fun o res ->
+        ((eO (l#id) o) =~ (constant (l#provide_resources o)))::res
+      ) resources res
+    ) locations [] ]
 
 let configuration resources c_l get_location = 
+  if Settings.find Settings.modifiable_configuration then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
+  else
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Resource_id_set.fold (fun o res ->
       ((eO l o) =~ (constant ((get_location l)#provide_resources o)))::res

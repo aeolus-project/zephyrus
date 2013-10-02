@@ -281,9 +281,9 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
 
 
 
-let solution (universe : universe) (initial_configuration : configuration) (solution : solution) : configuration =
+let solution (universe : universe) (initial_configuration : configuration) (solution_prev : solution) : configuration =
 
-  let solution = new extended_solution solution in
+  let solution = new extended_solution solution_prev in
 
   (* Locations *)
   let location_ids : Location_id_set.t = initial_configuration#get_location_ids in
@@ -304,7 +304,11 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     let packages_installed = solution#get_package_ids_of_a_location location_id in
 
     (* resources provided *)
-    let provide_resources = location#provide_resources in
+    let provide_resources = 
+      if Settings.find Settings.modifiable_configuration then (* if we can modify the location, we set its provides to the right value *)
+        fun r -> solution_prev.variable_values (Local_resource_variable(location_id, r))
+      else
+        location#provide_resources in
 
     (* cost *)
     let cost = location#cost in

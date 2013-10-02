@@ -84,7 +84,12 @@ let load () = Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x
   (if not (Settings.mem Settings.import_repositories) then Settings.add Settings.import_repositories (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_initial_configuration) then Settings.add Settings.import_initial_configuration (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_specification) then Settings.add Settings.import_specification (Settings.BoolValue true));
-  (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true))
+  (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true));
+  (if (not (Settings.find Settings.import_initial_configuration)) || (not (Settings.mem Settings.input_file_configuration)) then ( (* easy fix for when we don't input a configuration *)
+    Settings.add Settings.import_initial_configuration (Settings.BoolValue true);
+    Settings.add Settings.input_file_configuration (Settings.IdentValue "default/ic-ex-empty-100loc.json");
+    Settings.add Settings.modifiable_configuration (Settings.BoolValue true)
+  ) else ( Settings.add Settings.modifiable_configuration (Settings.BoolValue false) ))
 
 let check_settings () = (* TODO : what to do? *) ()
 

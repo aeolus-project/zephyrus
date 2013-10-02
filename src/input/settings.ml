@@ -301,7 +301,7 @@ let import_specification = ("import-specification", bool_setting)
 let import_optimization_function = ("import-optimization-function", bool_setting)
 
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
-
+let modifiable_configuration = ("modifiable-configuration", bool_setting)
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
 let check_repositories = ("check-repositories", bool_setting)
