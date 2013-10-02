@@ -193,23 +193,22 @@ module String_of = struct
 
 end
 
-let make_validation_handler () : (validation_result -> unit) * (unit -> validation_result list) =
+type validation_handler = bool -> validation_error -> unit
+
+let make_validation_handler () : validation_handler * (unit -> validation_result list) =
   let results = ref [] in
-  let handle result =
+  let handle_validation_function condition error =
+    let result =
+      if condition (* if condition is true then it's not an error *)
+      then Ok    (error)
+      else Error (error) in
     Printf.printf "%s\n%!" (String_of.validation_result result);
     results := result::!results
-  and return () = !results
-  in (handle, return)
+  and return_result_function () = !results
+  in (handle_validation_function, return_result_function)
 
-let model (universe : universe) (specification : specification) (configuration : configuration) handle_validation : unit =
 
-  let handle_validation condition error = (* if condition is true then it's not an error *)
-    handle_validation (
-      if condition
-      then Ok    (error)
-      else Error (error)
-    ) in
-
+let universe (universe : universe) handle_validation : unit =
 
   (* -- Model incosistency errors -- *)
 
@@ -300,13 +299,17 @@ let model (universe : universe) (specification : specification) (configuration :
       (Component_type_id_set.mem component_type_id universe#get_component_type_ids)
       (Model_inconsistency (Component_type_in_implementation_missing component_type_id));
 
-  ) universe#get_implementation_domain;
+  ) universe#get_implementation_domain
 
   (* Implementation_repository_missing *)
   (* Implementation_package_missing *)
   (* TODO: Argh... Sometimes we have (reposiory_id, package_id) to reference a package, sometimes
      just a package_id. We have to correct this mess. Until then there is nothing more to do here. *)
 
+
+
+
+let configuration (universe : universe) (configuration : configuration) handle_validation : unit =
 
   (* - Locations - *)
   Location_id_set.iter (fun location_id ->
@@ -497,8 +500,12 @@ let model (universe : universe) (specification : specification) (configuration :
       ) implementation)
       (Configuration_error (Component_not_implemented (component_location_id, component_id)))
 
-  ) configuration#get_component_ids;
+  ) configuration#get_component_ids
 
+
+
+
+let specification (universe : universe) (specification : specification) (configuration : configuration) handle_validation : unit =
 
   let rec number_of_packages_on_location location_id package_id : int =
     if Package_id_set.mem package_id (configuration#get_location location_id)#packages_installed then 1 else 0
@@ -616,3 +623,9 @@ let model (universe : universe) (specification : specification) (configuration :
   handle_validation
     (sspecification specification)
     (Specification_error (Specification_validation_error))
+
+
+let model (u : universe) (s : specification) (c : configuration) handle_validation : unit =
+  universe      u     handle_validation;
+  configuration u c   handle_validation;
+  specification u s c handle_validation
