@@ -13,8 +13,8 @@
 		},
 		{
 			"name"     : "Keystone-LB",
-			"provide"  : [["@keystone", "InfiniteProvide"]],
-			"require"  : [["@keystone", 1], ["@keystone-backend", 3]],
+			"provide"  : [["@keystone", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 2], ["@keystone-backend", 3]],
 			"consume"  : [["ram", 64]]
 		},
 		{
@@ -26,7 +26,7 @@
 		{
 			"name"     : "Glance-API-LB",
 			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
-			"require"  : [["@glance-api-backend", 2]],
+			"require"  : [["@glance-api", 2], ["@glance-api-backend", 2]],
 			"consume"  : [["ram", 64]]
 		},
 		{
@@ -37,8 +37,8 @@
 		},
 		{
 			"name"     : "Glance-Registry-LB",
-			"provide"  : [["@glance-registry", "InfiniteProvide"]],
-			"require"  : [["@glance-registry-backend", 2]],
+			"provide"  : [["@glance-registry", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-registry", 2], ["@glance-registry-backend", 2]],
 			"consume"  : [["ram", 64]]
 		},
 		{
@@ -49,7 +49,7 @@
 		},
 		{
 			"name"     : "Glance-DB",
-			"provide"  : [["@glance-db", "InfiniteProvide"]],
+			"provide"  : [["@glance-db", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
@@ -84,7 +84,7 @@
 		},
 		{
 			"name"     : "Nova-DB",
-			"provide"  : [["@nova-db", "InfiniteProvide"]],
+			"provide"  : [["@nova-db", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
