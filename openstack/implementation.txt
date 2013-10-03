@@ -1,0 +1,20 @@
+IN "debian-wheezy" REPOSITORY:
+
+LB: "haproxy (= 1.4.15-1)" "keepalived (= 1:1.2.2-3)"
+Problem: a component cannot be implemented by two packages.
+
+Mysql-backend: "mysql-server (= 5.5.28+dfsg-1)"
+
+Queue-backend: "rabbitmq-server (= 2.8.4-1)"
+
+Keystone: "keystone (= 2012.1.1-13)"
+
+Glance : "glance (= 2012.1.1-4)"
+Glance-API : "glance-api (= 2012.1.1-4)"
+Glance-Registry : "glance-registry (= 2012.1.1-4)"
+(Glance : "glance-common (= 2012.1.1-4)")
+
+Nova          : "nova-common (= 2012.1.1-13)" ?
+Nova-API      : "nova-api (= 2012.1.1-13)"
+Nova-Scheduler: "nova-scheduler (= 2012.1.1-13)"
+Nova-Compute  : "nova-compute (= 2012.1.1-13)"

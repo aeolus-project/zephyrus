@@ -1,0 +1,26 @@
+Encoding:
+
+1. Simple / redundant / very redundant
+
+2. Real wheezy packages / artificial simplified packages
+(haproxy, keepalived problem, but they are in the same equivalence class, so it's not so bad)
+
+3. No resource consumption / Big resource consumption for MySQL / High resource consumption for MySQL and Nova Compute / Complicated resource consumption
+
+No consumption:
+1. Simple, wheezy
+2. Simple, artificial
+3. Redundant, wheezy
+4. Redundant, artificial
+5. Very redundant, wheezy
+6. Very redundant, artificial
+
+Big MySQL:
+7. Redundant, artificial
+8. Very redundant, artificial
+
+High MySQL and Nova Compute:
+9. Redundant, artificial
+
+Complicated:
+10. Redundant, artificial

@@ -1,13 +1,9 @@
 {
 	"component_types": [
-	    {
-            "name"     : "LoadBalancer",
-            "consume"  : [["ram", 128]]
-		},
 		{
             "name"     : "MySQL-LB",
             "provide"  : [["@mysql", ["FiniteProvide", 100]]],
-            "require"  : [["@mysql-backend", 3]]
+            "require"  : [["@mysql", 2], ["@mysql-backend", 3]]
 		},
 		{
 			"name"     : "MySQL-backend",
@@ -16,36 +12,31 @@
 		{
 			"name"     : "Keystone-LB",
 			"provide"  : [["@keystone", "InfiniteProvide"]],
-			"require"  : [["@keystone-backend", 1]]
+			"require"  : [["@keystone", 1], ["@keystone-backend", 3]]
 		},
 		{
 			"name"     : "Keystone-backend",
-			"provide"  : [["@keystone-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@keystone-data-backend", 4]]
-		},
-		{
-			"name"     : "Plugin-keystone-data-backend-to-mysql",
-			"provide"  : [["@keystone-data-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@keystone-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
 			"name"     : "Glance-API-LB",
 			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
-			"require"  : [["@glance-api-backend", 1]]
+			"require"  : [["@glance-api-backend", 2]]
 		},
 		{
 			"name"     : "Glance-API-backend",
-			"provide"  : [["@glance-api-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@glance-api-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@glance-registry", 1], ["@glance-db", 1]]
 		},
 		{
 			"name"     : "Glance-Registry-LB",
 			"provide"  : [["@glance-registry", "InfiniteProvide"]],
-			"require"  : [["@glance-registry-backend", 1]]
+			"require"  : [["@glance-registry-backend", 2]]
 		},
 		{
 			"name"     : "Glance-Registry-backend",
-			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@glance-db", 1]]
 		},
 		{
@@ -56,26 +47,26 @@
 		{
 			"name"     : "Nova-API-LB",
 			"provide"  : [["@nova-api", ["FiniteProvide", 100]]],
-			"require"  : [["@nova-api-backend", 1]]
+			"require"  : [["@nova-api", 2], ["@nova-api-backend", 2]]
 		},
 		{
 			"name"     : "Nova-API-backend",
-			"provide"  : [["@nova-api-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+			"provide"  : [["@nova-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-scheduler", 1], ["@nova-conductor", 1], ["@nova-compute", 3], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Scheduler",
-			"provide"  : [["@nova-scheduler", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-scheduler", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Conductor",
-			"provide"  : [["@nova-conductor", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-conductor", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Compute",
-			"provide"  : [["@nova-compute", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@queue", 1]]
 		},
 		{
@@ -85,101 +76,82 @@
 		},
 		{
 			"name"     : "Queue-LB",
-			"provide"  : [["@queue", ["FiniteProvide", 1]]],
-			"require"  : [["@queue-backend", 2]]
+			"provide"  : [["@queue", ["FiniteProvide", 100]]],
+			"require"  : [["@queue", 2], ["@queue-backend", 2]]
 		},
 		{
 			"name"     : "Queue-backend",
-			"provide"  : [["@queue-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@mysql", 1]]
+			"provide"  : [["@queue-backend", ["FiniteProvide", 100]]]
 		}
 	],
 	"implementation": [
-	    [
-			"LoadBalancer",
-			[["repository", "common-package"]]
-		],
 		[
 			"MySQL-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"MySQL-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Keystone-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Keystone-backend",
-			[["repository", "common-package"]]
-		],
-		[
-			"Plugin-keystone-data-backend-to-mysql",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "keystone (= 2012.1.1-13)"]]
 		],
 		[
 			"Glance-API-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Glance-API-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
 		],
 		[
 			"Glance-Registry-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Glance-Registry-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
 		],
 		[
 			"Glance-DB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Nova-API-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Nova-API-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Scheduler",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Conductor",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Compute",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-DB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Queue-LB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Queue-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "rabbitmq-server (= 2.8.4-1)"]]
 		]
-	],
-	"repositories": [
-		{
-			"name": "repository",
-			"packages": [
-				{
-					"name": "common-package"
-				}
-			]
-		}
 	]
 }

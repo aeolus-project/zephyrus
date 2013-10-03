@@ -1,0 +1,34 @@
+{
+	"locations" : [
+		{
+			"name" : "location-1",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location-2",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location-3",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location-4",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location-5",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		},
+		{
+			"name" : "location-6",
+			"repository" : "debian-wheezy",
+			"provide_resources" : [["ram", 2048]]
+		}
+	]
+}
