@@ -1,7 +1,7 @@
 
 # 01. Input Files
 
-input-file-universe         = "openstack/u-simple-noresources-artificial.json"
+input-file-universe         = "openstack/u-simple-bigmysql-artificial.json"
 input-file-configuration    = "openstack/ic-6loc-empty.json"
 input-file-specification    = "openstack/main.spec"
 input-file-repositories     = []

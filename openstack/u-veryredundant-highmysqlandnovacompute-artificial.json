@@ -3,13 +3,13 @@
 		{
             "name"     : "MySQL-LB",
             "provide"  : [["@mysql", ["FiniteProvide", 100]]],
-            "require"  : [["@mysql", 2], ["@mysql-backend", 3]],
+            "require"  : [["@mysql", 2], ["@mysql-backend", 4]],
          	"consume"  : [["ram", 128]]
 		},
 		{
 			"name"     : "MySQL-backend",
 			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]],
-			"consume"  : [["ram", 1024]]
+			"consume"  : [["ram", 512]]
 		},
 		{
 			"name"     : "Keystone-LB",
@@ -61,7 +61,7 @@
 		{
 			"name"     : "Nova-API-backend",
 			"provide"  : [["@nova-api-backend", ["FiniteProvide", 100]]],
-			"require"  : [["@nova-scheduler", 1], ["@nova-conductor", 1], ["@nova-compute", 3], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]],
+			"require"  : [["@nova-scheduler", 2], ["@nova-conductor", 2], ["@nova-compute", 4], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]],
 			"consume"  : [["ram", 128]]
 		},
 		{
@@ -80,7 +80,7 @@
 			"name"     : "Nova-Compute",
 			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@queue", 1]],
-			"consume"  : [["ram", 128]]
+			"consume"  : [["ram", 1024]]
 		},
 		{
 			"name"     : "Nova-DB",
@@ -90,7 +90,7 @@
 		{
 			"name"     : "Queue-LB",
 			"provide"  : [["@queue", ["FiniteProvide", 100]]],
-			"require"  : [["@queue", 2], ["@queue-backend", 2]],
+			"require"  : [["@queue", 2], ["@queue-backend", 3]],
 			"consume"  : [["ram", 128]]
 		},
 		{

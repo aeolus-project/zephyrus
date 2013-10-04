@@ -9,7 +9,7 @@
 		{
 			"name"     : "MySQL-backend",
 			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]],
-			"consume"  : [["ram", 2048]]
+			"consume"  : [["ram", 1024]]
 		},
 		{
 			"name"     : "Keystone-LB",

@@ -9,7 +9,7 @@
 		{
 			"name"     : "MySQL-backend",
 			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]],
-			"consume"  : [["ram", 1024]]
+			"consume"  : [["ram", 512]]
 		},
 		{
 			"name"     : "Keystone-LB",
@@ -80,7 +80,7 @@
 			"name"     : "Nova-Compute",
 			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@queue", 1]],
-			"consume"  : [["ram", 128]]
+			"consume"  : [["ram", 1024]]
 		},
 		{
 			"name"     : "Nova-DB",
@@ -102,84 +102,71 @@
 	"implementation": [
 		[
 			"MySQL-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"MySQL-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Keystone-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Keystone-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "keystone (= 2012.1.1-13)"]]
 		],
 		[
 			"Glance-API-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Glance-API-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
 		],
 		[
 			"Glance-Registry-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Glance-Registry-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
 		],
 		[
 			"Glance-DB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Nova-API-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Nova-API-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Scheduler",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Conductor",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-Compute",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
 		],
 		[
 			"Nova-DB",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
 		],
 		[
 			"Queue-LB",
-			[["repository", "load-balancer-package"]]
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
 		],
 		[
 			"Queue-backend",
-			[["repository", "common-package"]]
+			[["debian-wheezy", "rabbitmq-server (= 2.8.4-1)"]]
 		]
-	],
-	"repositories": [
-		{
-			"name": "repository",
-			"packages": [
-				{
-					"name": "common-package"
-				},
-				{
-					"name": "load-balancer-package"
-				}
-			]
-		}
 	]
 }
