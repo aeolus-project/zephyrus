@@ -85,10 +85,14 @@ All components are implemented by the "common-package".
 
 All Load Balancer components are implemented by the "load-balancer-package".
 
-(This way we force Zephyrus to collocate Load Balancers (if other solutions
-are qually good otherwise) as this way he has to install these additional
-package on all the locations with a Load Balancers and as the last
-optimization he tries to minimize the number of packages installed.)
+(This way we have almost the simpliest repository possible and still we
+influence Zephyrus to try to collocate Load Balancers (all the "*-LB"
+components). Every LB component is inplemented with the "load-balancer-
+package" package, so Zephyrus has to install this package every location with
+one ore more Load Balancer. As for the final optimization he tries to minimize
+the number of packages installed, he will always try to minimize the number of
+machines containing a Load Balancer component, therefore he will try to group
+these components together.)
 
 
 
@@ -96,33 +100,33 @@ optimization he tries to minimize the number of packages installed.)
 RESULTS:
 
 No consumption:
-1. Simple,         artificial :  0:00.76
-2. Simple,         wheezy     :  0:14.40
-3. Redundant,      artificial :  0:00.87
-4. Redundant,      wheezy     :  0:14.54
-5. Very redundant, artificial :  0:03.69
-6. Very redundant, wheezy     :  0:21.88
+1. Simple,         artificial :     0:00.76
+2. Simple,         wheezy     :     0:14.40
+3. Redundant,      artificial :     0:00.87
+4. Redundant,      wheezy     :     0:14.54
+5. Very redundant, artificial :     0:03.69
+6. Very redundant, wheezy     :     0:21.88
 
 Big MySQL:
-1. Simple,         artificial :  0:00.75
-2. Simple,         wheezy     :  0:15.02
-3. Redundant,      artificial :  0:43.78
-4. Redundant,      wheezy     :  2:58.17
-5. Very redundant, artificial :  0:09.82
-6. Very redundant, wheezy     :  0:47.16
+1. Simple,         artificial :     0:00.75
+2. Simple,         wheezy     :     0:15.02
+3. Redundant,      artificial :     0:43.78
+4. Redundant,      wheezy     :     2:58.17
+5. Very redundant, artificial :     0:09.82
+6. Very redundant, wheezy     :     0:47.16
 
 High MySQL and Nova Compute:
-1. Simple,         artificial :  0:00.76
-2. Simple,         wheezy     :  0:14.53
-3. Redundant,      artificial :  0:08.16
-4. Redundant,      wheezy     : 10:53.82
-5. Very redundant, artificial :  4:49.31
-6. Very redundant, wheezy     :     TODO
+1. Simple,         artificial :     0:00.76
+2. Simple,         wheezy     :     0:14.53
+3. Redundant,      artificial :     0:08.16
+4. Redundant,      wheezy     :    10:53.82
+5. Very redundant, artificial :     4:49.31
+6. Very redundant, wheezy     : 28:15:19
 
 Complicated:
-1. Simple,         artificial :  0:00.90
-2. Simple,         wheezy     :  0:14.75
-3. Redundant,      artificial :  3:10.02
-4. Redundant,      wheezy     : (2:24.30) TIMEOUT
-5. Very redundant, artificial : ?
-6. Very redundant, wheezy     : ?
+1. Simple,         artificial :     0:00.90
+2. Simple,         wheezy     :     0:14.75
+3. Redundant,      artificial :     3:10.02
+4. Redundant,      wheezy     :    (2:24.30) TIMEOUT
+5. Very redundant, artificial :     ?
+6. Very redundant, wheezy     :     ?
