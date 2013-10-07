@@ -89,6 +89,12 @@ class extended_solution (solution : solution) : extended_solution_iface =
   end
 
 
+(* Get all the "root" packages, i.e. the packages that implement something. *)
+let get_root_packages (universe : universe) : Package_id_set.t = 
+  Component_type_id_set.fold (fun component_type_id root_package_ids ->
+    Package_id_set.union root_package_ids (universe#get_implementation component_type_id)
+  ) universe#get_implementation_domain Package_id_set.empty
+
 
 (* Utility to generate fresh names for components. *)
 module Used_names = Used_tokens_string
@@ -290,6 +296,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
   let location_id_to_location_map : (location Location_id_map.t) ref = ref Location_id_map.empty in
   
+  let root_package_ids = get_root_packages universe in
+
   Location_id_set.iter (fun location_id ->
 
     let location = initial_configuration#get_location location_id in
@@ -302,6 +310,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     (* packages installed *)
     let packages_installed = solution#get_package_ids_of_a_location location_id in
+    let root_packages_installed = Package_id_set.inter root_package_ids packages_installed in
 
     (* resources provided *)
     let provide_resources = 
@@ -318,7 +327,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
         method name                = name
         method id                  = location_id
         method repository          = repository
-        method packages_installed  = packages_installed
+        method packages_installed  = if true then root_packages_installed else packages_installed (* TODO: We need a setting for that. *)
         method provide_resources   = provide_resources
         method cost                = cost
       end
