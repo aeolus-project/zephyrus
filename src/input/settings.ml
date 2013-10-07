@@ -69,7 +69,7 @@ end
 
 let revert : ('a * 'b) list -> ('b * 'a) list = fun l -> List.fold_left (fun res (a,b) -> (b,a)::res) [] l
 
-let extract_names l = List.fold_left (fun res (n,v) -> ("\"" ^ n ^ "\"")::res) [] l
+let extract_names l = fst (List.split l)
 let convert map value = try Data_common.String_map.find value map with Not_found -> raise Wrong_value
 
 

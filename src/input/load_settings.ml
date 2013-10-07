@@ -30,14 +30,14 @@
 (* TODO: change everything *)
 
 let usage = "usage: " ^ Sys.argv.(0)
-  ^ "[-settings settings-file]"
-  ^ "[-u universe-file]"
-  ^ "[-ic initial-configuration-file]"
-  ^ "[-spec specification-file]"
-  ^ "[-repo repository-name packages-file]*" 
-  ^ "[-opt optimization-function]"
-  ^ "[-solver solver]"
-  ^ "[-out output-format output-file]*"
+  ^ " [-settings settings-file]"
+  ^ " [-u universe-file]"
+  ^ " [-ic initial-configuration-file]"
+  ^ " [-spec specification-file]"
+  ^ " [-repo repository-name packages-file]*" 
+  ^ " [-opt optimization-function]"
+  ^ " [-solver solver]"
+  ^ " [-out output-format output-file]*"
 
 let load_file file = Pervasives.ignore (Input_helper.parse_standard Settings_parser.main Settings_lexer.token file)
 

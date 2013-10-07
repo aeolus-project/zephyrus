@@ -111,7 +111,9 @@ module Database_test = struct
 *)
 
 
+(*
 (* test the graph *)
+(* TODO: Remove this from here! *)
 module Test_graph_data = struct type t = int end
 module Test_graph = Data_common.Graph.Make(Test_graph_data)(Test_graph_data)
 let () =
@@ -144,7 +146,7 @@ let () =
   Pervasives.ignore (Test_graph.add_edge v0 10 v3 g)  (* merge { 4 (2 3 5) }; order = 1 (2 3 4 5) *)
 
 (* must add a to_string in dot format in the generic graph *)
-
+*)
 
 
 (* === Handling the arguments === *)
