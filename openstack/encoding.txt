@@ -128,5 +128,5 @@ Complicated:
 2. Simple,         wheezy     :     0:14.75
 3. Redundant,      artificial :     3:10.02
 4. Redundant,      wheezy     :    (2:24.30) TIMEOUT
-5. Very redundant, artificial :     ?
+5. Very redundant, artificial : 12:44:50
 6. Very redundant, wheezy     :     ?
