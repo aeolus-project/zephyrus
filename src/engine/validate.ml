@@ -193,24 +193,45 @@ module String_of = struct
 
 end
 
+
+(** Validation handlers *)
 type validation_handler = bool -> validation_error -> unit
 
-let make_validation_handler () : validation_handler * (unit -> validation_result list) =
+(** A helper function: convert a condition and a validation_error into a validation_result. *)
+let validation_result (condition : bool) (error : validation_error) : validation_result =
+  if condition (* if condition is true then it's not an error *)
+  then Ok    (error)
+  else Error (error)
+
+(** Validation handler printing immediately information about each check. *)
+let debug_printing_validation_handler condition error =
+  Printf.printf "%s\n%!" (String_of.validation_result (validation_result condition error))
+
+(** Validation handler immediately raising an exception when a check fails. *)
+let failing_validation_handler condition error =
+  if condition (* if condition is true then it's not an error *)
+  then ()
+  else failwith (Printf.sprintf "Error encountered during model validation: %s" (String_of.validation_error error))
+
+(** Validation handler accumulating all the check results in a list. *)
+let make_remembering_validation_handler () : validation_handler * (unit -> validation_result list) =
   let results = ref [] in
   let handle_validation_function condition error =
-    let result =
-      if condition (* if condition is true then it's not an error *)
-      then Ok    (error)
-      else Error (error) in
-    Printf.printf "%s\n%!" (String_of.validation_result result);
-    results := result::!results
+    results := (validation_result condition error)::!results
   and return_result_function () = !results
   in (handle_validation_function, return_result_function)
 
+(** Helper function: chain multiple validation handlers together. *)
+let chain_validation_handlers (handlers : validation_handler list) =
+  fun condition error -> List.iter (fun handler -> handler condition error) handlers
 
-let universe (universe : universe) handle_validation : unit =
 
-  (* -- Model incosistency errors -- *)
+
+(** Validation functions *)
+
+let universe_consistency (universe : universe) handle_validation : unit =
+
+  (* -- Model inconsistency errors -- *)
 
   (* - Component Types - *)
   Component_type_id_set.iter (fun component_type_id -> 
@@ -309,7 +330,9 @@ let universe (universe : universe) handle_validation : unit =
 
 
 
-let configuration (universe : universe) (configuration : configuration) handle_validation : unit =
+let configuration_consistency (universe : universe) (configuration : configuration) handle_validation : unit =
+
+  (* -- Model inconsistency errors -- *)
 
   (* - Locations - *)
   Location_id_set.iter (fun location_id ->
@@ -382,9 +405,10 @@ let configuration (universe : universe) (configuration : configuration) handle_v
       (Component_id_set.mem provider_id configuration#get_component_ids)
       (Model_inconsistency (Binding_provider_missing (port_id, requirer_id, provider_id)));
 
-  ) configuration#get_bindings;
+  ) configuration#get_bindings
 
 
+let configuration_validation (universe : universe) (configuration : configuration) handle_validation : unit =
 
   (* -- Configuration validation errors -- *)
 
@@ -505,7 +529,7 @@ let configuration (universe : universe) (configuration : configuration) handle_v
 
 
 
-let specification (universe : universe) (specification : specification) (configuration : configuration) handle_validation : unit =
+let specification_validation (universe : universe) (configuration : configuration) (specification : specification) handle_validation : unit =
 
   let rec number_of_packages_on_location location_id package_id : int =
     if Package_id_set.mem package_id (configuration#get_location location_id)#packages_installed then 1 else 0
@@ -625,7 +649,36 @@ let specification (universe : universe) (specification : specification) (configu
     (Specification_error (Specification_validation_error))
 
 
-let model (u : universe) (s : specification) (c : configuration) handle_validation : unit =
-  universe      u     handle_validation;
-  configuration u c   handle_validation;
-  specification u s c handle_validation
+let model_consistency (u : universe) (c : configuration) handle_validation : unit =
+  universe_consistency      u     handle_validation;
+  configuration_consistency u c   handle_validation
+
+let model_validation (u : universe) (c : configuration) (s : specification) handle_validation : unit =
+  configuration_validation  u c   handle_validation;
+  specification_validation  u c s handle_validation
+
+let model (u : universe) (c : configuration) (s : specification) handle_validation : unit =
+  model_consistency u c   handle_validation;
+  model_validation  u c s handle_validation
+
+let standard_model_check (u : universe) (s : specification) (c : configuration) : validation_result list =
+
+  (* *)
+  let (remembering_validation_handler, result) = make_remembering_validation_handler () in
+
+  (* Check consistency, fail on errors. *)
+  model_consistency u c (chain_validation_handlers [failing_validation_handler; remembering_validation_handler]);
+
+  (* Validation: c *)
+  model_validation  u c s (remembering_validation_handler);
+
+  result ()
+
+
+let filter_initial_configuration_validation_errors (l : validation_result list) : validation_result list =
+  List.filter (fun validation_result ->
+    match validation_result with
+    | Error (Configuration_error _) 
+    | Error (Specification_error _) -> true
+    | _ -> false
+  ) l

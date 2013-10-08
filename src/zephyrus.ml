@@ -164,11 +164,12 @@ let () = Load_model.set_initial_model_of_settings ();
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
 
-  (* Validator test *)
-  let validation_results = 
-    let (handle, result) = Validate.make_validation_handler () in
-    Validate.model u s c handle;
-    result () in
+  (* Validate *)
+  Zephyrus_log.log_stage_new "MODEL VALIDATION";
+  let validation_results = Validate.standard_model_check u s c in
+  let initial_configuration_validation_errors = Validate.filter_initial_configuration_validation_errors validation_results in
+  List.iter (fun validation_result -> Zephyrus_log.log_execution (Printf.sprintf "%s\n%!" (Validate.String_of.validation_result validation_result))) initial_configuration_validation_errors;
+  Zephyrus_log.log_stage_end ();
 
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
