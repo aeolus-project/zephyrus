@@ -91,13 +91,15 @@ let int_domain_message    = "any integer"
 
 (* 1.2. Zephyrus Execution mode. *) (* not used for now *)
 type mode = 
-  | Mode_classic
+  | Mode_classic (*
   | Mode_flat
-  | Mode_bin_packing
+  | Mode_bin_packing *)
+  | Mode_validate_initial_config
 let mode_assoc = [
-  ("classic", Mode_classic);
+  ("classic", Mode_classic); (*
   ("flat", Mode_flat);
-  ("bin-packing", Mode_bin_packing) ]
+  ("bin-packing", Mode_bin_packing); *)
+  ("validate", Mode_validate_initial_config) ]
 let mode_assoc_revert = revert mode_assoc
 
 let mode_names          = extract_names mode_assoc
@@ -422,13 +424,14 @@ module Table = AddColumn(struct type t = bool let name = bool_setting let defaul
             AddColumn(struct type t = int let name = int_setting let default = -1 end)(
             AddListColumn(struct type el = repository let name = repositories_setting  end)(
             AddColumn(struct type t = optim let name = optim_setting let default = default_optim end)(
+            AddColumn(struct type t = mode  let name = mode_setting  let default = default_mode  end)(
             AddColumn(struct type t = constraint_kind let name = constraint_kind_setting let default = default_constraint_kind end)(
             AddColumn(struct type t = solver let name = solver_setting let default = default_solver end)(
             AddColumn(struct type t = solver_bin_packing let name = solver_bin_packing_setting let default = default_solver_bin_packing end)(
             AddColumn(struct type t = gen_bindings let name = gen_bindings_setting let default = default_gen_bindings end)(
             AddColumn(struct type t = gen_packages let name = gen_packages_setting let default = default_gen_packages end)(
             AddListColumn(struct type el = out_file let name = out_files_setting end)(
-              Empty(Base))))))))))))
+              Empty(Base)))))))))))))
 
 type t = Table.t
 let table = Table.create 8
