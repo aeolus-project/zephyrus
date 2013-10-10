@@ -162,11 +162,13 @@ type solver =
   | Solver_gcode
   | Solver_g12
   | Solver_facile
+  | Solver_custom
 let solver_assoc = [
   ("facile", Solver_facile);
   ("g12"   , Solver_g12);
   ("gcode" , Solver_gcode);
-  ("none"  , Solver_none) ]
+  ("none"  , Solver_none);
+  ("custom", Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
@@ -325,6 +327,7 @@ let constraint_kind = ("constraint-kind", constraint_kind_setting)
 let preprocess_solver = ("preprocess-solver", solver_setting)
 let solver = ("solver", solver_setting)
 let solver_bin_packing = ("solver-bin-packing", solver_bin_packing_setting)
+let custom_solver_command = ("custom-solver-command", string_setting)
 
     (* 5. Temporary Files *)
 let preprocess_constraint_file = ("preprocess-constraint-file", string_setting)
@@ -380,6 +383,7 @@ let all_settings = [
     preprocess_solver;
     solver;
     solver_bin_packing;
+    custom_solver_command;
     preprocess_constraint_file;
     preprocess_solution_file;
     preprocess_keep_constraint_file;
@@ -498,3 +502,5 @@ let get_preprocess_input_file ()       = let res = find preprocess_constraint_fi
 let get_preprocess_output_file ()      = let res = find preprocess_solution_file in if res = "" then "zephyrus-.sol" else res
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
+
+let get_custom_solver_command () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None

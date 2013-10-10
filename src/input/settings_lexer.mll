@@ -45,7 +45,7 @@ let blanks          = [' ' '\t' '\n']
 let digits          = ['0'-'9']
 let alpha           = ['a'-'z' 'A'-'Z']
 let lines           = ['-' '+' '_' '.' '/']
-let other_caracters = ['[' '{' '(' ';' ':' ',' '\'' ')' '}' ']']
+let other_caracters = ['[' '{' '(' '<' ';' ':' ',' '\'' '>' ')' '}' ']']
 
 (* Strings which are not quoted *)
 let ident  = (alpha | digits | lines)* (alpha | lines)+ (alpha | digits | lines)*

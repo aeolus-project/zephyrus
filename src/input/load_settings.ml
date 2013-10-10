@@ -67,6 +67,7 @@ let speclist =
     (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function");
     ("-solver",     Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver ), " The solver choice"); 
+    ("-custom-solver-command", Arg.String (fun custom_solver_command -> Settings.add_string Settings.custom_solver_command custom_solver_command), " The custom solver command");
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (

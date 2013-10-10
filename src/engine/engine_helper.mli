@@ -60,7 +60,15 @@ val g12_minizinc_solver    : program
 val gecode_minizinc_solver : program
 
 
-(** 2. File name manipulation *)
+(** 2. Custom solver handling *)
+
+val input_marker  : string
+val output_marker : string
+
+val make_minizinc_solver_of_custom_flatzinc_solver_command : string -> program
+val make_minizinc_solver_of_custom_minizinc_solver_command : string -> program
+
+(** 3. File name manipulation *)
 
 type file = {dirname : string; basename : string; suffix : string}
 val file_default : file

@@ -47,6 +47,6 @@ end
 
 module G12    : SOLVER
 module GeCode : SOLVER
-
+val make_custom_solver_module : Engine_helper.program -> (module SOLVER)
 
 

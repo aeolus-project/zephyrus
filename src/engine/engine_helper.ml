@@ -86,7 +86,42 @@ let gecode_minizinc_solver = {
                        | _ -> raise Wrong_argument_number)
 }
 
-(** 2. File name manipulation *)
+
+(** 2. Custom solver handling *)
+
+(* Substrings in the custom solver command string which should be replaced by the input/output file path *)
+let input_marker  = "<IN>"
+let output_marker = "<OUT>"
+
+(* Takes a command in form of a string and replaces all input/output markers by the provided input/output file path. *)
+let concretize_command generic_command input_file_path output_file_path : string =
+    let step0 = generic_command in
+    let step1 = Str.global_replace (Str.regexp_string input_marker ) input_file_path  step0 in
+    let step2 = Str.global_replace (Str.regexp_string output_marker) output_file_path step1 in
+    step2
+
+let make_minizinc_solver_of_custom_flatzinc_solver_command command = {
+  name     = Printf.sprintf "Custom FlatZinc Solver (%s)" command;
+  commands = ["mzn2fzn"];
+  exe      = function
+             | [input; output] -> 
+                 let flatzinc_file_path = Filename.temp_file "zephyrus_" ".fzn" in
+                 let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" flatzinc_file_path (String.escaped input) in
+                 let flatzinc_command_part = (concretize_command command) flatzinc_file_path (String.escaped output) in
+                 Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
+             | _ -> raise Wrong_argument_number
+}
+
+let make_minizinc_solver_of_custom_minizinc_solver_command command = {
+  name     = Printf.sprintf "Custom MiniZinc Solver (%s)" command;
+  commands = [];
+  exe      = function
+             | [input; output] -> 
+                 (concretize_command command) (String.escaped input) (String.escaped output)
+             | _ -> raise Wrong_argument_number
+}
+
+(** 3. File name manipulation *)
 
 type file = {dirname : string; basename : string; suffix : string}
 let file_default = {dirname = ""; basename = ""; suffix = ""}
