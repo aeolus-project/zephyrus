@@ -1,0 +1,421 @@
+{
+  "locations": [
+    {
+      "name": "location-1",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [],
+      "cost": 1
+    },
+    {
+      "name": "location-2",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [],
+      "cost": 1
+    },
+    {
+      "name": "location-3",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [],
+      "cost": 1
+    },
+    {
+      "name": "location-4",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [],
+      "cost": 1
+    },
+    {
+      "name": "location-5",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [
+        "haproxy (= 1.4.15-1)", "mysql-server (= 5.5.28+dfsg-1)",
+        "glance (= 2012.1.1-4)"
+      ],
+      "cost": 1
+    },
+    {
+      "name": "location-6",
+      "provide_resources": [ ("ram", 2048) ],
+      "repository": "debian-wheezy",
+      "packages_installed": [
+        "haproxy (= 1.4.15-1)", "rabbitmq-server (= 2.8.4-1)",
+        "nova-common (= 2012.1.1-13)", "keystone (= 2012.1.1-13)"
+      ],
+      "cost": 1
+    }
+  ],
+  "components": [
+    {
+      "component_name": "Queue-backend-1",
+      "component_type": "Queue-backend",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Queue-LB-1",
+      "component_type": "Queue-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Nova-Compute-1",
+      "component_type": "Nova-Compute",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Nova-Conductor-1",
+      "component_type": "Nova-Conductor",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Nova-Scheduler-1",
+      "component_type": "Nova-Scheduler",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Nova-API-backend-1",
+      "component_type": "Nova-API-backend",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Nova-API-LB-1",
+      "component_type": "Nova-API-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Glance-Registry-LB-1",
+      "component_type": "Glance-Registry-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Glance-API-LB-1",
+      "component_type": "Glance-API-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Keystone-backend-1",
+      "component_type": "Keystone-backend",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Keystone-LB-1",
+      "component_type": "Keystone-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "MySQL-LB-1",
+      "component_type": "MySQL-LB",
+      "component_location": "location-6"
+    },
+    {
+      "component_name": "Queue-LB-2",
+      "component_type": "Queue-LB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Nova-DB-1",
+      "component_type": "Nova-DB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Nova-API-LB-2",
+      "component_type": "Nova-API-LB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Glance-DB-1",
+      "component_type": "Glance-DB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Glance-Registry-backend-1",
+      "component_type": "Glance-Registry-backend",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Glance-Registry-LB-2",
+      "component_type": "Glance-Registry-LB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Glance-API-backend-1",
+      "component_type": "Glance-API-backend",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Glance-API-LB-2",
+      "component_type": "Glance-API-LB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "Keystone-LB-2",
+      "component_type": "Keystone-LB",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "MySQL-backend-1",
+      "component_type": "MySQL-backend",
+      "component_location": "location-5"
+    },
+    {
+      "component_name": "MySQL-LB-2",
+      "component_type": "MySQL-LB",
+      "component_location": "location-5"
+    }
+  ],
+  "bindings": [
+    { "port": "@mysql", "requirer": "MySQL-LB-2", "provider": "MySQL-LB-1" },
+    { "port": "@mysql", "requirer": "MySQL-LB-2", "provider": "MySQL-LB-2" },
+    { "port": "@mysql", "requirer": "Glance-DB-1", "provider": "MySQL-LB-1" },
+    { "port": "@mysql", "requirer": "Nova-DB-1", "provider": "MySQL-LB-2" },
+    { "port": "@mysql", "requirer": "MySQL-LB-1", "provider": "MySQL-LB-1" },
+    { "port": "@mysql", "requirer": "MySQL-LB-1", "provider": "MySQL-LB-2" },
+    {
+      "port": "@mysql",
+      "requirer": "Keystone-backend-1",
+      "provider": "MySQL-LB-1"
+    },
+    {
+      "port": "@mysql-backend",
+      "requirer": "MySQL-LB-2",
+      "provider": "MySQL-backend-1"
+    },
+    {
+      "port": "@mysql-backend",
+      "requirer": "MySQL-LB-1",
+      "provider": "MySQL-backend-1"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Keystone-LB-2",
+      "provider": "Keystone-LB-2"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Keystone-LB-2",
+      "provider": "Keystone-LB-1"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Glance-API-backend-1",
+      "provider": "Keystone-LB-2"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Glance-Registry-backend-1",
+      "provider": "Keystone-LB-1"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Keystone-LB-1",
+      "provider": "Keystone-LB-2"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Keystone-LB-1",
+      "provider": "Keystone-LB-1"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Keystone-LB-2"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Nova-Scheduler-1",
+      "provider": "Keystone-LB-1"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Nova-Conductor-1",
+      "provider": "Keystone-LB-2"
+    },
+    {
+      "port": "@keystone",
+      "requirer": "Nova-Compute-1",
+      "provider": "Keystone-LB-1"
+    },
+    {
+      "port": "@keystone-backend",
+      "requirer": "Keystone-LB-2",
+      "provider": "Keystone-backend-1"
+    },
+    {
+      "port": "@keystone-backend",
+      "requirer": "Keystone-LB-1",
+      "provider": "Keystone-backend-1"
+    },
+    {
+      "port": "@glance-api",
+      "requirer": "Glance-API-LB-2",
+      "provider": "Glance-API-LB-2"
+    },
+    {
+      "port": "@glance-api",
+      "requirer": "Glance-API-LB-2",
+      "provider": "Glance-API-LB-1"
+    },
+    {
+      "port": "@glance-api",
+      "requirer": "Glance-API-LB-1",
+      "provider": "Glance-API-LB-2"
+    },
+    {
+      "port": "@glance-api",
+      "requirer": "Glance-API-LB-1",
+      "provider": "Glance-API-LB-1"
+    },
+    {
+      "port": "@glance-api-backend",
+      "requirer": "Glance-API-LB-2",
+      "provider": "Glance-API-backend-1"
+    },
+    {
+      "port": "@glance-api-backend",
+      "requirer": "Glance-API-LB-1",
+      "provider": "Glance-API-backend-1"
+    },
+    {
+      "port": "@glance-registry",
+      "requirer": "Glance-API-backend-1",
+      "provider": "Glance-Registry-LB-1"
+    },
+    {
+      "port": "@glance-registry",
+      "requirer": "Glance-Registry-LB-2",
+      "provider": "Glance-Registry-LB-2"
+    },
+    {
+      "port": "@glance-registry",
+      "requirer": "Glance-Registry-LB-2",
+      "provider": "Glance-Registry-LB-1"
+    },
+    {
+      "port": "@glance-registry",
+      "requirer": "Glance-Registry-LB-1",
+      "provider": "Glance-Registry-LB-2"
+    },
+    {
+      "port": "@glance-registry",
+      "requirer": "Glance-Registry-LB-1",
+      "provider": "Glance-Registry-LB-1"
+    },
+    {
+      "port": "@glance-db",
+      "requirer": "Glance-API-backend-1",
+      "provider": "Glance-DB-1"
+    },
+    {
+      "port": "@glance-db",
+      "requirer": "Glance-Registry-backend-1",
+      "provider": "Glance-DB-1"
+    },
+    {
+      "port": "@glance-registry-backend",
+      "requirer": "Glance-Registry-LB-2",
+      "provider": "Glance-Registry-backend-1"
+    },
+    {
+      "port": "@glance-registry-backend",
+      "requirer": "Glance-Registry-LB-1",
+      "provider": "Glance-Registry-backend-1"
+    },
+    {
+      "port": "@nova-api",
+      "requirer": "Nova-API-LB-2",
+      "provider": "Nova-API-LB-2"
+    },
+    {
+      "port": "@nova-api",
+      "requirer": "Nova-API-LB-2",
+      "provider": "Nova-API-LB-1"
+    },
+    {
+      "port": "@nova-api",
+      "requirer": "Nova-API-LB-1",
+      "provider": "Nova-API-LB-2"
+    },
+    {
+      "port": "@nova-api",
+      "requirer": "Nova-API-LB-1",
+      "provider": "Nova-API-LB-1"
+    },
+    {
+      "port": "@nova-api-backend",
+      "requirer": "Nova-API-LB-2",
+      "provider": "Nova-API-backend-1"
+    },
+    {
+      "port": "@nova-api-backend",
+      "requirer": "Nova-API-LB-1",
+      "provider": "Nova-API-backend-1"
+    },
+    {
+      "port": "@nova-scheduler",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Nova-Scheduler-1"
+    },
+    {
+      "port": "@nova-conductor",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Nova-Conductor-1"
+    },
+    {
+      "port": "@nova-compute",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Nova-Compute-1"
+    },
+    {
+      "port": "@nova-db",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Nova-DB-1"
+    },
+    {
+      "port": "@nova-db",
+      "requirer": "Nova-Scheduler-1",
+      "provider": "Nova-DB-1"
+    },
+    {
+      "port": "@nova-db",
+      "requirer": "Nova-Conductor-1",
+      "provider": "Nova-DB-1"
+    },
+    { "port": "@queue", "requirer": "Queue-LB-2", "provider": "Queue-LB-2" },
+    { "port": "@queue", "requirer": "Queue-LB-2", "provider": "Queue-LB-1" },
+    {
+      "port": "@queue",
+      "requirer": "Nova-API-backend-1",
+      "provider": "Queue-LB-2"
+    },
+    {
+      "port": "@queue",
+      "requirer": "Nova-Scheduler-1",
+      "provider": "Queue-LB-1"
+    },
+    {
+      "port": "@queue",
+      "requirer": "Nova-Conductor-1",
+      "provider": "Queue-LB-2"
+    },
+    {
+      "port": "@queue",
+      "requirer": "Nova-Compute-1",
+      "provider": "Queue-LB-1"
+    },
+    { "port": "@queue", "requirer": "Queue-LB-1", "provider": "Queue-LB-2" },
+    { "port": "@queue", "requirer": "Queue-LB-1", "provider": "Queue-LB-1" },
+    {
+      "port": "@queue-backend",
+      "requirer": "Queue-LB-2",
+      "provider": "Queue-backend-1"
+    },
+    {
+      "port": "@queue-backend",
+      "requirer": "Queue-LB-1",
+      "provider": "Queue-backend-1"
+    }
+  ]
+}

@@ -7,6 +7,9 @@ input-file-specification    = "tests/spec-1.spec"
 input-file-repositories     = []
 input-optimization-function = compact
 
+#solver = custom
+#custom-solver-command       = "flatzinc -o <OUT> <IN>"
+
 # 07. Output Configuration
 
 results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot")]

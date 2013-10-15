@@ -1,13 +1,9 @@
 {
 	"component_types": [
-	    {
-            "name"     : "LoadBalancer",
-            "consume"  : [["ram", 128]]
-		},
 		{
             "name"     : "MySQL-LB",
             "provide"  : [["@mysql", ["FiniteProvide", 100]]],
-            "require"  : [["@mysql-backend", 3]]
+            "require"  : [["@mysql", 2], ["@mysql-backend", 4]]
 		},
 		{
 			"name"     : "MySQL-backend",
@@ -15,93 +11,83 @@
 		},
 		{
 			"name"     : "Keystone-LB",
-			"provide"  : [["@keystone", "InfiniteProvide"]],
-			"require"  : [["@keystone-backend", 1]]
+			"provide"  : [["@keystone", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 2], ["@keystone-backend", 3]]
 		},
 		{
 			"name"     : "Keystone-backend",
-			"provide"  : [["@keystone-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@keystone-data-backend", 4]]
-		},
-		{
-			"name"     : "Plugin-keystone-data-backend-to-mysql",
-			"provide"  : [["@keystone-data-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@keystone-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
 			"name"     : "Glance-API-LB",
 			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
-			"require"  : [["@glance-api-backend", 1]]
+			"require"  : [["@glance-api", 2], ["@glance-api-backend", 2]]
 		},
 		{
 			"name"     : "Glance-API-backend",
-			"provide"  : [["@glance-api-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@glance-api-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@glance-registry", 1], ["@glance-db", 1]]
 		},
 		{
 			"name"     : "Glance-Registry-LB",
-			"provide"  : [["@glance-registry", "InfiniteProvide"]],
-			"require"  : [["@glance-registry-backend", 1]]
+			"provide"  : [["@glance-registry", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-registry", 2], ["@glance-registry-backend", 2]]
 		},
 		{
 			"name"     : "Glance-Registry-backend",
-			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 1]]],
+			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@glance-db", 1]]
 		},
 		{
 			"name"     : "Glance-DB",
-			"provide"  : [["@glance-db", "InfiniteProvide"]],
+			"provide"  : [["@glance-db", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
 			"name"     : "Nova-API-LB",
 			"provide"  : [["@nova-api", ["FiniteProvide", 100]]],
-			"require"  : [["@nova-api-backend", 1]]
+			"require"  : [["@nova-api", 2], ["@nova-api-backend", 2]]
 		},
 		{
 			"name"     : "Nova-API-backend",
-			"provide"  : [["@nova-api-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+			"provide"  : [["@nova-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-scheduler", 2], ["@nova-conductor", 2], ["@nova-compute", 4], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Scheduler",
-			"provide"  : [["@nova-scheduler", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-scheduler", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Conductor",
-			"provide"  : [["@nova-conductor", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-conductor", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-Compute",
-			"provide"  : [["@nova-compute", ["FiniteProvide", 1]]],
+			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
 			"require"  : [["@keystone", 1], ["@queue", 1]]
 		},
 		{
 			"name"     : "Nova-DB",
-			"provide"  : [["@nova-db", "InfiniteProvide"]],
+			"provide"  : [["@nova-db", ["FiniteProvide", 100]]],
 			"require"  : [["@mysql", 1]]
 		},
 		{
 			"name"     : "Queue-LB",
-			"provide"  : [["@queue", ["FiniteProvide", 1]]],
-			"require"  : [["@queue-backend", 2]]
+			"provide"  : [["@queue", ["FiniteProvide", 100]]],
+			"require"  : [["@queue", 2], ["@queue-backend", 3]]
 		},
 		{
 			"name"     : "Queue-backend",
-			"provide"  : [["@queue-backend", ["FiniteProvide", 1]]],
-			"require"  : [["@mysql", 1]]
+			"provide"  : [["@queue-backend", ["FiniteProvide", 100]]]
 		}
 	],
 	"implementation": [
-	    [
-			"LoadBalancer",
-			[["repository", "common-package"]]
-		],
 		[
 			"MySQL-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"MySQL-backend",
@@ -109,19 +95,15 @@
 		],
 		[
 			"Keystone-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"Keystone-backend",
 			[["repository", "common-package"]]
 		],
 		[
-			"Plugin-keystone-data-backend-to-mysql",
-			[["repository", "common-package"]]
-		],
-		[
 			"Glance-API-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"Glance-API-backend",
@@ -129,7 +111,7 @@
 		],
 		[
 			"Glance-Registry-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"Glance-Registry-backend",
@@ -141,7 +123,7 @@
 		],
 		[
 			"Nova-API-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"Nova-API-backend",
@@ -165,7 +147,7 @@
 		],
 		[
 			"Queue-LB",
-			[["repository", "common-package"]]
+			[["repository", "load-balancer-package"]]
 		],
 		[
 			"Queue-backend",
@@ -178,6 +160,9 @@
 			"packages": [
 				{
 					"name": "common-package"
+				},
+				{
+					"name": "load-balancer-package"
 				}
 			]
 		}

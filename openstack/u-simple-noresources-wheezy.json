@@ -1,0 +1,157 @@
+{
+	"component_types": [
+		{
+            "name"     : "MySQL-LB",
+            "provide"  : [["@mysql", ["FiniteProvide", 100]]],
+            "require"  : [["@mysql", 2], ["@mysql-backend", 1]]
+		},
+		{
+			"name"     : "MySQL-backend",
+			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]]
+		},
+		{
+			"name"     : "Keystone-LB",
+			"provide"  : [["@keystone", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 2], ["@keystone-backend", 1]]
+		},
+		{
+			"name"     : "Keystone-backend",
+			"provide"  : [["@keystone-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Glance-API-LB",
+			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-api", 2], ["@glance-api-backend", 1]]
+		},
+		{
+			"name"     : "Glance-API-backend",
+			"provide"  : [["@glance-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@glance-registry", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-Registry-LB",
+			"provide"  : [["@glance-registry", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-registry", 2], ["@glance-registry-backend", 1]]
+		},
+		{
+			"name"     : "Glance-Registry-backend",
+			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-DB",
+			"provide"  : [["@glance-db", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Nova-API-LB",
+			"provide"  : [["@nova-api", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-api", 2], ["@nova-api-backend", 1]]
+		},
+		{
+			"name"     : "Nova-API-backend",
+			"provide"  : [["@nova-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-scheduler", 1], ["@nova-conductor", 1], ["@nova-compute", 1], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Scheduler",
+			"provide"  : [["@nova-scheduler", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Conductor",
+			"provide"  : [["@nova-conductor", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Compute",
+			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-DB",
+			"provide"  : [["@nova-db", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Queue-LB",
+			"provide"  : [["@queue", ["FiniteProvide", 100]]],
+			"require"  : [["@queue", 2], ["@queue-backend", 1]]
+		},
+		{
+			"name"     : "Queue-backend",
+			"provide"  : [["@queue-backend", ["FiniteProvide", 100]]]
+		}
+	],
+	"implementation": [
+		[
+			"MySQL-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"MySQL-backend",
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
+		],
+		[
+			"Keystone-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"Keystone-backend",
+			[["debian-wheezy", "keystone (= 2012.1.1-13)"]]
+		],
+		[
+			"Glance-API-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"Glance-API-backend",
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
+		],
+		[
+			"Glance-Registry-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"Glance-Registry-backend",
+			[["debian-wheezy", "glance (= 2012.1.1-4)"]]
+		],
+		[
+			"Glance-DB",
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
+		],
+		[
+			"Nova-API-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"Nova-API-backend",
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
+		],
+		[
+			"Nova-Scheduler",
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
+		],
+		[
+			"Nova-Conductor",
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
+		],
+		[
+			"Nova-Compute",
+			[["debian-wheezy", "nova-common (= 2012.1.1-13)"]]
+		],
+		[
+			"Nova-DB",
+			[["debian-wheezy", "mysql-server (= 5.5.28+dfsg-1)"]]
+		],
+		[
+			"Queue-LB",
+			[["debian-wheezy", "haproxy (= 1.4.15-1)"]]
+		],
+		[
+			"Queue-backend",
+			[["debian-wheezy", "rabbitmq-server (= 2.8.4-1)"]]
+		]
+	]
+}

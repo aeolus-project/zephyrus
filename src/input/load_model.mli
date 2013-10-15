@@ -43,3 +43,5 @@ val model_of_settings : unit ->
 val set_initial_model_of_settings : unit -> unit
 
 val set_initial_model_of_benchmark : Benchmarks.benchmark -> unit
+
+val empty_configuration : Data_model.configuration

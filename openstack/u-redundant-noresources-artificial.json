@@ -1,0 +1,170 @@
+{
+	"component_types": [
+		{
+            "name"     : "MySQL-LB",
+            "provide"  : [["@mysql", ["FiniteProvide", 100]]],
+            "require"  : [["@mysql", 2], ["@mysql-backend", 3]]
+		},
+		{
+			"name"     : "MySQL-backend",
+			"provide"  : [["@mysql-backend", ["FiniteProvide", 100]]]
+		},
+		{
+			"name"     : "Keystone-LB",
+			"provide"  : [["@keystone", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 2], ["@keystone-backend", 3]]
+		},
+		{
+			"name"     : "Keystone-backend",
+			"provide"  : [["@keystone-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Glance-API-LB",
+			"provide"  : [["@glance-api", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-api", 2], ["@glance-api-backend", 2]]
+		},
+		{
+			"name"     : "Glance-API-backend",
+			"provide"  : [["@glance-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@glance-registry", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-Registry-LB",
+			"provide"  : [["@glance-registry", ["FiniteProvide", 100]]],
+			"require"  : [["@glance-registry", 2], ["@glance-registry-backend", 2]]
+		},
+		{
+			"name"     : "Glance-Registry-backend",
+			"provide"  : [["@glance-registry-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@glance-db", 1]]
+		},
+		{
+			"name"     : "Glance-DB",
+			"provide"  : [["@glance-db", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Nova-API-LB",
+			"provide"  : [["@nova-api", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-api", 2], ["@nova-api-backend", 2]]
+		},
+		{
+			"name"     : "Nova-API-backend",
+			"provide"  : [["@nova-api-backend", ["FiniteProvide", 100]]],
+			"require"  : [["@nova-scheduler", 1], ["@nova-conductor", 1], ["@nova-compute", 3], ["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Scheduler",
+			"provide"  : [["@nova-scheduler", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Conductor",
+			"provide"  : [["@nova-conductor", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@nova-db", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-Compute",
+			"provide"  : [["@nova-compute", ["FiniteProvide", 100]]],
+			"require"  : [["@keystone", 1], ["@queue", 1]]
+		},
+		{
+			"name"     : "Nova-DB",
+			"provide"  : [["@nova-db", ["FiniteProvide", 100]]],
+			"require"  : [["@mysql", 1]]
+		},
+		{
+			"name"     : "Queue-LB",
+			"provide"  : [["@queue", ["FiniteProvide", 100]]],
+			"require"  : [["@queue", 2], ["@queue-backend", 2]]
+		},
+		{
+			"name"     : "Queue-backend",
+			"provide"  : [["@queue-backend", ["FiniteProvide", 100]]]
+		}
+	],
+	"implementation": [
+		[
+			"MySQL-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"MySQL-backend",
+			[["repository", "common-package"]]
+		],
+		[
+			"Keystone-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"Keystone-backend",
+			[["repository", "common-package"]]
+		],
+		[
+			"Glance-API-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"Glance-API-backend",
+			[["repository", "common-package"]]
+		],
+		[
+			"Glance-Registry-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"Glance-Registry-backend",
+			[["repository", "common-package"]]
+		],
+		[
+			"Glance-DB",
+			[["repository", "common-package"]]
+		],
+		[
+			"Nova-API-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"Nova-API-backend",
+			[["repository", "common-package"]]
+		],
+		[
+			"Nova-Scheduler",
+			[["repository", "common-package"]]
+		],
+		[
+			"Nova-Conductor",
+			[["repository", "common-package"]]
+		],
+		[
+			"Nova-Compute",
+			[["repository", "common-package"]]
+		],
+		[
+			"Nova-DB",
+			[["repository", "common-package"]]
+		],
+		[
+			"Queue-LB",
+			[["repository", "load-balancer-package"]]
+		],
+		[
+			"Queue-backend",
+			[["repository", "common-package"]]
+		]
+	],
+	"repositories": [
+		{
+			"name": "repository",
+			"packages": [
+				{
+					"name": "common-package"
+				},
+				{
+					"name": "load-balancer-package"
+				}
+			]
+		}
+	]
+}

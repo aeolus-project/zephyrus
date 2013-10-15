@@ -1,32 +1,32 @@
 {
 	"locations" : [
 		{
-			"name" : "location1",
+			"name" : "location-1",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		},
 		{
-			"name" : "location2",
+			"name" : "location-2",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		},
 		{
-			"name" : "location3",
+			"name" : "location-3",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		},
 		{
-			"name" : "location4",
+			"name" : "location-4",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		},
 		{
-			"name" : "location5",
+			"name" : "location-5",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		},
 		{
-			"name" : "location6",
+			"name" : "location-6",
 			"repository" : "repository",
 			"provide_resources" : [["ram", 2048]]
 		}

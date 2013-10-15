@@ -1,0 +1,2 @@
+55799.33user 1.25system 15:33:13elapsed 99%CPU (0avgtext+0avgdata 66164maxresident)k
+0inputs+3512outputs (0major+144482minor)pagefaults 0swaps

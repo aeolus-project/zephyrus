@@ -30,14 +30,14 @@
 (* TODO: change everything *)
 
 let usage = "usage: " ^ Sys.argv.(0)
-  ^ "[-settings settings-file]"
-  ^ "[-u universe-file]"
-  ^ "[-ic initial-configuration-file]"
-  ^ "[-spec specification-file]"
-  ^ "[-repo repository-name packages-file]*" 
-  ^ "[-opt optimization-function]"
-  ^ "[-solver solver]"
-  ^ "[-out output-format output-file]*"
+  ^ " [-settings settings-file]"
+  ^ " [-u universe-file]"
+  ^ " [-ic initial-configuration-file]"
+  ^ " [-spec specification-file]"
+  ^ " [-repo repository-name packages-file]*" 
+  ^ " [-opt optimization-function]"
+  ^ " [-solver solver]"
+  ^ " [-out output-format output-file]*"
 
 let load_file file = Pervasives.ignore (Input_helper.parse_standard Settings_parser.main Settings_lexer.token file)
 
@@ -53,19 +53,21 @@ let speclist =
   Arg.align [
     (* Input arguments *)
     ("-settings", Arg.String (fun filename -> load_file filename), " The settings file");
-    ("-u",        Arg.String (fun filename -> Settings.add_string Settings.input_file_universe filename), " The universe input file");
-    ("-ic",       Arg.String (fun filename -> Settings.add_string Settings.input_file_configuration filename), " The initial configuration input file");
-    ("-spec",     Arg.String (fun filename -> Settings.add_string Settings.input_file_specification filename), " The specification input file");
+    ("-u",        Arg.String (fun filename -> Settings.add_string Settings.input_file_universe filename), " The universe input file.");
+    ("-ic",       Arg.String (fun filename -> Settings.add_string Settings.input_file_configuration filename), " The initial configuration input file.");
+    ("-spec",     Arg.String (fun filename -> Settings.add_string Settings.input_file_specification filename), " The specification input file.");
     ("-repo",     Arg.Tuple (
                      [Arg.String (fun repository_name -> repository_names := repository_name::!repository_names);
                       Arg.String (fun repository_file -> repository_files := repository_file::!repository_files) ]
-                    ), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories)");
+                    ), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories).");
 
     ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
+    ("-mode",         Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode: \"classic\" generates the final configuration, \"validate\" validates the initial one.");
 
     (* Optimization function argument, solver choice *)
-    ("-opt",        Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function");
-    ("-solver",     Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver ), " The solver choice"); 
+    ("-opt",        Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function.");
+    ("-solver",     Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver ), " The solver choice."); 
+    ("-custom-solver-command", Arg.String (fun custom_solver_command -> Settings.add_string Settings.custom_solver_command custom_solver_command), " The custom solver command (example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen.");
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (
@@ -84,7 +86,12 @@ let load () = Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x
   (if not (Settings.mem Settings.import_repositories) then Settings.add Settings.import_repositories (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_initial_configuration) then Settings.add Settings.import_initial_configuration (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_specification) then Settings.add Settings.import_specification (Settings.BoolValue true));
-  (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true))
+  (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true));
+  (if (not (Settings.find Settings.import_initial_configuration)) || (not (Settings.mem Settings.input_file_configuration)) then ( (* easy fix for when we don't input a configuration *)
+    Settings.add Settings.import_initial_configuration (Settings.BoolValue true);
+    Settings.add Settings.input_file_configuration (Settings.IdentValue "default/ic-ex-empty-100loc.json");
+    Settings.add Settings.modifiable_configuration (Settings.BoolValue true)
+  ) else ( Settings.add Settings.modifiable_configuration (Settings.BoolValue false) ))
 
 let check_settings () = (* TODO : what to do? *) ()
 

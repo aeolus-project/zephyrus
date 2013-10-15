@@ -1,0 +1,15 @@
+
+# 01. Input Files
+
+input-file-universe         = "openstack/u-redundant-highmysqlandnovacompute-wheezy.json"
+input-file-configuration    = "openstack/ic-6loc-empty-wheezy.json"
+input-file-specification    = "openstack/main.spec"
+input-file-repositories     = [("debian-wheezy", "repositories/repo-debian-wheezy.json")]
+input-optimization-function = compact
+
+# 07. Output Configuration
+
+results                     = [("json", "openstack/output.json"); ("graph-deployment", "openstack/output.dot")]
+
+verbose-level = 2
+verbose-data = y

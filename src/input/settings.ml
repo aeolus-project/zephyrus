@@ -69,7 +69,7 @@ end
 
 let revert : ('a * 'b) list -> ('b * 'a) list = fun l -> List.fold_left (fun res (a,b) -> (b,a)::res) [] l
 
-let extract_names l = List.fold_left (fun res (n,v) -> ("\"" ^ n ^ "\"")::res) [] l
+let extract_names l = fst (List.split l)
 let convert map value = try Data_common.String_map.find value map with Not_found -> raise Wrong_value
 
 
@@ -91,13 +91,15 @@ let int_domain_message    = "any integer"
 
 (* 1.2. Zephyrus Execution mode. *) (* not used for now *)
 type mode = 
-  | Mode_classic
+  | Mode_classic (*
   | Mode_flat
-  | Mode_bin_packing
+  | Mode_bin_packing *)
+  | Mode_validate_initial_config
 let mode_assoc = [
-  ("classic", Mode_classic);
+  ("classic", Mode_classic); (*
   ("flat", Mode_flat);
-  ("bin-packing", Mode_bin_packing) ]
+  ("bin-packing", Mode_bin_packing); *)
+  ("validate", Mode_validate_initial_config) ]
 let mode_assoc_revert = revert mode_assoc
 
 let mode_names          = extract_names mode_assoc
@@ -160,11 +162,13 @@ type solver =
   | Solver_gcode
   | Solver_g12
   | Solver_facile
+  | Solver_custom
 let solver_assoc = [
   ("facile", Solver_facile);
   ("g12"   , Solver_g12);
   ("gcode" , Solver_gcode);
-  ("none"  , Solver_none) ]
+  ("none"  , Solver_none);
+  ("custom", Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
@@ -301,7 +305,7 @@ let import_specification = ("import-specification", bool_setting)
 let import_optimization_function = ("import-optimization-function", bool_setting)
 
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
-
+let modifiable_configuration = ("modifiable-configuration", bool_setting)
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
 let check_repositories = ("check-repositories", bool_setting)
@@ -323,6 +327,7 @@ let constraint_kind = ("constraint-kind", constraint_kind_setting)
 let preprocess_solver = ("preprocess-solver", solver_setting)
 let solver = ("solver", solver_setting)
 let solver_bin_packing = ("solver-bin-packing", solver_bin_packing_setting)
+let custom_solver_command = ("custom-solver-command", string_setting)
 
     (* 5. Temporary Files *)
 let preprocess_constraint_file = ("preprocess-constraint-file", string_setting)
@@ -378,6 +383,7 @@ let all_settings = [
     preprocess_solver;
     solver;
     solver_bin_packing;
+    custom_solver_command;
     preprocess_constraint_file;
     preprocess_solution_file;
     preprocess_keep_constraint_file;
@@ -422,13 +428,14 @@ module Table = AddColumn(struct type t = bool let name = bool_setting let defaul
             AddColumn(struct type t = int let name = int_setting let default = -1 end)(
             AddListColumn(struct type el = repository let name = repositories_setting  end)(
             AddColumn(struct type t = optim let name = optim_setting let default = default_optim end)(
+            AddColumn(struct type t = mode  let name = mode_setting  let default = default_mode  end)(
             AddColumn(struct type t = constraint_kind let name = constraint_kind_setting let default = default_constraint_kind end)(
             AddColumn(struct type t = solver let name = solver_setting let default = default_solver end)(
             AddColumn(struct type t = solver_bin_packing let name = solver_bin_packing_setting let default = default_solver_bin_packing end)(
             AddColumn(struct type t = gen_bindings let name = gen_bindings_setting let default = default_gen_bindings end)(
             AddColumn(struct type t = gen_packages let name = gen_packages_setting let default = default_gen_packages end)(
             AddListColumn(struct type el = out_file let name = out_files_setting end)(
-              Empty(Base))))))))))))
+              Empty(Base)))))))))))))
 
 type t = Table.t
 let table = Table.create 8
@@ -495,3 +502,5 @@ let get_preprocess_input_file ()       = let res = find preprocess_constraint_fi
 let get_preprocess_output_file ()      = let res = find preprocess_solution_file in if res = "" then "zephyrus-.sol" else res
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
+
+let get_custom_solver_command () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None

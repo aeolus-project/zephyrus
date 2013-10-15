@@ -1,0 +1,15 @@
+
+# 01. Input Files
+
+input-file-universe         = "openstack/u-redundant-complicated-artificial.json"
+input-file-configuration    = "openstack/ic-6loc-empty.json"
+input-file-specification    = "openstack/main.spec"
+input-file-repositories     = []
+input-optimization-function = compact
+
+# 07. Output Configuration
+
+results                     = [("json", "openstack/output.json"); ("graph-deployment", "openstack/output.dot")]
+
+verbose-level = 2
+verbose-data = y

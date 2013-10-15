@@ -1,0 +1,212 @@
+digraph Configuration {
+  rankdir=LR;
+  subgraph cluster_location_location_1 {
+    label = "location-1\n[repository]";
+    component_queue_backend_3 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Queue-backend-3</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__queue_backend">@queue-backend</td></tr></table></td><td> </td></tr></table>>];
+    component_nova_compute_4 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Compute-4</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_compute">@nova-compute</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_glance_db_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-DB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_db">@glance-db</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+    component_mysql_backend_4 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-backend-4</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql_backend">@mysql-backend</td></tr></table></td><td> </td></tr></table>>];
+  }
+  subgraph cluster_location_location_2 {
+    label = "location-2\n[repository]";
+    component_nova_compute_3 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Compute-3</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_compute">@nova-compute</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_api_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-API-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_api_backend">@nova-api-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__nova_compute">@nova-compute</td></tr>
+<tr><td port="required_port__nova_conductor">@nova-conductor</td></tr>
+<tr><td port="required_port__nova_scheduler">@nova-scheduler</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_keystone_backend_3 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Keystone-backend-3</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__keystone_backend">@keystone-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+    component_mysql_backend_3 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-backend-3</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql_backend">@mysql-backend</td></tr></table></td><td> </td></tr></table>>];
+  }
+  subgraph cluster_location_location_3 {
+    label = "location-3\n[repository]";
+    component_nova_compute_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Compute-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_compute">@nova-compute</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_scheduler_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Scheduler-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_scheduler">@nova-scheduler</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_api_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-API-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_api_backend">@nova-api-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__nova_compute">@nova-compute</td></tr>
+<tr><td port="required_port__nova_conductor">@nova-conductor</td></tr>
+<tr><td port="required_port__nova_scheduler">@nova-scheduler</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_glance_registry_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-Registry-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_registry_backend">@glance-registry-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_db">@glance-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_glance_api_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-API-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_api_backend">@glance-api-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_db">@glance-db</td></tr>
+<tr><td port="required_port__glance_registry">@glance-registry</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+  }
+  subgraph cluster_location_location_4 {
+    label = "location-4\n[repository]";
+    component_nova_db_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-DB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_db">@nova-db</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+    component_nova_compute_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Compute-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_compute">@nova-compute</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_scheduler_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Scheduler-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_scheduler">@nova-scheduler</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_glance_registry_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-Registry-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_registry_backend">@glance-registry-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_db">@glance-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_glance_api_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-API-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_api_backend">@glance-api-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_db">@glance-db</td></tr>
+<tr><td port="required_port__glance_registry">@glance-registry</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+  }
+  subgraph cluster_location_location_5 {
+    label = "location-5\n[repository]";
+    component_queue_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Queue-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__queue_backend">@queue-backend</td></tr></table></td><td> </td></tr></table>>];
+    component_queue_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Queue-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__queue">@queue</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue_backend">@queue-backend</td></tr>
+<tr><td port="required_port__queue">@queue</td></tr></table></td></tr></table>>];
+    component_nova_conductor_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Conductor-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_conductor">@nova-conductor</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_api_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-API-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_api">@nova-api</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__nova_api_backend">@nova-api-backend</td></tr>
+<tr><td port="required_port__nova_api">@nova-api</td></tr></table></td></tr></table>>];
+    component_glance_registry_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-Registry-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_registry">@glance-registry</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_registry_backend">@glance-registry-backend</td></tr>
+<tr><td port="required_port__glance_registry">@glance-registry</td></tr></table></td></tr></table>>];
+    component_glance_api_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-API-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_api">@glance-api</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_api_backend">@glance-api-backend</td></tr>
+<tr><td port="required_port__glance_api">@glance-api</td></tr></table></td></tr></table>>];
+    component_keystone_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Keystone-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__keystone_backend">@keystone-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+    component_keystone_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Keystone-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__keystone">@keystone</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__keystone_backend">@keystone-backend</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_mysql_backend_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-backend-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql_backend">@mysql-backend</td></tr></table></td><td> </td></tr></table>>];
+    component_mysql_lb_2 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-LB-2</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql">@mysql</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql_backend">@mysql-backend</td></tr>
+<tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+  }
+  subgraph cluster_location_location_6 {
+    label = "location-6\n[repository]";
+    component_queue_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Queue-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__queue_backend">@queue-backend</td></tr></table></td><td> </td></tr></table>>];
+    component_queue_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Queue-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__queue">@queue</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue_backend">@queue-backend</td></tr>
+<tr><td port="required_port__queue">@queue</td></tr></table></td></tr></table>>];
+    component_nova_conductor_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-Conductor-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_conductor">@nova-conductor</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__queue">@queue</td></tr>
+<tr><td port="required_port__nova_db">@nova-db</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_nova_api_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Nova-API-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__nova_api">@nova-api</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__nova_api_backend">@nova-api-backend</td></tr>
+<tr><td port="required_port__nova_api">@nova-api</td></tr></table></td></tr></table>>];
+    component_glance_registry_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-Registry-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_registry">@glance-registry</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_registry_backend">@glance-registry-backend</td></tr>
+<tr><td port="required_port__glance_registry">@glance-registry</td></tr></table></td></tr></table>>];
+    component_glance_api_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Glance-API-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__glance_api">@glance-api</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__glance_api_backend">@glance-api-backend</td></tr>
+<tr><td port="required_port__glance_api">@glance-api</td></tr></table></td></tr></table>>];
+    component_keystone_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Keystone-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__keystone_backend">@keystone-backend</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+    component_keystone_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">Keystone-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__keystone">@keystone</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__keystone_backend">@keystone-backend</td></tr>
+<tr><td port="required_port__keystone">@keystone</td></tr></table></td></tr></table>>];
+    component_mysql_backend_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-backend-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql_backend">@mysql-backend</td></tr></table></td><td> </td></tr></table>>];
+    component_mysql_lb_1 [shape=box,label=<<table border="0" cellborder="1" cellspacing="0"><tr><td colspan="2">MySQL-LB-1</td></tr><tr><td><table border="0" cellborder="1" cellspacing="0" bgcolor="green"><tr><td port="provided_port__mysql">@mysql</td></tr></table></td><td><table border="0" cellborder="1" cellspacing="0" bgcolor="red"><tr><td port="required_port__mysql_backend">@mysql-backend</td></tr>
+<tr><td port="required_port__mysql">@mysql</td></tr></table></td></tr></table>>];
+  }
+  component_glance_db_1:required_port__mysql -> component_mysql_lb_1:provided_port__mysql
+  component_keystone_backend_3:required_port__mysql -> component_mysql_lb_2:provided_port__mysql
+  component_nova_db_1:required_port__mysql -> component_mysql_lb_1:provided_port__mysql
+  component_mysql_lb_2:required_port__mysql -> component_mysql_lb_2:provided_port__mysql
+  component_mysql_lb_2:required_port__mysql -> component_mysql_lb_1:provided_port__mysql
+  component_keystone_backend_2:required_port__mysql -> component_mysql_lb_2:provided_port__mysql
+  component_mysql_lb_1:required_port__mysql -> component_mysql_lb_1:provided_port__mysql
+  component_mysql_lb_1:required_port__mysql -> component_mysql_lb_2:provided_port__mysql
+  component_keystone_backend_1:required_port__mysql -> component_mysql_lb_1:provided_port__mysql
+  component_mysql_lb_2:required_port__mysql_backend -> component_mysql_backend_4:provided_port__mysql_backend
+  component_mysql_lb_2:required_port__mysql_backend -> component_mysql_backend_3:provided_port__mysql_backend
+  component_mysql_lb_2:required_port__mysql_backend -> component_mysql_backend_2:provided_port__mysql_backend
+  component_mysql_lb_2:required_port__mysql_backend -> component_mysql_backend_1:provided_port__mysql_backend
+  component_mysql_lb_1:required_port__mysql_backend -> component_mysql_backend_4:provided_port__mysql_backend
+  component_mysql_lb_1:required_port__mysql_backend -> component_mysql_backend_3:provided_port__mysql_backend
+  component_mysql_lb_1:required_port__mysql_backend -> component_mysql_backend_2:provided_port__mysql_backend
+  component_mysql_lb_1:required_port__mysql_backend -> component_mysql_backend_1:provided_port__mysql_backend
+  component_nova_compute_4:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_nova_api_backend_2:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_nova_compute_3:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_glance_api_backend_2:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_glance_registry_backend_2:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_nova_api_backend_1:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_nova_scheduler_2:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_nova_compute_2:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_glance_api_backend_1:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_glance_registry_backend_1:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_nova_scheduler_1:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_nova_compute_1:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_keystone_lb_2:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_keystone_lb_2:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_nova_conductor_2:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_keystone_lb_1:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_keystone_lb_1:required_port__keystone -> component_keystone_lb_2:provided_port__keystone
+  component_nova_conductor_1:required_port__keystone -> component_keystone_lb_1:provided_port__keystone
+  component_keystone_lb_2:required_port__keystone_backend -> component_keystone_backend_3:provided_port__keystone_backend
+  component_keystone_lb_2:required_port__keystone_backend -> component_keystone_backend_2:provided_port__keystone_backend
+  component_keystone_lb_2:required_port__keystone_backend -> component_keystone_backend_1:provided_port__keystone_backend
+  component_keystone_lb_1:required_port__keystone_backend -> component_keystone_backend_3:provided_port__keystone_backend
+  component_keystone_lb_1:required_port__keystone_backend -> component_keystone_backend_2:provided_port__keystone_backend
+  component_keystone_lb_1:required_port__keystone_backend -> component_keystone_backend_1:provided_port__keystone_backend
+  component_glance_api_lb_2:required_port__glance_api -> component_glance_api_lb_2:provided_port__glance_api
+  component_glance_api_lb_2:required_port__glance_api -> component_glance_api_lb_1:provided_port__glance_api
+  component_glance_api_lb_1:required_port__glance_api -> component_glance_api_lb_2:provided_port__glance_api
+  component_glance_api_lb_1:required_port__glance_api -> component_glance_api_lb_1:provided_port__glance_api
+  component_glance_api_lb_2:required_port__glance_api_backend -> component_glance_api_backend_2:provided_port__glance_api_backend
+  component_glance_api_lb_2:required_port__glance_api_backend -> component_glance_api_backend_1:provided_port__glance_api_backend
+  component_glance_api_lb_1:required_port__glance_api_backend -> component_glance_api_backend_2:provided_port__glance_api_backend
+  component_glance_api_lb_1:required_port__glance_api_backend -> component_glance_api_backend_1:provided_port__glance_api_backend
+  component_glance_api_backend_2:required_port__glance_registry -> component_glance_registry_lb_2:provided_port__glance_registry
+  component_glance_api_backend_1:required_port__glance_registry -> component_glance_registry_lb_1:provided_port__glance_registry
+  component_glance_registry_lb_2:required_port__glance_registry -> component_glance_registry_lb_2:provided_port__glance_registry
+  component_glance_registry_lb_2:required_port__glance_registry -> component_glance_registry_lb_1:provided_port__glance_registry
+  component_glance_registry_lb_1:required_port__glance_registry -> component_glance_registry_lb_2:provided_port__glance_registry
+  component_glance_registry_lb_1:required_port__glance_registry -> component_glance_registry_lb_1:provided_port__glance_registry
+  component_glance_api_backend_2:required_port__glance_db -> component_glance_db_1:provided_port__glance_db
+  component_glance_registry_backend_2:required_port__glance_db -> component_glance_db_1:provided_port__glance_db
+  component_glance_api_backend_1:required_port__glance_db -> component_glance_db_1:provided_port__glance_db
+  component_glance_registry_backend_1:required_port__glance_db -> component_glance_db_1:provided_port__glance_db
+  component_glance_registry_lb_2:required_port__glance_registry_backend -> component_glance_registry_backend_2:provided_port__glance_registry_backend
+  component_glance_registry_lb_2:required_port__glance_registry_backend -> component_glance_registry_backend_1:provided_port__glance_registry_backend
+  component_glance_registry_lb_1:required_port__glance_registry_backend -> component_glance_registry_backend_2:provided_port__glance_registry_backend
+  component_glance_registry_lb_1:required_port__glance_registry_backend -> component_glance_registry_backend_1:provided_port__glance_registry_backend
+  component_nova_api_lb_2:required_port__nova_api -> component_nova_api_lb_2:provided_port__nova_api
+  component_nova_api_lb_2:required_port__nova_api -> component_nova_api_lb_1:provided_port__nova_api
+  component_nova_api_lb_1:required_port__nova_api -> component_nova_api_lb_2:provided_port__nova_api
+  component_nova_api_lb_1:required_port__nova_api -> component_nova_api_lb_1:provided_port__nova_api
+  component_nova_api_lb_2:required_port__nova_api_backend -> component_nova_api_backend_2:provided_port__nova_api_backend
+  component_nova_api_lb_2:required_port__nova_api_backend -> component_nova_api_backend_1:provided_port__nova_api_backend
+  component_nova_api_lb_1:required_port__nova_api_backend -> component_nova_api_backend_2:provided_port__nova_api_backend
+  component_nova_api_lb_1:required_port__nova_api_backend -> component_nova_api_backend_1:provided_port__nova_api_backend
+  component_nova_api_backend_2:required_port__nova_scheduler -> component_nova_scheduler_2:provided_port__nova_scheduler
+  component_nova_api_backend_2:required_port__nova_scheduler -> component_nova_scheduler_1:provided_port__nova_scheduler
+  component_nova_api_backend_1:required_port__nova_scheduler -> component_nova_scheduler_2:provided_port__nova_scheduler
+  component_nova_api_backend_1:required_port__nova_scheduler -> component_nova_scheduler_1:provided_port__nova_scheduler
+  component_nova_api_backend_2:required_port__nova_conductor -> component_nova_conductor_2:provided_port__nova_conductor
+  component_nova_api_backend_2:required_port__nova_conductor -> component_nova_conductor_1:provided_port__nova_conductor
+  component_nova_api_backend_1:required_port__nova_conductor -> component_nova_conductor_2:provided_port__nova_conductor
+  component_nova_api_backend_1:required_port__nova_conductor -> component_nova_conductor_1:provided_port__nova_conductor
+  component_nova_api_backend_2:required_port__nova_compute -> component_nova_compute_4:provided_port__nova_compute
+  component_nova_api_backend_2:required_port__nova_compute -> component_nova_compute_3:provided_port__nova_compute
+  component_nova_api_backend_2:required_port__nova_compute -> component_nova_compute_2:provided_port__nova_compute
+  component_nova_api_backend_2:required_port__nova_compute -> component_nova_compute_1:provided_port__nova_compute
+  component_nova_api_backend_1:required_port__nova_compute -> component_nova_compute_4:provided_port__nova_compute
+  component_nova_api_backend_1:required_port__nova_compute -> component_nova_compute_3:provided_port__nova_compute
+  component_nova_api_backend_1:required_port__nova_compute -> component_nova_compute_2:provided_port__nova_compute
+  component_nova_api_backend_1:required_port__nova_compute -> component_nova_compute_1:provided_port__nova_compute
+  component_nova_api_backend_2:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_api_backend_1:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_scheduler_2:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_scheduler_1:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_conductor_2:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_conductor_1:required_port__nova_db -> component_nova_db_1:provided_port__nova_db
+  component_nova_compute_4:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_nova_api_backend_2:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_nova_compute_3:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_nova_api_backend_1:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_nova_scheduler_2:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_nova_compute_2:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_nova_scheduler_1:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_nova_compute_1:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_nova_conductor_2:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_queue_lb_2:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_queue_lb_2:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_nova_conductor_1:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_queue_lb_1:required_port__queue -> component_queue_lb_2:provided_port__queue
+  component_queue_lb_1:required_port__queue -> component_queue_lb_1:provided_port__queue
+  component_queue_lb_2:required_port__queue_backend -> component_queue_backend_3:provided_port__queue_backend
+  component_queue_lb_2:required_port__queue_backend -> component_queue_backend_2:provided_port__queue_backend
+  component_queue_lb_2:required_port__queue_backend -> component_queue_backend_1:provided_port__queue_backend
+  component_queue_lb_1:required_port__queue_backend -> component_queue_backend_3:provided_port__queue_backend
+  component_queue_lb_1:required_port__queue_backend -> component_queue_backend_2:provided_port__queue_backend
+  component_queue_lb_1:required_port__queue_backend -> component_queue_backend_1:provided_port__queue_backend
+}

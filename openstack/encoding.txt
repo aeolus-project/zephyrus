@@ -1,0 +1,132 @@
+Encoding:
+
+1. REDUNDANCY: Simple / redundant / very redundant
+
+All load balancers are always redundant (i.e. we have two connected redundant copies of each).
+
+- Simple: everything else is required just in arity one.
+
+- Redundant:
+3 MySQL backends
+3 Keystone backends
+2 Glance API backends
+2 Glance Registry backends
+2 Nova API backends
+3 Nova Compute
+2 Queue backends
+
+- Very Redundant:
+4 MySQL backends
+3 Keystone backends
+2 Glance API backends
+2 Glance Registry backends
+2 Nova API backends
+2 Nova Schedulers
+2 Nova Conductors
+4 Nova Compute
+2 Queue backends
+
+2. RESOURCE CONSUMPTION: No resources / Big resource consumption for MySQL / High resource consumption for MySQL and Nova Compute / Complicated resource consumption
+
+No resources: simplified, nothing consumes resources.
+
+- Big resource consumption for MySQL:
+MySQL-backend consumes 1024 of ram
+everything else consumes 128 of ram
+
+- High resource consumption for MySQL and Nova Compute:
+MySQL-backend consumes 512 of ram
+Nova Compute consumes 1024 of ram
+everything else consumes 128 of ram
+
+- Complicated resource consumption:
+All Load Balancers consume 64 of ram
+MySQL backend consumes 512 of ram
+Keystone backend consumes 256 of ram
+Glance API backend consumes 256 of ram
+Glance Registry backend consumes 256 of ram
+Nova API backend consumes 256 of ram
+Nova Scheduler consumes 256 of ram
+Nova Conductor consumes 256 of ram
+Queue backend consumes 512 of ram
+
+
+3. PACKAGES: Real debian wheezy repository / Artificial simplified repository
+(haproxy, keepalived problem, but they are in the same equivalence class, so it's not so bad)
+
+- Real debian wheezy repository:
+
+All component types are implemented by corresponding packages from debian wheezy repository:
+
+All Load Balancers: "haproxy (= 1.4.15-1)"
+
+(A little problem here: 
+we should add also "keepalived (= 1:1.2.2-3)", but a component cannot be
+implemented by two packages, so we take just "haproxy (= 1.4.15-1)". As these
+two packages are in the same equivalence class, so it does not change
+coinstallability it's not so bad.)
+
+Mysql-backend: "mysql-server (= 5.5.28+dfsg-1)"
+
+Queue-backend: "rabbitmq-server (= 2.8.4-1)"
+
+Keystone: "keystone (= 2012.1.1-13)"
+
+Glance, Glance-API, Glance-Registry : "glance (= 2012.1.1-4)"
+
+Nova-API, Nova-Scheduler, Nova-Compute: "nova-common (= 2012.1.1-13)"
+
+
+- Artificial simplified repository:
+
+We use an artificial repository "repository" with just two packages.
+
+All components are implemented by the "common-package".
+
+All Load Balancer components are implemented by the "load-balancer-package".
+
+(This way we have almost the simpliest repository possible and still we
+influence Zephyrus to try to collocate Load Balancers (all the "*-LB"
+components). Every LB component is inplemented with the "load-balancer-
+package" package, so Zephyrus has to install this package every location with
+one ore more Load Balancer. As for the final optimization he tries to minimize
+the number of packages installed, he will always try to minimize the number of
+machines containing a Load Balancer component, therefore he will try to group
+these components together.)
+
+
+
+
+RESULTS:
+
+No consumption:
+1. Simple,         artificial :     0:00.76
+2. Simple,         wheezy     :     0:14.40
+3. Redundant,      artificial :     0:00.87
+4. Redundant,      wheezy     :     0:14.54
+5. Very redundant, artificial :     0:03.69
+6. Very redundant, wheezy     :     0:21.88
+
+Big MySQL:
+1. Simple,         artificial :     0:00.75
+2. Simple,         wheezy     :     0:15.02
+3. Redundant,      artificial :     0:43.78
+4. Redundant,      wheezy     :     2:58.17
+5. Very redundant, artificial :     0:09.82
+6. Very redundant, wheezy     :     0:47.16
+
+High MySQL and Nova Compute:
+1. Simple,         artificial :     0:00.76
+2. Simple,         wheezy     :     0:14.53
+3. Redundant,      artificial :     0:08.16
+4. Redundant,      wheezy     :    10:53.82
+5. Very redundant, artificial :     4:49.31
+6. Very redundant, wheezy     : 28:15:19
+
+Complicated:
+1. Simple,         artificial :     0:00.90
+2. Simple,         wheezy     :     0:14.75
+3. Redundant,      artificial :     3:10.02
+4. Redundant,      wheezy     : 15:33:13
+5. Very redundant, artificial : 12:44:50
+6. Very redundant, wheezy     : TIMEOUT AFTER ONE WEEK

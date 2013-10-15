@@ -1,0 +1,2 @@
+45738.32user 1.46system 12:44:50elapsed 99%CPU (0avgtext+0avgdata 18644maxresident)k
+0inputs+3256outputs (0major+75299minor)pagefaults 0swaps

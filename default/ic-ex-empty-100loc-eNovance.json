@@ -1,0 +1,404 @@
+{
+	"locations" : [
+		{
+			"name" : "location1",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location2",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location3",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location4",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location5",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location6",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location7",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location8",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location9",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location10",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location11",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location12",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location13",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location14",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location15",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location16",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location17",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location18",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location19",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location20",
+			"repository" : "repository"
+		}		,
+		{
+			"name" : "location21",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location22",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location23",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location24",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location25",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location26",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location27",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location28",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location29",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location30",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location31",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location32",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location33",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location34",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location35",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location36",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location37",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location38",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location39",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location40",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location41",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location42",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location43",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location44",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location45",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location46",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location47",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location48",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location49",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location50",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location51",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location52",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location53",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location54",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location55",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location56",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location57",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location58",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location59",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location60",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location61",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location62",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location63",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location64",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location65",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location66",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location67",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location68",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location69",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location70",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location71",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location72",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location73",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location74",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location75",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location76",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location77",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location78",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location79",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location80",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location81",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location82",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location83",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location84",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location85",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location86",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location87",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location88",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location89",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location90",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location91",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location92",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location93",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location94",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location95",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location96",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location97",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location98",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location99",
+			"repository" : "repository"
+		},
+		{
+			"name" : "location100",
+			"repository" : "repository"
+		}
+	]
+}

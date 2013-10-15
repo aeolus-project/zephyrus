@@ -111,7 +111,9 @@ module Database_test = struct
 *)
 
 
+(*
 (* test the graph *)
+(* TODO: Remove this from here! *)
 module Test_graph_data = struct type t = int end
 module Test_graph = Data_common.Graph.Make(Test_graph_data)(Test_graph_data)
 let () =
@@ -144,7 +146,7 @@ let () =
   Pervasives.ignore (Test_graph.add_edge v0 10 v3 g)  (* merge { 4 (2 3 5) }; order = 1 (2 3 4 5) *)
 
 (* must add a to_string in dot format in the generic graph *)
-
+*)
 
 
 (* === Handling the arguments === *)
@@ -158,15 +160,26 @@ let () = Load_model.set_initial_model_of_settings ();
   Zephyrus_log.log_stage_new "LOAD SECTION";
   let r = check_option "resources"             !Data_state.resources_full in
   let u = check_option "universe"              !Data_state.universe_full in
-  let c = check_option "configuration"         !Data_state.initial_configuration_full in
+  let c = check_option "initial configuration" !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
 
-  (* Validator test *)
-  let validation_results = 
-    let (handle, result) = Validate.make_validation_handler () in
-    Validate.model u s c handle;
-    result () in
+  (* Validation *)
+  Zephyrus_log.log_stage_new "MODEL VALIDATION";
+  let validation_results = Validate.standard_model_check u s c in
+  Zephyrus_log.log_stage_end ();
+
+  (* If validation mode was chosen:*)
+  if Settings.find Settings.mode = Settings.Mode_validate_initial_config 
+  then
+    let initial_configuration_validation_errors = Validate.filter_initial_configuration_validation_errors validation_results in
+    if initial_configuration_validation_errors = []
+    then Printf.printf "\nInitial configuration has passed all checks and is completely valid!\n"
+    else 
+      Printf.printf "\nInitial configuration validation errors:\n";
+      List.iter (fun validation_result -> Printf.printf "%s\n%!" (Validate.String_of.validation_result validation_result)) initial_configuration_validation_errors
+  else
+
 
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
@@ -198,9 +211,9 @@ let () = Load_model.set_initial_model_of_settings ();
   (* ==== Compute bounds ==== *)
   Zephyrus_log.log_stage_new "TRIMMING BOUNDS";
   let u = universe_trimmed_package in
-  let cat = Location_categories.full_categories r u c in
+  let cat = Location_categories.full_categories r u c in (* WaC <- may not work *)
 
-  let sol = match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with
+  let sol = match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with (* WaC <- may not work *)
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
   | Some(sol) -> let (mp, mt) =  Variable_bounds.core_solution sol in
     Zephyrus_log.log_data "\nCORE LOWER BOUNDS ==>\n" (lazy ("  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n"));
@@ -243,7 +256,7 @@ let () = Load_model.set_initial_model_of_settings ();
   Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string core_conf u r) ^ "\n\n"));
 (*  Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
   Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r); *)
-  Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string annex_conf u r) ^ "\n\n"));
+  (if not (Settings.find Settings.modifiable_configuration) then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string annex_conf u r) ^ "\n\n")));
   
   (* TODO: we should never re-assign variables in Data_state *)
   Data_state.initial_configuration_full := Some(core_conf);
@@ -275,7 +288,7 @@ let () = Load_model.set_initial_model_of_settings ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
 
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
-    let final_configuration = Configuration_of.merge annex_conf partial_final_configuration in
+    let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
 (*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r); *)
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string final_configuration u r) ^ "\n"));
     

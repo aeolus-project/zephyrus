@@ -574,7 +574,7 @@ class convert_configuration (catalog : closed_model_catalog) c =
     let resources = 
       Resource_id_map.map_of_list (fun (r, n) -> 
         (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
-      ) l.Json_t.location_provide_resources in
+      ) l.Json_t.location_provide_resources in (* needs to be completed with non-mentioned resources *)
 
     (* cost *)
     let cost = convert_location_cost l.Json_t.location_cost in
@@ -662,6 +662,37 @@ object(self)
 
   method get_location_name  = catalog#location#name_of_id  
   method get_component_name = catalog#component#name_of_id
+end
+
+
+
+let empty_configuration = object(self)
+
+  method get_location  = fun (_ : location_id) -> raise Not_found
+  method get_component = fun (_ : component_id) -> raise Not_found
+
+  method get_locations  = Location_set.empty
+  method get_components = Component_set.empty
+  method get_bindings   = Binding_set.empty
+
+  method get_location_ids  = Location_id_set.empty
+  method get_component_ids = Component_id_set.empty
+
+  method get_location_names  = Location_name_set.empty
+  method get_component_names = Component_name_set.empty
+
+  method c_l = self#get_location_ids
+  method c_c = self#get_component_ids
+  method c_type c = (self#get_component c)#typ
+
+  method get_local_component l t = raise Not_found
+  method get_local_package   l k = raise Not_found
+
+  method get_location_id  = fun _ -> raise Not_found
+  method get_component_id = fun _ -> raise Not_found
+
+  method get_location_name  = fun _ -> raise Not_found
+  method get_component_name = fun _ -> raise Not_found
 end
 
 
