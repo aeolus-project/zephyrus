@@ -129,4 +129,4 @@ Complicated:
 3. Redundant,      artificial :     3:10.02
 4. Redundant,      wheezy     : 15:33:13
 5. Very redundant, artificial : 12:44:50
-6. Very redundant, wheezy     :     ?
+6. Very redundant, wheezy     : TIMEOUT AFTER ONE WEEK
