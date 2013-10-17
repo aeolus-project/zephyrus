@@ -100,6 +100,8 @@ credits:
 
 doc:
 	$(OCAMLBUILD) $(OBFLAGS) zephyrus.docdir/index.html
+	$(OCAMLBUILD) $(OBFLAGS) zephyrus.docdir/zephyrus.dot
+	dot -Tpdf -o zephyrus.docdir/zephyrus.pdf zephyrus.docdir/zephyrus.dot
 
 man:
 #	cd doc/manpages && $(MAKE)
