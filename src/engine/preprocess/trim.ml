@@ -190,7 +190,6 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
 
     let trimmed_package =
       object
-        method name     = package#name
         method id       = package#id
         method depend   = depend
         method conflict = conflict
@@ -203,13 +202,12 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
 
   let get_package (package_id : package_id) : package = 
     try Package_id_map.find package_id !package_of_package_id_map
-    with Not_found -> failwith (Printf.sprintf "In repository %s accessing a package with id=%s which was trimmed out!" (String_of.repository_name repository#name) (String_of.package_id package_id) )
+    with Not_found -> failwith (Printf.sprintf "In repository %s accessing a package with id=%s which was trimmed out!" (String_of.repository_name (Name_of.repository_id repository#id)) (String_of.package_id package_id) )
   in
   
   let packages : Package_set.t = Package_set_of_package_id_set.convert get_package package_ids in
   
   object
-    method name        = repository#name
     method id          = repository#id
     method get_package = get_package
     method packages    = packages
@@ -285,9 +283,6 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
   let get_repository (repository_id : repository_id) : repository = 
     Repository_id_map.find repository_id repository_of_repository_id_map in
 
-  let module Repository_name_set_of_repository_set = Data_common.Set.Convert(Repository_set)(Repository_name_set) in
-  let repository_names : Repository_name_set.t = Repository_name_set_of_repository_set.convert (fun repository -> repository#name) repositories in
-
   (* 3. Trim packages *)
   let (package_ids, package_of_package_id_map, repository_id_of_package_id_map) (* : (Package_id_set.t, package Package_id_map.t, repository_id Package_id_map.t) *) = 
     
@@ -322,39 +317,6 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
   let repository_of_package (package_id : package_id) : repository_id =
     Package_id_map.find package_id repository_id_of_package_id_map in
 
-  let module Package_name_set_of_package_set = Data_common.Set.Convert(Package_set)(Package_name_set) in
-  let package_names : Package_name_set.t = Package_name_set_of_package_set.convert (fun package -> package#name) packages in
-  
-  
-  (* Restrincting domains of the repository id <-> name mapping *)
-  
-  let get_repository_id (repository_name : repository_name) : repository_id =
-    if   Repository_name_set.mem repository_name repository_names
-    then universe#get_repository_id repository_name
-    else failwith (Printf.sprintf "In the universe: getting id of a repository with name=%s which was trimmed out!" (String_of.repository_name repository_name) ) in
-
-  let get_repository_name (repository_id   : repository_id) : repository_name =
-    if   Repository_id_set.mem repository_id repository_ids
-    then universe#get_repository_name repository_id
-    else failwith (Printf.sprintf "In the universe: getting name of a repository with id=%s which was trimmed out!" (String_of.repository_id repository_id) ) in
-  
-
-  (* 4. Restrincting domains of the package id <-> name mapping *)
-  
-  (* (* TODO: This will not work so easily as we don't know the names of packages in a given repository. *)
-  let get_package_id (repository_id : repository_id) (package_name : package_name) : package_id =
-    let repository = get_repository repository_id in
-    if   Package_name_set.mem package_name repository#package_names
-    then universe#get_package_id repository_id package_name
-    else failwith (Printf.sprintf "In the universe: getting id of a package with name=%s which was trimmed out!" (String_of.package_name package_name) ) in
-  *)
-
-  let get_package_name (package_id   : package_id) : package_name =
-    if   Package_id_set.mem package_id package_ids
-    then universe#get_package_name package_id
-    else failwith (Printf.sprintf "In the universe: getting name of a package with id=%s which was trimmed out!" (String_of.package_id package_id) ) in
-  
-
   (* The trimmed universe. *)
   object
     (* basic methods *)
@@ -376,12 +338,6 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     method get_package_ids        = package_ids                     (* Updated! *)
     method get_resource_ids       = universe#get_resource_ids       (* Irrelevant to repository trimming. *)
 
-    method get_port_names           = universe#get_port_names           (* Irrelevent to repository trimming. *)
-    method get_component_type_names = universe#get_component_type_names (* Irrelevent to repository trimming. *)
-    method get_repository_names     = repository_names                  (* Updated! *)
-    method get_package_names        = package_names                     (* Updated! *)
-    method get_resource_names       = universe#get_resource_names       (* Irrelevant to repository trimming. *)
-
     (* methods coming from the paper. Usually, aliases for well-named functions *)
     method u_dt = universe#u_dt  (* Irrelevent to repository trimming. *)
     method u_dp = universe#u_dp  (* Irrelevent to repository trimming. *)
@@ -394,19 +350,6 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     method ur = universe#ur (* Irrelevent to repository trimming. *)
     method up = universe#up (* Irrelevent to repository trimming. *)
     method uc = universe#uc (* Irrelevent to repository trimming. *)
-
-    (* methods for naming *)
-    method get_port_id           = universe#get_port_id           (* Irrelevent to repository trimming. *)
-    method get_component_type_id = universe#get_component_type_id (* Irrelevent to repository trimming. *)
-    method get_repository_id     = get_repository_id              (* Domain restricted. *)
-    method get_package_id        = universe#get_package_id        (* TODO: Domain should be restricted. *)
-    method get_resource_id       = universe#get_resource_id       (* Irrelevant to repository trimming. *)
-
-    method get_port_name           = universe#get_port_name           (* Irrelevent to repository trimming. *)
-    method get_component_type_name = universe#get_component_type_name (* Irrelevent to repository trimming. *)
-    method get_repository_name     = get_repository_name              (* Domain restricted. *)
-    method get_package_name        = get_package_name                 (* Domain restricted. *)
-    method get_resource_name       = universe#get_resource_name       (* Irrelevant to repository trimming. *)
   end
 
 
@@ -497,10 +440,6 @@ let configuration c domain =
   let component_ids_2 = Component_id_set.diff c#get_component_ids component_ids_1 in
   let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) c#get_bindings in
   let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) c#get_bindings in
-  let location_names_1 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_1 Location_name_set.empty in
-  let location_names_2 = Location_set.fold (fun l res -> Location_name_set.add l#name res) locations_2 Location_name_set.empty in
-  let component_names_1 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_1 Component_name_set.empty in
-  let component_names_2 = Component_set.fold (fun l res -> Component_name_set.add l#name res) components_2 Component_name_set.empty in
   (* print_string ("annex conf location domain = " ^ (String_of.location_id_set location_ids_2) ^ "\n"); *)
  ( object
       method get_location   = get_location
@@ -510,17 +449,11 @@ let configuration c domain =
       method get_bindings   = bindings_1
       method get_location_ids  = location_ids_1
       method get_component_ids = component_ids_1
-      method get_location_names  = location_names_1
-      method get_component_names = component_names_1
       method c_l = location_ids_1
       method c_c = component_ids_1
       method c_type = c#c_type
       method get_local_component = c#get_local_component
       method get_local_package   = c#get_local_package
-      method get_location_id     = c#get_location_id
-      method get_component_id    = c#get_component_id
-      method get_location_name   = c#get_location_name
-      method get_component_name  = c#get_component_name
     end , object
       method get_location   = c#get_location
       method get_component  = c#get_component
@@ -529,22 +462,15 @@ let configuration c domain =
       method get_bindings   = bindings_2
       method get_location_ids  = location_ids_2
       method get_component_ids = component_ids_2
-      method get_location_names  = location_names_2
-      method get_component_names = component_names_2
       method c_l = location_ids_2
       method c_c = component_ids_2
       method c_type = c#c_type
       method get_local_component = c#get_local_component
       method get_local_package   = c#get_local_package
-      method get_location_id     = c#get_location_id
-      method get_component_id    = c#get_component_id
-      method get_location_name   = c#get_location_name
-      method get_component_name  = c#get_component_name
     end )
 
 let empty c = 
   let inner l (set, map) = let l' = object
-      method name = l#name
       method id = l#id
       method repository = l#repository
       method packages_installed = Package_id_set.empty
@@ -559,17 +485,11 @@ let empty c =
     method get_bindings   = Binding_set.empty
     method get_location_ids  = c#get_location_ids
     method get_component_ids = Component_id_set.empty
-    method get_location_names  = c#get_location_names
-    method get_component_names = Component_name_set.empty
     method c_l = c#c_l
     method c_c = Component_id_set.empty
     method c_type = (fun c -> (self#get_component c)#typ)
     method get_local_component = (fun _ _ -> Component_id_set.empty)
     method get_local_package   = (fun _ _ -> false)
-    method get_location_id     = c#get_location_id
-    method get_component_id    = c#get_component_id
-    method get_location_name   = c#get_location_name
-    method get_component_name  = c#get_component_name
   end
   
 

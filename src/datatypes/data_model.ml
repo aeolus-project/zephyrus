@@ -116,7 +116,6 @@ type require_arity = int
   (** Component type. *)
 
 class type component_type = object
-  method name           : component_type_name                     (** The name of this component type. *)
   method id             : component_type_id
   method provide        : port_id -> provide_arity                (** Which ports does this component provide and with what arities. *)
   method provide_domain : Port_id_set.t
@@ -154,7 +153,6 @@ module Package_id_map_extract_key   = Keys_of_Int_map
 
   (** Package. *)
 class type package = object
-  method name     : package_name                              (** The name of this package. *)
   method id       : package_id
   method depend   : Package_id_set_set.t                      (** Which packages does this package depend on (a disjunction of conjunctions). *)
   method conflict : Package_id_set.t                          (** Which packages is this package is in conflict with. *)
@@ -188,7 +186,6 @@ module Repository_id_map_extract_key = Keys_of_Int_map
 
   (** Repository. *)
 class type repository = object
-  method name        : repository_name         (** The name of this repository. *)
   method id          : repository_id
   method get_package : package_id -> package   (** Which packages does this repository contain. *)
 
@@ -225,12 +222,6 @@ class type universe = object
   method get_package_ids        : Package_id_set.t
   method get_resource_ids       : Resource_id_set.t
 
-  method get_port_names           : Port_name_set.t           (* DEPRECATED *)
-  method get_component_type_names : Component_type_name_set.t (* DEPRECATED *)
-  method get_repository_names     : Repository_name_set.t     (* DEPRECATED *)
-  method get_package_names        : Package_name_set.t        (* DEPRECATED *)
-  method get_resource_names       : Resource_name_set.t       (* DEPRECATED *)
-
   (* methods coming from the paper. Usually, aliases for well-named functions *)
   method u_dt : Component_type_id_set.t
   method u_dp : Port_id_set.t
@@ -243,19 +234,6 @@ class type universe = object
   method ur : port_id -> Component_type_id_set.t
   method up : port_id -> Component_type_id_set.t
   method uc : port_id -> Component_type_id_set.t
-
-  (* methods for naming *)
-  method get_port_id           : port_name -> port_id
-  method get_component_type_id : component_type_name -> component_type_id
-  method get_repository_id     : repository_name -> repository_id
-  method get_package_id        : repository_id -> package_name -> package_id
-  method get_resource_id       : resource_name -> resource_id
-
-  method get_port_name           : port_id -> port_name
-  method get_component_type_name : component_type_id -> component_type_name
-  method get_repository_name     : repository_id -> repository_name
-  method get_package_name        : package_id -> package_name
-  method get_resource_name       : resource_id -> resource_name
 end
 
 
@@ -284,7 +262,6 @@ module Location_cost = Int
 
   (** Location. *)
 class type location = object
-  method name               : location_name                            (** The name of this location. *)
   method id                 : location_id
   method repository         : repository_id                            (** The name of the package repository used by this location. *)
   method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
@@ -322,7 +299,6 @@ module Component_id_map_extract_key = Keys_of_Int_map
 
   (** Components *)
 class type component = object
-  method name     : component_name
   method id       : component_id 
   method typ      : component_type_id
   method location : location_id
@@ -378,9 +354,6 @@ class type configuration = object
   method get_location_ids  : Location_id_set.t
   method get_component_ids : Component_id_set.t
 
-  method get_location_names  : Location_name_set.t
-  method get_component_names : Component_name_set.t
-
   (* methods coming from the paper. Usually, aliases for well-named functions *)
   method c_l : Location_id_set.t
   method c_c : Component_id_set.t
@@ -388,13 +361,6 @@ class type configuration = object
 
   method get_local_component : location_id -> component_type_id -> Component_id_set.t
   method get_local_package : location_id -> package_id -> bool
-
-  (* methods for naming *)
-  method get_location_id  : location_name -> location_id
-  method get_component_id : component_name -> component_id
-
-  method get_location_name  : location_id -> location_name
-  method get_component_name : component_id -> component_name
 end
 
 

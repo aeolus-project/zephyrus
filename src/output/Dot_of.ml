@@ -123,7 +123,7 @@ let strings_of_component c : component -> string list =
 let configuration (graph_settings : graph_settings) (universe : universe) (configuration : configuration) : string =
 
   let strings_of_component (c: component) : string = (* could be string *)
-    let name = String_of.component_name c#name in 
+    let name = String_of.component_name (Name_of.component_id c#id) in 
     let id    = component_id name in
     
     let strings_of_component_without_ports (component : component) : string = 
@@ -132,12 +132,12 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
     let strings_of_component_with_ports (component : component) : string = 
       let t = universe#get_component_type component#typ  in
       let required_ports_table =
-        let inner p res = let p_name = String_of.port_name (universe#get_port_name p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id p_name) p_name)::res in
+        let inner p res = let p_name = String_of.port_name (Name_of.port_id p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id p_name) p_name)::res in
         let required_ports_strings = Port_set.fold inner t#require_domain [] in
         if required_ports_strings = [] then " "
         else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (String.concat "\n" required_ports_strings) in
       let provided_ports_table =
-        let inner p res = let p_name = String_of.port_name (universe#get_port_name p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id p_name) p_name)::res in
+        let inner p res = let p_name = String_of.port_name (Name_of.port_id p) in (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id p_name) p_name)::res in
         let provided_ports_strings = Port_set.fold inner t#provide_domain [] in
         if provided_ports_strings = [] then " "
         else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"green\">%s</table>" (String.concat "\n" provided_ports_strings)
@@ -148,21 +148,21 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   in
       
   let strings_of_binding (b: binding) : string list = (* could be string *)
-    let requirer_id  = component_id (String_of.component_name (configuration#get_component_name b#requirer)) in
-    let provider_id  = component_id (String_of.component_name (configuration#get_component_name b#provider)) in
+    let requirer_id  = component_id (String_of.component_name (Name_of.component_id b#requirer)) in
+    let provider_id  = component_id (String_of.component_name (Name_of.component_id b#provider)) in
     let strings_of_binding_without_ports (b : binding) =  [requirer_id ^ " -> " ^ provider_id ^ ";"] in
-    let strings_of_binding_with_ports (binding : binding) = let p_name = String_of.port_name (universe#get_port_name b#port) in
+    let strings_of_binding_with_ports (binding : binding) = let p_name = String_of.port_name (Name_of.port_id b#port) in
       [ requirer_id ^ ":" ^ (required_port_id p_name) ^ " -> " ^ provider_id ^ ":" ^ (provided_port_id p_name) ]  in
     if graph_settings.show_ports then strings_of_binding_with_ports b else strings_of_binding_without_ports b
   in
 
   let strings_of_packages_at_location (l : location) : string list =
-    let inner k_id res = ((package_at_location_id (String_of.location_name l#name) k_id) ^ "[shape=ellipse,label=\"" ^ (String_of.package_id k_id) ^ "\"];")::res in
+    let inner k_id res = ((package_at_location_id (String_of.location_name (Name_of.location_id l#id)) k_id) ^ "[shape=ellipse,label=\"" ^ (String_of.package_id k_id) ^ "\"];")::res in
      Package_id_set.fold inner l#packages_installed []
   in
       
   let strings_of_package_dependency_at_location (location : location) : string list =
-    let name  = String_of.location_name location#name in
+    let name  = String_of.location_name (Name_of.location_id location#id) in
     let location_packages_installed = location#packages_installed in
     Package_id_set.fold (fun k_id res -> 
         let dependencies = Package_id_set_set.choose (Package_id_set_set.filter (fun s -> Package_id_set.subset s location_packages_installed) (universe#get_package k_id)#depend) in
@@ -171,18 +171,18 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   in
       
   let strings_of_package_implementation_at_location (location : location) : string list =
-    let name  = String_of.location_name location#name in
+    let name  = String_of.location_name (Name_of.location_id location#id) in
     let location_packages_installed = location#packages_installed in
     Component_set.fold (fun c res ->
         let k_id = Package_id_set.choose (Package_id_set.inter location_packages_installed (universe#get_implementation c#typ)) in
-          ((component_id (String_of.component_name c#name)) ^ " -> " ^ (package_at_location_id name k_id))::res)
+          ((component_id (String_of.component_name (Name_of.component_id c#id))) ^ " -> " ^ (package_at_location_id name k_id))::res)
       (Component_set.filter (fun c -> c#location = location#id) configuration#get_components) []
   in
       
   let strings_of_location (location : location) : string list =
-    let name  = String_of.location_name location#name in
+    let name  = String_of.location_name (Name_of.location_id location#id) in
     let id    = location_id name in
-    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (universe#get_repository_name location#repository)) in
+    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (Name_of.location_id location#repository)) in
     let location_component_strings : string list = (* the components inside the location *)
       if graph_settings.show_components
       then (List.map strings_of_component (Component_set.elements (Component_set.filter (fun c -> c#location = location#id) configuration#get_components)))
@@ -190,7 +190,7 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
     let location_package_strings : string list =   (* the packages inside the location *)
       if graph_settings.show_packages
       then
-        (strings_of_packages_at_location location) 
+          (strings_of_packages_at_location           location) 
         @ (strings_of_package_dependency_at_location location)
         @ (if graph_settings.show_components then strings_of_package_implementation_at_location location else [])
       else [] in

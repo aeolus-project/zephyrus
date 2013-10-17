@@ -50,83 +50,72 @@ let convert_component_name         x = x
 let convert_location_cost          x = x
 
 (* universe *)
-let convert_component_type t resources port_get_name resource_get_name = 
+let convert_component_type t resource_id_list = 
 (* DEBUG **************************)
 
-   print_string( " => component \"" ^ t#name ^ "\" provides " ^ (String_of.port_id_set t#provide_domain) ^ "\n");
-   print_string( " => component \"" ^ t#name ^ "\" requires " ^ (String_of.port_id_set t#require_domain) ^ "\n");
+   print_string( " => component \"" ^ (Name_of.component_type_id t#id) ^ "\" provides " ^ (String_of.port_id_set t#provide_domain) ^ "\n"); `
+   print_string( " => component \"" ^ (Name_of.component_type_id t#id) ^ "\" requires " ^ (String_of.port_id_set t#require_domain) ^ "\n");
 
 (* DEBUG **************************) {
-    Json_j.component_type_name = convert_component_type_name (t#name);
-    Json_j.component_type_provide  = List.map (fun p -> (port_get_name p, convert_provide_arity (t#provide p))) (Port_id_set.elements t#provide_domain);
-    Json_j.component_type_require  = List.map (fun p -> (port_get_name p, convert_require_arity (t#require p))) (Port_id_set.elements t#require_domain);
-    Json_j.component_type_conflict = List.map port_get_name (Port_id_set.elements (t#conflict));
-    Json_j.component_type_consume  = List.map (fun r -> (resource_get_name r, convert_resource_consume_arity (t#consume r))) resources
+    Json_j.component_type_name = Name_of.component_type_id t#id;
+    Json_j.component_type_provide  = List.map (fun p -> (Name_of.port_id p, convert_provide_arity (t#provide p))) (Port_id_set.elements t#provide_domain);
+    Json_j.component_type_require  = List.map (fun p -> (Name_of.port_id p, convert_require_arity (t#require p))) (Port_id_set.elements t#require_domain);
+    Json_j.component_type_conflict = List.map Name_of.port_id (Port_id_set.elements (t#conflict));
+    Json_j.component_type_consume  = List.map (fun r -> (Name_of.resource_id r, convert_resource_consume_arity (t#consume r))) resource_id_list
 }
 
-let convert_package k resources package_get_name resource_get_name = {
-    Json_j.package_name     = convert_package_name (k#name);
-    Json_j.package_depend   = List.map (fun ks -> List.map package_get_name (Package_id_set.elements ks)) (Package_id_set_set.elements k#depend);
-    Json_j.package_conflict = List.map package_get_name (Package_id_set.elements k#conflict);
-    Json_j.package_consume  = List.map (fun r -> (resource_get_name r, convert_resource_consume_arity (k#consume r))) resources
+let convert_package k resource_id_list = {
+    Json_j.package_name     = Name_of.package_id k#id;
+    Json_j.package_depend   = List.map (fun ks -> List.map Name_of.package_id (Package_id_set.elements ks)) (Package_id_set_set.elements k#depend);
+    Json_j.package_conflict = List.map Name_of.package_id (Package_id_set.elements k#conflict);
+    Json_j.package_consume  = List.map (fun r -> (Name_of.resource_id r, convert_resource_consume_arity (k#consume r))) resource_id_list
 }
 
-let convert_repository r resources package_get_name resource_get_name = {
-    Json_j.repository_name     = convert_repository_name (r#name);
-    Json_j.repository_packages = List.map (fun k -> convert_package k resources package_get_name resource_get_name) (Package_set.elements (r#packages))
+let convert_repository r resource_id_list = {
+    Json_j.repository_name     = Name_of.resource_id r#id;
+    Json_j.repository_packages = List.map (fun k -> convert_package k resource_id_list) (Package_set.elements (r#packages))
 }
 
-let convert_universe_tmp u resources resource_get_name =
-  let port_get_name p = convert_port_name (u#get_port_name p) in
-  let component_type_get_name c = convert_component_type_name (u#get_component_type_name c) in
-  let repository_get_name r = convert_repository_name (u#get_repository_name r) in
-  let package_get_name_full k = (repository_get_name (u#repository_of_package k), convert_package_name (u#get_package_name k)) in
-  let package_get_name k = convert_package_name (u#get_package_name k) in {
+let convert_universe_tmp u resource_id_list =
+  let package_get_name_full   k = (Name_of.repository_id (u#repository_of_package k), Name_of.package_id k) in {
     Json_j.universe_component_types =
-      List.map (fun c -> convert_component_type c resources port_get_name resource_get_name) (Component_type_set.elements u#get_component_types);
-    Json_j.universe_implementation = List.map (fun c -> (component_type_get_name c, List.map package_get_name_full (Package_id_set.elements (u#get_implementation c))))
+      List.map (fun c -> convert_component_type c resource_id_list) (Component_type_set.elements u#get_component_types);
+    Json_j.universe_implementation = List.map (fun c -> (Name_of.component_type_id c, List.map package_get_name_full (Package_id_set.elements (u#get_implementation c))))
         (Component_type_id_set.elements u#get_component_type_ids);
-    Json_j.universe_repositories = List.map (fun r -> convert_repository r resources package_get_name resource_get_name) (Repository_set.elements (u#get_repositories))
+    Json_j.universe_repositories = List.map (fun r -> convert_repository r resource_id_list) (Repository_set.elements (u#get_repositories))
 }
 
-let convert_universe u resources = convert_universe_tmp u (Resource_id_set.elements resources#resource_ids) resources#get_name
+let convert_universe u resources = convert_universe_tmp u (Resource_id_set.elements resources#resource_ids)
 
 
 (* configuration *)
-let convert_location l resources repository_get_name package_get_name component_get_name resource_get_name = {
-    Json_j.location_name = convert_location_name l#name;
-    Json_j.location_repository = repository_get_name l#repository;
-    Json_j.location_packages_installed = List.map package_get_name (Package_id_set.elements l#packages_installed);
-    Json_j.location_provide_resources = List.map (fun r -> (resource_get_name r, convert_resource_provide_arity (l#provide_resources r))) resources;
+let convert_location l resource_id_list = {
+    Json_j.location_name = Name_of.location_id l#id;
+    Json_j.location_repository = Name_of.repository_id l#repository;
+    Json_j.location_packages_installed = List.map Name_of.package_id (Package_id_set.elements l#packages_installed);
+    Json_j.location_provide_resources = List.map (fun r -> (Name_of.resource_id r, convert_resource_provide_arity (l#provide_resources r))) resource_id_list;
     Json_j.location_cost = convert_location_cost l#cost
 }
 
-let convert_component c resources component_type_get_name location_get_name = {
-    Json_j.component_name = convert_component_name c#name;
-    Json_j.component_type = component_type_get_name c#typ;
-    Json_j.component_location = location_get_name c#location
+let convert_component c = {
+    Json_j.component_name     = Name_of.component_id      c#id;
+    Json_j.component_type     = Name_of.component_type_id c#typ;
+    Json_j.component_location = Name_of.location_id       c#location
 }
 
-let convert_binding b port_get_name component_get_name = {
-    Json_j.binding_port     = port_get_name b#port;
-    Json_j.binding_requirer = component_get_name b#requirer;
-    Json_j.binding_provider = component_get_name b#provider
+let convert_binding b = {
+    Json_j.binding_port     = Name_of.port_id      b#port;
+    Json_j.binding_requirer = Name_of.component_id b#requirer;
+    Json_j.binding_provider = Name_of.component_id b#provider
 }
 
-let convert_configuration_tmp resources c u resource_get_name =
-  let repository_get_name = u#get_repository_name in
-  let port_get_name = u#get_port_name in
-  let component_type_get_name c = convert_component_type_name (u#get_component_type_name c) in
-  let package_get_name = u#get_package_name in
-  let location_get_name = c#get_location_name in
-  let component_get_name = c#get_component_name in {
-    Json_j.configuration_locations = List.map (fun l -> convert_location l resources repository_get_name package_get_name component_get_name resource_get_name)
-        (Location_set.elements c#get_locations);
-    Json_j.configuration_components = List.map (fun c -> convert_component c resources component_type_get_name location_get_name) (Component_set.elements c#get_components);
-    Json_j.configuration_bindings = List.map (fun b -> convert_binding b port_get_name component_get_name) (Binding_set.elements c#get_bindings)
+let convert_configuration_tmp c u resource_id_list = {
+    Json_j.configuration_locations  = List.map (fun l -> convert_location l resource_id_list) (Location_set.elements c#get_locations);
+    Json_j.configuration_components = List.map (fun c -> convert_component c) (Component_set.elements c#get_components);
+    Json_j.configuration_bindings   = List.map (fun b -> convert_binding b) (Binding_set.elements c#get_bindings)
 }
 
-let convert_configuration c u resources = convert_configuration_tmp (Resource_id_set.elements resources#resource_ids) c u resources#get_name
+let convert_configuration c u resources = convert_configuration_tmp c u (Resource_id_set.elements resources#resource_ids)
 
 (* Specification *)
 

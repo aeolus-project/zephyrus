@@ -56,26 +56,58 @@ module Component_catalog          = Data_common.Catalog(Fresh_id)(Component_id_s
 
 
 (* A meta-catalog containing catalogs of all objects from our model. *)
-class type model_catalog = object
-  method component_type : Component_type_catalog .catalog_iface  (* component types *)
-  method port           : Port_catalog           .catalog_iface  (* ports *)
-  method repository     : Repository_catalog     .catalog_iface  (* repositories *)
-  method package        : Package_catalog        .catalog_iface  (* packages *)
-  method resource       : Resource_catalog       .catalog_iface  (* resources *)
-  method location       : Location_catalog       .catalog_iface  (* locations *)
-  method component      : Component_catalog      .catalog_iface  (* components *)
+class model_catalog 
+  ~component_type_catalog
+  ~port_catalog
+  ~repository_catalog
+  ~package_catalog
+  ~resource_catalog
+  ~location_catalog
+  ~component_catalog
+  = object
+  
+  val    component_type_catalog : Component_type_catalog .catalog_iface = component_type_catalog
+  val    port_catalog           : Port_catalog           .catalog_iface = port_catalog
+  val    repository_catalog     : Repository_catalog     .catalog_iface = repository_catalog
+  val    package_catalog        : Package_catalog        .catalog_iface = package_catalog
+  val    resource_catalog       : Resource_catalog       .catalog_iface = resource_catalog
+  val    location_catalog       : Location_catalog       .catalog_iface = location_catalog
+  val    component_catalog      : Component_catalog      .catalog_iface = component_catalog
 
-  method to_string : string
+  method component_type         : Component_type_catalog .catalog_iface = component_type_catalog
+  method port                   : Port_catalog           .catalog_iface = port_catalog
+  method repository             : Repository_catalog     .catalog_iface = repository_catalog
+  method package                : Package_catalog        .catalog_iface = package_catalog
+  method resource               : Resource_catalog       .catalog_iface = resource_catalog
+  method location               : Location_catalog       .catalog_iface = location_catalog
+  method component              : Component_catalog      .catalog_iface = component_catalog
+
 end
 
-class type closed_model_catalog = object
-  method component_type : Component_type_catalog .closed_catalog_iface
-  method port           : Port_catalog           .closed_catalog_iface
-  method repository     : Repository_catalog     .closed_catalog_iface
-  method package        : Package_catalog        .closed_catalog_iface
-  method resource       : Resource_catalog       .closed_catalog_iface
-  method location       : Location_catalog       .closed_catalog_iface
-  method component      : Component_catalog      .closed_catalog_iface
+class closed_model_catalog 
+  ~component_type_catalog
+  ~port_catalog
+  ~repository_catalog
+  ~package_catalog
+  ~resource_catalog
+  ~location_catalog
+  ~component_catalog
+  = object
+  
+  val    component_type_catalog : Component_type_catalog .closed_catalog_iface = component_type_catalog
+  val    port_catalog           : Port_catalog           .closed_catalog_iface = port_catalog
+  val    repository_catalog     : Repository_catalog     .closed_catalog_iface = repository_catalog
+  val    package_catalog        : Package_catalog        .closed_catalog_iface = package_catalog
+  val    resource_catalog       : Resource_catalog       .closed_catalog_iface = resource_catalog
+  val    location_catalog       : Location_catalog       .closed_catalog_iface = location_catalog
+  val    component_catalog      : Component_catalog      .closed_catalog_iface = component_catalog
 
-  method to_string : string
+  method component_type         : Component_type_catalog .closed_catalog_iface = component_type_catalog
+  method port                   : Port_catalog           .closed_catalog_iface = port_catalog
+  method repository             : Repository_catalog     .closed_catalog_iface = repository_catalog
+  method package                : Package_catalog        .closed_catalog_iface = package_catalog
+  method resource               : Resource_catalog       .closed_catalog_iface = resource_catalog
+  method location               : Location_catalog       .closed_catalog_iface = location_catalog
+  method component              : Component_catalog      .closed_catalog_iface = component_catalog
+
 end

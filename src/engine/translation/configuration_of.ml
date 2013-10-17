@@ -169,11 +169,10 @@ let generate_components
           (* If we don't have any more initial components left we create new ones. *)
           let new_component : (used_names -> component) =
             (fun used_names -> 
-              let component_name = fresh_component_name (location_name_of_id location_id) (component_type_name_of_id component_type_id) used_names
-              in 
+              let component_name = fresh_component_name (location_name_of_id location_id) (component_type_name_of_id component_type_id) used_names in
+              let component_id   = new_component_catalog#get_else_add component_name in
               object
-                method name     = component_name;
-                method id       = new_component_catalog#get_else_add component_name;
+                method id       = component_id;
                 method typ      = component_type_id;
                 method location = location_id;
               end) in
@@ -185,6 +184,7 @@ let generate_components
 
     ) component_type_ids
   ) location_ids;
+
 
   (* We have prepared all the almost-done-components. Now we can extract all their names
      and we will have the initial set of names already used in the configuration
@@ -325,7 +325,6 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     let new_location : location =
       object
-        method name                = name
         method id                  = location_id
         method repository          = repository
         method packages_installed  = if true then root_packages_installed else packages_installed (* TODO: We need a setting for that. *)
@@ -343,41 +342,45 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let locations    : Location_set.t          = location_catalog#objs in
   let get_location : location_id -> location = location_catalog#obj_of_id in
 
-  let location_name_catalog : Location_catalog.catalog_iface = Location_catalog.of_id_to_name_map (Location_id_map.map get_name !location_id_to_location_map) in
-  let location_names        : Location_name_set.t            = location_name_catalog#names in
-  let location_name_of_id   : location_id -> location_name   = location_name_catalog#name_of_id in
-  let location_id_of_name   : location_name -> location_id   = location_name_catalog#id_of_name in
+  let location_name_catalog : Location_catalog.catalog_iface = Location_catalog.of_id_to_name_map (Location_id_map.map (fun location -> Name_of.location_id location#id) !location_id_to_location_map) in
 
   let get_local_package location_id package_id : bool =
     Package_id_set.mem package_id (get_location location_id)#packages_installed in
 
-  let new_component_catalog : Component_catalog.catalog = 
+  let component_catalog : Component_catalog.catalog = 
     match !Data_state.catalog_full with
     | None         -> new Component_catalog.catalog
     | Some catalog -> Component_catalog.of_id_to_name_map catalog#component#id_to_name_map  in
 
   (* components *)
-  let components : Component_set.t = generate_components
-    new_component_catalog
-    initial_configuration#get_components
-    location_ids
-    location_name_of_id
-    universe#get_component_type_ids
-    universe#get_component_type_name
-    solution in
+  let component_set : Component_set.t =
+    generate_components
+      component_catalog
+      initial_configuration#get_components
+      location_ids
+      Name_of.location_id
+      universe#get_component_type_ids
+      Name_of.component_type_id
+      solution in
 
   (* Update the main catalog with new components catalog. *)
+  Data_state.catalog_full := (
+    match !Data_state.catalog_full with
+    | None         -> None
+    | Some catalog -> Some (new closed_model_catalog 
+                              ~component_type_catalog: catalog#component_type
+                              ~port_catalog:           catalog#port
+                              ~repository_catalog:     catalog#repository
+                              ~package_catalog:        catalog#package
+                              ~resource_catalog:       catalog#resource
+                              ~location_catalog:       catalog#location
+                              ~component_catalog:      (Component_catalog.close_catalog component_catalog)));
 
-  let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs components in
+  let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs component_set in
+
   let component_ids = component_obj_catalog#ids in
   
   let get_component : component_id -> component = component_obj_catalog#obj_of_id in
-
-  let component_name_catalog : Component_catalog.catalog_iface = Component_catalog.of_id_to_name_map (Component_id_map.map get_name component_obj_catalog#id_to_obj_map) in
-  let component_names        : Component_name_set.t            = component_name_catalog#names in
-  let component_name_of_id   : component_id -> component_name  = component_name_catalog#name_of_id in
-  let component_id_of_name   : component_name -> component_id  = component_name_catalog#id_of_name in
-
   let get_local_components location_id component_type_id : Component_id_set.t =
     Component_id_set.filter (fun component_id -> ((get_component component_id)#location = location_id)) component_ids in
 
@@ -391,14 +394,11 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     method get_component = get_component
 
     method get_locations  = locations
-    method get_components = components
+    method get_components = component_set
     method get_bindings   = bindings
 
     method get_location_ids  = location_ids
     method get_component_ids = component_ids
-
-    method get_location_names  = location_names
-    method get_component_names = component_names
 
     method c_l      = self#get_location_ids
     method c_c      = self#get_component_ids
@@ -407,12 +407,6 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     method get_local_component = get_local_components
     
     method get_local_package   = get_local_package
-
-    method get_location_id  = location_id_of_name
-    method get_component_id = component_id_of_name
-
-    method get_location_name  = location_name_of_id
-    method get_component_name = component_name_of_id
   end
 
 (*/************************************************************************\*)
@@ -432,21 +426,12 @@ let merge c1 c2 = object(self)
     method get_location_ids  = Location_id_set.union c1#get_location_ids c2#get_location_ids
     method get_component_ids = Component_id_set.union c1#get_component_ids c2#get_component_ids
 
-    method get_location_names  = Location_name_set.union c1#get_location_names c2#get_location_names
-    method get_component_names = Component_name_set.union c1#get_component_names c2#get_component_names
-
     method c_l      = self#get_location_ids
     method c_c      = self#get_component_ids
     method c_type c = (self#get_component c)#typ
 
     method get_local_component l c = try c1#get_local_component l c with Failure _ -> c2#get_local_component l c
     method get_local_package   l k = try c1#get_local_package l k with Failure _ -> c2#get_local_package l k
-
-    method get_location_id  l = try c1#get_location_id l with Failure _ -> c2#get_location_id l
-    method get_component_id c = try c1#get_component_id c with Failure _ -> c2#get_component_id c
-
-    method get_location_name  l = try c1#get_location_name l with Failure _ -> c2#get_location_name l
-    method get_component_name c = try c1#get_component_name c with Failure _ -> c2#get_component_name c
  end
 
 

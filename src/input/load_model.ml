@@ -51,7 +51,7 @@ let convert_component_name         x = x
 (*\*************************************************/*)
 
 (* A meta-catalog created from the Json_t model: universe, repositories, initial configuration and specification. *)
-class model_catalog_of_json_t (universe : Json_t.universe option) (additional_repositories : Json_t.repository list) (initial_configuration : Json_t.configuration option) (specification : Json_t.specification option) : model_catalog = 
+let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repositories : Json_t.repository list) (initial_configuration : Json_t.configuration option) (specification : Json_t.specification option) : model_catalog = 
 
   (* Mappings *)
   let component_type = new Component_type_catalog.catalog in (* component types *)
@@ -174,63 +174,24 @@ class model_catalog_of_json_t (universe : Json_t.universe option) (additional_re
   in
 
   (* The meta-catalog object. *)
-  object (self)
-    method component_type = component_type
-    method port           = port
-    method repository     = repository
-    method package        = package
-    method resource       = resource
-    method location       = location
-    method component      = component
+  new model_catalog 
+    ~component_type_catalog: component_type
+    ~port_catalog:           port
+    ~repository_catalog:     repository
+    ~package_catalog:        package
+    ~resource_catalog:       resource
+    ~location_catalog:       location
+    ~component_catalog:      component
 
-    method to_string = (* TODO: Not safe, as when we remove names, String_of will use the catalog itself for printing ... *)
-      let module Component_type_id_map_extract_key   = Component_type_id_map  .Set_of_keys(Component_type_id_set)   in
-      let module Component_type_name_map_extract_key = Component_type_name_map.Set_of_keys(Component_type_name_set) in
-      let module Extract_package_names = Data_common.Set.Convert(Repository_id_package_name_set)(Package_name_set) in
-
-      String.concat "\n" [
-        "component_types";
-        String_of.component_type_id_set self#component_type#ids;
-        String_of.component_type_name_set self#component_type#names;
-
-        "ports";
-        String_of.port_id_set self#port#ids;
-        String_of.port_name_set self#port#names;
-
-        "repositories";
-        String_of.repository_id_set self#repository#ids;
-        String_of.repository_name_set self#repository#names;
-
-        "packages";
-        String_of.package_id_set   self#package#ids;
-        String_of.package_name_set (Extract_package_names.convert snd self#package#names);
-
-        "resources";
-        String_of.resource_id_set self#resource#ids;
-        String_of.resource_name_set self#resource#names;
-
-        "locations";
-        String_of.location_id_set self#location#ids;
-        String_of.location_name_set self#location#names;
-
-        "components";
-        String_of.component_id_set self#component#ids;
-        String_of.component_name_set self#component#names;
-      ]
-  end
-
-class model_catalog_of_json_t_with_exceptions (naming : model_catalog) : closed_model_catalog = 
-  object (self)
-    method component_type = new Component_type_catalog .closed_catalog_with_exceptions naming#component_type "component_type" String_of.component_type_id String_of.component_type_name
-    method port           = new Port_catalog           .closed_catalog_with_exceptions naming#port           "port"           String_of.port_id           String_of.port_name
-    method repository     = new Repository_catalog     .closed_catalog_with_exceptions naming#repository     "repository"     String_of.repository_id     String_of.repository_name
-    method package        = new Package_catalog        .closed_catalog_with_exceptions naming#package        "package"        String_of.package_id        (fun (r_id, k) -> String_of.package_name k)
-    method resource       = new Resource_catalog       .closed_catalog_with_exceptions naming#resource       "resource"       String_of.resource_id       String_of.resource_name
-    method location       = new Location_catalog       .closed_catalog_with_exceptions naming#location       "location"       String_of.location_id       String_of.location_name
-    method component      = new Component_catalog      .closed_catalog_with_exceptions naming#component      "component"      String_of.component_id      String_of.component_name
-
-    method to_string = naming#to_string
-  end
+let model_catalog_of_json_t_with_exceptions (naming : model_catalog) : closed_model_catalog = 
+  new closed_model_catalog
+    ~component_type_catalog: (new Component_type_catalog .closed_catalog_with_exceptions naming#component_type "component_type" String_of.component_type_id String_of.component_type_name)
+    ~port_catalog:           (new Port_catalog           .closed_catalog_with_exceptions naming#port           "port"           String_of.port_id           String_of.port_name)
+    ~repository_catalog:     (new Repository_catalog     .closed_catalog_with_exceptions naming#repository     "repository"     String_of.repository_id     String_of.repository_name)
+    ~package_catalog:        (new Package_catalog        .closed_catalog_with_exceptions naming#package        "package"        String_of.package_id        (fun (r_id, k) -> String_of.package_name k))
+    ~resource_catalog:       (new Resource_catalog       .closed_catalog_with_exceptions naming#resource       "resource"       String_of.resource_id       String_of.resource_name)
+    ~location_catalog:       (new Location_catalog       .closed_catalog_with_exceptions naming#location       "location"       String_of.location_id       String_of.location_name)
+    ~component_catalog:      (new Component_catalog      .closed_catalog_with_exceptions naming#component      "component"      String_of.component_id      String_of.component_name)
 
 
 (*/*************************************************\*)
@@ -333,7 +294,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     let port_local_require : Port_id_set.t = Port_id_map_extract_key.set_of_keys require in
 
     new_component_type id (object(self)
-      method name           = name
       method id             = id
       method provide      p = try Port_id_map.find p provide with
                               | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
@@ -377,7 +337,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       ) k.Json_t.package_consume in
 
     new_package r_id id (object
-      method name      = name
       method id        = id
       method depend    = depend
       method conflict  = conflict
@@ -405,8 +364,7 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
     let local_package_ids : Package_id_set.t = Package_id_map_extract_key.set_of_keys     packages in 
     let local_packages    : Package_set.t    = Package_id_map_extract_value.set_of_values packages in
     
-    new_repository id (object(self) 
-      method name          = name
+    new_repository id (object(self)
       method id            = id
       method get_package k = 
         try Package_id_map.find k packages 
@@ -452,16 +410,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
       method get_package_ids        = catalog#package#ids
       method get_resource_ids       = catalog#resource#ids
 
-      method get_port_names           = catalog#port#names
-      method get_component_type_names = catalog#component_type#names
-      method get_repository_names     = catalog#repository#names
-      method get_package_names        = let module M = Data_common.Set.Convert(Repository_id_package_name_set)(Package_name_set) in
-                                        M.convert snd catalog#package#names
-                                        (* TODO: *)
-                                        (* let module M = Data_common.Set.Convert(Package_set)(Package_id_set) in
-                                           M.convert (fun k -> k#name) packages *)
-      method get_resource_names       = catalog#resource#names
-
       (* methods coming from the paper. Usually, aliases for well-named functions *)
       method u_dt = self#get_component_type_ids
       method u_dp = self#get_port_ids
@@ -477,19 +425,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
                | Not_found -> let tmp = (providers component_type#id_to_obj_map p) in implem_up <- Port_id_map.add p tmp implem_up; tmp)
       method uc p = (try Port_id_map.find p implem_uc with
                | Not_found -> let tmp = (conflicters component_type#id_to_obj_map p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp)
-
-      (* methods for catalog *)
-      method get_port_id           n = try catalog#port#id_of_name n           with Not_found -> deprecated_package_id (* to deal with initial configurations *)
-      method get_component_type_id n = try catalog#component_type#id_of_name n with Not_found -> deprecated_component_type_id (* to deal with initial configurations *)
-      method get_repository_id     n = catalog#repository#id_of_name n
-      method get_package_id      r n = catalog#package#id_of_name (r,n)
-      method get_resource_id       n = catalog#resource#id_of_name n
-
-      method get_port_name           id = catalog#port#name_of_id id
-      method get_component_type_name id = if id = deprecated_component_type_id then "!!deprecated_component!!" else catalog#component_type#name_of_id id
-      method get_repository_name     id = catalog#repository#name_of_id id
-      method get_package_name        id = if id = deprecated_package_id then "!!deprecated_package!!" else snd (catalog#package#name_of_id id)
-      method get_resource_name       id = catalog#resource#name_of_id id
     end
 
 (* Possible inconsistencies not detected during generation:
@@ -580,7 +515,6 @@ class convert_configuration (catalog : closed_model_catalog) c =
     let cost = convert_location_cost l.Json_t.location_cost in
 
     new_location id (object
-      method name                = name
       method id                  = id
       method repository          = repository
       method packages_installed  = packages_installed
@@ -604,7 +538,6 @@ class convert_configuration (catalog : closed_model_catalog) c =
     let location = find_location (convert_location_name c.Json_t.component_location) in
 
     new_component id (object
-      method name     = name
       method id       = id
       method typ      = typ
       method location = location 
@@ -643,9 +576,6 @@ object(self)
   method get_location_ids  = catalog#location#ids
   method get_component_ids = catalog#component#ids
 
-  method get_location_names  = catalog#location#names
-  method get_component_names = catalog#component#names
-
   method c_l = self#get_location_ids
   method c_c = self#get_component_ids
   method c_type c = (self#get_component c)#typ
@@ -656,12 +586,6 @@ object(self)
   method get_local_package   l k = (try Location_package_map.find (l,k) implem_get_local_package
                                     with Not_found -> let tmp = get_local_package l k location#id_to_obj_map in
                                     implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
-
-  method get_location_id  = catalog#location#id_of_name 
-  method get_component_id = catalog#component#id_of_name
-
-  method get_location_name  = catalog#location#name_of_id  
-  method get_component_name = catalog#component#name_of_id
 end
 
 
@@ -678,21 +602,13 @@ let empty_configuration = object(self)
   method get_location_ids  = Location_id_set.empty
   method get_component_ids = Component_id_set.empty
 
-  method get_location_names  = Location_name_set.empty
-  method get_component_names = Component_name_set.empty
-
   method c_l = self#get_location_ids
   method c_c = self#get_component_ids
   method c_type c = (self#get_component c)#typ
 
   method get_local_component l t = raise Not_found
   method get_local_package   l k = raise Not_found
-
-  method get_location_id  = fun _ -> raise Not_found
-  method get_component_id = fun _ -> raise Not_found
-
-  method get_location_name  = fun _ -> raise Not_found
-  method get_component_name = fun _ -> raise Not_found
+  
 end
 
 
@@ -781,7 +697,7 @@ let load_basic_configuration file = Input_helper.parse_json Json_j.read_configur
 let load_basic_specification file = Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
 
 
-let load_catalog u rs c s        = new model_catalog_of_json_t_with_exceptions (new model_catalog_of_json_t u rs c s)
+let load_catalog u rs c s        = model_catalog_of_json_t_with_exceptions (model_catalog_of_json_t u rs c s)
 let load_universe catalog rs u    = new convert_universe catalog rs u
 let load_configuration catalog c = new convert_configuration catalog c
 let load_specification           = convert_specification

@@ -131,6 +131,8 @@ module type S = sig
   (************************************)
 
   val configuration : Data_model.universe -> Data_model.configuration -> string
+
+  val model_catalog : Data_model_catalog.closed_model_catalog -> string
 end
 
 
@@ -427,21 +429,21 @@ module Make =
     let location_strings = List.map (fun lid ->
 
       let l = configuration#get_location lid in
-      assert(configuration#get_location_id l#name = lid);
-      assert(configuration#get_location_name lid = l#name);
-      let line1 =Printf.sprintf "%s -> %s\n" (location_id lid) (location_name l#name) in
+      (* assert(configuration#get_location_id l#name = lid); *)
+      (* assert(configuration#get_location_name lid = l#name); *)
+      let line1 = Printf.sprintf "%s -> %s\n" (location_id lid) (location_name (Name_of.location_id l#id)) in
 
       let rid = l#repository in
       let r = universe#get_repository rid in
-      assert(universe#get_repository_id r#name = rid);
-      assert(universe#get_repository_name rid = r#name);
-      let line2 = Printf.sprintf "    + repository : %s -> %s\n" (repository_id rid) (repository_name r#name) in
+      (* assert(universe#get_repository_id r#name = rid); *)
+      (* assert(universe#get_repository_name rid = r#name); *)
+      let line2 = Printf.sprintf "    + repository : %s -> %s\n" (repository_id rid) (repository_name (Name_of.repository_id r#id)) in
 
       let kids = l#packages_installed in
       let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
       let ks = Package_set_of_package_id_set.convert universe#get_package kids in
       let module Package_name_set_of_package_set = Data_common.Set.Convert(Package_set)(Package_name_set) in
-      let knames = Package_name_set_of_package_set.convert Data_common.get_name ks in
+      let knames = Package_name_set_of_package_set.convert (fun package -> Name_of.package_id package#id) ks in
       let line3 = Printf.sprintf "    + packages : %s\n" (string_set knames) in
 
       Printf.sprintf "%s%s%s" line1 line2 line3
@@ -449,6 +451,42 @@ module Make =
 
     String.concat "" location_strings
 
+
+    let model_catalog model_catalog = (* TODO: Not safe, as when we remove names, String_of will use the catalog itself for printing ... *)
+
+      let module Component_type_id_map_extract_key   = Data_model.Component_type_id_map  .Set_of_keys(Data_model.Component_type_id_set)     in
+      let module Component_type_name_map_extract_key = Data_model.Component_type_name_map.Set_of_keys(Data_model.Component_type_name_set)   in
+      let module Extract_package_names               = Data_common.Set.Convert(Data_model_catalog.Repository_id_package_name_set)(Data_model.Package_name_set) in
+      
+      String.concat "\n" [
+        "component_types";
+        component_type_id_set   model_catalog#component_type#ids;
+        component_type_name_set model_catalog#component_type#names;
+
+        "ports";
+        port_id_set   model_catalog#port#ids;
+        port_name_set model_catalog#port#names;
+
+        "repositories";
+        repository_id_set   model_catalog#repository#ids;
+        repository_name_set model_catalog#repository#names;
+
+        "packages";
+        package_id_set   model_catalog#package#ids;
+        package_name_set (Extract_package_names.convert snd model_catalog#package#names);
+
+        "resources";
+        resource_id_set   model_catalog#resource#ids;
+        resource_name_set model_catalog#resource#names;
+
+        "locations";
+        location_id_set   model_catalog#location#ids;
+        location_name_set model_catalog#location#names;
+
+        "components";
+        component_id_set   model_catalog#component#ids;
+        component_name_set model_catalog#component#names;
+      ]
 end
 
 
