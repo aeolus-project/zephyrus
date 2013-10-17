@@ -79,10 +79,10 @@ let convert_repository r resource_id_list = {
 let convert_universe_tmp u resource_id_list =
   let package_get_name_full   k = (Name_of.repository_id (u#repository_of_package k), Name_of.package_id k) in {
     Json_j.universe_component_types =
-      List.map (fun c -> convert_component_type c resource_id_list) (Component_type_set.elements u#get_component_types);
+      List.map (fun c -> convert_component_type (u#get_component_type c) resource_id_list) (Component_type_id_set.elements u#get_component_type_ids);
     Json_j.universe_implementation = List.map (fun c -> (Name_of.component_type_id c, List.map package_get_name_full (Package_id_set.elements (u#get_implementation c))))
         (Component_type_id_set.elements u#get_component_type_ids);
-    Json_j.universe_repositories = List.map (fun r -> convert_repository r resource_id_list) (Repository_set.elements (u#get_repositories))
+    Json_j.universe_repositories = List.map (fun r -> convert_repository (u#get_repository r) resource_id_list) (Repository_id_set.elements (u#get_repository_ids))
 }
 
 let convert_universe u = convert_universe_tmp u (Resource_id_set.elements u#get_resource_ids)
@@ -110,8 +110,8 @@ let convert_binding b = {
 }
 
 let convert_configuration_tmp c u resource_id_list = {
-    Json_j.configuration_locations  = List.map (fun l -> convert_location l resource_id_list) (Location_set.elements c#get_locations);
-    Json_j.configuration_components = List.map (fun c -> convert_component c) (Component_set.elements c#get_components);
+    Json_j.configuration_locations  = List.map (fun l_id -> convert_location  (c#get_location l_id) resource_id_list) (Location_id_set.elements  c#get_location_ids);
+    Json_j.configuration_components = List.map (fun c_id -> convert_component (c#get_component c_id))                 (Component_id_set.elements c#get_component_ids);
     Json_j.configuration_bindings   = List.map (fun b -> convert_binding b) (Binding_set.elements c#get_bindings)
 }
 

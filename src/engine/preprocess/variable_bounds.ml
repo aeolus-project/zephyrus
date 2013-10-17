@@ -169,16 +169,17 @@ let create u =
   let add_t t v = component_type_map := Data_model.Component_type_id_map.add t#id v !component_type_map in
   (* 1. create vertices *)
   Data_model.Port_set.iter (fun p -> add_p p (Graph.add_vertice (V_data.of_port p) res)) u#get_port_ids;
-  Data_model.Component_type_set.iter (fun t -> add_t t (Graph.add_vertice (V_data.of_component_type t#id) res)) u#get_component_types;
+  Data_model.Component_type_id_set.iter (fun t_id -> let t = u#get_component_type t_id in add_t t (Graph.add_vertice (V_data.of_component_type t#id) res)) u#get_component_type_ids;
   (* 2. create edges and conflicts *)
   let add_conflict p t = let (p', t') = (find_p p, find_t t#id) in
     V_data.conflict_add (data_v p') t';
     V_data.conflict_add (data_v t') p' in
-  let edges_of_component_type t =
+  let edges_of_component_type t_id =
+    let t = u#get_component_type t_id in
     Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_t t#id) (E_data.of_require_arity (t#require p)) (find_p p) res)) t#require_domain;
     Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_p p) (E_data.of_provide_arity (t#provide p)) (find_t t#id) res)) t#provide_domain;
     Data_model.Port_set.iter (fun p -> add_conflict p t) t#conflict in
-  Data_model.Component_type_set.iter edges_of_component_type u#get_component_types;
+  Data_model.Component_type_id_set.iter edges_of_component_type u#get_component_type_ids;
   (* 3. Compute loops *)
  (* let ls = Graph.loops res in *)
   (* TODO: compute all informations about loops *)

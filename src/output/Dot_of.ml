@@ -173,10 +173,11 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   let strings_of_package_implementation_at_location (location : location) : string list =
     let name  = String_of.location_name (Name_of.location_id location#id) in
     let location_packages_installed = location#packages_installed in
-    Component_set.fold (fun c res ->
+    Component_id_set.fold (fun c_id res ->
+        let c = configuration#get_component c_id in
         let k_id = Package_id_set.choose (Package_id_set.inter location_packages_installed (universe#get_implementation c#typ)) in
           ((component_id (String_of.component_name (Name_of.component_id c#id))) ^ " -> " ^ (package_at_location_id name k_id))::res)
-      (Component_set.filter (fun c -> c#location = location#id) configuration#get_components) []
+      (Component_id_set.filter (fun c -> (configuration#get_component c)#location = location#id) configuration#get_component_ids) []
   in
       
   let strings_of_location (location : location) : string list =
@@ -185,7 +186,7 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
     let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (Name_of.location_id location#repository)) in
     let location_component_strings : string list = (* the components inside the location *)
       if graph_settings.show_components
-      then (List.map strings_of_component (Component_set.elements (Component_set.filter (fun c -> c#location = location#id) configuration#get_components)))
+      then (List.map (fun c -> strings_of_component (configuration#get_component c)) (Component_id_set.elements (Component_id_set.filter (fun c -> (configuration#get_component c)#location = location#id) configuration#get_component_ids)))
       else [] in
     let location_package_strings : string list =   (* the packages inside the location *)
       if graph_settings.show_packages
@@ -201,7 +202,7 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
     else location_component_strings @ location_package_strings
   in
 
-  let location_strings : string list = List.flatten (List.map strings_of_location (Location_set.elements configuration#get_locations)) in
+  let location_strings : string list = List.flatten (List.map (fun l -> strings_of_location (configuration#get_location l)) (Location_id_set.elements configuration#get_location_ids)) in
   let binding_strings  : string list = if graph_settings.show_bindings then List.flatten (List.map strings_of_binding (Binding_set.elements configuration#get_bindings)) else [] in
 
   let rankdir_value = if graph_settings.show_packages then "TB" else "LR" in

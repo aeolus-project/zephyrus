@@ -378,10 +378,6 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
 
       method repository_of_package id = Package_id_map.find id !package_id_to_repo_id_map
 
-      method get_component_types = component_type#objs
-      method get_repositories    = repository#objs
-      method get_packages        = package#objs
-
       method get_port_ids           = catalog#port#ids
       method get_component_type_ids = catalog#component_type#ids
       method get_repository_ids     = catalog#repository#ids
@@ -550,8 +546,6 @@ object(self)
   method get_location  = location#obj_of_id
   method get_component = component#obj_of_id
 
-  method get_locations  = location#objs
-  method get_components = component#objs
   method get_bindings   = implem_bindings
 
   method get_location_ids  = catalog#location#ids
@@ -576,8 +570,6 @@ let empty_configuration = object(self)
   method get_location  = fun (_ : location_id) -> raise Not_found
   method get_component = fun (_ : component_id) -> raise Not_found
 
-  method get_locations  = Location_set.empty
-  method get_components = Component_set.empty
   method get_bindings   = Binding_set.empty
 
   method get_location_ids  = Location_id_set.empty

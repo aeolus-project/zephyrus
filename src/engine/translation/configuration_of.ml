@@ -128,13 +128,16 @@ type almost_done_component =
 (* Generate the components which will be present in the final configuration. *)
 let generate_components 
   (new_component_catalog     : Component_catalog.catalog)
-  (initial_components        : Component_set.t)
+  (initial_component_ids     : Component_id_set.t)
+  (get_component             : component_id -> component)
   (location_ids              : Location_id_set.t)
   (location_name_of_id       : location_id -> location_name)
   (component_type_ids        : Component_type_id_set.t)
   (component_type_name_of_id : component_type_id -> component_type_name)
   (solution                  : extended_solution_iface)
   : Component_set.t =
+  
+  let initial_components = Data_model.Component_set_of_ids.convert get_component initial_component_ids in
 
   let almost_done_components : almost_done_component list ref  = ref [] in
 
@@ -356,7 +359,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   let component_set : Component_set.t =
     generate_components
       component_catalog
-      initial_configuration#get_components
+      initial_configuration#get_component_ids
+      initial_configuration#get_component
       location_ids
       Name_of.location_id
       universe#get_component_type_ids
@@ -393,8 +397,6 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     method get_location  = get_location
     method get_component = get_component
 
-    method get_locations  = locations
-    method get_components = component_set
     method get_bindings   = bindings
 
     method get_location_ids  = location_ids
@@ -419,8 +421,6 @@ let merge c1 c2 = object(self)
    - except for mappings, where it is tolerated if the two mappings have the same image on the common domain *)
     method get_location l_id  = try c1#get_location l_id with Failure _ -> c2#get_location l_id
     method get_component c_id = try c1#get_component c_id with Failure _ -> c2#get_component c_id
-    method get_locations  = Location_set.union c1#get_locations c2#get_locations
-    method get_components = Component_set.union c1#get_components c2#get_components
     method get_bindings   = Binding_set.union c1#get_bindings c2#get_bindings
 
     method get_location_ids  = Location_id_set.union c1#get_location_ids c2#get_location_ids

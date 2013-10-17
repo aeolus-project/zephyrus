@@ -294,11 +294,7 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     method get_repository            = get_repository                     (* Updated! *)
     method get_package               = get_package                        (* Updated! *)
 
-    method repository_of_package = repository_of_package (* Updated! *)
-
-    method get_component_types = universe#get_component_types (* Irrelevent to repository trimming. *)
-    method get_repositories    = repositories                 (* Updated! *)
-    method get_packages        = packages                     (* Updated! *)
+    method repository_of_package  = repository_of_package (* Updated! *)
 
     method get_port_ids           = universe#get_port_ids           (* Irrelevent to repository trimming. *)
     method get_component_type_ids = universe#get_component_type_ids (* Irrelevent to repository trimming. *)
@@ -398,13 +394,9 @@ let transitive_closure_domain c domain =
 
 let configuration c domain =
   let get_location = c#get_location in
-  let locations_1 = Location_set.filter (fun l -> Location_id_set.mem l#id domain) c#get_locations in
-  let locations_2 = Location_set.diff c#get_locations locations_1 in
   let location_ids_1 = domain in
   let location_ids_2 = Location_id_set.diff c#get_location_ids location_ids_1 in
-  let components_1 = Component_set.filter (fun c -> Location_id_set.mem c#location domain) c#get_components in
-  let components_2 = Component_set.diff c#get_components components_1 in
-  let component_ids_1 = Component_id_set.filter (fun c_id -> Component_set.mem (c#get_component c_id) components_1) c#get_component_ids in
+  let component_ids_1 = Component_id_set.filter (fun c_id -> Location_id_set.mem (c#get_component c_id)#location domain) c#get_component_ids in
   let component_ids_2 = Component_id_set.diff c#get_component_ids component_ids_1 in
   let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) c#get_bindings in
   let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) c#get_bindings in
@@ -412,8 +404,6 @@ let configuration c domain =
  ( object
       method get_location   = get_location
       method get_component  = c#get_component
-      method get_locations  = locations_1
-      method get_components = components_1
       method get_bindings   = bindings_1
       method get_location_ids  = location_ids_1
       method get_component_ids = component_ids_1
@@ -425,8 +415,6 @@ let configuration c domain =
     end , object
       method get_location   = c#get_location
       method get_component  = c#get_component
-      method get_locations  = locations_2
-      method get_components = components_2
       method get_bindings   = bindings_2
       method get_location_ids  = location_ids_2
       method get_component_ids = component_ids_2
@@ -438,18 +426,18 @@ let configuration c domain =
     end )
 
 let empty c = 
-  let inner l (set, map) = let l' = object
+  let inner l_id (set, map) = 
+    let l = c#get_location l_id in
+    let l' = object
       method id = l#id
       method repository = l#repository
       method packages_installed = Package_id_set.empty
       method provide_resources  = l#provide_resources
       method cost               = l#cost
     end in (Location_set.add l' set, Location_id_map.add l#id l' map) in
-  let (set, map) = Location_set.fold inner c#get_locations (Location_set.empty, Location_id_map.empty) in object(self)
+  let (set, map) = Location_id_set.fold inner c#get_location_ids (Location_set.empty, Location_id_map.empty) in object(self)
     method get_location   = (fun id -> try Location_id_map.find id map with Not_found -> failwith "engine/preprocess/Trim.ml #550")
     method get_component  = (fun _ -> failwith "engine/preprocess/Trim.ml #551")
-    method get_locations  = set
-    method get_components = Component_set.empty
     method get_bindings   = Binding_set.empty
     method get_location_ids  = c#get_location_ids
     method get_component_ids = Component_id_set.empty

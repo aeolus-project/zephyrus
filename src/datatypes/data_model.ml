@@ -269,10 +269,6 @@ class type universe = object
 
   method repository_of_package : package_id -> repository_id
 
-  method get_component_types : Component_type_set.t (* DEPRECATED *)
-  method get_repositories    : Repository_set.t     (* DEPRECATED *)
-  method get_packages        : Package_set.t        (* DEPRECATED *)
-
   method get_port_ids           : Port_id_set.t
   method get_component_type_ids : Component_type_id_set.t
   method get_repository_ids     : Repository_id_set.t
@@ -434,8 +430,6 @@ class type configuration = object
   method get_location  : location_id -> location
   method get_component : component_id -> component
 
-  method get_locations  : Location_set.t
-  method get_components : Component_set.t
   method get_bindings   : Binding_set.t
 
   method get_location_ids  : Location_id_set.t
