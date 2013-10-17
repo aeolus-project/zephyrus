@@ -157,19 +157,14 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
   let repository_keep_package_id : Package_id_set.t = Package_id_set.inter repository_all_package_ids keep_packages_ids in
 
 
-
   (* 2. Prepare the new trimmed repository. *)
   
-  (* Trimed set of ids of packages. *)
+  (* Trimmed set of ids of packages. *)
   let package_ids : Package_id_set.t = repository_keep_package_id in
 
-  (* Helper function: takes a set of package ids and returns only these which belong to the trimmed repository. *)
-  let trim_package_id_set : (Package_id_set.t -> Package_id_set.t) = 
-    Package_id_set.filter (fun package_id -> Package_id_set.mem package_id package_ids) in
+  (* Now we have to create trimmed versions of all the packages, i.e. trim their dependencies and conflicts. *)
 
-  (* Trimmed set of packages. We have to trim their dependencies too! *)
-  let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
-
+  (* The new package_id -> package mapping. *)
   let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
 
   Package_id_set.iter (fun package_id ->
@@ -177,25 +172,9 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
     (* The old package. *)
     let package = repository#get_package package_id in
 
-    (* Trimmed dependencies. *)
-    let depend = 
-        let module Package_id_set_set_of_package_id_set_set = Data_common.Set.Convert(Package_id_set_set)(Package_id_set_set) in
-        (* Keep only packages from the trimmed set. *)
-        let set_of_sets = Package_id_set_set_of_package_id_set_set.convert trim_package_id_set package#depend in
-        (* Keep only sets which are not empty (cause an empty "or" is always false and we remove packages only if they can always be installed). *)
-        Package_id_set_set.filter (fun set -> not (Package_id_set.is_empty set)) set_of_sets in
-
-    (* Trimmed conflicts. *)
-    let conflict = trim_package_id_set package#conflict in 
-
-    let trimmed_package =
-      object
-        method id       = package#id
-        method depend   = depend
-        method conflict = conflict
-        method consume  = package#consume
-      end in
-
+    (* The new package. *)
+    let trimmed_package = package#trim_by_package_ids package_ids in
+    
     package_of_package_id_map := Package_id_map.add package_id trimmed_package !package_of_package_id_map
 
   ) package_ids;
@@ -205,6 +184,7 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
     with Not_found -> failwith (Printf.sprintf "In repository %s accessing a package with id=%s which was trimmed out!" (String_of.repository_name (Name_of.repository_id repository#id)) (String_of.package_id package_id) )
   in
   
+  let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
   let packages : Package_set.t = Package_set_of_package_id_set.convert get_package package_ids in
   
   object

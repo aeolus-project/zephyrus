@@ -289,23 +289,12 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
       ) t.Json_t.component_type_consume in
 
-    (* local definition to fix a glitch of how object's methods are implemented *)
-    let port_local_provide : Port_id_set.t = Port_id_map_extract_key.set_of_keys provide in 
-    let port_local_require : Port_id_set.t = Port_id_map_extract_key.set_of_keys require in
-
-    new_component_type id (object(self)
-      method id             = id
-      method provide      p = try Port_id_map.find p provide with
-                              | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-                                Zephyrus_log.log_missing_data "port" port_desc ("provides of the component type \"" ^ name ^ "\"")
-      method provide_domain = port_local_provide
-      method require      p = try Port_id_map.find p require with
-                              | Not_found -> let port_desc = "(" ^ (String_of.port_id p) ^ "," ^ (try catalog#port#name_of_id p with Not_found -> "") ^ ")" in
-                                Zephyrus_log.log_missing_data "port" port_desc ("requires of the component type \"" ^ name ^ "\"")
-      method require_domain = port_local_require
-      method conflict       = conflict
-      method consume      r = try Resource_id_map.find r consume with Not_found -> 0
-    end) in
+    new_component_type id (new component_type
+      ~id:       id 
+      ~provide:  provide 
+      ~require:  require 
+      ~conflict: conflict 
+      ~consume:  consume) in
     
 
   (* packages *)
@@ -336,12 +325,11 @@ class convert_universe (catalog : closed_model_catalog) external_repositories u 
         (catalog#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
       ) k.Json_t.package_consume in
 
-    new_package r_id id (object
-      method id        = id
-      method depend    = depend
-      method conflict  = conflict
-      method consume r = try Resource_id_map.find r_id consume with Not_found -> 0
-    end) in
+    new_package r_id id (new package
+      ~id:       id
+      ~depend:   depend
+      ~conflict: conflict
+      ~consume:  consume) in
 
 
   (* repositories *)

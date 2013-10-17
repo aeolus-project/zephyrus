@@ -108,14 +108,29 @@ type require_arity = int
 
   (** Component type. *)
 
-class type component_type = object
-  method id             : component_type_id
-  method provide        : port_id -> provide_arity                (** Which ports does this component provide and with what arities. *)
-  method provide_domain : Port_id_set.t
-  method require        : port_id -> require_arity                (** Which ports does this component require and with what arities. *)
-  method require_domain : Port_id_set.t
-  method conflict       : Port_id_set.t                           (** With which ports is this component type in conflict. *)
-  method consume        : resource_id -> resource_consume_arity   (** Which resources does this component consume and in what amounts. *)
+exception Component_type_provide_port_not_found of port_id
+exception Component_type_require_port_not_found of port_id
+
+class component_type 
+  ?(provide  = Port_id_map.empty)
+  ?(require  = Port_id_map.empty)
+  ?(conflict = Port_id_set.empty)
+  ?(consume  = Resource_id_map.empty)
+  ~id = object (self)
+
+  val id       : component_type_id                        = id        (** The unique id of this component type. *)
+  val provide  : provide_arity Port_id_map.t              = provide   (** Which ports does this component type provide and with what arities. *)
+  val require  : require_arity Port_id_map.t              = require   (** Which ports does this component type require and with what arities. *)
+  val conflict : Port_id_set.t                            = conflict  (** With which ports is this component type in conflict. *)
+  val consume  : resource_consume_arity Resource_id_map.t = consume   (** Which resources does this component type consume and in what amounts. *)
+  
+  method id                        : component_type_id      = id
+  method provide (p : port_id)     : provide_arity          = try Port_id_map.find p provide with Not_found -> raise (Component_type_provide_port_not_found p)
+  method provide_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys provide
+  method require (p : port_id)     : require_arity          = try Port_id_map.find p require with Not_found -> raise (Component_type_require_port_not_found p)
+  method require_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys require
+  method conflict                  : Port_id_set.t          = conflict                                                                                        
+  method consume (r : resource_id) : resource_consume_arity = try Resource_id_map.find r consume with Not_found -> 0                                          
 end
 
 module Component_type = struct
@@ -145,11 +160,48 @@ module Package_id_map_extract_key   = Keys_of_Int_map
 
 
   (** Package. *)
+(*
 class type package = object
   method id       : package_id
   method depend   : Package_id_set_set.t                      (** Which packages does this package depend on (a disjunction of conjunctions). *)
   method conflict : Package_id_set.t                          (** Which packages is this package is in conflict with. *)
   method consume  : resource_id -> resource_consume_arity     (** Which resources does this package consume and in what amounts. *)
+end
+*)
+class package 
+  ?(depend   = Package_id_set_set.empty) 
+  ?(conflict = Package_id_set.empty)
+  ?(consume  = Resource_id_map.empty) 
+  ~id = object (self)
+
+  val id       : package_id                               = id       (** The unique id of this package. *)
+  val depend   : Package_id_set_set.t                     = depend   (** Which packages does this package depend on (a disjunction of conjunctions). *)
+  val conflict : Package_id_set.t                         = conflict (** Which packages is this package is in conflict with. *)
+  val consume  : resource_consume_arity Resource_id_map.t = consume  (** Which resources does this package consume and in what amounts. *)
+
+  method id                        : package_id              = id   
+  method depend                    : Package_id_set_set.t    = depend                                                
+  method conflict                  : Package_id_set.t        = conflict                                              
+  method consume (r : resource_id) : resource_consume_arity  = try Resource_id_map.find r consume with Not_found -> 0
+
+  method trim_by_package_ids (package_ids : Package_id_set.t) =
+    (* Helper function: takes a set of package ids and returns only these which belong to the trimmed repository. *)
+    let trim_package_id_set : (Package_id_set.t -> Package_id_set.t) = 
+      Package_id_set.filter (fun package_id -> Package_id_set.mem package_id package_ids) in
+    
+    (* Trimmed dependencies. *)
+    let depend = 
+        let module Package_id_set_set_of_package_id_set_set = Data_common.Set.Convert(Package_id_set_set)(Package_id_set_set) in
+        (* Keep only packages from the trimmed set. *)
+        let set_of_sets = Package_id_set_set_of_package_id_set_set.convert trim_package_id_set depend in
+        (* Keep only sets which are not empty (cause an empty "or" is always false and we remove packages only if they can always be installed). *)
+        Package_id_set_set.filter (fun set -> not (Package_id_set.is_empty set)) set_of_sets in
+
+    (* Trimmed conflicts. *)
+    let conflict = trim_package_id_set conflict in 
+    
+    {< depend = depend; conflict = conflict >}
+
 end
 
 module Package = struct
