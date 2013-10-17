@@ -25,12 +25,6 @@
 *)
 
 (*/************************************************************************\*)
-(*| 0. Model helpers                                                       |*)
-(*\************************************************************************/*)
-
-val get_name : < name : 'a; .. > -> 'a
-
-(*/************************************************************************\*)
 (*| 1. Custom sets, maps and lists                                         |*)
 (*\************************************************************************/*)
 
@@ -347,6 +341,8 @@ module Catalog :
       method id_to_name_map : name Id_map.t
       method name_to_id_map : id Obj_map.t
     end
+
+    val close_catalog : catalog_iface -> closed_catalog_iface
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
     class closed_catalog_with_exceptions : catalog -> string -> (id -> string)  -> (name -> string) -> closed_catalog_iface

@@ -24,12 +24,6 @@
 *)
 
 (*/************************************************************************\*)
-(*| 0. Model helpers                                                       |*)
-(*\************************************************************************/*)
-
-let get_name model_object = model_object#name
-
-(*/************************************************************************\*)
 (*| 1. Custom sets and maps                                                |*)
 (*\************************************************************************/*)
 
@@ -636,6 +630,15 @@ module Catalog =
       method id_of_name     : name -> id
       method id_to_name_map : name Id_map.t
       method name_to_id_map : id Obj_map.t
+    end
+
+    let close_catalog (catalog : catalog_iface) : closed_catalog_iface = object
+      method ids             = catalog#ids
+      method names           = catalog#names
+      method name_of_id      = catalog#name_of_id
+      method id_of_name      = catalog#id_of_name
+      method id_to_name_map  = catalog#id_to_name_map
+      method name_to_id_map  = catalog#name_to_id_map
     end
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
