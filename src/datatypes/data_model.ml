@@ -230,12 +230,24 @@ module Repository_id_map     = Int_map
 module Repository_id_map_extract_key = Keys_of_Int_map
 
   (** Repository. *)
-class type repository = object
-  method id          : repository_id
-  method get_package : package_id -> package   (** Which packages does this repository contain. *)
 
-  method packages    : Package_set.t
-  method package_ids : Package_id_set.t
+exception Repository_package_not_found of package_id
+
+class repository 
+  ?(packages  = Package_id_map.empty)
+  ~id = object (self)
+
+  val id       : component_type_id        = id       (** The unique id of this repository. *)
+  val packages : package Package_id_map.t = packages (** Which packages does this repository contain. *)
+  
+  method id                           : component_type_id = id
+  method package_ids                  : Package_id_set.t  = Package_id_map_extract_key.set_of_keys packages
+  method get_package (k : package_id) : package           = try Package_id_map.find k packages with Not_found -> raise (Repository_package_not_found k)
+
+  method packages                     : Package_set.t =
+    let module Package_id_map_extract_value = Package_id_map.Set_of_values(Package_set) in 
+    Package_id_map_extract_value.set_of_values packages
+
 end
 
 module Repository = struct
@@ -306,12 +318,24 @@ type location_cost = int
 module Location_cost = Int
 
   (** Location. *)
-class type location = object
-  method id                 : location_id
-  method repository         : repository_id                            (** The name of the package repository used by this location. *)
-  method packages_installed : Package_id_set.t                         (** Names of packages installed at this location. *)
-  method provide_resources  : resource_id -> resource_provide_arity    (** Which resources does this location provide and in what amounts. *)
-  method cost               : location_cost
+class location 
+  ~repository
+  ?(packages_installed = Package_id_set.empty)
+  ?(provide_resources  = Resource_id_map.empty)
+  ?(cost = 1)
+  ~id = object (self)
+
+  val id                 : location_id                              = id                 (** The unique id of this location. *)
+  val repository         : repository_id                            = repository         (** The id of the package repository used by this location. *)
+  val packages_installed : Package_id_set.t                         = packages_installed (** Ids of packages installed at this location. *)
+  val provide_resources  : resource_provide_arity Resource_id_map.t = provide_resources  (** Which resources does this location provide and in what amounts. *)
+  val cost               : location_cost                            = cost               (** The cost of using this location *)
+  
+  method id                                  : location_id            = id
+  method repository                          : repository_id          = repository
+  method packages_installed                  : Package_id_set.t       = packages_installed
+  method provide_resources (r : resource_id) : resource_provide_arity = try Resource_id_map.find r provide_resources with Not_found -> 0
+  method cost                                : location_cost          = cost
 end
 
 module Location = struct
@@ -343,10 +367,19 @@ module Component_id_map = Int_map
 module Component_id_map_extract_key = Keys_of_Int_map
 
   (** Components *)
-class type component = object
-  method id       : component_id 
-  method typ      : component_type_id
-  method location : location_id
+
+class component 
+  ~typ
+  ~location
+  ~id = object (self)
+
+  val id       : component_id      = id       (** The unique id of this component. *)
+  val typ      : component_type_id = typ      (** The type of this component. *)
+  val location : location_id       = location (** The location where this component is installed. *)
+
+  method id       : component_id      = id
+  method typ      : component_type_id = typ
+  method location : location_id       = location
 end
 
 module Component = struct
@@ -367,10 +400,19 @@ module Id_set_of_components = Set.Convert(Component_set)(Component_id_set)
 
 
   (** 3.3. Binding. *)
-class type binding = object
-  method port     : port_id
-  method requirer : component_id
-  method provider : component_id
+
+class binding 
+  ~port
+  ~requirer
+  ~provider = object (self)
+
+  val port     : port_id      = port     (** The port of this binding. *)
+  val requirer : component_id = requirer (** The id of the requiring component. *)
+  val provider : component_id = provider (** The id of the providing component. *)
+
+  method port     : port_id      = port
+  method requirer : component_id = requirer
+  method provider : component_id = provider
 end
 
 module Binding = struct

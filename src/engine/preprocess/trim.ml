@@ -178,22 +178,10 @@ let trim_repository (keep_packages_ids : Package_id_set.t) (repository : reposit
     package_of_package_id_map := Package_id_map.add package_id trimmed_package !package_of_package_id_map
 
   ) package_ids;
-
-  let get_package (package_id : package_id) : package = 
-    try Package_id_map.find package_id !package_of_package_id_map
-    with Not_found -> failwith (Printf.sprintf "In repository %s accessing a package with id=%s which was trimmed out!" (String_of.repository_name (Name_of.repository_id repository#id)) (String_of.package_id package_id) )
-  in
   
-  let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
-  let packages : Package_set.t = Package_set_of_package_id_set.convert get_package package_ids in
-  
-  object
-    method id          = repository#id
-    method get_package = get_package
-    method packages    = packages
-    method package_ids = package_ids
-  end
-
+  new repository
+    ~id:       repository#id
+    ~packages: !package_of_package_id_map
 
 
 let trim_component_types universe initial_configuration specification =

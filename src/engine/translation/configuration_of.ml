@@ -171,11 +171,11 @@ let generate_components
             (fun used_names -> 
               let component_name = fresh_component_name (location_name_of_id location_id) (component_type_name_of_id component_type_id) used_names in
               let component_id   = new_component_catalog#get_else_add component_name in
-              object
-                method id       = component_id;
-                method typ      = component_type_id;
-                method location = location_id;
-              end) in
+              new component
+                ~id:       component_id
+                ~typ:      component_type_id
+                ~location: location_id
+            ) in
           new_components := NewComponent(new_component) :: !new_components
         end
       done;
@@ -272,12 +272,11 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
     
         (* We convert the matching algorithm result to actual bindings. *)
         List.iter (fun result -> 
-          let binding =
-            object
-              method port     = port_id
-              method provider = result.provides
-              method requirer = result.requires
-            end
+          let binding = 
+            new binding
+              ~port:     port_id
+              ~provider: result.provides
+              ~requirer: result.requires
           in
           bindings := Binding_set.add binding !bindings
         ) results
@@ -323,6 +322,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     (* cost *)
     let cost = location#cost in
 
+    (* TODO: use new location *)
     let new_location : location =
       object
         method id                  = location_id
