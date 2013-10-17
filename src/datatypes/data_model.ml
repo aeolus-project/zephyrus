@@ -59,13 +59,6 @@ type resource_provide_arity = int
   (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
 type resource_consume_arity = int
 
-  (** Resource set *) (* TODO: remove *)
-class type resources = object
-  method resource_names : Resource_name_set.t
-  method resource_ids   : Resource_id_set.t
-  method get_name       : resource_id -> resource_name
-  method get_id         : resource_name -> resource_id
-end
 
   (** 2.1. Component types *)
 
@@ -485,7 +478,7 @@ type optimization_function =
 (*| 6. Putting all together                                                |*)
 (*\************************************************************************/*)
 
-type model      = Resource_set.t * universe * configuration * specification
-type model_full = Resource_set.t * universe * configuration * specification * optimization_function
+type model      = universe * configuration * specification
+type model_full = universe * configuration * specification * optimization_function
 
 

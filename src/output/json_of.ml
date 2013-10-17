@@ -85,7 +85,7 @@ let convert_universe_tmp u resource_id_list =
     Json_j.universe_repositories = List.map (fun r -> convert_repository r resource_id_list) (Repository_set.elements (u#get_repositories))
 }
 
-let convert_universe u resources = convert_universe_tmp u (Resource_id_set.elements resources#resource_ids)
+let convert_universe u = convert_universe_tmp u (Resource_id_set.elements u#get_resource_ids)
 
 
 (* configuration *)
@@ -115,7 +115,7 @@ let convert_configuration_tmp c u resource_id_list = {
     Json_j.configuration_bindings   = List.map (fun b -> convert_binding b) (Binding_set.elements c#get_bindings)
 }
 
-let convert_configuration c u resources = convert_configuration_tmp c u (Resource_id_set.elements resources#resource_ids)
+let convert_configuration c u = convert_configuration_tmp c u (Resource_id_set.elements u#get_resource_ids)
 
 (* Specification *)
 
@@ -126,12 +126,12 @@ let convert_configuration c u resources = convert_configuration_tmp c u (Resourc
 (*\**********************************************/*)
 
 
-let universe u resources channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u resources)
-let configuration c u resources channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u resources)
+let universe u channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u)
+let configuration c u channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u)
 
 
-let universe_string u resources = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u resources))
-let configuration_string c u resources = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u resources))
+let universe_string u = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u))
+let configuration_string c u = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u))
 
 
 

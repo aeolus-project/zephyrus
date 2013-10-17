@@ -44,28 +44,14 @@ let check_option desc o = match o with
   | Some(a) -> a
   | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
 
-let print_to_file kind filename r u c = Output_helper.print_output filename (match kind with
+let print_to_file kind filename u c = Output_helper.print_output filename (match kind with
     | Settings.Out_file_plain            -> String_of.configuration u c
-    | Settings.Out_file_json             -> Json_of.configuration_string c u r
+    | Settings.Out_file_json             -> Json_of.configuration_string c u
     | Settings.Out_file_graph_deployment -> Dot_of.configuration (Dot_of.settings_of Dot_of.Deployment_graph) u c
     | Settings.Out_file_graph_simplified -> Dot_of.configuration (Dot_of.settings_of Dot_of.Simplified_deployment_graph) u c
     | Settings.Out_file_graph_components -> Dot_of.configuration (Dot_of.settings_of Dot_of.Components_graph) u c
     | Settings.Out_file_graph_packages   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
   )
-
-(*
-(* test the output *)
-let () = 
-  Zephyrus_log.log_stage_new "TESTING OUTPUT FORMAT";
-
-  Output_helper.println stdout "|- hello";
-  Output_helper.println stdout "|- Comment ca va ?\n - je vais bien, et toi ?";
-  Output_helper.println stdout "|- pas mal\n\n\n\n";
-  Zephyrus_log.log_stage_end ()
-*)
-
-
-
 
 (*
 (* test the database *)
@@ -158,7 +144,6 @@ let () = Load_settings.load ();
 let () = Load_model.set_initial_model_of_settings ();
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
-  let r = check_option "resources"             !Data_state.resources_full in
   let u = check_option "universe"              !Data_state.universe_full in
   let c = check_option "initial configuration" !Data_state.initial_configuration_full in
   let s = check_option "specification"         !Data_state.specification_full in
@@ -184,7 +169,7 @@ let () = Load_model.set_initial_model_of_settings ();
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
   let main_solver = Solvers.of_settings Solvers.Main in
-  Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string c u r));
+  Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string c u));
   Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
   Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> " (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
   Zephyrus_log.log_stage_end ();
@@ -201,7 +186,7 @@ let () = Load_model.set_initial_model_of_settings ();
   Zephyrus_log.log_execution "Trimming repositories...";
   let universe_trimmed_package         = Trim.trim_repositories universe_trimmed_component_types  c s in
   Zephyrus_log.log_execution " ok\n";
-  Zephyrus_log.log_data "TRIMMED UNIVERSE ==>\n" (lazy ((Json_of.universe_string universe_trimmed_package r) ^ "\n"));
+  Zephyrus_log.log_data "TRIMMED UNIVERSE ==>\n" (lazy ((Json_of.universe_string universe_trimmed_package) ^ "\n"));
 
   (* TODO: we should never re-assign variables in Data_state *)
   Data_state.universe_full := Some(universe_trimmed_package);
@@ -211,7 +196,7 @@ let () = Load_model.set_initial_model_of_settings ();
   (* ==== Compute bounds ==== *)
   Zephyrus_log.log_stage_new "TRIMMING BOUNDS";
   let u = universe_trimmed_package in
-  let cat = Location_categories.full_categories r u c in (* WaC <- may not work *)
+  let cat = Location_categories.full_categories u c in (* WaC <- may not work *)
 
   let sol = match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with (* WaC <- may not work *)
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
@@ -243,7 +228,7 @@ let () = Load_model.set_initial_model_of_settings ();
   let cat' = Variable_bounds.trim_categories cat fu in
   Zephyrus_log.log_data "CATEGORIES FIRST TRIM ==> " (lazy ((String_of.location_categories cat') ^ "\n"));
    
-  let cat'' = match Location_bound.fit_categories preprocess_solver (r#resource_ids,u,c,s) cat' with
+  let cat'' = match Location_bound.fit_categories preprocess_solver (u,c,s) cat' with
       | None -> Location_categories.empty
       | Some(cat') -> cat' in
   Zephyrus_log.log_data "CATEGORIES FULLY TRIMMED ==> " (lazy ((String_of.location_categories cat') ^ "\n\n"));
@@ -253,10 +238,10 @@ let () = Load_model.set_initial_model_of_settings ();
   let (core_conf, annex_conf_init) = Trim.configuration c domain in
   let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
   Zephyrus_log.log_execution " ok\n";  
-  Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string core_conf u r) ^ "\n\n"));
+  Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string core_conf u) ^ "\n\n"));
 (*  Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
   Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r); *)
-  (if not (Settings.find Settings.modifiable_configuration) then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string annex_conf u r) ^ "\n\n")));
+  (if not (Settings.find Settings.modifiable_configuration) then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string annex_conf u) ^ "\n\n")));
   
   (* TODO: we should never re-assign variables in Data_state *)
   Data_state.initial_configuration_full := Some(core_conf);
@@ -290,10 +275,10 @@ let () = Load_model.set_initial_model_of_settings ();
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
 (*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r); *)
-    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string final_configuration u r) ^ "\n"));
+    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string final_configuration u) ^ "\n"));
     
     
-    List.iter (fun (kind, filename) -> print_to_file kind filename r u final_configuration) (Settings.find Settings.results);
+    List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results);
 (*
     Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
     Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);

@@ -702,14 +702,6 @@ let load_universe catalog rs u    = new convert_universe catalog rs u
 let load_configuration catalog c = new convert_configuration catalog c
 let load_specification           = convert_specification
 let load_optimization_function   = convert_optimization_function
-let load_resources model_catalog = object
-    method resource_names = model_catalog#resource#names
-    method resource_ids   = model_catalog#resource#ids
-    method get_name    id = try model_catalog#resource#name_of_id id with
-      Not_found -> Zephyrus_log.log_missing_data "resource id"   (String_of.resource_id id)     "universe"
-    method get_id    name = try model_catalog#resource#id_of_name name with
-      Not_found -> Zephyrus_log.log_missing_data "resource name" (String_of.resource_name name) "universe"
-  end
 
 
 let model_of_file_options file_u file_repos file_conf file_spec optim =
@@ -722,19 +714,17 @@ let model_of_file_options file_u file_repos file_conf file_spec optim =
   let final_u = match u with None -> None | Some(u') -> Some(load_universe catalog rs u') in
   let final_c = match c with None -> None | Some(c') -> Some(load_configuration catalog c') in
   let final_s = match s with None -> None | Some(s') -> Some(load_specification catalog s') in
-  let resources = load_resources catalog in
-  (catalog, resources, final_u, final_c, final_s, f)
+  (catalog, final_u, final_c, final_s, f)
 
 let model_of_settings () = model_of_file_options
     (Settings.get_input_file_universe ()) (Settings.get_input_file_repositories ()) (Settings.get_input_file_initial_configuration ())
     (Settings.get_input_file_specification ()) (Settings.get_input_optimization_function ())
 
-let set_initial_model_of_settings () = let (catalog, resources, universe, initial_configuration, specification, f) = model_of_settings () in
+let set_initial_model_of_settings () = let (catalog, universe, initial_configuration, specification, f) = model_of_settings () in
   Data_state.catalog_full               := Some catalog;
   Data_state.universe_full              := universe;
   Data_state.initial_configuration_full := initial_configuration;
   Data_state.specification_full         := specification;
-  Data_state.resources_full             := Some(resources);
   Data_state.optimization_function      := f
 
 let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
@@ -749,10 +739,8 @@ let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   let universe              = load_universe      catalog rs u in
   let initial_configuration = load_configuration catalog c in
   let specification         = load_specification catalog s in
-  let resources             = load_resources     catalog in
 
   Data_state.universe_full              := Some(universe);
   Data_state.initial_configuration_full := Some(initial_configuration);
   Data_state.specification_full         := Some(specification);
-  Data_state.resources_full             := Some(resources);
   Data_state.optimization_function      := Some(f)

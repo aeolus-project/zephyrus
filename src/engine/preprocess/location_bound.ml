@@ -18,9 +18,9 @@
 (****************************************************************************)
 
 
-let constraint_of (resources, universe, config, spec) ls = (* TODO: put in constraint_of with model_with_domain *)
-  let (_, k_universe) = List.split (Constraint_of.universe resources ls universe) in
-  let (_, k_config) = List.split (Constraint_of.locations resources (Data_model.Location_set_of_location_ids.convert config#get_location ls)) in
+let constraint_of (universe, config, spec) ls = (* TODO: put in constraint_of with model_with_domain *)
+  let (_, k_universe) = List.split (Constraint_of.universe ls universe) in
+  let (_, k_config) = List.split (Constraint_of.locations universe#get_resource_ids (Data_model.Location_set_of_location_ids.convert config#get_location ls)) in
   let (_, k_spec) = List.split (Constraint_of.specification ls spec) in
   Data_constraint.NaryKonstraint((Data_constraint.And), ((List.flatten k_universe) @ (List.flatten k_config) @ k_spec))
 
