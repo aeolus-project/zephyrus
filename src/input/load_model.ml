@@ -338,84 +338,22 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
       ~id:       id
       ~packages: packages) in
 
-    (* universe *)
-    let _ = List.iter convert_repository     u.Json_t.universe_repositories    (* fill the repository and package tables 1/2 *) in   
-    let _ = List.iter convert_repository     external_repositories             (* fill the repository and package tables 2/2 *) in   
-    let _ = List.iter convert_component_type u.Json_t.universe_component_types (* fill the component type table *) in
-    let implementation = Component_type_id_map.map_of_list                     (* may add erroneous packages and component types in the table *)
-      (fun (t,ks) -> (catalog#component_type#id_of_name (convert_component_type_name t), Package_id_set.set_of_list
-        (fun (r,k) -> let r_name = convert_repository_name r in catalog#package#id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
-    let implementation_domain =
-      Component_type_id_set.set_of_list (fun (t,ks) -> 
-        catalog#component_type#id_of_name (convert_component_type_name t)
-      ) u.Json_t.universe_implementation in
-
-    new universe 
-      ~ports:           catalog#port#ids
-      ~packages:        package#id_to_obj_map
-      ~resources:       catalog#resource#ids
-      ~component_types: component_type#id_to_obj_map
-      ~implementation:  implementation
-      ~repositories:    repository#id_to_obj_map
-(*
-    object(self)
-      (* private *)
-      val mutable implem_ur = Port_id_map.empty; (* set of component type requiring.   Not directly computed, filled when requested *)
-      val mutable implem_up = Port_id_map.empty; (* set of component type providing.   Not directly computed, filled when requested *)
-      val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
-
-      (* methods *)
-      method get_component_type        = component_type#obj_of_id
-      method get_implementation id     = try Component_type_id_map.find id implementation with | Not_found -> Package_id_set.empty
-      method get_implementation_domain = implementation_domain
-      method get_repository            = repository#obj_of_id
-      method get_package               = package#obj_of_id
-
-      method repository_of_package id = Package_id_map.find id !package_id_to_repo_id_map
-
-      method get_port_ids           = catalog#port#ids
-      method get_component_type_ids = catalog#component_type#ids
-      method get_repository_ids     = catalog#repository#ids
-      method get_package_ids        = catalog#package#ids
-      method get_resource_ids       = catalog#resource#ids
-
-      (* methods coming from the paper. Usually, aliases for well-named functions *)
-      method ur p = 
-        (*  - requirers computes the set of component types (id) that requires the port in parameter *)
-        let requirers component_types port_id = 
-          Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
-            if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false)
-          component_types) 
-        in
-        try Port_id_map.find p implem_ur 
-        with Not_found -> let tmp = (requirers component_type#id_to_obj_map p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp
-
-      method up p = 
-        (*  - computes the set of component types (id) that provides the port in parameter *)
-        let providers component_types port_id = 
-          (*  - check if a provide does really provide a port *)
-          let port_is_provide_strict prov = 
-            match prov with | Finite_provide i -> i > 0 | Infinite_provide -> true in
-          Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t -> 
-            if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false)
-          component_types)
-        in
-        try Port_id_map.find p implem_up
-        with Not_found -> let tmp = (providers component_type#id_to_obj_map p) in implem_up <- Port_id_map.add p tmp implem_up; tmp
-
-      method uc p =
-        (*  - computes the set of component types (id) that are in conflict with the port in parameter *)
-        let conflicters component_types port_id = 
-          Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
-            Port_id_set.mem port_id (t#conflict))
-          component_types)
-        in
-        try Port_id_map.find p implem_uc
-        with Not_found -> let tmp = (conflicters component_type#id_to_obj_map p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp
-    end
-*)
-
-
+  (* universe *)
+  List.iter convert_repository     u.Json_t.universe_repositories;    (* fill the repository and package tables 1/2 *) 
+  List.iter convert_repository     external_repositories;             (* fill the repository and package tables 2/2 *) 
+  List.iter convert_component_type u.Json_t.universe_component_types; (* fill the component type table *)
+  
+  let implementation = Component_type_id_map.map_of_list                     (* may add erroneous packages and component types in the table *)
+    (fun (t,ks) -> (catalog#component_type#id_of_name (convert_component_type_name t), Package_id_set.set_of_list
+      (fun (r,k) -> let r_name = convert_repository_name r in catalog#package#id_of_name ((find_repository r_name), (convert_package_name r_name k))) ks)) u.Json_t.universe_implementation in
+  
+  new universe 
+    ~ports:           catalog#port#ids
+    ~packages:        package#id_to_obj_map
+    ~resources:       catalog#resource#ids
+    ~component_types: component_type#id_to_obj_map
+    ~implementation:  implementation
+    ~repositories:    repository#id_to_obj_map
 
 (* Possible inconsistencies not detected during generation:
  - package presented in a dependency, but not declared. Can be detected by an id in [get_package_ids] without an entry in [get_package]
@@ -427,29 +365,9 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
 (*| 3. Configuration Conversion                     |*)
 (*\*************************************************/*)
 
-(* module for the [get_local_component] function that, given a location and component type, returns the set of components of the right location and type *)
-module Location_component_type = struct
-  type t = Data_model.location_id * Data_model.component_type_id
-  let compare (l,t) (l',t') = let tmp = Data_model.Location_id.compare l l' in
-    if tmp = 0 then Data_model.Component_type_id.compare t t' else tmp
-end module Location_component_type_map = Data_common.Map.Make(Location_component_type)
-
-(* module for the [get_local_package] function that tells if a package is installed on a location *)
-module Location_package = struct
-  type t = Data_model.location_id * Data_model.package_id
-  let compare (l,t) (l',t') = let tmp = Data_model.Location_id.compare l l' in
-    if tmp = 0 then Data_model.Package_id.compare t t' else tmp
-end module Location_package_map = Data_common.Map.Make(Location_package)
-
-(* functions that compute parts of the two functions just mentioned *)
-let get_local_component l t map = Component_id_map_extract_key.set_of_keys (Component_id_map.filter (fun _ c -> (c#location = l) & (c#typ = t)) map)
-let get_local_package l k map = try let l' = Location_id_map.find l map in Package_id_set.mem k l'#packages_installed with Not_found -> false
-
-
-
 (*/*********************************)
 (* class for loading a configuration from a Json_j structure. Contains all conversion function concerning configurations *)
-class convert_configuration (catalog : closed_model_catalog) c =
+let convert_configuration (catalog : closed_model_catalog) c : configuration =
 
   (* 1. Data storage *)
 
@@ -553,31 +471,40 @@ class convert_configuration (catalog : closed_model_catalog) c =
   let _ = List.iter convert_component c.Json_t.configuration_components in
   let implem_bindings = Binding_set.set_of_list (convert_binding) c.Json_t.configuration_bindings in
 
-object(self)
-(* private *)
-  val mutable implem_get_local_component = Location_component_type_map.empty; (* computed incrementally *)
-  val mutable implem_get_local_package = Location_package_map.empty;          (* computed incrementally *)
-(* methods *)
+  object(self)
+    (* private *)
+    val mutable implem_get_local_component : Component_id_set.t Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
+    val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty;          (* computed incrementally *)
 
-  method get_location  = location#obj_of_id
-  method get_component = component#obj_of_id
+    (* methods *)
+    method get_location  = location#obj_of_id
+    method get_component = component#obj_of_id
 
-  method get_bindings   = implem_bindings
+    method get_bindings   = implem_bindings
 
-  method get_location_ids  = catalog#location#ids
-  method get_component_ids = catalog#component#ids
+    method get_location_ids  = catalog#location#ids
+    method get_component_ids = catalog#component#ids
 
-  method c_l = self#get_location_ids
-  method c_c = self#get_component_ids
-  method c_type c = (self#get_component c)#typ
+    method get_local_component location_id componene_type_id = 
+      try Location_id_map.find location_id implem_get_local_component
+      with Not_found -> 
+        let tmp  =
+          Component_id_set.filter (fun component_id ->
+            (self#get_component component_id)#location = location_id
+          ) self#get_component_ids in
+        implem_get_local_component <- Location_id_map.add location_id tmp implem_get_local_component; 
+        tmp
 
-  method get_local_component l t = (try Location_component_type_map.find (l,t) implem_get_local_component
-                                    with Not_found -> let tmp = get_local_component l t component#id_to_obj_map in
-                                    implem_get_local_component <- Location_component_type_map.add (l,t) tmp implem_get_local_component; tmp)
-  method get_local_package   l k = (try Location_package_map.find (l,k) implem_get_local_package
-                                    with Not_found -> let tmp = get_local_package l k location#id_to_obj_map in
-                                    implem_get_local_package <- Location_package_map.add (l,k) tmp implem_get_local_package; tmp);
-end
+    method get_local_package location_id package_id =
+      let local_package_ids : Package_id_set.t =
+        try Location_id_map.find location_id implem_get_local_package
+        with Not_found -> 
+          let tmp = (self#get_location location_id)#packages_installed in
+          implem_get_local_package <- Location_id_map.add location_id tmp implem_get_local_package; tmp
+      in
+      Package_id_set.mem package_id local_package_ids
+
+  end
 
 
 
@@ -590,10 +517,6 @@ let empty_configuration = object(self)
 
   method get_location_ids  = Location_id_set.empty
   method get_component_ids = Component_id_set.empty
-
-  method c_l = self#get_location_ids
-  method c_c = self#get_component_ids
-  method c_type c = (self#get_component c)#typ
 
   method get_local_component l t = raise Not_found
   method get_local_package   l k = raise Not_found
@@ -688,7 +611,7 @@ let load_basic_specification file = Input_helper.parse_standard Specification_pa
 
 let load_catalog u rs c s        = model_catalog_of_json_t_with_exceptions (model_catalog_of_json_t u rs c s)
 let load_universe catalog rs u   = convert_universe catalog rs u
-let load_configuration catalog c = new convert_configuration catalog c
+let load_configuration catalog c = convert_configuration catalog c
 let load_specification           = convert_specification
 let load_optimization_function   = convert_optimization_function
 

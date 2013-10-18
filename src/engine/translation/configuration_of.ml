@@ -396,18 +396,12 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     (* methods *)
     method get_location  = get_location
     method get_component = get_component
-
     method get_bindings   = bindings
 
     method get_location_ids  = location_ids
     method get_component_ids = component_ids
 
-    method c_l      = self#get_location_ids
-    method c_c      = self#get_component_ids
-    method c_type c = (self#get_component c)#typ
-
     method get_local_component = get_local_components
-    
     method get_local_package   = get_local_package
   end
 
@@ -425,10 +419,6 @@ let merge c1 c2 = object(self)
 
     method get_location_ids  = Location_id_set.union c1#get_location_ids c2#get_location_ids
     method get_component_ids = Component_id_set.union c1#get_component_ids c2#get_component_ids
-
-    method c_l      = self#get_location_ids
-    method c_c      = self#get_component_ids
-    method c_type c = (self#get_component c)#typ
 
     method get_local_component l c = try c1#get_local_component l c with Failure _ -> c2#get_local_component l c
     method get_local_package   l k = try c1#get_local_package l k with Failure _ -> c2#get_local_package l k

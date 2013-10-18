@@ -381,9 +381,6 @@ let configuration c domain =
       method get_bindings   = bindings_1
       method get_location_ids  = location_ids_1
       method get_component_ids = component_ids_1
-      method c_l = location_ids_1
-      method c_c = component_ids_1
-      method c_type = c#c_type
       method get_local_component = c#get_local_component
       method get_local_package   = c#get_local_package
     end , object
@@ -392,9 +389,6 @@ let configuration c domain =
       method get_bindings   = bindings_2
       method get_location_ids  = location_ids_2
       method get_component_ids = component_ids_2
-      method c_l = location_ids_2
-      method c_c = component_ids_2
-      method c_type = c#c_type
       method get_local_component = c#get_local_component
       method get_local_package   = c#get_local_package
     end )
@@ -415,9 +409,6 @@ let empty c =
     method get_bindings   = Binding_set.empty
     method get_location_ids  = c#get_location_ids
     method get_component_ids = Component_id_set.empty
-    method c_l = c#c_l
-    method c_c = Component_id_set.empty
-    method c_type = (fun c -> (self#get_component c)#typ)
     method get_local_component = (fun _ _ -> Component_id_set.empty)
     method get_local_package   = (fun _ _ -> false)
   end

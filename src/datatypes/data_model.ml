@@ -526,16 +526,46 @@ class type configuration = object
   method get_location_ids  : Location_id_set.t
   method get_component_ids : Component_id_set.t
 
-  (* methods coming from the paper. Usually, aliases for well-named functions *)
-  method c_l : Location_id_set.t
-  method c_c : Component_id_set.t
-  method c_type : component_id -> component_type_id
-
   method get_local_component : location_id -> component_type_id -> Component_id_set.t
   method get_local_package : location_id -> package_id -> bool
 end
 
+(*
+exception Configuration_location_not_found  of location_id
+exception Configuration_component_not_found of component_id
 
+class configuration 
+  ?(locations                 = Location_id_map.empty)
+  ?(components                = Component_id_map.empty)
+  ?(bindings                  = Binding_set.empty)
+  = object (self)
+
+  val locations       : location Location_id_map.t   = locations   (** Locations in this configuration. *)
+  val components      : component Component_id_map.t = components  (** Components in this configuration. *)
+  val bindings        : Binding_set.t                = bindings    (** Bindings in this configuration. *)
+
+  (* private *)
+  val mutable implem_get_local_component = Location_component_type_map.empty; (* computed incrementally *)
+  val mutable implem_get_local_package = Location_package_map.empty;          (* computed incrementally *)
+
+  (* methods *)
+  method get_location (id : location_id) : location  = 
+    try Location_id_map.find id locations
+    with Not_found -> raise (Configuration_location_not_found id)
+
+  method get_component (id : component_id) : component = 
+    try Component_id_map.find id components
+    with Not_found -> raise (Configuration_component_not_found id)
+
+  method get_location_ids  : Location_id_set.t  = Location_id_map_extract_key.set_of_keys  locations
+  method get_component_ids : Component_id_set.t = Component_id_map_extract_key.set_of_keys components
+  method get_bindings      : Binding_set.t      = bindings
+
+  method get_local_component (location_id : location_id) (component_type_id : component_type_id) : Component_id_set.t =
+  method get_local_package   (location_id : location_id) (package_id : package_id) : bool =
+
+end
+*)
 
 (*/************************************************************************\*)
 (*| 4. Specification.                                                      |*)
