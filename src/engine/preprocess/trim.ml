@@ -286,36 +286,10 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
     Package_id_map.find package_id repository_id_of_package_id_map in
 
   (* The trimmed universe. *)
-  object
-    (* basic methods *)
-    method get_component_type        = universe#get_component_type        (* Irrelevent to repository trimming. *)
-    method get_implementation_domain = universe#get_implementation_domain (* Irrelevent to repository trimming. *)
-    method get_implementation        = universe#get_implementation        (* Irrelevent to repository trimming. *)
-    method get_repository            = get_repository                     (* Updated! *)
-    method get_package               = get_package                        (* Updated! *)
-
-    method repository_of_package  = repository_of_package (* Updated! *)
-
-    method get_port_ids           = universe#get_port_ids           (* Irrelevent to repository trimming. *)
-    method get_component_type_ids = universe#get_component_type_ids (* Irrelevent to repository trimming. *)
-    method get_repository_ids     = repository_ids                  (* Updated! *) 
-    method get_package_ids        = package_ids                     (* Updated! *)
-    method get_resource_ids       = universe#get_resource_ids       (* Irrelevant to repository trimming. *)
-
-    (* methods coming from the paper. Usually, aliases for well-named functions *)
-    method u_dt = universe#u_dt  (* Irrelevent to repository trimming. *)
-    method u_dp = universe#u_dp  (* Irrelevent to repository trimming. *)
-    method u_dr = repository_ids (* Updated! *)
-    method u_dk = package_ids    (* Updated! *)
-      
-    method u_i = universe#u_i (* Irrelevent to repository trimming. *)
-    method u_w = get_package  (* Updated! *)
-
-    method ur = universe#ur (* Irrelevent to repository trimming. *)
-    method up = universe#up (* Irrelevent to repository trimming. *)
-    method uc = universe#uc (* Irrelevent to repository trimming. *)
-  end
-
+  universe#copy
+    ~packages:     package_of_package_id_map
+    ~repositories: repository_of_repository_id_map
+    ()
 
 
 let trim_repositories universe configuration specification =

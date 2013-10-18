@@ -244,7 +244,7 @@ class repository
   method package_ids                  : Package_id_set.t  = Package_id_map_extract_key.set_of_keys packages
   method get_package (k : package_id) : package           = try Package_id_map.find k packages with Not_found -> raise (Repository_package_not_found k)
 
-  method packages                     : Package_set.t =
+  method packages : Package_set.t =
     let module Package_id_map_extract_value = Package_id_map.Set_of_values(Package_set) in 
     Package_id_map_extract_value.set_of_values packages
 
@@ -259,37 +259,128 @@ module Repository_map = Map.Make(Repository)
 
 
   (** 2.4. Universes *)
-class type universe = object
+
+exception Universe_component_type_not_found of component_type_id
+exception Universe_repository_not_found     of repository_id
+exception Universe_package_not_found        of package_id
+exception Package_repository_not_found      of package_id
+
+class universe 
+  ?(ports                     = Port_id_set.empty)
+  ?(packages                  = Package_id_map.empty)
+  ?(resources                 = Resource_id_set.empty)
+  ?(component_types           = Component_type_id_map.empty)
+  ?(implementation            = Component_type_id_map.empty)
+  ?(repositories              = Repository_id_map.empty)
+  = object (self)
+
+  val ports           : Port_id_set.t                            = ports
+  val packages        : package Package_id_map.t                 = packages
+  val resources       : Resource_id_set.t                        = resources
+  val component_types : component_type Component_type_id_map.t   = component_types (** Component types available in this universe. *)
+  val implementation  : Package_id_set.t Component_type_id_map.t = implementation  (** Which packages implement the component types of this universe. *)
+  val repositories    : repository Repository_id_map.t           = repositories    (** Package repositories available in this universe. *)
+
+  (* private *)
+  val mutable implem_ur = Port_id_map.empty; (* set of component type requiring.   Not directly computed, filled when requested *)
+  val mutable implem_up = Port_id_map.empty; (* set of component type providing.   Not directly computed, filled when requested *)
+  val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
+
   (* basic methods *)
-  method get_component_type        : component_type_id -> component_type      (** Component types available in this universe. *)
-  method get_implementation        : component_type_id -> Package_id_set.t (** Which packages implement the component types of this universe. *)
-  method get_implementation_domain : Component_type_id_set.t
-  method get_repository            : repository_id -> repository               (** Package repositories available in this universe. *)
-  method get_package               : package_id -> package
+  method get_port_ids              : Port_id_set.t           = ports
+  method get_package_ids           : Package_id_set.t        = Package_id_map_extract_key.set_of_keys        packages
+  method get_resource_ids          : Resource_id_set.t       = resources
+  method get_component_type_ids    : Component_type_id_set.t = Component_type_id_map_extract_key.set_of_keys component_types
+  method get_repository_ids        : Repository_id_set.t     = Repository_id_map_extract_key.set_of_keys     repositories
+  method get_implementation_domain : Component_type_id_set.t = Component_type_id_map_extract_key.set_of_keys implementation
 
-  method repository_of_package : package_id -> repository_id
-
-  method get_port_ids           : Port_id_set.t
-  method get_component_type_ids : Component_type_id_set.t
-  method get_repository_ids     : Repository_id_set.t
-  method get_package_ids        : Package_id_set.t
-  method get_resource_ids       : Resource_id_set.t
-
-  (* methods coming from the paper. Usually, aliases for well-named functions *)
-  method u_dt : Component_type_id_set.t
-  method u_dp : Port_id_set.t
-  method u_dr : Repository_id_set.t
-  method u_dk : Package_id_set.t
+  method get_component_type (id : component_type_id) : component_type =
+    try Component_type_id_map.find id component_types 
+    with Not_found -> raise (Universe_component_type_not_found id)
     
-  method u_i : component_type_id -> Package_id_set.t
-  method u_w : package_id -> package
+  method get_implementation (id : component_type_id) : Package_id_set.t =
+    try Component_type_id_map.find id implementation 
+    with Not_found -> Package_id_set.empty
 
-  method ur : port_id -> Component_type_id_set.t
-  method up : port_id -> Component_type_id_set.t
-  method uc : port_id -> Component_type_id_set.t
+  method get_repository (id : repository_id) : repository =
+    try Repository_id_map.find id repositories 
+    with Not_found -> raise (Universe_repository_not_found id)
+    
+  method get_package (id : package_id) : package =
+    try Package_id_map.find id packages
+    with Not_found -> raise (Universe_package_not_found id)
+
+  method repository_of_package (id : package_id) : repository_id =
+    let package_id_to_repo_id_map : repository_id Package_id_map.t =
+      let package_id_to_repo_id_map : repository_id Package_id_map.t ref = ref Package_id_map.empty in
+      Repository_id_map.iter (fun repository_id repository ->
+        Package_id_set.iter (fun package_id ->
+            package_id_to_repo_id_map := Package_id_map.add package_id repository_id !package_id_to_repo_id_map
+          ) repository#package_ids
+      ) repositories;
+      !package_id_to_repo_id_map in
+    try Package_id_map.find id package_id_to_repo_id_map
+    with Not_found -> raise (Package_repository_not_found id)
+
+
+  (* methods coming from the paper. *)
+
+  method ur (p : port_id) : Component_type_id_set.t = 
+    (*  - requirers computes the set of component types (id) that requires the port in parameter *)
+    let requirers component_types port_id = 
+      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
+        if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false)
+      component_types) 
+    in
+    try Port_id_map.find p implem_ur 
+    with Not_found -> let tmp = (requirers component_types p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp
+
+  method up (p : port_id) : Component_type_id_set.t = 
+    (*  - computes the set of component types (id) that provides the port in parameter *)
+    let providers component_types port_id = 
+      (*  - check if a provide does really provide a port *)
+      let port_is_provide_strict prov = 
+        match prov with | Finite_provide i -> i > 0 | Infinite_provide -> true in
+      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t -> 
+        if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false)
+      component_types)
+    in
+    try Port_id_map.find p implem_up
+    with Not_found -> let tmp = (providers component_types p) in implem_up <- Port_id_map.add p tmp implem_up; tmp
+
+  method uc (p : port_id) : Component_type_id_set.t =
+    (*  - computes the set of component types (id) that are in conflict with the port in parameter *)
+    let conflicters component_types port_id = 
+      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
+        Port_id_set.mem port_id (t#conflict))
+      component_types)
+    in
+    try Port_id_map.find p implem_uc
+    with Not_found -> let tmp = (conflicters component_types p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp
+
+
+  (* TODO: Maybe put the package trimming in here, thus removing need for this function. *)
+
+  (* This method is almost like a constructor, but based on a existing object:
+     it will replace only the given fields of the existing object, leaving the rest as it was. *)
+  method copy
+    ?(ports           = ports)
+    ?(packages        = packages)
+    ?(resources       = resources)
+    ?(component_types = component_types)
+    ?(implementation  = implementation)
+    ?(repositories    = repositories) 
+    () =
+    {<
+      ports           = ports;
+      packages        = packages;
+      resources       = resources;
+      component_types = component_types;
+      implementation  = implementation;
+      repositories    = repositories
+    >}
+
 end
-
-
 
 
 (*/************************************************************************\*)
@@ -470,7 +561,7 @@ type spec_op =
   | Lt  (** Less-than operator *)
   | LEq (** Less-than-or-equal-to operator *)
   | Eq  (** Equal-to operator *)
-  | GEq (** Grearter-than-or-equal-to operator *)
+  | GEq (** Greater-than-or-equal-to operator *)
   | Gt  (** Greater-than operator *)
   | NEq (** Not-equal-to operator *)
 

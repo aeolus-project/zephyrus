@@ -203,44 +203,44 @@ let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
   ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) ]
 
 let universe location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
-    (Data_state.constraint_universe_component_type_require  , require universe#u_dp universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide universe#u_dp universe#up universe#ur universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_conflict , conflict universe#u_dp universe#uc universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#u_dt universe#u_i) ;
-    (Data_state.constraint_universe_binding_unicity         , binding universe#u_dp universe#ur universe#up) ;
-    (Data_state.constraint_universe_location_component_type , location_component_type universe#u_dt location_ids) ;
-    (Data_state.constraint_universe_location_package        , location_package universe#u_dk location_ids) ;
-    (Data_state.constraint_universe_location_port           , location_port universe#u_dp location_ids) ;
-    (Data_state.constraint_universe_definition_port         , location_port_equation universe#u_dp location_ids universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_repository_unicity      , repository_unique location_ids universe#u_dr) ;
-    (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids)) ;
-    (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#u_dk universe#get_package) ;
-    (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#u_dk universe#get_package) ;
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package) ;
+    (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_conflict , conflict universe#get_port_ids universe#uc universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ;
+    (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
+    (Data_state.constraint_universe_location_component_type , location_component_type universe#get_component_type_ids location_ids) ;
+    (Data_state.constraint_universe_location_package        , location_package universe#get_package_ids location_ids) ;
+    (Data_state.constraint_universe_location_port           , location_port universe#get_port_ids location_ids) ;
+    (Data_state.constraint_universe_definition_port         , location_port_equation universe#get_port_ids location_ids universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_repository_unicity      , repository_unique location_ids universe#get_repository_ids) ;
+    (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ;
+    (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#get_package_ids universe#get_package) ;
+    (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#get_package_ids universe#get_package) ;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package) ;
     (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages location_ids);
-    (Data_state.constraint_universe_deprecated_element      , used_locations universe#u_dt universe#u_dk location_ids) ]
+    (Data_state.constraint_universe_deprecated_element      , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) ]
 
  
 
 let universe_full () =
   let f (universe: Data_model.universe) configuration =
-    Data_state.constraint_universe_component_type_require        := require universe#u_dp universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide universe#u_dp universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       := conflict universe#u_dp universe#uc universe#get_component_type;
-    Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#c_l universe#u_dt universe#u_i;
-    Data_state.constraint_universe_binding_unicity               := binding universe#u_dp universe#ur universe#up;
-    Data_state.constraint_universe_location_component_type       := location_component_type universe#u_dt configuration#c_l;
-    Data_state.constraint_universe_location_package              := location_package universe#u_dk configuration#c_l;
-    Data_state.constraint_universe_location_port                 := location_port universe#u_dp configuration#c_l;
-    Data_state.constraint_universe_definition_port               := location_port_equation universe#u_dp configuration#c_l universe#up universe#get_component_type;
-    Data_state.constraint_universe_repository_unicity            := repository_unique configuration#c_l universe#u_dr;
-    Data_state.constraint_universe_repository_package            := repository_package configuration#c_l universe#u_dr universe#u_dk (fun r -> (universe#get_repository r)#package_ids);
-    Data_state.constraint_universe_package_dependency            := package_dependency configuration#c_l universe#u_dk universe#get_package;
-    Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#u_dk universe#get_package;
+    Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide universe#get_port_ids universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_conflict       := conflict universe#get_port_ids universe#uc universe#get_component_type;
+    Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#c_l universe#get_component_type_ids universe#get_implementation;
+    Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
+    Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#c_l;
+    Data_state.constraint_universe_location_package              := location_package universe#get_package_ids configuration#c_l;
+    Data_state.constraint_universe_location_port                 := location_port universe#get_port_ids configuration#c_l;
+    Data_state.constraint_universe_definition_port               := location_port_equation universe#get_port_ids configuration#c_l universe#up universe#get_component_type;
+    Data_state.constraint_universe_repository_unicity            := repository_unique configuration#c_l universe#get_repository_ids;
+    Data_state.constraint_universe_repository_package            := repository_package configuration#c_l universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids);
+    Data_state.constraint_universe_package_dependency            := package_dependency configuration#c_l universe#get_package_ids universe#get_package;
+    Data_state.constraint_universe_package_conflict              := package_conflict configuration#c_l universe#get_package_ids universe#get_package;
     Data_state.constraint_universe_resource_consumption          :=
-      resource_consumption configuration#c_l universe#get_resource_ids universe#u_dt universe#u_dk universe#get_component_type universe#get_package;
+      resource_consumption configuration#c_l universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#c_l;
-    Data_state.constraint_universe_used_locations                := used_locations universe#u_dt universe#u_dk configuration#c_l;
+    Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids universe#get_package_ids configuration#c_l;
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
     | (Some(u), Some(c)) -> f u c
     | _ -> ()
@@ -410,7 +410,7 @@ let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
 
 let optimization_function u c f =
   let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) =
-    (c#c_l, u#u_dt, u#u_dk, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
+    (c#c_l, u#get_component_type_ids, u#get_package_ids, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
   match f with
   | Data_model.Optimization_function_simple       -> Minimize (sum (cost_all_components u_dt))
   | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk get_location_cost
