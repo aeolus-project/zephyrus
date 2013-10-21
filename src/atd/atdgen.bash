@@ -1,3 +1,9 @@
 #!/bin/bash
-atdgen -t             json.atd
-atdgen -j -j-defaults json.atd
+atdfiles=`ls *.atd | cut -d '.' -f 1`
+
+for file in $atdfiles; 
+do
+  echo "atdgen: $file"
+  atdgen -t             $file.atd
+  atdgen -j -j-defaults $file.atd
+done
