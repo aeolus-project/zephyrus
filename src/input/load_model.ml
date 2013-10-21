@@ -467,62 +467,17 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     in
 
   (* configuration *)
-  let _ = List.iter convert_location c.Json_t.configuration_locations in
-  let _ = List.iter convert_component c.Json_t.configuration_components in
-  let implem_bindings = Binding_set.set_of_list (convert_binding) c.Json_t.configuration_bindings in
+  List.iter convert_location c.Json_t.configuration_locations;
+  List.iter convert_component c.Json_t.configuration_components;
+  let bindings = Binding_set.set_of_list (convert_binding) c.Json_t.configuration_bindings in
 
-  object(self)
-    (* private *)
-    val mutable implem_get_local_component : Component_id_set.t Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
-    val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty;          (* computed incrementally *)
+  new configuration
+    ~locations:  location#id_to_obj_map
+    ~components: component#id_to_obj_map
+    ~bindings:   bindings
+    ()
 
-    (* methods *)
-    method get_location  = location#obj_of_id
-    method get_component = component#obj_of_id
-
-    method get_bindings   = implem_bindings
-
-    method get_location_ids  = catalog#location#ids
-    method get_component_ids = catalog#component#ids
-
-    method get_local_component location_id componene_type_id = 
-      try Location_id_map.find location_id implem_get_local_component
-      with Not_found -> 
-        let tmp  =
-          Component_id_set.filter (fun component_id ->
-            (self#get_component component_id)#location = location_id
-          ) self#get_component_ids in
-        implem_get_local_component <- Location_id_map.add location_id tmp implem_get_local_component; 
-        tmp
-
-    method get_local_package location_id package_id =
-      let local_package_ids : Package_id_set.t =
-        try Location_id_map.find location_id implem_get_local_package
-        with Not_found -> 
-          let tmp = (self#get_location location_id)#packages_installed in
-          implem_get_local_package <- Location_id_map.add location_id tmp implem_get_local_package; tmp
-      in
-      Package_id_set.mem package_id local_package_ids
-
-  end
-
-
-
-let empty_configuration = object(self)
-
-  method get_location  = fun (_ : location_id) -> raise Not_found
-  method get_component = fun (_ : component_id) -> raise Not_found
-
-  method get_bindings   = Binding_set.empty
-
-  method get_location_ids  = Location_id_set.empty
-  method get_component_ids = Component_id_set.empty
-
-  method get_local_component l t = raise Not_found
-  method get_local_package   l k = raise Not_found
-  
-end
-
+let empty_configuration = new configuration ()
 
 (*****************************************************)
 (** 4. Specification conversion                      *)

@@ -222,7 +222,7 @@ let trim_component_types universe initial_configuration specification =
 
 let trim_universe_repositories (trim_repository : repository -> repository) (universe : universe)  : universe =
 
-  (* 1. Convert repositories and remove empty ones. *)
+  (* 1. Trim repositories and remove empty ones. *)
   let repository_of_repository_id_map : repository Repository_id_map.t =
 
     let repository_of_repository_id_map : repository Repository_id_map.t ref = ref Repository_id_map.empty in
@@ -236,6 +236,7 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
       (* Keep the repository only if it is non-empty. *)
       if not (Repository_id_set.is_empty trimmed_repository#package_ids)
       then repository_of_repository_id_map := Repository_id_map.add repository_id trimmed_repository !repository_of_repository_id_map
+
     ) universe#get_repository_ids;
 
     !repository_of_repository_id_map
@@ -245,45 +246,28 @@ let trim_universe_repositories (trim_repository : repository -> repository) (uni
   (* 2. Trim repositories *)
   let repository_ids : Repository_id_set.t = Repository_id_map_extract_key.set_of_keys repository_of_repository_id_map in
 
-  let module Repository_id_map_values = Repository_id_map.Set_of_values(Repository_set) in
-  let repositories : Repository_set.t = Repository_id_map_values.set_of_values repository_of_repository_id_map in
-
   let get_repository (repository_id : repository_id) : repository = 
     Repository_id_map.find repository_id repository_of_repository_id_map in
 
   (* 3. Trim packages *)
-  let (package_ids, package_of_package_id_map, repository_id_of_package_id_map) (* : (Package_id_set.t, package Package_id_map.t, repository_id Package_id_map.t) *) = 
+  let package_of_package_id_map : package Package_id_map.t = 
     
-    let package_ids                     : Package_id_set.t ref               = ref Package_id_set.empty in
-    let package_of_package_id_map       : package Package_id_map.t ref       = ref Package_id_map.empty in
-    let repository_id_of_package_id_map : repository_id Package_id_map.t ref = ref Package_id_map.empty in
-
+    let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
+    
     Repository_id_set.iter (fun repository_id -> 
       
       let repository = get_repository repository_id in
       Package_id_set.iter (fun package_id ->
         
         let package = repository#get_package package_id in
+        package_of_package_id_map := Package_id_map.add package_id package !package_of_package_id_map;
 
-        package_ids                     := Package_id_set.add package_id               !package_ids;
-        package_of_package_id_map       := Package_id_map.add package_id package       !package_of_package_id_map;
-        repository_id_of_package_id_map := Package_id_map.add package_id repository_id !repository_id_of_package_id_map
-      
       ) repository#package_ids
     ) repository_ids;
 
-    (!package_ids, !package_of_package_id_map, !repository_id_of_package_id_map)
+    !package_of_package_id_map
 
   in
-
-  let module Package_id_map_values = Package_id_map.Set_of_values(Package_set) in
-  let packages : Package_set.t = Package_id_map_values.set_of_values package_of_package_id_map in
-
-  let get_package (package_id : package_id) : package = 
-    Package_id_map.find package_id package_of_package_id_map in
-
-  let repository_of_package (package_id : package_id) : repository_id =
-    Package_id_map.find package_id repository_id_of_package_id_map in
 
   (* The trimmed universe. *)
   universe#copy
@@ -366,31 +350,38 @@ let transitive_closure_domain c domain =
     map := Location_id_map.remove l !map;
   done; !res
 
-let configuration c domain =
-  let get_location = c#get_location in
-  let location_ids_1 = domain in
-  let location_ids_2 = Location_id_set.diff c#get_location_ids location_ids_1 in
-  let component_ids_1 = Component_id_set.filter (fun c_id -> Location_id_set.mem (c#get_component c_id)#location domain) c#get_component_ids in
-  let component_ids_2 = Component_id_set.diff c#get_component_ids component_ids_1 in
-  let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) c#get_bindings in
-  let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) c#get_bindings in
-  (* print_string ("annex conf location domain = " ^ (String_of.location_id_set location_ids_2) ^ "\n"); *)
- ( object
+let configuration (configuration : configuration) (location_ids : Location_id_set.t) =
+  let get_location = configuration#get_location in
+  
+  let location_ids_trimmed = Location_id_set.inter configuration#get_location_ids location_ids in
+  let location_ids_rest    = Location_id_set.diff  configuration#get_location_ids location_ids_trimmed in
+
+  let component_ids_1 = Component_id_set.filter (fun c_id -> Location_id_set.mem (configuration#get_component c_id)#location location_ids) configuration#get_component_ids in
+  let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) configuration#get_bindings in
+  
+  let component_ids_2 = Component_id_set.diff configuration#get_component_ids component_ids_1 in
+  let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) configuration#get_bindings in
+
+  (* print_string ("annex conf location location_ids = " ^ (String_of.location_id_set location_ids_rest) ^ "\n"); *)
+
+ ( object (self)
       method get_location   = get_location
-      method get_component  = c#get_component
+      method get_component  = configuration#get_component
       method get_bindings   = bindings_1
-      method get_location_ids  = location_ids_1
+      method get_location_ids  = location_ids_trimmed
       method get_component_ids = component_ids_1
-      method get_local_component = c#get_local_component
-      method get_local_package   = c#get_local_package
-    end , object
-      method get_location   = c#get_location
-      method get_component  = c#get_component
+      method get_local_component = configuration#get_local_component
+      method get_local_package   = configuration#get_local_package
+      method trim location_ids = self
+    end , object (self)
+      method get_location   = configuration#get_location
+      method get_component  = configuration#get_component
       method get_bindings   = bindings_2
-      method get_location_ids  = location_ids_2
+      method get_location_ids  = location_ids_rest
       method get_component_ids = component_ids_2
-      method get_local_component = c#get_local_component
-      method get_local_package   = c#get_local_package
+      method get_local_component = configuration#get_local_component
+      method get_local_package   = configuration#get_local_package
+      method trim location_ids = self
     end )
 
 let empty c = 
@@ -403,7 +394,7 @@ let empty c =
       method provide_resources  = l#provide_resources
       method cost               = l#cost
     end in (Location_set.add l' set, Location_id_map.add l#id l' map) in
-  let (set, map) = Location_id_set.fold inner c#get_location_ids (Location_set.empty, Location_id_map.empty) in object(self)
+  let (set, map) = Location_id_set.fold inner c#get_location_ids (Location_set.empty, Location_id_map.empty) in object (self)
     method get_location   = (fun id -> try Location_id_map.find id map with Not_found -> failwith "engine/preprocess/Trim.ml #550")
     method get_component  = (fun _ -> failwith "engine/preprocess/Trim.ml #551")
     method get_bindings   = Binding_set.empty
@@ -411,6 +402,7 @@ let empty c =
     method get_component_ids = Component_id_set.empty
     method get_local_component = (fun _ _ -> Component_id_set.empty)
     method get_local_package   = (fun _ _ -> false)
+    method trim location_ids = self
   end
   
 

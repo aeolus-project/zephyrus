@@ -516,37 +516,23 @@ module Binding_set = Set.Make(Binding)
 
 
   (** 3.4. Configuration. *)
-class type configuration = object
-  (* basic methods *)
-  method get_location  : location_id -> location
-  method get_component : component_id -> component
 
-  method get_bindings   : Binding_set.t
-
-  method get_location_ids  : Location_id_set.t
-  method get_component_ids : Component_id_set.t
-
-  method get_local_component : location_id -> component_type_id -> Component_id_set.t
-  method get_local_package : location_id -> package_id -> bool
-end
-
-(*
 exception Configuration_location_not_found  of location_id
 exception Configuration_component_not_found of component_id
 
 class configuration 
-  ?(locations                 = Location_id_map.empty)
-  ?(components                = Component_id_map.empty)
-  ?(bindings                  = Binding_set.empty)
-  = object (self)
+  ?(locations  = Location_id_map.empty)
+  ?(components = Component_id_map.empty)
+  ?(bindings   = Binding_set.empty)
+  () = object (self)
 
   val locations       : location Location_id_map.t   = locations   (** Locations in this configuration. *)
   val components      : component Component_id_map.t = components  (** Components in this configuration. *)
   val bindings        : Binding_set.t                = bindings    (** Bindings in this configuration. *)
 
   (* private *)
-  val mutable implem_get_local_component = Location_component_type_map.empty; (* computed incrementally *)
-  val mutable implem_get_local_package = Location_package_map.empty;          (* computed incrementally *)
+  val mutable implem_get_local_component : Component_id_set.t Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
+  val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty;          (* computed incrementally *)
 
   (* methods *)
   method get_location (id : location_id) : location  = 
@@ -562,10 +548,48 @@ class configuration
   method get_bindings      : Binding_set.t      = bindings
 
   method get_local_component (location_id : location_id) (component_type_id : component_type_id) : Component_id_set.t =
-  method get_local_package   (location_id : location_id) (package_id : package_id) : bool =
+    try Location_id_map.find location_id implem_get_local_component
+    with Not_found -> 
+      let tmp =
+        Component_id_set.filter (fun component_id ->
+          (self#get_component component_id)#location = location_id
+        ) self#get_component_ids in
+      implem_get_local_component <- Location_id_map.add location_id tmp implem_get_local_component; 
+      tmp
+
+  method get_local_package (location_id : location_id) (package_id : package_id) : bool =
+    let local_package_ids : Package_id_set.t =
+      try Location_id_map.find location_id implem_get_local_package
+      with Not_found -> 
+        let tmp = (self#get_location location_id)#packages_installed in
+        implem_get_local_package <- Location_id_map.add location_id tmp implem_get_local_package; tmp
+    in
+    Package_id_set.mem package_id local_package_ids
+
+  method trim (location_ids : Location_id_set.t) =
+    let location_ids_trimmed = Location_id_set.inter self#get_location_ids location_ids in 
+
+    let locations_trimmed = Location_id_map.filter (fun location_id location ->
+      Location_id_set.mem location_id location_ids_trimmed
+    ) locations in
+
+    let components_trimmed = Component_id_map.filter (fun component_id component ->
+      Location_id_set.mem component#location location_ids_trimmed
+    ) components in
+
+    let component_ids_trimmed = Component_id_map_extract_key.set_of_keys components_trimmed in
+
+    let bindings_trimmed = Binding_set.filter (fun binding ->
+        Component_id_set.mem binding#provider component_ids_trimmed
+    ) bindings in
+
+    {<
+      locations  = locations_trimmed;
+      components = components_trimmed;
+      bindings   = bindings_trimmed;
+    >}
 
 end
-*)
 
 (*/************************************************************************\*)
 (*| 4. Specification.                                                      |*)

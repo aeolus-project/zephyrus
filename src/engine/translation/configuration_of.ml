@@ -403,6 +403,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     method get_local_component = get_local_components
     method get_local_package   = get_local_package
+
+    method trim location_ids = self
   end
 
 (*/************************************************************************\*)
@@ -422,6 +424,8 @@ let merge c1 c2 = object(self)
 
     method get_local_component l c = try c1#get_local_component l c with Failure _ -> c2#get_local_component l c
     method get_local_package   l k = try c1#get_local_package l k with Failure _ -> c2#get_local_package l k
+
+    method trim location_ids = self
  end
 
 
