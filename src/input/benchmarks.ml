@@ -17,6 +17,9 @@
 (*                                                                          *)
 (****************************************************************************)
 
+module Json_t = Json_v2_t
+module Json_j = Json_v2_j
+
 open Json_t
 
 class virtual benchmark = object
@@ -106,7 +109,7 @@ struct
         };
         {
           component_type_name     = "Worker";
-          component_type_provide  = [("@work", (`FiniteProvide 1))];
+          component_type_provide  = [("@work", "1")];
           component_type_require  = [];
           component_type_conflict = [];
           component_type_consume  = [("ram", 1024)]

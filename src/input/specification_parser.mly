@@ -42,7 +42,7 @@
 %left TIMES                  /* medium precedence */
 %nonassoc NOT                /* highest precedence */
 %start main                  /* the entry point */
-%type <Json_t.specification> main
+%type <Json_v2_t.specification> main
 
 %%
 main:

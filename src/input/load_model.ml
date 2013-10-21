@@ -27,6 +27,9 @@
     - input/Input_helper (for input file manipulation)
 *)
 
+module Json_t = Json_v2_t
+module Json_j = Json_v2_j
+
 open Data_model
 open Data_model_catalog
 
@@ -37,7 +40,12 @@ let convert_resource_consume_arity x = x
 let convert_resource_provide_arity x = x
 let convert_port_name              x = x
 let convert_component_type_name    x = x
-let convert_provide_arity          x = match x with | `InfiniteProvide -> Infinite_provide | `FiniteProvide(i) -> Finite_provide(i)
+
+let convert_provide_arity          x = 
+  match x with 
+  | "inf" | "infinite" | "INF" | "INFINITE" | "Infinite" -> Infinite_provide
+  | _ -> let i = int_of_string x in Finite_provide(i)
+
 let convert_require_arity          x = x
 let convert_package_name         r x = if Settings.find Settings.append_repository_to_package_name then r ^ x else x
 let convert_repository_name        x = x
@@ -120,9 +128,9 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
     let open Json_t in
     component#add      (convert_component_name      c.component_name);    (* name *)
     (* If the component's type is already in the catalog - do nothing. *)
-    try let _ = component_type#id_of_name (convert_component_type_name c.component_type) in ()
+    try let _ = component_type#id_of_name (convert_component_type_name c.component_typ) in ()
     (* Otherwise it means that this component type does not exist in the universe - it is deprecated. *)
-    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.component_type) (Fresh_id.special Data_common.Deprecated)  (* type *)
+    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.component_typ) (Fresh_id.special Data_common.Deprecated)  (* type *)
     (* location#add       (convert_location_name       c.component_location) (* location *) *) (* TODO: This is useless, as if the location does not exist, the initial config is not valid. *)
   in
 
@@ -443,7 +451,7 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     let id = catalog#component#id_of_name name in
 
     (* type *)
-    let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
+    let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_typ) in
 
     (* location *)
     let location = find_location (convert_location_name c.Json_t.component_location) in

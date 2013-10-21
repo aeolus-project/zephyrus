@@ -33,6 +33,9 @@
 (* 1. Translation to Json internal representation *)
 (*\**********************************************/*)
 
+module Json_t = Json_v2_t
+module Json_j = Json_v2_j
+
 open Data_model
 
 let convert_resource_name          x = x
@@ -40,7 +43,7 @@ let convert_resource_consume_arity x = x
 let convert_resource_provide_arity x = x
 let convert_port_name              x = x
 let convert_component_type_name    x = x
-let convert_provide_arity          x = match x with | Infinite_provide -> `InfiniteProvide | Finite_provide(i) -> `FiniteProvide(i)
+let convert_provide_arity          x = match x with Infinite_provide -> "inf" | Finite_provide(i) -> (Printf.sprintf "%d" i)
 let convert_require_arity          x = x
 let convert_package_name           x = x
 let convert_repository_name        x = x
@@ -99,7 +102,7 @@ let convert_location l resource_id_list = {
 
 let convert_component c = {
     Json_j.component_name     = Name_of.component_id      c#id;
-    Json_j.component_type     = Name_of.component_type_id c#typ;
+    Json_j.component_typ      = Name_of.component_type_id c#typ;
     Json_j.component_location = Name_of.location_id       c#location
 }
 
