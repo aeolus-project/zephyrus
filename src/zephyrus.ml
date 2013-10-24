@@ -167,7 +167,7 @@ let () = Load_model.set_initial_model_of_settings ();
 
 
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
-  let preprocess_solver = Solvers.of_settings Solvers.Preprocess in
+  let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in
   let main_solver = Solvers.of_settings Solvers.Main in
   Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string c u));
   Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
