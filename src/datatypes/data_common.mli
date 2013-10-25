@@ -265,7 +265,39 @@ module Fresh_integer_with_deprecated : Fresh_with_special with
 
 
 (*/************************************************************************\*)
-(*| 3. Catalog                                                             |*)
+(*| 3.1. Mapping                                                           |*)
+(*\************************************************************************/*)
+
+module Mapping :
+  functor (Key_set   : Set.S) ->
+  functor (Value_set : Set.S) ->
+  functor (Key_map   : Map.S with type key = Key_set.elt) ->
+  sig
+    
+    type key   = Key_set.elt
+    type value = Value_set.elt
+
+    class type mapping_iface = object
+      (* Access *)
+      method keys              : Key_set.t            (* All the keys. *)
+      method values            : Value_set.t          (* All the values. *)
+      method find              : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
+      (* Modify *)
+      method add               : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
+      (* Lower level access *)
+      method key_to_value_map  : value Key_map.t      (* Retrieve directly the key -> value map. *)
+    end
+
+    (* Implementation of the mapping. *)
+    class mapping : mapping_iface
+
+    (* Create a new catalog corresponding to a given id -> object map. *)
+    val of_key_to_value_map : value Key_map.t -> mapping_iface
+
+  end
+
+(*/************************************************************************\*)
+(*| 3.2. Catalog                                                           |*)
 (*\************************************************************************/*)
 
 module Catalog :

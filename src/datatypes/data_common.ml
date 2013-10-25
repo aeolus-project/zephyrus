@@ -456,7 +456,69 @@ end
 
 
 (*/************************************************************************\*)
-(*| 3. Catalog                                                             |*)
+(*| 3.1. Mapping                                                           |*)
+(*\************************************************************************/*)
+
+module Mapping =
+  functor (Key_set   : Set.S) ->
+  functor (Value_set : Set.S) ->
+  functor (Key_map   : Map.S with type key = Key_set.elt) ->
+  struct
+    
+    type key   = Key_set.elt
+    type value = Value_set.elt
+
+    class type mapping_iface = object
+      (* Access *)
+      method keys              : Key_set.t            (* All the keys. *)
+      method values            : Value_set.t          (* All the values. *)
+      method find              : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
+      (* Modify *)
+      method add               : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
+      (* Lower level access *)
+      method key_to_value_map  : value Key_map.t      (* Retrieve directly the key -> value map. *)
+    end
+
+    (* Implementation of the mapping. *)
+    class mapping : mapping_iface = object (self)
+
+      (* Data structures. *)
+      val mutable values           : Value_set.t       = Value_set.empty (* All the keys. *)
+      val mutable keys             : Key_set.t         = Key_set.empty   (* All the values. *)
+      val mutable key_to_value_map : (value Key_map.t) = Key_map.empty   (* Mapping key -> value *)
+      
+      method keys   : Key_set.t   = keys
+      method values : Value_set.t = values
+
+      (* Mapping function. May throw Not_found exception. *)
+      method private value_of_key (key : key) : value = Key_map.find key key_to_value_map
+      method find = self#value_of_key
+
+      (* Add new key and value to appropriate sets 
+         and add the relation key -> value to the map. *)
+      method private add_new_key_value_pair key value =
+        keys             <- Key_set.add   key   keys;
+        values           <- Value_set.add value values;
+        key_to_value_map <- Key_map.add key value key_to_value_map
+
+      method add = self#add_new_key_value_pair
+      
+      (* Retrieve directly the key -> value map. *)
+      method key_to_value_map : value Key_map.t = key_to_value_map
+
+    end
+
+    (* Create a new catalog corresponding to a given id -> object map. *)
+    let of_key_to_value_map (key_to_value_map : value Key_map.t) : mapping_iface =
+      let mapping = new mapping in
+      Key_map.iter mapping#add key_to_value_map;
+      mapping
+
+  end
+
+
+(*/************************************************************************\*)
+(*| 3.2. Catalog                                                           |*)
 (*\************************************************************************/*)
 
 
