@@ -74,6 +74,9 @@ let speclist =
                       [Arg.Symbol ( Settings.out_files_names,  (fun s -> out_kinds := s::!out_kinds));
                        Arg.String (fun filename -> out_files := filename::!out_files) ]
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
+
+    (* Other *)
+    ("-print-path", Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
   ]
 
 open Settings
