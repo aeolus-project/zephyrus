@@ -102,11 +102,16 @@ let concretize_command generic_command input_file_path output_file_path : string
 
 let make_minizinc_solver_of_custom_flatzinc_solver_command command = {
   name     = Printf.sprintf "Custom FlatZinc Solver (%s)" command;
-  commands = ["mzn2fzn"];
+  commands = [];
   exe      = function
              | [input; output] -> 
                  let flatzinc_file_path = Filename.temp_file "zephyrus_" ".fzn" in
-                 let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" flatzinc_file_path (String.escaped input) in
+                 let mzn2fzn_command_part  = 
+                   begin
+                     match Settings.get_custom_mzn2fzn_command () with
+                     | Some command -> (concretize_command command) (String.escaped input) flatzinc_file_path
+                     | None         -> Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" flatzinc_file_path (String.escaped input)
+                   end in
                  let flatzinc_command_part = (concretize_command command) flatzinc_file_path (String.escaped output) in
                  Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
              | _ -> raise Wrong_argument_number

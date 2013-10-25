@@ -67,7 +67,8 @@ let speclist =
     (* Optimization function argument, solver choice *)
     ("-opt",        Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function.");
     ("-solver",     Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver ), " The solver choice."); 
-    ("-custom-solver-command", Arg.String (fun custom_solver_command -> Settings.add_string Settings.custom_solver_command custom_solver_command), " The custom solver command (example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen.");
+    ("-custom-solver-command",  Arg.String (fun custom_solver_command  -> Settings.add_string Settings.custom_solver_command custom_solver_command),   " The custom solver command (example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen.");
+    ("-custom-fzn2mzn-command", Arg.String (fun custom_mzn2fzn_command -> Settings.add_string Settings.custom_mzn2fzn_command custom_mzn2fzn_command), " The custom mzn2fzn converter command (example: \"mzn2fzn -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen.");
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (

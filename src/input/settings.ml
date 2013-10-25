@@ -328,6 +328,7 @@ let preprocess_solver = ("preprocess-solver", solver_setting)
 let solver = ("solver", solver_setting)
 let solver_bin_packing = ("solver-bin-packing", solver_bin_packing_setting)
 let custom_solver_command = ("custom-solver-command", string_setting)
+let custom_mzn2fzn_command = ("custom-mzn2fzn-command", string_setting)
 
     (* 5. Temporary Files *)
 let preprocess_constraint_file = ("preprocess-constraint-file", string_setting)
@@ -384,6 +385,7 @@ let all_settings = [
     solver;
     solver_bin_packing;
     custom_solver_command;
+    custom_mzn2fzn_command;
     preprocess_constraint_file;
     preprocess_solution_file;
     preprocess_keep_constraint_file;
@@ -503,4 +505,5 @@ let get_preprocess_output_file ()      = let res = find preprocess_solution_file
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
 
-let get_custom_solver_command () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None
+let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None
+let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command) then Some(find custom_mzn2fzn_command) else None
