@@ -475,6 +475,7 @@ module Mapping =
       method find              : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
       (* Modify *)
       method add               : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
+      method remove            : key          -> unit (* Remove the given key and its value from the data structures. *)
       (* Lower level access *)
       method key_to_value_map  : value Key_map.t      (* Retrieve directly the key -> value map. *)
     end
@@ -487,6 +488,7 @@ module Mapping =
       val mutable keys             : Key_set.t         = Key_set.empty   (* All the values. *)
       val mutable key_to_value_map : (value Key_map.t) = Key_map.empty   (* Mapping key -> value *)
       
+      (* Domain and co-domain. *)
       method keys   : Key_set.t   = keys
       method values : Value_set.t = values
 
@@ -503,6 +505,16 @@ module Mapping =
 
       method add = self#add_new_key_value_pair
       
+      (* Remove a key and the associated value
+         from the map.  *)
+      method private remove_key_and_its_value key =
+        let value = self#value_of_key key in
+        keys             <- Key_set.remove   key   keys;
+        values           <- Value_set.remove value values;
+        key_to_value_map <- Key_map.remove key key_to_value_map
+
+      method remove = self#remove_key_and_its_value
+
       (* Retrieve directly the key -> value map. *)
       method key_to_value_map : value Key_map.t = key_to_value_map
 
@@ -558,63 +570,57 @@ module Catalog =
       method obj_to_id_map   : id Obj_map.t       (* Retrieve directly the object -> id map. *)
     end
 
+    module Id_to_Obj_mapping = Mapping (Id_set)  (Obj_set) (Id_map)
+    module Obj_to_Id_mapping = Mapping (Obj_set) (Id_set)  (Obj_map)
+
     (* Implementation of the catalog. *)
-    class obj_catalog : obj_catalog_iface = 
+    class obj_catalog : obj_catalog_iface = object (self)
 
       (* Data structures. *)
-      let objs          : Obj_set.t ref      = ref Obj_set.empty in  (* All the ids. *)
-      let ids           : Id_set.t  ref      = ref Id_set.empty  in  (* All the objs. *)
-      let obj_to_id_map : (id Obj_map.t) ref = ref Obj_map.empty in  (* Mapping obj -> id *)
-      let id_to_obj_map : (obj Id_map.t) ref = ref Id_map.empty  in  (* Mapping id -> obj *)
-    
+      val id_to_obj_mapping : Id_to_Obj_mapping.mapping_iface = new Id_to_Obj_mapping.mapping
+      val obj_to_id_mapping : Obj_to_Id_mapping.mapping_iface = new Obj_to_Id_mapping.mapping
+
       (* For unique identifier creation. *)
-      let current_id = Fresh_id.create () in
-      
-      (* Mapping functions. May throw Not_found exception. *)
-      let id_of_obj (obj : obj) : id  = Obj_map.find obj !obj_to_id_map in
-      let obj_of_id (id  : id)  : obj = Id_map .find id  !id_to_obj_map in
-      
-      (* Add the obj to objs and make it correspond to a given id (obj -> id). *)
-      let set_id_of_obj obj id =
-        objs          := Obj_set.add obj    (!objs);
-        obj_to_id_map := Obj_map.add obj id (!obj_to_id_map) in
+      val current_id = Fresh_id.create ()
 
-      (* Add the id to ids and make it correspond to a given obj (id -> obj). *)
-      let set_obj_of_id id obj =
-        ids           := Id_set.add id     (!ids);
-        id_to_obj_map := Id_map.add id obj (!id_to_obj_map);
-        Fresh_id.mark_used current_id id in
+      (* Access methods. *)
+
+      (* Domains and data structures access. *)
+      method ids           : Id_set.t       = id_to_obj_mapping#keys             (* All the ids. *)
+      method objs          : Obj_set.t      = obj_to_id_mapping#keys             (* All the objs. *)
+      method id_to_obj_map : (obj Id_map.t) = id_to_obj_mapping#key_to_value_map (* Mapping id -> obj *)
+      method obj_to_id_map : (id Obj_map.t) = obj_to_id_mapping#key_to_value_map (* Mapping obj -> id *)
+    
+      (* Mapping access. May throw Not_found exception. *)
+      method obj_of_id (id  : id)  : obj = id_to_obj_mapping#find id
+      method id_of_obj (obj : obj) : id  = obj_to_id_mapping#find obj
+      
+      (* Modify methods. *)
+
+      (* Make the id correspond to a given obj (id -> obj mapping). *)
+      method set_obj_of_id id obj =
+        id_to_obj_mapping#add id obj;
+        Fresh_id.mark_used current_id id
+      
+      (* Make the obj correspond to a given id (obj -> id mapping). *)
+      method set_id_of_obj obj id = 
+        obj_to_id_mapping#add obj id
           
-      (* Adds new obj and id to appropriate sets 
-         and add the relation id <-> obj to both maps. *)
-      let add_new_id_obj_pair id obj =
-        set_id_of_obj obj id;
-        set_obj_of_id id obj in
-
+      (* Add the relation id <-> obj to both mappings. *)
+      method add_id_obj_pair id obj =
+        self#set_id_of_obj obj id;
+        self#set_obj_of_id id obj
 
       (* Look for the obj in the maps, if it does not exist create it and give it a fresh id. *)
-      let get_else_add obj = 
-        try id_of_obj obj
-        with Not_found -> let id = Fresh_id.next current_id in add_new_id_obj_pair id obj; id in
+      method get_else_add obj = 
+        try self#id_of_obj obj
+        with Not_found -> let id = Fresh_id.next current_id in self#add_id_obj_pair id obj; id
 
       (* As above, but don't return anything. *)
-      let add obj =
-        let _ = get_else_add obj in () in
+      method add obj =
+        let _ = self#get_else_add obj in ()
 
-      (* The object catalog: *)
-      object
-        method ids             = !ids                
-        method objs            = !objs               
-        method id_of_obj       = id_of_obj           
-        method obj_of_id       = obj_of_id           
-        method get_else_add    = get_else_add        
-        method add             = add                 
-        method add_id_obj_pair = add_new_id_obj_pair 
-        method set_id_of_obj   = set_id_of_obj       
-        method set_obj_of_id   = set_obj_of_id       
-        method id_to_obj_map   = !id_to_obj_map      
-        method obj_to_id_map   = !obj_to_id_map      
-      end
+    end
 
     (* Create a new catalog by taking a set of objects and adding them all. *)
     let of_set_of_objs (objs : Obj_set.t) : obj_catalog_iface = 

@@ -284,6 +284,7 @@ module Mapping :
       method find              : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
       (* Modify *)
       method add               : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
+      method remove            : key          -> unit (* Remove the given key and its value from the data structures. *)
       (* Lower level access *)
       method key_to_value_map  : value Key_map.t      (* Retrieve directly the key -> value map. *)
     end
