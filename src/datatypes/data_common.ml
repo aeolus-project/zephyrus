@@ -470,8 +470,8 @@ module Mapping =
 
     class type mapping_iface = object
       (* Access *)
-      method keys              : Key_set.t            (* All the keys. *)
-      method values            : Value_set.t          (* All the values. *)
+      method keys              : Key_set.t            (* All the values. *)
+      method values            : Value_set.t          (* All the keys. *)
       method find              : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
       (* Modify *)
       method add               : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
