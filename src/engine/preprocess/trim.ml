@@ -145,45 +145,6 @@ let remove_always_installable_packages (all_package_ids : Package_id_set.t) (get
   transitive_closure directly_conflicted_packages get_reverse_dependencies
 
 
-
-let trim_repository (keep_packages_ids : Package_id_set.t) (repository : repository)  : repository =
-
-  (* 1. Prepare the set of packages to keep. *)
-
-  (* All packages from the repository. *)
-  let repository_all_package_ids : Package_id_set.t = repository#package_ids in
-
-  (* The packages that are in this repository and are implementing something. *)
-  let repository_keep_package_id : Package_id_set.t = Package_id_set.inter repository_all_package_ids keep_packages_ids in
-
-
-  (* 2. Prepare the new trimmed repository. *)
-  
-  (* Trimmed set of ids of packages. *)
-  let package_ids : Package_id_set.t = repository_keep_package_id in
-
-  (* Now we have to create trimmed versions of all the packages, i.e. trim their dependencies and conflicts. *)
-
-  (* The new package_id -> package mapping. *)
-  let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
-
-  Package_id_set.iter (fun package_id ->
-    
-    (* The old package. *)
-    let package = repository#get_package package_id in
-
-    (* The new package. *)
-    let trimmed_package = package#trim_by_package_ids package_ids in
-    
-    package_of_package_id_map := Package_id_map.add package_id trimmed_package !package_of_package_id_map
-
-  ) package_ids;
-  
-  new repository
-    ~id:       repository#id
-    ~packages: !package_of_package_id_map
-
-
 let trim_component_types universe initial_configuration specification =
   
   (* Component types. *)
@@ -219,63 +180,6 @@ let trim_component_types universe initial_configuration specification =
   universe
 
 
-
-let trim_universe_repositories (trim_repository : repository -> repository) (universe : universe)  : universe =
-
-  (* 1. Trim repositories and remove empty ones. *)
-  let repository_of_repository_id_map : repository Repository_id_map.t =
-
-    let repository_of_repository_id_map : repository Repository_id_map.t ref = ref Repository_id_map.empty in
-  
-    Repository_id_set.iter (fun repository_id ->
-
-      (* Trim the repository. *)
-      let repository = universe#get_repository repository_id in
-      let trimmed_repository = trim_repository repository in
-
-      (* Keep the repository only if it is non-empty. *)
-      if not (Repository_id_set.is_empty trimmed_repository#package_ids)
-      then repository_of_repository_id_map := Repository_id_map.add repository_id trimmed_repository !repository_of_repository_id_map
-
-    ) universe#get_repository_ids;
-
-    !repository_of_repository_id_map
-
-  in
-
-  (* 2. Trim repositories *)
-  let repository_ids : Repository_id_set.t = Repository_id_map_extract_key.set_of_keys repository_of_repository_id_map in
-
-  let get_repository (repository_id : repository_id) : repository = 
-    Repository_id_map.find repository_id repository_of_repository_id_map in
-
-  (* 3. Trim packages *)
-  let package_of_package_id_map : package Package_id_map.t = 
-    
-    let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
-    
-    Repository_id_set.iter (fun repository_id -> 
-      
-      let repository = get_repository repository_id in
-      Package_id_set.iter (fun package_id ->
-        
-        let package = repository#get_package package_id in
-        package_of_package_id_map := Package_id_map.add package_id package !package_of_package_id_map;
-
-      ) repository#package_ids
-    ) repository_ids;
-
-    !package_of_package_id_map
-
-  in
-
-  (* The trimmed universe. *)
-  universe#copy
-    ~packages:     package_of_package_id_map
-    ~repositories: repository_of_repository_id_map
-    ()
-
-
 let trim_repositories universe configuration specification =
 
   (* 1. Set of packages which are implementing one of the component types available in the universe. *)
@@ -290,41 +194,39 @@ let trim_repositories universe configuration specification =
   Printf.printf "\nimplementing_package_ids: %s\n%!" (String_of.package_id_set implementing_package_ids);
 
 
-  (* 1. The transitive closure of dependencies. *)
-
-  let repository_keep_only_dependency_transitive_closure (universe : universe) : (repository -> repository) = 
+  (* 2. The transitive closure of dependencies. *)
+  let packages_in_the_dependency_closure (universe : universe) : Package_id_set.t = 
     let packages_in_the_dependency_closure : Package_id_set.t = 
       dependency_transitive_closure implementing_package_ids universe#get_package in
     Printf.printf "\npackages_in_the_dependency_closure: %s\n%!" (String_of.package_id_set packages_in_the_dependency_closure);
-    trim_repository packages_in_the_dependency_closure in
+    packages_in_the_dependency_closure in
 
 
-  (* 2. Only implementing packages and not-always-installable packages. *)
-
-  let repository_remove_always_installable_packages (universe : universe) : repository -> repository = 
+  (* 3. Only implementing packages and not-always-installable packages. *)
+  let core_and_not_always_installable_packages (universe : universe) : Package_id_set.t = 
     let not_always_installable_packages : Package_id_set.t =
       remove_always_installable_packages universe#get_package_ids universe#get_package in
     let core_and_not_always_installable_packages : Package_id_set.t =
       Package_id_set.union implementing_package_ids not_always_installable_packages in
     Printf.printf "\ncore_and_not_always_installable_packages: %s\n%!" (String_of.package_id_set core_and_not_always_installable_packages);
-    trim_repository core_and_not_always_installable_packages in
+    core_and_not_always_installable_packages in
 
-  (* We prepare the trimming functions: *)
-  let repository_trimmers : (string * (universe -> (repository -> repository))) list = [
-    ("dependency closure", repository_keep_only_dependency_transitive_closure); (* 1. We keep only the transitive closure of the packages mentioned in the implementation. *)
-    ("always installable", repository_remove_always_installable_packages);      (* 2. We keep only core packages and these packages wich are not always installable. *)
+  (* We prepare the trimming package set generators: *)
+  let trimmers : (string * (universe -> Package_id_set.t)) list = [
+    ("dependency closure", packages_in_the_dependency_closure);       (* 1. We keep only the transitive closure of the packages mentioned in the implementation. *)
+    ("always installable", core_and_not_always_installable_packages); (* 2. We keep only core packages and these packages wich are not always installable. *)
   ] in
 
   Printf.printf "\nBeginning universe trimming...%!";
 
   (* We trim the repositories: *)
   let trimmed_universe : universe =
-    List.fold_left (fun universe (description, repository_trimming_function) ->
+    List.fold_left (fun universe (description, package_ids_to_keep) ->
         Printf.printf "\n+ trimming: %s...%!" description;
-        let universe' = trim_universe_repositories (repository_trimming_function universe) universe in
+        let universe' = universe#trim_packages_by_ids (package_ids_to_keep universe) in
         Printf.printf "+ trimming %s done!%!" description;
         universe'
-      ) universe repository_trimmers in
+      ) universe trimmers in
 
   Printf.printf "\nUniverse trimming done!%!";
 

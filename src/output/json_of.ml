@@ -71,21 +71,21 @@ let convert_package k resource_id_list = {
     Json_j.package_consume  = List.map (fun r -> (Name_of.resource_id r, convert_resource_consume_arity (k#consume r))) resource_id_list
 }
 
-let convert_repository r resource_id_list = {
+let convert_repository (u : universe) r resource_id_list = {
     Json_j.repository_name     = Name_of.resource_id r#id;
-    Json_j.repository_packages = List.map (fun k -> convert_package k resource_id_list) (Package_set.elements (r#packages))
+    Json_j.repository_packages = List.map (fun k_id -> let k = u#get_package k_id in convert_package k resource_id_list) (Package_id_set.elements (r#package_ids))
 }
 
-let convert_universe_tmp u resource_id_list =
+let convert_universe_tmp (u : universe) resource_id_list =
   let package_get_name_full   k = (Name_of.repository_id (u#repository_of_package k), Name_of.package_id k) in {
     Json_j.universe_component_types =
       List.map (fun c -> convert_component_type (u#get_component_type c) resource_id_list) (Component_type_id_set.elements u#get_component_type_ids);
     Json_j.universe_implementation = List.map (fun c -> (Name_of.component_type_id c, List.map package_get_name_full (Package_id_set.elements (u#get_implementation c))))
         (Component_type_id_set.elements u#get_component_type_ids);
-    Json_j.universe_repositories = List.map (fun r -> convert_repository (u#get_repository r) resource_id_list) (Repository_id_set.elements (u#get_repository_ids))
+    Json_j.universe_repositories = List.map (fun r -> convert_repository u (u#get_repository r) resource_id_list) (Repository_id_set.elements (u#get_repository_ids))
 }
 
-let convert_universe u = convert_universe_tmp u (Resource_id_set.elements u#get_resource_ids)
+let convert_universe (u : universe) = convert_universe_tmp u (Resource_id_set.elements u#get_resource_ids)
 
 
 (* configuration *)
@@ -109,13 +109,13 @@ let convert_binding b = {
     Json_j.binding_provider = Name_of.component_id b#provider
 }
 
-let convert_configuration_tmp c u resource_id_list = {
+let convert_configuration_tmp c (u : universe) resource_id_list = {
     Json_j.configuration_locations  = List.map (fun l_id -> convert_location  (c#get_location l_id) resource_id_list) (Location_id_set.elements  c#get_location_ids);
     Json_j.configuration_components = List.map (fun c_id -> convert_component (c#get_component c_id))                 (Component_id_set.elements c#get_component_ids);
     Json_j.configuration_bindings   = List.map (fun b -> convert_binding b) (Binding_set.elements c#get_bindings)
 }
 
-let convert_configuration c u = convert_configuration_tmp c u (Resource_id_set.elements u#get_resource_ids)
+let convert_configuration c (u : universe) = convert_configuration_tmp c u (Resource_id_set.elements u#get_resource_ids)
 
 (* Specification *)
 
@@ -129,9 +129,8 @@ let convert_configuration c u = convert_configuration_tmp c u (Resource_id_set.e
 let universe u channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u)
 let configuration c u channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u)
 
-
-let universe_string u = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u))
-let configuration_string c u = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u))
+let universe_string (u : universe) = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u))
+let configuration_string c (u : universe) = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u))
 
 
 

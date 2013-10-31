@@ -272,7 +272,7 @@ let universe_consistency (universe : universe) handle_validation : unit =
     (* Repository_double_id: IMPOSSIBLE as repository identifiers are stored in a Set. *)
 
     Package_id_set.iter (fun package_id ->
-      let package = repository#get_package package_id in
+      let package = universe#get_package package_id in
 
       (* Package_double_id: IMPOSSIBLE as package identifiers are stored in a Set. *)
 
@@ -463,7 +463,7 @@ let configuration_validation (universe : universe) (configuration : configuratio
     let packages_installed = location#packages_installed in
 
     Package_id_set.iter (fun installed_package_id ->
-      let package = repository#get_package installed_package_id in
+      let package = universe#get_package installed_package_id in
 
       (* Package_dependencies_not_satisfied *)
       handle_validation

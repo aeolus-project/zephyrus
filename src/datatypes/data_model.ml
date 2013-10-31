@@ -160,14 +160,7 @@ module Package_id_map_extract_key   = Keys_of_Int_map
 
 
   (** Package. *)
-(*
-class type package = object
-  method id       : package_id
-  method depend   : Package_id_set_set.t                      (** Which packages does this package depend on (a disjunction of conjunctions). *)
-  method conflict : Package_id_set.t                          (** Which packages is this package is in conflict with. *)
-  method consume  : resource_id -> resource_consume_arity     (** Which resources does this package consume and in what amounts. *)
-end
-*)
+
 class package 
   ?(depend   = Package_id_set_set.empty) 
   ?(conflict = Package_id_set.empty)
@@ -234,19 +227,18 @@ module Repository_id_map_extract_key = Keys_of_Int_map
 exception Repository_package_not_found of package_id
 
 class repository 
-  ?(packages  = Package_id_map.empty)
+  ?(packages  = Package_id_set.empty)
   ~id = object (self)
 
-  val id       : component_type_id        = id       (** The unique id of this repository. *)
-  val packages : package Package_id_map.t = packages (** Which packages does this repository contain. *)
+  val id       : component_type_id = id       (** The unique id of this repository. *)
+  val packages : Package_id_set.t  = packages (** Which packages does this repository contain. *)
   
-  method id                           : component_type_id = id
-  method package_ids                  : Package_id_set.t  = Package_id_map_extract_key.set_of_keys packages
-  method get_package (k : package_id) : package           = try Package_id_map.find k packages with Not_found -> raise (Repository_package_not_found k)
+  method id          : component_type_id = id
+  method package_ids : Package_id_set.t  = packages
 
-  method packages : Package_set.t =
-    let module Package_id_map_extract_value = Package_id_map.Set_of_values(Package_set) in 
-    Package_id_map_extract_value.set_of_values packages
+  method trim_by_package_ids (package_ids : Package_id_set.t) =
+    let trimmed_packages = Package_id_set.inter packages package_ids in
+    {< packages = trimmed_packages >}
 
 end
 
@@ -322,6 +314,32 @@ class universe
     try Package_id_map.find id package_id_to_repo_id_map
     with Not_found -> raise (Package_repository_not_found id)
 
+  method trim_packages_by_ids (package_ids_to_keep : Package_id_set.t) =
+    
+    let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
+
+    Package_id_set.iter (fun package_id ->
+      if Package_id_set.mem package_id package_ids_to_keep then                (* If the package is to be kept... *)
+      let package = self#get_package package_id in                             (* The old package. *)
+      let trimmed_package = package#trim_by_package_ids package_ids_to_keep in (* The new package. *)
+      (* Put the new package package in the map. *)
+      package_of_package_id_map := Package_id_map.add package_id trimmed_package !package_of_package_id_map
+    ) self#get_package_ids;
+
+    let repository_of_repository_id_map : repository Repository_id_map.t ref = ref Repository_id_map.empty in
+
+    Package_id_set.iter (fun repository_id ->
+      let repository = self#get_repository repository_id in                          (* The old repository. *)
+      let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in (* The new repository. *)
+      if not (Package_id_set.is_empty trimmed_repository#package_ids) then           (* If the is not empty now... *)
+      (* Put the trimmed repository in the map. *)
+      repository_of_repository_id_map := Repository_id_map.add repository_id trimmed_repository !repository_of_repository_id_map
+    ) self#get_repository_ids;
+
+    {< 
+      packages = !package_of_package_id_map;
+      repositories = !repository_of_repository_id_map;
+    >}
 
   (* methods coming from the paper. *)
 
@@ -357,9 +375,6 @@ class universe
     in
     try Port_id_map.find p implem_uc
     with Not_found -> let tmp = (conflicters component_types p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp
-
-
-  (* TODO: Maybe put the package trimming in here, thus removing need for this function. *)
 
   (* This method is almost like a constructor, but based on a existing object:
      it will replace only the given fields of the existing object, leaving the rest as it was. *)

@@ -255,7 +255,7 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
     
 
   (* packages *)
-  let convert_package r_id r_name k : (package_id * package) =
+  let convert_package r_id r_name k : package_id =
 
     (* name *)
     let name = convert_package_name r_name k.Json_t.package_name in
@@ -293,8 +293,8 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
     (* store the package *)
     packages#add_id_obj_pair id new_package;
 
-    (* return a pair: (package id, the package object) *)
-    (id, new_package)
+    (* return the package id *)
+    id
   in
 
 
@@ -308,9 +308,9 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
     let id = catalog#repository#id_of_name name in
 
     (* packages *)
-    let packages : package Package_id_map.t = 
-      Package_id_map.map_of_list (fun k -> 
-        convert_package id name k
+    let packages : Package_id_set.t = 
+      Package_id_set.set_of_list (fun k -> 
+        convert_package id name k (* this returns the package id, thus the set is built *)
       ) r.Json_t.repository_packages in
 
     (* create the repository object *)
