@@ -114,7 +114,7 @@ let remove_always_installable_packages (all_package_ids : Package_id_set.t) (get
         try
           let reverse_dependencies_of_depended_on_package = Package_id_map.find depended_on_package_id !reverse_dependency_map in
           reverse_dependencies_of_depended_on_package := Package_id_set.add depending_package_id !reverse_dependencies_of_depended_on_package
-        with Not_found -> failwith "XXX"
+        with Not_found -> failwith "impossible"
       ) dependencies
     ) all_package_ids;
 
@@ -258,55 +258,31 @@ let configuration (configuration : configuration) (location_ids : Location_id_se
   let location_ids_trimmed = Location_id_set.inter configuration#get_location_ids location_ids in
   let location_ids_rest    = Location_id_set.diff  configuration#get_location_ids location_ids_trimmed in
 
+  (*
   let component_ids_1 = Component_id_set.filter (fun c_id -> Location_id_set.mem (configuration#get_component c_id)#location location_ids) configuration#get_component_ids in
-  let bindings_1 = Binding_set.filter (fun b -> Component_id_set.mem b#provider component_ids_1) configuration#get_bindings in
-  
   let component_ids_2 = Component_id_set.diff configuration#get_component_ids component_ids_1 in
+  *)
+
+  (* TODO: CHECK WITH MICHAEL:
+
+  Initially the bindings were attributed like that: 
+  let bindings_1 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_1))                                                      configuration#get_bindings in
   let bindings_2 = Binding_set.filter (fun b -> (Component_id_set.mem b#provider component_ids_2) && (Component_id_set.mem b#requirer component_ids_2)) configuration#get_bindings in
+
+  Why "bindings_1" has both the bindings (trimmed => trimmed) and (trimmed => rest), when "bindings_2" has only (rest => rest)? Bindings (rest => trimmed) are gone.
+  *)
 
   (* print_string ("annex conf location location_ids = " ^ (String_of.location_id_set location_ids_rest) ^ "\n"); *)
 
- ( object (self)
-      method get_location   = get_location
-      method get_component  = configuration#get_component
-      method get_bindings   = bindings_1
-      method get_location_ids  = location_ids_trimmed
-      method get_component_ids = component_ids_1
-      method get_local_component = configuration#get_local_component
-      method get_local_package   = configuration#get_local_package
-      method trim location_ids = self
-    end , object (self)
-      method get_location   = configuration#get_location
-      method get_component  = configuration#get_component
-      method get_bindings   = bindings_2
-      method get_location_ids  = location_ids_rest
-      method get_component_ids = component_ids_2
-      method get_local_component = configuration#get_local_component
-      method get_local_package   = configuration#get_local_package
-      method trim location_ids = self
-    end )
+  (configuration#trim location_ids_trimmed, configuration#trim location_ids_rest)
 
-let empty c = 
-  let inner l_id (set, map) = 
-    let l = c#get_location l_id in
-    let l' = object
-      method id = l#id
-      method repository = l#repository
-      method packages_installed = Package_id_set.empty
-      method provide_resources  = l#provide_resources
-      method cost               = l#cost
-    end in (Location_set.add l' set, Location_id_map.add l#id l' map) in
-  let (set, map) = Location_id_set.fold inner c#get_location_ids (Location_set.empty, Location_id_map.empty) in object (self)
-    method get_location   = (fun id -> try Location_id_map.find id map with Not_found -> failwith "engine/preprocess/Trim.ml #550")
-    method get_component  = (fun _ -> failwith "engine/preprocess/Trim.ml #551")
-    method get_bindings   = Binding_set.empty
-    method get_location_ids  = c#get_location_ids
-    method get_component_ids = Component_id_set.empty
-    method get_local_component = (fun _ _ -> Component_id_set.empty)
-    method get_local_package   = (fun _ _ -> false)
-    method trim location_ids = self
-  end
-  
+let empty (c : configuration) =
+  let location_id_to_location_map : location Location_id_map.t =
+    Location_id_set.fold (fun location_id location_id_to_location_map -> 
+      let location = (c#get_location location_id)#copy ~packages_installed: Package_id_set.empty () in
+      Location_id_map.add location_id location location_id_to_location_map
+    ) c#get_location_ids Location_id_map.empty in
 
-
-
+  new configuration
+    ~locations: location_id_to_location_map
+    ()

@@ -193,7 +193,10 @@ class package
     (* Trimmed conflicts. *)
     let conflict = trim_package_id_set conflict in 
     
-    {< depend = depend; conflict = conflict >}
+    {< 
+      depend = depend; 
+      conflict = conflict;
+    >}
 
 end
 
@@ -264,7 +267,7 @@ class universe
   ?(component_types           = Component_type_id_map.empty)
   ?(implementation            = Component_type_id_map.empty)
   ?(repositories              = Repository_id_map.empty)
-  = object (self)
+  () = object (self)
 
   val ports           : Port_id_set.t                            = ports
   val packages        : package Package_id_map.t                 = packages
@@ -304,41 +307,37 @@ class universe
 
   method repository_of_package (id : package_id) : repository_id =
     let package_id_to_repo_id_map : repository_id Package_id_map.t =
-      let package_id_to_repo_id_map : repository_id Package_id_map.t ref = ref Package_id_map.empty in
-      Repository_id_map.iter (fun repository_id repository ->
-        Package_id_set.iter (fun package_id ->
-            package_id_to_repo_id_map := Package_id_map.add package_id repository_id !package_id_to_repo_id_map
-          ) repository#package_ids
-      ) repositories;
-      !package_id_to_repo_id_map in
+      Repository_id_map.fold (fun repository_id repository package_id_to_repo_id_map ->
+        Package_id_set.fold (fun package_id package_id_to_repo_id_map ->
+            Package_id_map.add package_id repository_id package_id_to_repo_id_map
+          ) repository#package_ids package_id_to_repo_id_map
+      ) repositories Package_id_map.empty in
     try Package_id_map.find id package_id_to_repo_id_map
     with Not_found -> raise (Package_repository_not_found id)
 
   method trim_packages_by_ids (package_ids_to_keep : Package_id_set.t) =
-    
-    let package_of_package_id_map : package Package_id_map.t ref = ref Package_id_map.empty in
 
-    Package_id_set.iter (fun package_id ->
-      if Package_id_set.mem package_id package_ids_to_keep then                (* If the package is to be kept... *)
-      let package = self#get_package package_id in                             (* The old package. *)
-      let trimmed_package = package#trim_by_package_ids package_ids_to_keep in (* The new package. *)
-      (* Put the new package package in the map. *)
-      package_of_package_id_map := Package_id_map.add package_id trimmed_package !package_of_package_id_map
-    ) self#get_package_ids;
+    let package_of_package_id_map : package Package_id_map.t =
+      Package_id_set.fold (fun package_id package_of_package_id_map ->
+        if Package_id_set.mem package_id package_ids_to_keep then                  (* If the package is to be kept... *)
+          let package = self#get_package package_id in                               (* The old package. *)
+          let trimmed_package = package#trim_by_package_ids package_ids_to_keep in   (* The trimmed package. *)
+          Package_id_map.add package_id trimmed_package package_of_package_id_map    (* Put the trimmed package package in the map. *)
+        else package_of_package_id_map                                             (* If the package is not to be kept: ignore it. *)
+      ) self#get_package_ids Package_id_map.empty in
 
-    let repository_of_repository_id_map : repository Repository_id_map.t ref = ref Repository_id_map.empty in
-
-    Package_id_set.iter (fun repository_id ->
-      let repository = self#get_repository repository_id in                          (* The old repository. *)
-      let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in (* The new repository. *)
-      if not (Package_id_set.is_empty trimmed_repository#package_ids) then           (* If the is not empty now... *)
-      (* Put the trimmed repository in the map. *)
-      repository_of_repository_id_map := Repository_id_map.add repository_id trimmed_repository !repository_of_repository_id_map
-    ) self#get_repository_ids;
+    let repository_of_repository_id_map : repository Repository_id_map.t =
+      Package_id_set.fold (fun repository_id repository_of_repository_id_map ->
+        let repository = self#get_repository repository_id in                                    (* The old repository. *)
+        let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in           (* The trimmed repository. *)
+        if not (Package_id_set.is_empty trimmed_repository#package_ids) then                     (* If the repository is not empty now... *)
+          Repository_id_map.add repository_id trimmed_repository repository_of_repository_id_map   (* Put the trimmed repository in the map. *)
+        else repository_of_repository_id_map                                                     (* If the repository is empty: ignore it. *)
+      ) self#get_repository_ids Repository_id_map.empty in
 
     {< 
-      packages = !package_of_package_id_map;
-      repositories = !repository_of_repository_id_map;
+      packages     = package_of_package_id_map;
+      repositories = repository_of_repository_id_map;
     >}
 
   (* methods coming from the paper. *)
@@ -392,7 +391,12 @@ class universe
       resources       = resources;
       component_types = component_types;
       implementation  = implementation;
-      repositories    = repositories
+      repositories    = repositories;
+
+      (* reset mutable fields *)
+      implem_ur = Port_id_map.empty;
+      implem_up = Port_id_map.empty;
+      implem_uc = Port_id_map.empty;
     >}
 
 end
@@ -438,6 +442,24 @@ class location
   method packages_installed                  : Package_id_set.t       = packages_installed
   method provide_resources (r : resource_id) : resource_provide_arity = try Resource_id_map.find r provide_resources with Not_found -> 0
   method cost                                : location_cost          = cost
+
+  (* This method is almost like a constructor, but based on a existing object:
+     it will replace only the given fields of the existing object, leaving the rest as it was. *)
+  method copy
+    ?(repository         = repository)
+    ?(packages_installed = packages_installed)
+    ?(provide_resources  = provide_resources)
+    ?(cost               = cost)
+    ?(id                 = id)
+    () =
+    {<
+      repository         = repository;
+      packages_installed = packages_installed;
+      provide_resources  = provide_resources;
+      cost               = cost;
+      id                 = id;
+    >}
+
 end
 
 module Location = struct
@@ -547,7 +569,7 @@ class configuration
 
   (* private *)
   val mutable implem_get_local_component : Component_id_set.t Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
-  val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty;          (* computed incrementally *)
+  val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
 
   (* methods *)
   method get_location (id : location_id) : location  = 
@@ -563,14 +585,20 @@ class configuration
   method get_bindings      : Binding_set.t      = bindings
 
   method get_local_component (location_id : location_id) (component_type_id : component_type_id) : Component_id_set.t =
-    try Location_id_map.find location_id implem_get_local_component
-    with Not_found -> 
-      let tmp =
-        Component_id_set.filter (fun component_id ->
-          (self#get_component component_id)#location = location_id
-        ) self#get_component_ids in
-      implem_get_local_component <- Location_id_map.add location_id tmp implem_get_local_component; 
-      tmp
+    (* All the components on a given location. *)
+    let local_components : Component_id_set.t =
+      try Location_id_map.find location_id implem_get_local_component
+      with Not_found -> 
+        let tmp =
+          Component_id_set.filter (fun component_id ->
+            (self#get_component component_id)#location = location_id
+          ) self#get_component_ids in
+        implem_get_local_component <- Location_id_map.add location_id tmp implem_get_local_component; 
+        tmp in
+    (* Only the components of a given component type on the location. *)
+    Component_id_set.filter (fun component_id ->
+      (self#get_component component_id)#typ = component_type_id
+    ) local_components
 
   method get_local_package (location_id : location_id) (package_id : package_id) : bool =
     let local_package_ids : Package_id_set.t =
@@ -592,11 +620,12 @@ class configuration
       Location_id_set.mem component#location location_ids_trimmed
     ) components in
 
-    let component_ids_trimmed = Component_id_map_extract_key.set_of_keys components_trimmed in
-
-    let bindings_trimmed = Binding_set.filter (fun binding ->
-        Component_id_set.mem binding#provider component_ids_trimmed
-    ) bindings in
+    let bindings_trimmed =
+      let component_ids_trimmed = Component_id_map_extract_key.set_of_keys components_trimmed in
+      Binding_set.filter (fun binding ->
+        Component_id_set.mem binding#provider component_ids_trimmed &&
+        Component_id_set.mem binding#requirer component_ids_trimmed
+      ) bindings in
 
     {<
       locations  = locations_trimmed;
@@ -604,7 +633,61 @@ class configuration
       bindings   = bindings_trimmed;
     >}
 
+  (* This method is almost like a constructor, but based on a existing object:
+     it will replace only the given fields of the existing object, leaving the rest as it was. *)
+  method copy
+    ?(locations  = locations)
+    ?(components = components)
+    ?(bindings   = bindings)
+    () =
+    {<
+      locations  = locations;
+      components = components;
+      bindings   = bindings;
+
+      (* reset mutable fields *)
+      implem_get_local_component = Location_id_map.empty;
+      implem_get_local_package   = Location_id_map.empty;
+    >}
+
 end
+
+(* Merge two configurations. 
+   First configuration locations and components are prioritary: 
+   if both c1 and c2 have a location/component with the same id, the c1's version will be used. *)
+let merge_configurations (c1 : configuration) (c2 : configuration) : configuration =
+  
+  let locations : location Location_id_map.t =
+    (* First add locations from c2,
+       then  add locations from c1, which may overwrite these from c2. *)
+    Location_id_set.fold (fun location_id location_id_to_location_map -> 
+      Location_id_map.add location_id (c1#get_location location_id) location_id_to_location_map
+    ) c1#get_location_ids (
+    Location_id_set.fold (fun location_id location_id_to_location_map -> 
+      Location_id_map.add location_id (c2#get_location location_id) location_id_to_location_map
+    ) c2#get_location_ids 
+    Location_id_map.empty) in
+
+  let components : component Component_id_map.t =
+    (* First add components from c2,
+       then  add components from c1, which may overwrite these from c2. *)
+    Component_id_set.fold (fun component_id component_id_to_component_map -> 
+      Component_id_map.add component_id (c1#get_component component_id) component_id_to_component_map
+    ) c1#get_component_ids (
+    Component_id_set.fold (fun component_id component_id_to_component_map -> 
+      Component_id_map.add component_id (c2#get_component component_id) component_id_to_component_map
+    ) c2#get_component_ids 
+    Component_id_map.empty) in
+
+  let bindings : Binding_set.t = 
+    Binding_set.union c1#get_bindings c2#get_bindings in
+
+  new configuration
+    ~locations:  locations
+    ~components: components
+    ~bindings:   bindings
+    ()
+
 
 (*/************************************************************************\*)
 (*| 4. Specification.                                                      |*)

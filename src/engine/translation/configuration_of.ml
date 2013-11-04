@@ -297,58 +297,42 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   (* Locations *)
   let location_ids : Location_id_set.t = initial_configuration#get_location_ids in
 
-  let location_id_to_location_map : (location Location_id_map.t) ref = ref Location_id_map.empty in
-  
-  let root_package_ids = get_root_packages universe in
+  let location_id_to_location_map : location Location_id_map.t =
+    Location_id_set.fold (fun location_id location_id_to_location_map ->
 
-  Location_id_set.iter (fun location_id ->
+      (* the location object *)
+      let location = initial_configuration#get_location location_id in
 
-    let location = initial_configuration#get_location location_id in
+      (* repository *)
+      let repository = solution#get_repository_id_of_a_location location_id in
 
-    (* name *)
-    let name = (Name_of.location_id location#id) in
+      (* packages installed *)
+      let packages_installed      = solution#get_package_ids_of_a_location location_id in
+      let root_package_ids        = get_root_packages universe in
+      let root_packages_installed = Package_id_set.inter root_package_ids packages_installed in
 
-    (* repository *)
-    let repository = solution#get_repository_id_of_a_location location_id in
+      (* resources provided *)
+      let provide_resources : resource_provide_arity Resource_id_map.t =
+        Resource_id_set.fold (fun resource_id resource_id_to_provide_arity_map ->
+          let resource_provide_arity = 
+            if Settings.find Settings.modifiable_configuration
+            then solution_prev.variable_values (Local_resource_variable(location_id, resource_id)) (* if we can modify the location, we set its provides to the right value *)
+            else location#provide_resources resource_id in
+          Resource_id_map.add resource_id resource_provide_arity resource_id_to_provide_arity_map
+        ) universe#get_resource_ids Resource_id_map.empty in
 
-    (* packages installed *)
-    let packages_installed = solution#get_package_ids_of_a_location location_id in
-    let root_packages_installed = Package_id_set.inter root_package_ids packages_installed in
+      let new_location : location =
+        location#copy
+          ~repository:         repository
+          ~packages_installed: (if true then root_packages_installed else packages_installed)
+          ~provide_resources:  provide_resources
+          () in
 
-    (* resources provided *)
-    let provide_resources = 
-      if Settings.find Settings.modifiable_configuration then (* if we can modify the location, we set its provides to the right value *)
-        fun r -> solution_prev.variable_values (Local_resource_variable(location_id, r))
-      else
-        location#provide_resources in
+      Location_id_map.add location_id new_location location_id_to_location_map
 
-    (* cost *)
-    let cost = location#cost in
+    ) location_ids Location_id_map.empty in
 
-    (* TODO: use new location *)
-    let new_location : location =
-      object
-        method id                  = location_id
-        method repository          = repository
-        method packages_installed  = if true then root_packages_installed else packages_installed (* TODO: We need a setting for that. *)
-        method provide_resources   = provide_resources
-        method cost                = cost
-      end
-
-    in
-    location_id_to_location_map := Location_id_map.add location_id new_location !location_id_to_location_map;
-
-  ) location_ids;
-
-  let location_catalog : Location_obj_catalog.obj_catalog_iface = Location_obj_catalog.of_id_to_obj_map !location_id_to_location_map in
-
-  let locations    : Location_set.t          = location_catalog#objs in
-  let get_location : location_id -> location = location_catalog#obj_of_id in
-
-  let location_name_catalog : Location_catalog.catalog_iface = Location_catalog.of_id_to_name_map (Location_id_map.map (fun location -> Name_of.location_id location#id) !location_id_to_location_map) in
-
-  let get_local_package location_id package_id : bool =
-    Package_id_set.mem package_id (get_location location_id)#packages_installed in
+  let location_obj_catalog : Location_obj_catalog.obj_catalog_iface = Location_obj_catalog.of_id_to_obj_map location_id_to_location_map in
 
   let component_catalog : Component_catalog.catalog = 
     match !Data_state.catalog_full with
@@ -358,16 +342,17 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   (* components *)
   let component_set : Component_set.t =
     generate_components
-      component_catalog
-      initial_configuration#get_component_ids
-      initial_configuration#get_component
-      location_ids
-      Name_of.location_id
-      universe#get_component_type_ids
-      Name_of.component_type_id
-      solution in
+      component_catalog                       (* Will be updated with new components during the execution of generate_components. *)
+      initial_configuration#get_component_ids (* Domain of component ids. *)
+      initial_configuration#get_component     (* Function component_id -> component. *)
+      location_ids                            (* Domain of location ids. *)
+      Name_of.location_id                     (* Function location_id -> location_name. *)
+      universe#get_component_type_ids         (* Domain of component_type ids. *)
+      Name_of.component_type_id               (* Function component_type_id -> component_type_name. *)
+      solution                                (* The constraint problem solution. *)
+  in
 
-  (* Update the main catalog with new components catalog. *)
+  (* Update the main catalog with new components catalog. TODO: This is quite cumbersome... Maybe a copy method? *)
   Data_state.catalog_full := (
     match !Data_state.catalog_full with
     | None         -> None
@@ -382,50 +367,23 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
   let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs component_set in
 
-  let component_ids = component_obj_catalog#ids in
-  
-  let get_component : component_id -> component = component_obj_catalog#obj_of_id in
-  let get_local_components location_id component_type_id : Component_id_set.t =
-    Component_id_set.filter (fun component_id -> ((get_component component_id)#location = location_id)) component_ids in
-
-
   (* bindings *)
-  let bindings = generate_bindings universe component_ids get_component in
+  let bindings = 
+    let component_ids : Component_id_set.t        = component_obj_catalog#ids in
+    let get_component : component_id -> component = component_obj_catalog#obj_of_id in
+    generate_bindings universe component_ids get_component in
 
-  object(self)
-    (* methods *)
-    method get_location  = get_location
-    method get_component = get_component
-    method get_bindings   = bindings
-
-    method get_location_ids  = location_ids
-    method get_component_ids = component_ids
-
-    method get_local_component = get_local_components
-    method get_local_package   = get_local_package
-
-    method trim location_ids = self
-  end
+  new configuration
+    ~locations:  location_obj_catalog#id_to_obj_map
+    ~components: component_obj_catalog#id_to_obj_map
+    ~bindings:   bindings
+    ()
 
 (*/************************************************************************\*)
 (*| 4. Merge.                                                              |*)
 (*\************************************************************************/*)
 
-let merge c1 c2 = object(self)
- (* we suppose that
+(* we suppose that
    - the two configurations are totally disjoints (which is the case when we merge the annex part of the configuration with the partial solution)
    - except for mappings, where it is tolerated if the two mappings have the same image on the common domain *)
-    method get_location l_id  = try c1#get_location l_id with Failure _ -> c2#get_location l_id
-    method get_component c_id = try c1#get_component c_id with Failure _ -> c2#get_component c_id
-    method get_bindings   = Binding_set.union c1#get_bindings c2#get_bindings
-
-    method get_location_ids  = Location_id_set.union c1#get_location_ids c2#get_location_ids
-    method get_component_ids = Component_id_set.union c1#get_component_ids c2#get_component_ids
-
-    method get_local_component l c = try c1#get_local_component l c with Failure _ -> c2#get_local_component l c
-    method get_local_package   l k = try c1#get_local_package l k with Failure _ -> c2#get_local_package l k
-
-    method trim location_ids = self
- end
-
-
+let merge = merge_configurations

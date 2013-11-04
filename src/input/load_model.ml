@@ -129,7 +129,7 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
     let open Json_t in
     location#add (convert_location_name l.location_name);                                                         (* name *)
     List.iter resource#add (List.map convert_resource_name (List.map fst l.location_provide_resources));          (* provide_resources *)
-    let r_id = repository#get_else_add (convert_repository_name l.location_repository) in                           (* repository id *) (* TODO: What if the repository does not exist in the universe? *)
+    let r_id = repository#get_else_add (convert_repository_name l.location_repository) in                         (* repository id *) (* TODO: What if the repository does not exist in the universe? *)
     List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name "") l.location_packages_installed) (* packages *)
   in
 
@@ -345,6 +345,7 @@ let convert_universe (catalog : closed_model_catalog) external_repositories u : 
     ~component_types: component_types#id_to_obj_map
     ~implementation:  implementation
     ~repositories:    repositories#id_to_obj_map
+    ()
 
 (* Possible inconsistencies not detected during generation:
  - package presented in a dependency, but not declared. Can be detected by an id in [get_package_ids] without an entry in [get_package]
