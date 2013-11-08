@@ -62,28 +62,116 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
   let location       = new Location_catalog      .catalog in (* locations *)
   let component      = new Component_catalog     .catalog in (* components *)
 
+  let open Json_t in
 
   (* Functions for adding stuff *)
 
   (* 1. Universe *)
 
+  (* component_types *)
+  let add_universe_component_types u =
+    let add_component_type ct = component_type#add (convert_component_type_name ct.component_type_name) in
+    List.iter add_component_type u.universe_component_types
+  in
+
+  (* ports *)
+  let add_universe_ports u =
+    let add_component_type_ports ct =
+      List.iter port#add (List.map convert_port_name (List.map fst ct.component_type_provide )); (* provide  : add port *)
+      List.iter port#add (List.map convert_port_name (List.map fst ct.component_type_require )); (* require  : add port *)
+      List.iter port#add (List.map convert_port_name               ct.component_type_conflict)   (* conflict : add port *) in
+    List.iter add_component_type_ports u.universe_component_types
+  in
+
+  (* repositories *)
+  let add_universe_repositories u =
+    let add_repository r = repository#add (convert_repository_name r.repository_name) in
+    List.iter add_repository u.universe_repositories (* repositories *)
+  in
+  
+  (* packages *)
+  let add_universe_packages u =
+    let add_repository_packages r =
+      let r_name = convert_repository_name r.repository_name in (* repository name *)
+      let r_id   = try repository#id_of_name r_name             (* repository id   *)
+                   with Not_found -> failwith "Loading packages from a repository before loading the repository first!" in
+      let add_package k = package#add (r_id, (convert_package_name r_name k.package_name)) in
+      List.iter add_package r.repository_packages (* packages: add packages *) in
+    List.iter add_repository_packages u.universe_repositories (* repositories *)
+  in
+
+  (* resources *)
+  let add_universe_resources u =
+    let add_component_type_resources ct = List.iter resource#add (List.map convert_resource_name (List.map fst ct.component_type_consume)) (* consume : add resource *) in
+    List.iter add_component_type_resources u.universe_component_types;
+    let add_package_resources k = List.iter resource#add (List.map convert_resource_name (List.map fst k.package_consume)) (* consume : add resources *) in
+    List.iter (fun r -> List.iter add_package_resources r.repository_packages) u.universe_repositories
+  in
+
+  let add_universe u =
+    add_universe_component_types u;
+    add_universe_ports           u;
+    add_universe_repositories    u;
+    add_universe_packages        u;
+    add_universe_resources       u
+  in
+
+  let check_port p =
+    try let _ = port#id_of_name (convert_port_name port_name) in true
+    with Not_found -> false
+  in
+
+  let check_component_type ct =
+    let validate_port port_name error =
+      try let _ = port#id_of_name (convert_port_name port_name)
+      with Not_found -> failwith error
+    in
+    List.iter (validate_port ()) (List.map convert_port_name     (List.map fst ct.component_type_provide )); (* provide  : add port *)
+    List.iter (validate_port ()) (List.map convert_port_name     (List.map fst ct.component_type_require )); (* require  : add port *)
+    List.iter (validate_port ()) (List.map convert_port_name                   ct.component_type_conflict) ; (* conflict : add port *)
+    List.iter resource#add (List.map convert_resource_name (List.map fst ct.component_type_consume ))  (* consume  : add resource *)
+
+
+  let check_repository r = ()
+
+  let check_package r_id r_name k = 
+    let validate_package r_id r_name k =
+      try
+        let _ = package#id_of_name (r_id, (convert_package_name r_id k.package_name)) in ()
+      with Not_found ->
+
+    in
+    List.iter (fun x -> package#id_of_name (r_id, x)) (List.map () (List.flatten k.package_depend  )); (* depend   : add packages *)
+    List.iter (fun x -> package#id_of_name (r_id, x)) (List.map ()               k.package_conflict);  (* conflict : add packages *)
+
+  let check_universe u =
+    (* Check component type double ids *)
+    List.iter () u.component_types
+    (* Check ports referenced - component type : provide, require, conflict *)
+    (* Check repository double ids *)
+    (* Check package double ids *)
+    (* Check packages referenced - package : depend, conflict, implementation *)
+    (* Check resources referenced - component type : consume, package : consume *)
+    (* Check component types referenced : implementation *)
+  
+
   (* component types *)
   let add_component_type ct =
     let open Json_t in
-    component_type#add (convert_component_type_name ct.component_type_name);                          (* name *)
-    List.iter port#add (List.map convert_port_name     (List.map fst ct.component_type_provide ));    (* provide: add port *)
-    List.iter port#add (List.map convert_port_name     (List.map fst ct.component_type_require ));    (* require: add port *)
-    List.iter port#add (List.map convert_port_name                   ct.component_type_conflict) ;    (* conflict: add port *)
-    List.iter resource#add (List.map convert_resource_name (List.map fst ct.component_type_consume )) (* consume: add resources *)
+    component_type    #add (convert_component_type_name ct.component_type_name);                       (* name *)
+    List.iter port    #add (List.map convert_port_name     (List.map fst ct.component_type_provide )); (* provide  : add port *)
+    List.iter port    #add (List.map convert_port_name     (List.map fst ct.component_type_require )); (* require  : add port *)
+    List.iter port    #add (List.map convert_port_name                   ct.component_type_conflict) ; (* conflict : add port *)
+    List.iter resource#add (List.map convert_resource_name (List.map fst ct.component_type_consume ))  (* consume  : add resource *)
   in
 
   (* packages *)
   let add_package r_id r_name k =
     let open Json_t in
     package#add (r_id, (convert_package_name "" k.package_name));                                                          (* name *)
-    List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name r_name) (List.flatten k.package_depend  )); (* depend: add packages *)
-    List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name r_name)               k.package_conflict);  (* conflict: add packages *)
-    List.iter resource#add       (List.map convert_resource_name (List.map fst k.package_consume ))                        (* consume: add resources *)
+    List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name r_name) (List.flatten k.package_depend  )); (* depend   : add packages *)
+    List.iter (fun x -> package#add (r_id, x)) (List.map (convert_package_name r_name)               k.package_conflict);  (* conflict : add packages *)
+    List.iter resource#add       (List.map convert_resource_name (List.map fst k.package_consume ))                        (* consume  : add resources *)
   in
 
   (* repositories *)
@@ -103,6 +191,37 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
   in
 
   (* 2. Configuration *)
+
+  (* location *)
+  let add_configuration_locations c =
+    let add_location l =
+      location#add (convert_location_name l.location_name)
+    in
+    List.iter add_location c.configuration_locations (* locations *)
+  in
+
+  (* component *)
+  let add_configuration_components c =
+    let add_component c =
+      component#add (convert_component_name c.component_name) (* name *)
+    in
+    List.iter add_component c.configuration_components (* components *)
+  in
+
+  (* deprecated component types *)
+  let add_configuration_deprecated_component_types c =
+    let add_component_deprecated_component_type c =
+      try let _ = component_type#id_of_name (convert_component_type_name c.component_type) in ()
+      (* If there is an exception it means that this component type does not exist in the universe - it is deprecated. *)
+      with Not_found -> component_type#set_id_of_name (convert_component_type_name c.component_type) (Fresh_id.special Data_common.Deprecated)  (* type *) in
+    List.iter add_component_deprecated_component_type c.configuration_components (* components *)
+  in
+
+  (* configuration *)
+  let add_configuration c =
+    add_configuration_locations  c; (* locations *)
+    add_configuration_components c  (* components *)
+  in
 
   (* component *)
   let add_component c =

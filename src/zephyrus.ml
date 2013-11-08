@@ -46,7 +46,7 @@ let check_option desc o = match o with
 
 let print_to_file kind filename u c = Output_helper.print_output filename (match kind with
     | Settings.Out_file_plain            -> String_of.configuration u c
-    | Settings.Out_file_json             -> Json_of.configuration_string c u
+    | Settings.Out_file_json             -> Json_of.configuration_string u c
     | Settings.Out_file_graph_deployment -> Dot_of.configuration (Dot_of.settings_of Dot_of.Deployment_graph) u c
     | Settings.Out_file_graph_simplified -> Dot_of.configuration (Dot_of.settings_of Dot_of.Simplified_deployment_graph) u c
     | Settings.Out_file_graph_components -> Dot_of.configuration (Dot_of.settings_of Dot_of.Components_graph) u c
@@ -169,7 +169,7 @@ let () = Load_model.set_initial_model_of_settings ();
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in
   let main_solver = Solvers.of_settings Solvers.Main in
-  Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string c u));
+  Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration_string u c));
   Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
   Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> " (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
   Zephyrus_log.log_stage_end ();
@@ -238,10 +238,10 @@ let () = Load_model.set_initial_model_of_settings ();
   let (core_conf, annex_conf_init) = Trim.configuration c domain in
   let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
   Zephyrus_log.log_execution " ok\n";  
-  Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string core_conf u) ^ "\n\n"));
-(*  Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string c u r);
-  Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string core_conf u r); *)
-  (if not (Settings.find Settings.modifiable_configuration) then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string annex_conf u) ^ "\n\n")));
+  Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string u core_conf) ^ "\n\n"));
+(*Printf.printf "initial configuration = %s\n"  (Json_of.configuration_string u c);
+  Printf.printf "core    configuration = %s\n"  (Json_of.configuration_string u core_conf); *)
+  (if not (Settings.find Settings.modifiable_configuration) then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration_string u annex_conf) ^ "\n\n")));
   
   (* TODO: we should never re-assign variables in Data_state *)
   Data_state.initial_configuration_full := Some(core_conf);
@@ -274,8 +274,8 @@ let () = Load_model.set_initial_model_of_settings ();
 
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
-(*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string partial_final_configuration u r); *)
-    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string final_configuration u) ^ "\n"));
+(*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string u partial_final_configuration r); *)
+    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string u final_configuration) ^ "\n"));
     
     
     List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results);

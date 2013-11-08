@@ -25,10 +25,10 @@
 *)
 
 (* Does not work, do not know why yet *)
-val universe : Data_model.universe -> out_channel -> unit
-val configuration : Data_model.configuration -> Data_model.universe -> out_channel -> unit
+val universe      : Data_model.universe                             -> out_channel -> unit
+val configuration : Data_model.universe -> Data_model.configuration -> out_channel -> unit
 
 (* for now, use that *)
-val universe_string : Data_model.universe -> string
-val configuration_string : Data_model.configuration -> Data_model.universe -> string
+val universe_string      : Data_model.universe                             -> string
+val configuration_string : Data_model.universe -> Data_model.configuration -> string
 

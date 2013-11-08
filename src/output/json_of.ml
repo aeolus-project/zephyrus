@@ -126,11 +126,11 @@ let convert_configuration c (u : universe) = convert_configuration_tmp c u (Reso
 (*\**********************************************/*)
 
 
-let universe u channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u)
-let configuration c u channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u)
+let universe      u   channel = Json_j.write_universe (Bi_outbuf.create_channel_writer channel) (convert_universe u)
+let configuration u c channel = Json_j.write_configuration (Bi_outbuf.create_channel_writer channel) (convert_configuration c u)
 
-let universe_string (u : universe) = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u))
-let configuration_string c (u : universe) = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u))
+let universe_string      (u : universe)                     = Yojson.Safe.prettify (Json_j.string_of_universe (convert_universe u))
+let configuration_string (u : universe) (c : configuration) = Yojson.Safe.prettify (Json_j.string_of_configuration (convert_configuration c u))
 
 
 
