@@ -27,85 +27,94 @@
   exception Eof
 }
 
+let blanks           = [' ' '\t' '\n']
+let digits           = ['0'-'9']
+let alpha_lower      = ['a'-'z']
+let alpha_upper      = ['A'-'Z']
+let alpha            = (alpha_lower | alpha_upper)
+let lines            = ['-' '_']
+let other_characters = ['+' ':']
+let ident            = (alpha | digits | lines)
+
 rule token = parse
 
   (* Blanks *)
-  | [' ' '\t']                           { token lexbuf }     (* skip blanks *)
-  | ['\n' ]                              { token lexbuf }     (* skip newlines *)
+  | [' ' '\t']         { token lexbuf }     (* skip blanks *)
+  | ['\n' ]            { token lexbuf }     (* skip newlines *)
 
   (* Constants *)
   | "true"                               
   | "True"                               
-  | "TRUE"                               { TRUE }
+  | "TRUE"             { TRUE }
 
-  | ['0'-'9']+ as lxm                    { INT(int_of_string lxm) }
+  | ['0'-'9']+ as lxm  { INT(int_of_string lxm) }
 
   (* Arithmetic operators *)
-  | '+'                                  { PLUS }
-  | '-'                                  { MINUS }
-  | '*'                                  { TIMES }
+  | '+'                { PLUS }
+  | '-'                { MINUS }
+  | '*'                { TIMES }
 
   (* Logical operators *)
   | "and"                                
   | "&"                                  
-  | "&&"                                 { AND }
+  | "&&"               { AND }
 
   | "or"                                 
   | "|"                                  
-  | "||"                                 { OR }
+  | "||"               { OR }
 
   | "->"                                 
   | "=>"                                 
   | "impl"                               
-  | "implies"                            { IMPL }
+  | "implies"          { IMPL }
 
-  | '!'                                  { NOT }
+  | '!'                { NOT }
 
   (* Arithmetic comparisons *)
-  | '<'                                  { LT  }
-  | "<="                                 { LEQ } 
-  | '='                                  { EQ  }
-  | ">="                                 { GEQ } 
-  | '>'                                  { GT  }
-  | "!="                                 { NEQ } 
+  | '<'                { LT  }
+  | "<="               { LEQ } 
+  | '='                { EQ  }
+  | ">="               { GEQ } 
+  | '>'                { GT  }
+  | "!="               { NEQ } 
 
   (* Arity operator *)
-  | '#'                                  { HASH }
+  | '#'                { HASH }
 
   (* Other *)
-  | ','                                  { COMMA }
-  | ':'                                  { COLON }
-  | ';'                                  { SEMICOLON }
-  | '_'                                  { UNDERSCORE }
+  | ','                { COMMA }
+  | ':'                { COLON }
+  | ';'                { SEMICOLON }
+  | '_'                { UNDERSCORE }
 
   (* Parentheses *)
-  | '{'                                  { LCURLY }
-  | '}'                                  { RCURLY }
-  | '('                                  { LPAREN }
-  | ')'                                  { RPAREN }
+  | '{'                { LCURLY }
+  | '}'                { RCURLY }
+  | '('                { LPAREN }
+  | ')'                { RPAREN }
 
   (* Names *)
   
   (* Naming convention for component types: if first character is a capital letter, then it is a component type name. *)
-  |      (['A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { COMPONENT_TYPE_NAME(lxm) }
-  | '"'  (['A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { COMPONENT_TYPE_NAME(lxm) }
-  | '\'' (['A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { COMPONENT_TYPE_NAME(lxm) }
+  |      ((alpha_upper) (ident)* as lxm)                                                          { COMPONENT_TYPE_NAME(lxm) }
+  | '"'  ((alpha_upper) (ident)* as lxm) '"'                                                      { COMPONENT_TYPE_NAME(lxm) }
+  | '\'' ((alpha_upper) (ident)* as lxm) '\''                                                     { COMPONENT_TYPE_NAME(lxm) }
   
   (* Naming convention for ports: if first character is the '@' symbol, then it is a port name. *)
-  |      ('@'       ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { PORT_NAME(lxm)           }
-  | '"'  ('@'       ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { PORT_NAME(lxm)           }
-  | '\'' ('@'       ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { PORT_NAME(lxm)           }
+  |      (          '@' (ident)+ as lxm)                                                          { PORT_NAME(lxm)           }
+  | '"'  (          '@' (ident)+ as lxm) '"'                                                      { PORT_NAME(lxm)           }
+  | '\'' (          '@' (ident)+ as lxm) '\''                                                     { PORT_NAME(lxm)           }
 
   (* Naming convention for packages: if first character is a non-capital letter, then it is a package name. *)
-  |      (['a'-'z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm)      { PACKAGE_NAME(lxm) }
-  | '"'  (['a'-'z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm) '"'  { PACKAGE_NAME(lxm) }
-  | '\'' (['a'-'z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']* ('(' ['x' '='] ' ' ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_' '+' ':']+ ')') as lxm) '\'' { PACKAGE_NAME(lxm) }
+  |      ((alpha_lower) (ident)* ('(' ['x' '='] ' ' (ident | other_characters)+ ')') as lxm)      { PACKAGE_NAME(lxm) }
+  | '"'  ((alpha_lower) (ident)* ('(' ['x' '='] ' ' (ident | other_characters)+ ')') as lxm) '"'  { PACKAGE_NAME(lxm) }
+  | '\'' ((alpha_lower) (ident)* ('(' ['x' '='] ' ' (ident | other_characters)+ ')') as lxm) '\'' { PACKAGE_NAME(lxm) }
 
   (* Other names *)
-  |      (['a'-'z' 'A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm)      { NAME(lxm) }
-  | '"'  (['a'-'z' 'A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '"'  { NAME(lxm) }
-  | '\'' (['a'-'z' 'A'-'Z'] ['0'-'9' 'a'-'z' 'A'-'Z' '-' '_']+ as lxm) '\'' { NAME(lxm) }
+  |      (      (alpha) (ident)+ as lxm)                                                          { NAME(lxm) }
+  | '"'  (      (alpha) (ident)+ as lxm) '"'                                                      { NAME(lxm) }
+  | '\'' (      (alpha) (ident)+ as lxm) '\''                                                     { NAME(lxm) }
 
 
   (* End of file *)
-  | eof                                  { EOF }
+  | eof { EOF }
