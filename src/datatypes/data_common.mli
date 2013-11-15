@@ -378,7 +378,7 @@ module Catalog :
     val close_catalog : catalog_iface -> closed_catalog_iface
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
-    class closed_catalog_with_exceptions : catalog -> string -> (id -> string)  -> (name -> string) -> closed_catalog_iface
+    class closed_catalog_with_exceptions : catalog_iface -> ((id -> name) * (name -> id)) -> closed_catalog_iface
 
     (* Create a new catalog by taking a set of names and adding them all. *)
     val of_set_of_names   : Obj_set.t     -> catalog_iface

@@ -710,11 +710,13 @@ module Catalog =
     end
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
-    class closed_catalog_with_exceptions (catalog : catalog) (catalog_name : string) (string_of_id : id -> string) (string_of_name : name -> string) : closed_catalog_iface = object
+    class closed_catalog_with_exceptions (catalog : catalog_iface) (not_found_functions : (id -> name) * (name -> id)) : closed_catalog_iface = 
+    let (id_not_found, name_not_found) = not_found_functions in
+    object
       method ids             = catalog#ids
       method names           = catalog#names
-      method name_of_id id   = try catalog#name_of_id id   with Not_found -> failwith (Printf.sprintf "%s#name_of_id %s" catalog_name (string_of_id id))
-      method id_of_name name = try catalog#id_of_name name with Not_found -> failwith (Printf.sprintf "%s#id_of_name %s" catalog_name (string_of_name name))
+      method name_of_id id   = try catalog#name_of_id id   with Not_found -> id_not_found   id
+      method id_of_name name = try catalog#id_of_name name with Not_found -> name_not_found name
       method id_to_name_map  = catalog#id_to_name_map
       method name_to_id_map  = catalog#name_to_id_map
     end
