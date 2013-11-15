@@ -131,6 +131,7 @@ class component_type
   method require_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys require
   method conflict                  : Port_id_set.t          = conflict                                                                                        
   method consume (r : resource_id) : resource_consume_arity = try Resource_id_map.find r consume with Not_found -> 0                                          
+  method consume_domain            : Resource_id_set.t      = Resource_id_map_extract_key.set_of_keys consume 
 end
 
 module Component_type = struct
@@ -176,6 +177,7 @@ class package
   method depend                    : Package_id_set_set.t    = depend                                                
   method conflict                  : Package_id_set.t        = conflict                                              
   method consume (r : resource_id) : resource_consume_arity  = try Resource_id_map.find r consume with Not_found -> 0
+  method consume_domain            : Resource_id_set.t       = Resource_id_map_extract_key.set_of_keys consume
 
   method trim_by_package_ids (package_ids : Package_id_set.t) =
     (* Helper function: takes a set of package ids and returns only these which belong to the trimmed repository. *)
@@ -441,6 +443,7 @@ class location
   method repository                          : repository_id          = repository
   method packages_installed                  : Package_id_set.t       = packages_installed
   method provide_resources (r : resource_id) : resource_provide_arity = try Resource_id_map.find r provide_resources with Not_found -> 0
+  method provide_resources_domain            : Resource_id_set.t      = Resource_id_map_extract_key.set_of_keys provide_resources
   method cost                                : location_cost          = cost
 
   (* This method is almost like a constructor, but based on a existing object:

@@ -259,7 +259,11 @@ let universe_consistency (universe : universe) handle_validation : unit =
     ) component_type#conflict;
 
     (* Consumed_resource_missing *)
-    (* TODO: Impossible as there is no resource domain in the component type. *)
+      Resource_id_set.iter (fun resource_id ->
+        handle_validation
+          (Resource_id_set.mem resource_id universe#get_resource_ids)
+          (Model_inconsistency (Consumed_resource_missing (component_type_id, resource_id)))
+      ) component_type#consume_domain
 
   ) universe#get_component_type_ids;
 
@@ -293,7 +297,11 @@ let universe_consistency (universe : universe) handle_validation : unit =
       ) package#conflict;
 
       (* Package_consumed_resource_missing *)
-      (* TODO: Impossible as there is no resource domain in the package. *)
+      Resource_id_set.iter (fun resource_id ->
+        handle_validation
+          (Resource_id_set.mem resource_id universe#get_resource_ids)
+          (Model_inconsistency (Package_consumed_resource_missing (repository_id, package_id, resource_id)))
+      ) package#consume_domain
 
     ) package_ids;
 
@@ -357,7 +365,11 @@ let configuration_consistency (universe : universe) (configuration : configurati
     ) location#packages_installed;
 
     (* Location_provided_resource_missing *)
-    (* TODO: Impossible as there is no provided resource domain in a location. *)
+    Resource_id_set.iter (fun resource_id ->
+      handle_validation
+       (Resource_id_set.mem resource_id universe#get_resource_ids)
+       (Model_inconsistency (Location_provided_resource_missing (location_id, resource_id)))
+    ) location#provide_resources_domain
 
   ) configuration#get_location_ids;
 
