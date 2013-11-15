@@ -72,7 +72,7 @@ let convert_package k resource_id_list = {
 }
 
 let convert_repository (u : universe) r resource_id_list = {
-    Json_j.repository_name     = Name_of.resource_id r#id;
+    Json_j.repository_name     = Name_of.repository_id r#id;
     Json_j.repository_packages = List.map (fun k_id -> let k = u#get_package k_id in convert_package k resource_id_list) (Package_id_set.elements (r#package_ids))
 }
 
