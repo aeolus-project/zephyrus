@@ -99,7 +99,7 @@ these components together.)
 
 RESULTS:
 
-No consumption:
+No resource consumption:
 1. Simple,         artificial :     0:00.76
 2. Simple,         wheezy     :     0:14.40
 3. Redundant,      artificial :     0:00.87
@@ -130,3 +130,502 @@ Complicated:
 4. Redundant,      wheezy     : 15:33:13
 5. Very redundant, artificial : 12:44:50
 6. Very redundant, wheezy     : TIMEOUT AFTER ONE WEEK
+
+
+RESULTS DETAILS:
+
+No resource consumption:
+
+1. Simple, artificial : 0:00.76
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+2. Simple, wheezy : 0:14.40
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+3. Redundant, artificial : 0:00.87
+- 3 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+4. Redundant, wheezy : 0:14.54
+- 3 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+5. Very redundant, artificial : 0:03.69
+- 4 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+6. Very redundant, wheezy : 0:21.88
+- 4 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+
+Big MySQL:
+
+1. Simple, artificial : 0:00.75
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+2. Simple, wheezy : 0:15.02
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+3. Redundant, artificial : 0:43.78
+- 4 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+4. Redundant, wheezy : 2:58.17
+- 4 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+5. Very redundant, artificial : 0:09.82
+- 4 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+6. Very redundant, wheezy : 0:47.16
+- 4 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+
+High MySQL and Nova Compute:
+
+1. Simple, artificial : 0:00.76
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+2. Simple, wheezy : 0:14.53
+- 2 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+3. Redundant, artificial : 0:08.16
+- 4 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+4. Redundant, wheezy : 10:53.82
+- 4 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+5. Very redundant, artificial : 4:49.31
+- 5 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+6. Very redundant, wheezy : 28:15:19
+- 5 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+
+Complicated:
+
+1. Simple, artificial : 0:00.90
+- 3 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+2. Simple, wheezy : 0:14.75
+- 3 locations used
+- 23 components present:
+      1 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      1 Glance-Registry-backend
+      2 Glance-Registry-LB
+      1 Keystone-backend
+      2 Keystone-LB
+      1 MySQL-backend
+      2 MySQL-LB
+      1 Nova-API-backend
+      2 Nova-API-LB
+      1 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      1 Queue-backend
+      2 Queue-LB
+
+3. Redundant, artificial : 3:10.02
+- 5 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+4. Redundant, wheezy : 15:33:13
+- 5 locations used
+- 33 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      3 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      3 Nova-Compute
+      1 Nova-Conductor
+      1 Nova-DB
+      1 Nova-Scheduler
+      2 Queue-backend
+      2 Queue-LB
+
+5. Very redundant, artificial : 12:44:50
+- 6 locations used
+- 38 components present:
+      2 Glance-API-backend
+      2 Glance-API-LB
+      1 Glance-DB
+      2 Glance-Registry-backend
+      2 Glance-Registry-LB
+      3 Keystone-backend
+      2 Keystone-LB
+      4 MySQL-backend
+      2 MySQL-LB
+      2 Nova-API-backend
+      2 Nova-API-LB
+      4 Nova-Compute
+      2 Nova-Conductor
+      1 Nova-DB
+      2 Nova-Scheduler
+      3 Queue-backend
+      2 Queue-LB
+
+6. Very redundant, wheezy : TIMEOUT AFTER ONE WEEK
