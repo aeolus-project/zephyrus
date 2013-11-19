@@ -154,22 +154,26 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
     ~location_catalog:       location
     ~component_catalog:      component
 
-(* type 'a 'b make_not_found_functions = string -> ('a -> string) -> ('b -> string) -> (('a -> 'b) * ('b -> 'a)) *)
+(* This is a workaround necessary to keep the function polymorph. Honestly I don't know why it works... *)
+type ('id, 'name) make_not_found_functions = string -> ('id -> string) -> ('name -> string) -> (('id -> 'name) * ('name -> 'id))
+type make_not_found_functions_workaround = { workaround : 'id 'name. ('id, 'name) make_not_found_functions; }
 
-let make_not_found_functions (catalog_name : string) (string_of_id : 'a -> string) (string_of_name : 'b -> string) : (('a -> 'b) * ('b -> 'a)) = 
-  let id_not_found   (id   : 'a) : 'b = failwith (Printf.sprintf "Load_model main catalog error: %s#name_of_id %s" catalog_name (string_of_id   id))
-  and name_not_found (name : 'b) : 'a = failwith (Printf.sprintf "Load_model main catalog error: %s#id_of_name %s" catalog_name (string_of_name name))
+let make_not_found_functions : ('id, 'name) make_not_found_functions = 
+  fun catalog_name string_of_id string_of_name ->
+    let id_not_found   (id   : 'id)   : 'name = failwith (Printf.sprintf "Load_model loaded catalog error: %s#name_of_id %s" catalog_name (string_of_id   id))
+    and name_not_found (name : 'name) : 'id   = failwith (Printf.sprintf "Load_model loaded catalog error: %s#id_of_name %s" catalog_name (string_of_name name))
   in (id_not_found, name_not_found)
 
-let model_catalog_of_json_t_with_exceptions (naming : model_catalog) : closed_model_catalog = 
+
+let model_catalog_of_json_t_with_exceptions (naming : closed_model_catalog) (make_not_found_functions : make_not_found_functions_workaround) : closed_model_catalog = 
   new closed_model_catalog
-    ~component_type_catalog: (new Component_type_catalog .closed_catalog_with_exceptions naming#component_type (make_not_found_functions "component_type" String_of.component_type_id String_of.component_type_name))
-    ~port_catalog:           (new Port_catalog           .closed_catalog_with_exceptions naming#port           (make_not_found_functions "port"           String_of.port_id           String_of.port_name))
-    ~repository_catalog:     (new Repository_catalog     .closed_catalog_with_exceptions naming#repository     (make_not_found_functions "repository"     String_of.repository_id     String_of.repository_name))
-    ~package_catalog:        (new Package_catalog        .closed_catalog_with_exceptions naming#package        (make_not_found_functions "package"        String_of.package_id        (fun (r_id, k) -> String_of.package_name k)))
-    ~resource_catalog:       (new Resource_catalog       .closed_catalog_with_exceptions naming#resource       (make_not_found_functions "resource"       String_of.resource_id       String_of.resource_name))
-    ~location_catalog:       (new Location_catalog       .closed_catalog_with_exceptions naming#location       (make_not_found_functions "location"       String_of.location_id       String_of.location_name))
-    ~component_catalog:      (new Component_catalog      .closed_catalog_with_exceptions naming#component      (make_not_found_functions "component"      String_of.component_id      String_of.component_name))
+    ~component_type_catalog: (new Component_type_catalog .closed_catalog_with_exceptions naming#component_type (make_not_found_functions.workaround "component_type" String_of.component_type_id String_of.component_type_name))
+    ~port_catalog:           (new Port_catalog           .closed_catalog_with_exceptions naming#port           (make_not_found_functions.workaround "port"           String_of.port_id           String_of.port_name))
+    ~repository_catalog:     (new Repository_catalog     .closed_catalog_with_exceptions naming#repository     (make_not_found_functions.workaround "repository"     String_of.repository_id     String_of.repository_name))
+    ~package_catalog:        (new Package_catalog        .closed_catalog_with_exceptions naming#package        (make_not_found_functions.workaround "package"        String_of.package_id        (fun (r_id, k) -> String_of.package_name k)))
+    ~resource_catalog:       (new Resource_catalog       .closed_catalog_with_exceptions naming#resource       (make_not_found_functions.workaround "resource"       String_of.resource_id       String_of.resource_name))
+    ~location_catalog:       (new Location_catalog       .closed_catalog_with_exceptions naming#location       (make_not_found_functions.workaround "location"       String_of.location_id       String_of.location_name))
+    ~component_catalog:      (new Component_catalog      .closed_catalog_with_exceptions naming#component      (make_not_found_functions.workaround "component"      String_of.component_id      String_of.component_name))
 
 
 (*/*************************************************\*)
@@ -179,8 +183,8 @@ let model_catalog_of_json_t_with_exceptions (naming : model_catalog) : closed_mo
 
 (*/*********************************)
 (* class for loading a universe from a Json_j structure. Contains all conversion function concerning universes *)
-let convert_universe (catalog : closed_model_catalog) external_repositories u : universe = 
-  
+let convert_universe (catalog : #closed_model_catalog) external_repositories u : universe = 
+
   (* 1. Data Storage *)
 
   let component_types : Component_type_obj_catalog .obj_catalog_iface = new Component_type_obj_catalog .obj_catalog in
@@ -544,11 +548,15 @@ let load_basic_repositories l     = List.fold_left (fun res (n,f) ->
 let load_basic_configuration file = Input_helper.parse_json Json_j.read_configuration file
 let load_basic_specification file = Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
 
-let load_catalog u rs c s        = model_catalog_of_json_t_with_exceptions (model_catalog_of_json_t u rs c s)
-let load_universe catalog rs u   = convert_universe catalog rs u
-let load_configuration catalog c = convert_configuration catalog c
-let load_specification           = convert_specification
-let load_optimization_function   = convert_optimization_function
+let load_catalog u rs c s = 
+  let model_catalog = model_catalog_of_json_t u rs c s in 
+  let closed_model_catalog = close_model_catalog model_catalog in 
+  model_catalog_of_json_t_with_exceptions closed_model_catalog {workaround = make_not_found_functions;}
+
+let load_universe              = convert_universe 
+let load_configuration         = convert_configuration
+let load_specification         = convert_specification
+let load_optimization_function = convert_optimization_function
 
 
 let model_of_file_options file_u file_repos file_conf file_spec optim =

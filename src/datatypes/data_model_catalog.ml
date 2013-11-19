@@ -23,10 +23,7 @@ open Data_model
 (* this module is used to get from a package name the right package, by giving in addition in which repository to look in for *)
 module Repository_id_package_name = struct
   type t = repository_id * package_name
-  let compare v1 v2 =
-    let r1 = Repository_id.compare (fst v1) (fst v2) in if r1 = 0 then
-      Package_name.compare (snd v1) (snd v2)
-    else r1
+  let compare = compare
 end 
 
 module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
@@ -111,3 +108,13 @@ class closed_model_catalog
   method component              : Component_catalog      .closed_catalog_iface = component_catalog
 
 end
+
+let close_model_catalog (model_catalog : model_catalog) : closed_model_catalog =
+  new closed_model_catalog
+    ~component_type_catalog: (Component_type_catalog.close_catalog model_catalog#component_type)
+    ~port_catalog:           (Port_catalog          .close_catalog model_catalog#port)
+    ~repository_catalog:     (Repository_catalog    .close_catalog model_catalog#repository)
+    ~package_catalog:        (Package_catalog       .close_catalog model_catalog#package)
+    ~resource_catalog:       (Resource_catalog      .close_catalog model_catalog#resource)
+    ~location_catalog:       (Location_catalog      .close_catalog model_catalog#location)
+    ~component_catalog:      (Component_catalog     .close_catalog model_catalog#component)

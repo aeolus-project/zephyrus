@@ -700,7 +700,7 @@ module Catalog =
       method name_to_id_map : id Obj_map.t
     end
 
-    let close_catalog (catalog : catalog_iface) : closed_catalog_iface = object
+    let close_catalog (catalog : #closed_catalog_iface) : closed_catalog_iface = object
       method ids             = catalog#ids
       method names           = catalog#names
       method name_of_id      = catalog#name_of_id
@@ -710,16 +710,16 @@ module Catalog =
     end
 
     (* Implementation of a closed catalog which throws appropriate exceptions. *)
-    class closed_catalog_with_exceptions (catalog : catalog_iface) (not_found_functions : (id -> name) * (name -> id)) : closed_catalog_iface = 
-    let (id_not_found, name_not_found) = not_found_functions in
-    object
-      method ids             = catalog#ids
-      method names           = catalog#names
-      method name_of_id id   = try catalog#name_of_id id   with Not_found -> id_not_found   id
-      method id_of_name name = try catalog#id_of_name name with Not_found -> name_not_found name
-      method id_to_name_map  = catalog#id_to_name_map
-      method name_to_id_map  = catalog#name_to_id_map
-    end
+    class closed_catalog_with_exceptions (catalog : #closed_catalog_iface) (not_found_functions : (id -> name) * (name -> id)) : closed_catalog_iface = 
+      let (id_not_found, name_not_found) = not_found_functions in
+      object
+        method ids             = catalog#ids
+        method names           = catalog#names
+        method name_of_id id   = try catalog#name_of_id id   with Not_found -> id_not_found   id
+        method id_of_name name = try catalog#id_of_name name with Not_found -> name_not_found name
+        method id_to_name_map  = catalog#id_to_name_map
+        method name_to_id_map  = catalog#name_to_id_map
+      end
     
     (* Create a new catalog by taking a set of names and adding them all. *)
     let of_set_of_names (names : Obj_set.t) : catalog_iface = 
