@@ -539,14 +539,34 @@ let convert_optimization_function o = match o with
 (* functions to load the Json encoding of each structure *)
 (*   - universe *)
 
-let load_basic_universe file      = Input_helper.parse_json Json_j.read_universe file
-let load_basic_repositories l     = List.fold_left (fun res (n,f) -> 
-  let r = Input_helper.parse_json Json_j.read_packages f in 
-  match r with 
-  | None -> res
-  | Some(ks) -> { Json_j.repository_name = n; Json_j.repository_packages = ks }::res) [] l
-let load_basic_configuration file = Input_helper.parse_json Json_j.read_configuration file
-let load_basic_specification file = Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
+let load_versioned_object file = Input_helper.parse_json Json_versions_j.read_versioned_object file
+
+let load_version file : int = 
+  let versioned_object = load_versioned_object file in
+  match versioned_object with
+  | Some versioned_object' -> versioned_object'.Json_versions_t.version
+  | None -> 0
+
+let load_basic_universe file =
+  let syntax_version = load_version file in
+  Zephyrus_log.log_execution (Printf.sprintf "Universe syntax version = %d%!\n" syntax_version);
+  Input_helper.parse_json Json_j.read_universe file
+
+let load_basic_repositories l = 
+  List.fold_left (fun res (n,f) -> 
+    let r = Input_helper.parse_json Json_j.read_packages f in 
+    match r with 
+    | None -> res
+    | Some(ks) -> { Json_j.repository_name = n; Json_j.repository_packages = ks }::res
+  ) [] l
+
+let load_basic_configuration file = 
+  let syntax_version = load_version file in
+  Zephyrus_log.log_execution (Printf.sprintf "Configuration syntax version = %d%!\n" syntax_version);
+  Input_helper.parse_json Json_j.read_configuration file
+
+let load_basic_specification file = 
+  Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
 
 let load_catalog u rs c s = 
   let model_catalog = model_catalog_of_json_t u rs c s in 
@@ -560,11 +580,13 @@ let load_optimization_function = convert_optimization_function
 
 
 let model_of_file_options file_u file_repos file_conf file_spec optim =
-  let u  = match file_u with None -> None | Some(file_u') -> load_basic_universe file_u' in
-  let rs = match file_repos with None -> [] | Some(file_repos') -> load_basic_repositories file_repos' in
-  let c  = match file_conf with None -> None | Some(file_conf') -> load_basic_configuration file_conf' in
-  let s  = match file_spec with None -> None | Some(file_spec') -> load_basic_specification file_spec' in
-  let f  = match optim with None -> None | Some(optim') -> Some(load_optimization_function optim') in
+
+  let u  = match file_u     with None -> None | Some(file_u')     -> load_basic_universe      file_u' in
+  let rs = match file_repos with None -> []   | Some(file_repos') -> load_basic_repositories  file_repos' in
+  let c  = match file_conf  with None -> None | Some(file_conf')  -> load_basic_configuration file_conf' in
+  let s  = match file_spec  with None -> None | Some(file_spec')  -> load_basic_specification file_spec' in
+  let f  = match optim      with None -> None | Some(optim')      -> Some(load_optimization_function optim') in
+
   let catalog = load_catalog u rs c s in
   let final_u = match u with None -> None | Some(u') -> Some(load_universe catalog rs u') in
   let final_c = match c with None -> None | Some(c') -> Some(load_configuration catalog c') in
