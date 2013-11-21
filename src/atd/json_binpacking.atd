@@ -1,0 +1,58 @@
+(****************************************************************************)
+(*                                                                          *)
+(*    This file is part of Zephyrus.                                        *)
+(*                                                                          *)
+(*    Zephyrus is free software: you can redistribute it and/or modify      *)
+(*    it under the terms of the GNU General Public License as published by  *)
+(*    the Free Software Foundation, either version 3 of the License, or     *)
+(*    (at your option) any later version.                                   *)
+(*                                                                          *)
+(*    Zephyrus is distributed in the hope that it will be useful,           *)
+(*    but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*    GNU General Public License for more details.                          *)
+(*                                                                          *)
+(*    You should have received a copy of the GNU General Public License     *)
+(*    along with Zephyrus.  If not, see <http://www.gnu.org/licenses/>.     *)
+(*                                                                          *)
+(****************************************************************************)
+
+<doc text="Resources.">
+
+type resource_name          = string
+type resource_consume_arity = int
+type resource_provide_arity = int
+
+
+<doc text="Items.">
+
+type item_name  = string
+type item_arity = int
+
+type item = {
+  name    : item_name;
+  consume : (resource_name * resource_consume_arity) list;
+  arity   : item_arity;
+} <ocaml field_prefix="item_">
+
+
+<doc text="Bins.">
+
+type bin_name   = string
+type bin_cost   = int
+type bin_arity  = int
+
+type bin = {
+  name    : bin_name;
+  provide : (resource_name * resource_provide_arity) list;
+  cost    : bin_cost;
+  arity   : bin_arity;
+} <ocaml field_prefix="bin_">
+
+
+<doc text="Binpacking problem.">
+
+type binpacking_problem = {
+  items     : item list;
+  bins      : bin  list;
+} <ocaml field_prefix="binpacking_problem_">

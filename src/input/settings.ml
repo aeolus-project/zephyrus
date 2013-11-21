@@ -233,6 +233,7 @@ type out_file_inner =
   | Out_file_graph_simplified
   | Out_file_graph_components
   | Out_file_graph_packages
+  | Out_file_binpacking_problem
 type out_file = (out_file_inner * string) 
 type out_files = out_file list
 let out_files_assoc = [
@@ -241,7 +242,8 @@ let out_files_assoc = [
   ("simplified-deployment-graph", Out_file_graph_simplified);
   ("components-graph"           , Out_file_graph_components);
   ("packages-graph"             , Out_file_graph_packages);
-  ("graph-deployment"           , Out_file_graph_deployment) ]
+  ("graph-deployment"           , Out_file_graph_deployment);
+  ("binpacking-problem"         , Out_file_binpacking_problem); ]
 let out_files_assoc_revert = revert out_files_assoc
 
 let out_files_names = (extract_names out_files_assoc)

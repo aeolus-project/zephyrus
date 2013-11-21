@@ -12,7 +12,7 @@ input-optimization-function = compact
 
 # 07. Output Configuration
 
-results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot")]
+results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot"); ("binpacking-problem", "tests/binpacking.json")]
 
 verbose-level = 2
 verbose-data = y
