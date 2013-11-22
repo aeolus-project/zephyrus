@@ -183,7 +183,7 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   let strings_of_location (location : location) : string list =
     let name  = String_of.location_name (Name_of.location_id location#id) in
     let id    = location_id name in
-    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (Name_of.location_id location#repository)) in
+    let label = Printf.sprintf "%s\\n[%s]" name (String_of.repository_name (Name_of.repository_id location#repository)) in
     let location_component_strings : string list = (* the components inside the location *)
       if graph_settings.show_components
       then (List.map (fun c -> strings_of_component (configuration#get_component c)) (Component_id_set.elements (Component_id_set.filter (fun c -> (configuration#get_component c)#location = location#id) configuration#get_component_ids)))
