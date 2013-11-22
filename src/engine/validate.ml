@@ -673,7 +673,7 @@ let model (u : universe) (c : configuration) (s : specification) handle_validati
   model_consistency u c   handle_validation;
   model_validation  u c s handle_validation
 
-let standard_model_check (u : universe) (s : specification) (c : configuration) : validation_result list =
+let standard_model_check (u : universe) (c : configuration) (s : specification) : validation_result list =
 
   (* *)
   let (remembering_validation_handler, result) = make_remembering_validation_handler () in

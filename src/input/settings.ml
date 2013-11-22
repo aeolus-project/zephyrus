@@ -91,15 +91,13 @@ let int_domain_message    = "any integer"
 
 (* 1.2. Zephyrus Execution mode. *) (* not used for now *)
 type mode = 
-  | Mode_classic (*
-  | Mode_flat
-  | Mode_bin_packing *)
+  | Mode_classic
   | Mode_validate_initial_config
+  | Mode_no_solving
 let mode_assoc = [
-  ("classic", Mode_classic); (*
-  ("flat", Mode_flat);
-  ("bin-packing", Mode_bin_packing); *)
-  ("validate", Mode_validate_initial_config) ]
+  ("classic",     Mode_classic);
+  ("validate",    Mode_validate_initial_config);
+  ("no-solving",  Mode_no_solving) ]
 let mode_assoc_revert = revert mode_assoc
 
 let mode_names          = extract_names mode_assoc

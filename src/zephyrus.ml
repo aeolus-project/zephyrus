@@ -147,12 +147,23 @@ let () = Load_model.set_initial_model_of_settings ();
   Zephyrus_log.log_stage_new "LOAD SECTION";
   let u = check_option "universe"              !Data_state.universe_full in
   let c = check_option "initial configuration" !Data_state.initial_configuration_full in
+  
+  (* If no-solving mode was chosen: *)
+  (* Remark: I've put this as early as possible in order to work also when specification and optimisation function are not given. *)
+  if Settings.find Settings.mode = Settings.Mode_no_solving
+  then
+    let final_configuration = c in
+    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string u final_configuration) ^ "\n"));
+    List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results);
+    print_string "\n\n\n <==========> THE END <==========>  \n\n"
+  else
+
   let s = check_option "specification"         !Data_state.specification_full in
   let f = check_option "optimization function" !Data_state.optimization_function in
 
   (* Validation *)
   Zephyrus_log.log_stage_new "MODEL VALIDATION";
-  let validation_results = Validate.standard_model_check u s c in
+  let validation_results = Validate.standard_model_check u c s in
   Zephyrus_log.log_stage_end ();
 
   (* If validation mode was chosen:*)
@@ -165,7 +176,6 @@ let () = Load_model.set_initial_model_of_settings ();
       Printf.printf "\nInitial configuration validation errors:\n";
       List.iter (fun validation_result -> Printf.printf "%s\n%!" (Validate.String_of.validation_result validation_result)) initial_configuration_validation_errors
   else
-
 
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in
@@ -274,15 +284,11 @@ let () = Load_model.set_initial_model_of_settings ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
 
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
+(*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string u partial_final_configuration r); *)
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
-(*    Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration_string u partial_final_configuration r); *)
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration_string u final_configuration) ^ "\n"));
     
-    
-    List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results);
-(*
-    Printf.printf "\nLocation domain of the final configuration = %s\n" (String_of.location_id_set final_configuration#get_location_ids);
-    Printf.printf "\nLocation names of the final configuration = %s\n" (String_of.location_name_set final_configuration#get_location_names);
-*)
+    List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results)
+  );
 
-  print_string "\n\n\n <==========> THE END <==========>  \n\n")
+  print_string "\n\n\n <==========> THE END <==========>  \n\n"
