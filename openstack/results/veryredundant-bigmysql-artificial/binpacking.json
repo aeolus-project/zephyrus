@@ -1,0 +1,33 @@
+{
+  "items": [
+    { "name": "MySQL-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "MySQL-backend", "consume": [ ("ram", 1024) ], "arity": 4 },
+    { "name": "Keystone-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Keystone-backend", "consume": [ ("ram", 128) ], "arity": 3 },
+    { "name": "Glance-API-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Glance-API-backend", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Glance-Registry-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    {
+      "name": "Glance-Registry-backend",
+      "consume": [ ("ram", 128) ],
+      "arity": 2
+    },
+    { "name": "Glance-DB", "consume": [], "arity": 1 },
+    { "name": "Nova-API-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Nova-API-backend", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Nova-Scheduler", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Nova-Conductor", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Nova-Compute", "consume": [ ("ram", 128) ], "arity": 4 },
+    { "name": "Nova-DB", "consume": [], "arity": 1 },
+    { "name": "Queue-LB", "consume": [ ("ram", 128) ], "arity": 2 },
+    { "name": "Queue-backend", "consume": [ ("ram", 128) ], "arity": 3 }
+  ],
+  "bins": [
+    {
+      "name": "Location_category_1",
+      "provide": [ ("ram", 2048) ],
+      "cost": 1,
+      "arity": 6
+    }
+  ]
+}

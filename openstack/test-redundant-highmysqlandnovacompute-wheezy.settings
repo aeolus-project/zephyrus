@@ -9,7 +9,9 @@ input-optimization-function = compact
 
 # 07. Output Configuration
 
-results                     = [("json", "openstack/output.json"); ("graph-deployment", "openstack/output.dot")]
+results                     = [("json",               "openstack/results/redundant-highmysqlandnovacompute-wheezy/output.json");
+                               ("graph-deployment",   "openstack/results/redundant-highmysqlandnovacompute-wheezy/output.dot");
+                               ("binpacking-problem", "openstack/results/redundant-highmysqlandnovacompute-wheezy/binpacking.json")]
 
 verbose-level = 2
 verbose-data = y

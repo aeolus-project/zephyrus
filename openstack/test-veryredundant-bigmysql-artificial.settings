@@ -9,7 +9,9 @@ input-optimization-function = compact
 
 # 07. Output Configuration
 
-results                     = [("json", "openstack/output.json"); ("graph-deployment", "openstack/output.dot")]
+results                     = [("json",               "openstack/results/veryredundant-bigmysql-artificial/output.json");
+                               ("graph-deployment",   "openstack/results/veryredundant-bigmysql-artificial/output.dot");
+                               ("binpacking-problem", "openstack/results/veryredundant-bigmysql-artificial/binpacking.json")]
 
 verbose-level = 2
 verbose-data = y
