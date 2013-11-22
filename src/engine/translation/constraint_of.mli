@@ -30,7 +30,7 @@ val location_all_variables : Data_model.Port_set.t -> Data_model.Component_type_
 
 val universe      : Data_model.Location_id_set.t -> Data_model.universe -> ((konstraint list ref) * (konstraint list)) list
 val specification : Data_model.Location_id_set.t -> Data_model.specification -> ((konstraint option ref) * (konstraint)) list
-val locations     : Data_model.Resource_set.t -> Data_model.Location_set.t -> ((konstraint list ref) * (konstraint list)) list
+val locations     : Data_model.Resource_set.t    -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> ((konstraint list ref) * (konstraint list)) list
 
 val universe_full : unit -> unit      (* set the universe-related constraints in Data_state using what is provided in Data_state *)
 val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)
@@ -39,31 +39,3 @@ val configuration_full : unit -> unit (* set the configuration-related constrain
 val optimization_function : Data_model.universe -> Data_model.configuration -> Data_model.optimization_function -> Data_constraint.optimization_function
 val optimization_function_full : unit -> unit (* conversion of the optimization function, and storage in Data_state *)
 (* val basic_bounds : unit -> unit          (* set the bounds in Data_state to their most basic values *)*)
-
-
-
-
-
-
-(*
-module Plain : sig
-  val universe : Data_model.Location_name_set.t -> Data_model.Resource_name_set.t -> Data_model.universe -> Data_constraint.t
-  val configuration : Data_model.Resource_name_set.t -> Data_model.configuration -> Data_constraint.t
-  val specification : Data_model.specification -> Data_constraint.t
-  val optimization_function :
-
-  val universe_flat : Data_model.universe -> Data_constraint.t
-end
-*)
-
-(*
-module Improved : sig
-  val universe : Data_model.Location_name_set.t -> Data_model.Resource_name_set.t -> Data_model_improved.universe -> Data_constraint.t
-  val configuration : Data_model.Resource_name_set.t -> Data_model_improved.configuration -> Data_constraint.t
-  val specification : Data_model.specification -> Data_constraint.t
-  val optimization_function :
-
-  val universe_flat : Data_model_improved.universe -> Data_constraint.t
-end
-
-*)

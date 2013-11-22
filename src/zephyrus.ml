@@ -47,10 +47,10 @@ let check_option desc o = match o with
 let print_to_file kind filename u c = Output_helper.print_output filename (match kind with
     | Settings.Out_file_plain              -> String_of.configuration u c
     | Settings.Out_file_json               -> Json_of.configuration_string u c
-    | Settings.Out_file_graph_deployment   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Deployment_graph) u c
-    | Settings.Out_file_graph_simplified   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Simplified_deployment_graph) u c
-    | Settings.Out_file_graph_components   -> Dot_of.configuration (Dot_of.settings_of Dot_of.Components_graph) u c
-    | Settings.Out_file_graph_packages     -> Dot_of.configuration (Dot_of.settings_of Dot_of.Packages_graph) u c
+    | Settings.Out_file_graph_deployment   -> Dot_of.configuration (Dot_of.graph_settings_of_graph_type Dot_of.Deployment_graph) u c
+    | Settings.Out_file_graph_simplified   -> Dot_of.configuration (Dot_of.graph_settings_of_graph_type Dot_of.Simplified_deployment_graph) u c
+    | Settings.Out_file_graph_components   -> Dot_of.configuration (Dot_of.graph_settings_of_graph_type Dot_of.Components_graph) u c
+    | Settings.Out_file_graph_packages     -> Dot_of.configuration (Dot_of.graph_settings_of_graph_type Dot_of.Packages_graph) u c
     | Settings.Out_file_binpacking_problem -> Json_binpacking_problem_of.configuration u c
   )
 

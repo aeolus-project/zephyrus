@@ -431,19 +431,17 @@ module Make =
       let l = configuration#get_location lid in
       (* assert(configuration#get_location_id l#name = lid); *)
       (* assert(configuration#get_location_name lid = l#name); *)
-      let line1 = Printf.sprintf "%s -> %s\n" (location_id lid) (location_name (Name_of.location_id l#id)) in
+      let line1 = Printf.sprintf "%s -> %s\n" (location_id lid) (location_name (Name_of.location_id lid)) in
 
       let rid = l#repository in
       let r = universe#get_repository rid in
       (* assert(universe#get_repository_id r#name = rid); *)
       (* assert(universe#get_repository_name rid = r#name); *)
-      let line2 = Printf.sprintf "    + repository : %s -> %s\n" (repository_id rid) (repository_name (Name_of.repository_id r#id)) in
+      let line2 = Printf.sprintf "    + repository : %s -> %s\n" (repository_id rid) (repository_name (Name_of.repository_id rid)) in
 
       let kids = l#packages_installed in
-      let module Package_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_set) in
-      let ks = Package_set_of_package_id_set.convert universe#get_package kids in
-      let module Package_name_set_of_package_set = Data_common.Set.Convert(Package_set)(Package_name_set) in
-      let knames = Package_name_set_of_package_set.convert (fun package -> Name_of.package_id package#id) ks in
+      let module Package_name_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_name_set) in
+      let knames = Package_name_set_of_package_id_set.convert (fun package_id -> Name_of.package_id package_id) kids in
       let line3 = Printf.sprintf "    + packages : %s\n" (string_set knames) in
 
       Printf.sprintf "%s%s%s" line1 line2 line3
