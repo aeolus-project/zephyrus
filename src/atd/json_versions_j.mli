@@ -15,7 +15,7 @@ val string_of_version :
   ?len:int -> version -> string
   (** Serialize a value of type {!version}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -35,7 +35,7 @@ val string_of_versioned_object :
   ?len:int -> versioned_object -> string
   (** Serialize a value of type {!versioned_object}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 

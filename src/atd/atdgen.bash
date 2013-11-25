@@ -12,7 +12,7 @@ do
   then echo "> ok!"; else echo ""; exit 1; fi
 
   echo "> generating ${name}_j.ml* files..."
-  if atdgen -j -j-defaults $atd_file
+  if atdgen -j -j-defaults -j-std $atd_file
   then echo "> ok!"; else echo ""; exit 1; fi
   
   echo "> generating ${name}_v.ml* files..."

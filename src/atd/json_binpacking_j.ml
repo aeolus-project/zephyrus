@@ -104,7 +104,7 @@ let item_arity_of_string s =
 let write__1 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_resource_name
@@ -116,7 +116,7 @@ let write__1 = (
         write_resource_consume_arity
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__1 ?(len = 1024) x =
@@ -405,7 +405,7 @@ let bin_arity_of_string s =
 let write__2 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_resource_name
@@ -417,7 +417,7 @@ let write__2 = (
         write_resource_provide_arity
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__2 ?(len = 1024) x =

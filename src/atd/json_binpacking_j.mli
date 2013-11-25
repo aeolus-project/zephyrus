@@ -49,7 +49,7 @@ val string_of_resource_name :
   ?len:int -> resource_name -> string
   (** Serialize a value of type {!resource_name}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -69,7 +69,7 @@ val string_of_resource_consume_arity :
   ?len:int -> resource_consume_arity -> string
   (** Serialize a value of type {!resource_consume_arity}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -89,7 +89,7 @@ val string_of_resource_provide_arity :
   ?len:int -> resource_provide_arity -> string
   (** Serialize a value of type {!resource_provide_arity}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -109,7 +109,7 @@ val string_of_item_name :
   ?len:int -> item_name -> string
   (** Serialize a value of type {!item_name}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -129,7 +129,7 @@ val string_of_item_arity :
   ?len:int -> item_arity -> string
   (** Serialize a value of type {!item_arity}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -149,7 +149,7 @@ val string_of_item :
   ?len:int -> item -> string
   (** Serialize a value of type {!item}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -169,7 +169,7 @@ val string_of_bin_name :
   ?len:int -> bin_name -> string
   (** Serialize a value of type {!bin_name}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -189,7 +189,7 @@ val string_of_bin_cost :
   ?len:int -> bin_cost -> string
   (** Serialize a value of type {!bin_cost}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -209,7 +209,7 @@ val string_of_bin_arity :
   ?len:int -> bin_arity -> string
   (** Serialize a value of type {!bin_arity}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -229,7 +229,7 @@ val string_of_bin :
   ?len:int -> bin -> string
   (** Serialize a value of type {!bin}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 
@@ -249,7 +249,7 @@ val string_of_binpacking_problem :
   ?len:int -> binpacking_problem -> string
   (** Serialize a value of type {!binpacking_problem}
       into a JSON string.
-      @param len specifies the initial length
+      @param len specifies the initial length 
                  of the buffer used internally.
                  Default: 1024. *)
 

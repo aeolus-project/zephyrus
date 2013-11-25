@@ -209,13 +209,13 @@ let resource_name_of_string s =
 let write_provide_arity = (
   fun ob x ->
     match x with
-      | `InfiniteProvide -> Bi_outbuf.add_string ob "<\"InfiniteProvide\">"
+      | `InfiniteProvide -> Bi_outbuf.add_string ob "\"InfiniteProvide\""
       | `FiniteProvide x ->
-        Bi_outbuf.add_string ob "<\"FiniteProvide\":";
+        Bi_outbuf.add_string ob "[\"FiniteProvide\",";
         (
           Yojson.Safe.write_int
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 let string_of_provide_arity ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -375,7 +375,7 @@ let resource_provide_arity_of_string s =
 let write__1 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_port_name
@@ -387,7 +387,7 @@ let write__1 = (
         write_provide_arity
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__1 ?(len = 1024) x =
@@ -444,7 +444,7 @@ let _1_of_string s =
 let write__2 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_port_name
@@ -456,7 +456,7 @@ let write__2 = (
         write_require_arity
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__2 ?(len = 1024) x =
@@ -529,7 +529,7 @@ let _3_of_string s =
 let write__4 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_resource_name
@@ -541,7 +541,7 @@ let write__4 = (
         write_resource_consumption
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__4 ?(len = 1024) x =
@@ -1414,7 +1414,7 @@ let repositories_of_string s =
 let write__10 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_repository_name
@@ -1426,7 +1426,7 @@ let write__10 = (
         write_package_name
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__10 ?(len = 1024) x =
@@ -1495,7 +1495,7 @@ let package_names_of_string s =
 let write__11 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_component_type_name
@@ -1507,7 +1507,7 @@ let write__11 = (
         write_package_names
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__11 ?(len = 1024) x =
@@ -1764,7 +1764,7 @@ let universe_of_string s =
 let write__12 = (
   Ag_oj_run.write_list (
     fun ob x ->
-      Bi_outbuf.add_char ob '(';
+      Bi_outbuf.add_char ob '[';
       (let x, _ = x in
       (
         write_resource_name
@@ -1776,7 +1776,7 @@ let write__12 = (
         write_resource_provide_arity
       ) ob x
       );
-      Bi_outbuf.add_char ob ')';
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__12 ?(len = 1024) x =
@@ -2854,10 +2854,10 @@ let write_spec_local_element = (
   fun ob x ->
     match x with
       | `SpecLocalElementPackage x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalElementPackage\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalElementPackage\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_repository_name
@@ -2869,21 +2869,21 @@ let write_spec_local_element = (
               write_package_name
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalElementComponentType x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalElementComponentType\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalElementComponentType\",";
         (
           write_component_type_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalElementPort x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalElementPort\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalElementPort\",";
         (
           write_port_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 let string_of_spec_local_element ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -3143,28 +3143,28 @@ let rec write_spec_local_expr = (
   fun ob x ->
     match x with
       | `SpecLocalExprVar x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprVar\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprVar\",";
         (
           write_spec_variable_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalExprConst x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprConst\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprConst\",";
         (
           write_spec_const
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalExprArity x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprArity\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprArity\",";
         (
           write_spec_local_element
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalExprAdd x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprAdd\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprAdd\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_local_expr
@@ -3176,14 +3176,14 @@ let rec write_spec_local_expr = (
               write_spec_local_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalExprSub x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprSub\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprSub\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_local_expr
@@ -3195,14 +3195,14 @@ let rec write_spec_local_expr = (
               write_spec_local_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalExprMul x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalExprMul\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalExprMul\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_const
@@ -3214,9 +3214,9 @@ let rec write_spec_local_expr = (
               write_spec_local_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 and string_of_spec_local_expr ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -3787,12 +3787,12 @@ and spec_local_expr_of_string s =
 let write_spec_op = (
   fun ob x ->
     match x with
-      | `Lt -> Bi_outbuf.add_string ob "<\"Lt\">"
-      | `LEq -> Bi_outbuf.add_string ob "<\"LEq\">"
-      | `Eq -> Bi_outbuf.add_string ob "<\"Eq\">"
-      | `GEq -> Bi_outbuf.add_string ob "<\"GEq\">"
-      | `Gt -> Bi_outbuf.add_string ob "<\"Gt\">"
-      | `NEq -> Bi_outbuf.add_string ob "<\"NEq\">"
+      | `Lt -> Bi_outbuf.add_string ob "\"Lt\""
+      | `LEq -> Bi_outbuf.add_string ob "\"LEq\""
+      | `Eq -> Bi_outbuf.add_string ob "\"Eq\""
+      | `GEq -> Bi_outbuf.add_string ob "\"GEq\""
+      | `Gt -> Bi_outbuf.add_string ob "\"Gt\""
+      | `NEq -> Bi_outbuf.add_string ob "\"NEq\""
 )
 let string_of_spec_op ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -4019,12 +4019,12 @@ let spec_op_of_string s =
 let rec write_local_specification = (
   fun ob x ->
     match x with
-      | `SpecLocalTrue -> Bi_outbuf.add_string ob "<\"SpecLocalTrue\">"
+      | `SpecLocalTrue -> Bi_outbuf.add_string ob "\"SpecLocalTrue\""
       | `SpecLocalOp x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalOp\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalOp\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _, _ = x in
             (
               write_spec_local_expr
@@ -4042,14 +4042,14 @@ let rec write_local_specification = (
               write_spec_local_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalAnd x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalAnd\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalAnd\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_local_specification
@@ -4061,14 +4061,14 @@ let rec write_local_specification = (
               write_local_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalOr x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalOr\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalOr\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_local_specification
@@ -4080,14 +4080,14 @@ let rec write_local_specification = (
               write_local_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalImpl x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalImpl\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalImpl\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_local_specification
@@ -4099,15 +4099,15 @@ let rec write_local_specification = (
               write_local_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecLocalNot x ->
-        Bi_outbuf.add_string ob "<\"SpecLocalNot\":";
+        Bi_outbuf.add_string ob "[\"SpecLocalNot\",";
         (
           write_local_specification
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 and string_of_local_specification ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -4797,7 +4797,7 @@ let spec_repository_constraints_of_string s =
   read_spec_repository_constraints (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_spec_resource_constraint = (
   fun ob x ->
-    Bi_outbuf.add_char ob '(';
+    Bi_outbuf.add_char ob '[';
     (let x, _, _ = x in
     (
       write_resource_name
@@ -4815,7 +4815,7 @@ let write_spec_resource_constraint = (
       write_spec_const
     ) ob x
     );
-    Bi_outbuf.add_char ob ')';
+    Bi_outbuf.add_char ob ']';
 )
 let string_of_spec_resource_constraint ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -4909,10 +4909,10 @@ let write_spec_element = (
   fun ob x ->
     match x with
       | `SpecElementPackage x ->
-        Bi_outbuf.add_string ob "<\"SpecElementPackage\":";
+        Bi_outbuf.add_string ob "[\"SpecElementPackage\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_repository_name
@@ -4924,26 +4924,26 @@ let write_spec_element = (
               write_package_name
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecElementComponentType x ->
-        Bi_outbuf.add_string ob "<\"SpecElementComponentType\":";
+        Bi_outbuf.add_string ob "[\"SpecElementComponentType\",";
         (
           write_component_type_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecElementPort x ->
-        Bi_outbuf.add_string ob "<\"SpecElementPort\":";
+        Bi_outbuf.add_string ob "[\"SpecElementPort\",";
         (
           write_port_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecElementLocalisation x ->
-        Bi_outbuf.add_string ob "<\"SpecElementLocalisation\":";
+        Bi_outbuf.add_string ob "[\"SpecElementLocalisation\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _, _ = x in
             (
               write_spec_resource_constraints
@@ -4961,9 +4961,9 @@ let write_spec_element = (
               write_local_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 let string_of_spec_element ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -5361,28 +5361,28 @@ let rec write_spec_expr = (
   fun ob x ->
     match x with
       | `SpecExprVar x ->
-        Bi_outbuf.add_string ob "<\"SpecExprVar\":";
+        Bi_outbuf.add_string ob "[\"SpecExprVar\",";
         (
           write_spec_variable_name
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecExprConst x ->
-        Bi_outbuf.add_string ob "<\"SpecExprConst\":";
+        Bi_outbuf.add_string ob "[\"SpecExprConst\",";
         (
           write_spec_const
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecExprArity x ->
-        Bi_outbuf.add_string ob "<\"SpecExprArity\":";
+        Bi_outbuf.add_string ob "[\"SpecExprArity\",";
         (
           write_spec_element
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecExprAdd x ->
-        Bi_outbuf.add_string ob "<\"SpecExprAdd\":";
+        Bi_outbuf.add_string ob "[\"SpecExprAdd\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_expr
@@ -5394,14 +5394,14 @@ let rec write_spec_expr = (
               write_spec_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecExprSub x ->
-        Bi_outbuf.add_string ob "<\"SpecExprSub\":";
+        Bi_outbuf.add_string ob "[\"SpecExprSub\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_expr
@@ -5413,14 +5413,14 @@ let rec write_spec_expr = (
               write_spec_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecExprMul x ->
-        Bi_outbuf.add_string ob "<\"SpecExprMul\":";
+        Bi_outbuf.add_string ob "[\"SpecExprMul\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_spec_const
@@ -5432,9 +5432,9 @@ let rec write_spec_expr = (
               write_spec_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 and string_of_spec_expr ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
@@ -6005,12 +6005,12 @@ and spec_expr_of_string s =
 let rec write_specification = (
   fun ob x ->
     match x with
-      | `SpecTrue -> Bi_outbuf.add_string ob "<\"SpecTrue\">"
+      | `SpecTrue -> Bi_outbuf.add_string ob "\"SpecTrue\""
       | `SpecOp x ->
-        Bi_outbuf.add_string ob "<\"SpecOp\":";
+        Bi_outbuf.add_string ob "[\"SpecOp\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _, _ = x in
             (
               write_spec_expr
@@ -6028,14 +6028,14 @@ let rec write_specification = (
               write_spec_expr
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecAnd x ->
-        Bi_outbuf.add_string ob "<\"SpecAnd\":";
+        Bi_outbuf.add_string ob "[\"SpecAnd\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_specification
@@ -6047,14 +6047,14 @@ let rec write_specification = (
               write_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecOr x ->
-        Bi_outbuf.add_string ob "<\"SpecOr\":";
+        Bi_outbuf.add_string ob "[\"SpecOr\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_specification
@@ -6066,14 +6066,14 @@ let rec write_specification = (
               write_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecImpl x ->
-        Bi_outbuf.add_string ob "<\"SpecImpl\":";
+        Bi_outbuf.add_string ob "[\"SpecImpl\",";
         (
           fun ob x ->
-            Bi_outbuf.add_char ob '(';
+            Bi_outbuf.add_char ob '[';
             (let x, _ = x in
             (
               write_specification
@@ -6085,15 +6085,15 @@ let rec write_specification = (
               write_specification
             ) ob x
             );
-            Bi_outbuf.add_char ob ')';
+            Bi_outbuf.add_char ob ']';
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
       | `SpecNot x ->
-        Bi_outbuf.add_string ob "<\"SpecNot\":";
+        Bi_outbuf.add_string ob "[\"SpecNot\",";
         (
           write_specification
         ) ob x;
-        Bi_outbuf.add_char ob '>'
+        Bi_outbuf.add_char ob ']'
 )
 and string_of_specification ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
