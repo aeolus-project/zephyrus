@@ -137,9 +137,11 @@ end = struct
     (n,e)
 end
 
-type flat_universe = { f_graph : Graph.t;
+type flat_universe = { 
+  f_graph : Graph.t;
   f_p_map : Data_model.port -> Graph.Vertice.t; f_t_map : Data_model.component_type_id -> Graph.Vertice.t;
-  f_p_map_implem : Graph.Vertice.t Data_model.Port_map.t; f_t_map_implem : Graph.Vertice.t Data_model.Component_type_id_map.t }
+  f_p_map_implem : Graph.Vertice.t Data_model.Port_map.t; f_t_map_implem : Graph.Vertice.t Data_model.Component_type_id_map.t 
+}
 
 
 (*/************************************************************************\*)
@@ -147,42 +149,50 @@ type flat_universe = { f_graph : Graph.t;
 (*\************************************************************************/*)
 
 let vertices fu = Graph.vertices fu.f_graph
-let edges fu = Graph.edges fu.f_graph
+let edges    fu = Graph.edges fu.f_graph
 
 let data_v = Graph.Vertice.data
 let handle_vertice f_p f_t v = let d = data_v v in if V_data.is_port d then f_p v d else f_t v d
 let data_e = Graph.Edge.data
 
 
-
-
-
-
-
 let create u = 
   let res = Graph.create () in
+  
   let port_map = ref Data_model.Port_map.empty in
+  let find_p (p_id : Data_model.port_id)    : Graph.Vertice.t  = Data_model.Port_map.find p_id !port_map in
+  let add_p  (p_id : Data_model.port_id) (v : Graph.Vertice.t) = port_map := Data_model.Port_map.add p_id v !port_map in
+  
   let component_type_map = ref Data_model.Component_type_id_map.empty in
-  let find_p  p = Data_model.Port_map.find p !port_map in
-  let add_p p v = port_map := Data_model.Port_map.add p v !port_map in
-  let find_t  t = Data_model.Component_type_id_map.find t !component_type_map in
-  let add_t t v = component_type_map := Data_model.Component_type_id_map.add t#id v !component_type_map in
+  let find_t (t_id : Data_model.component_type_id)    : Graph.Vertice.t  = Data_model.Component_type_id_map.find t_id !component_type_map in
+  let add_t  (t_id : Data_model.component_type_id) (v : Graph.Vertice.t) = component_type_map := Data_model.Component_type_id_map.add t_id v !component_type_map in
+  
   (* 1. create vertices *)
-  Data_model.Port_set.iter (fun p -> add_p p (Graph.add_vertice (V_data.of_port p) res)) u#get_port_ids;
-  Data_model.Component_type_id_set.iter (fun t_id -> let t = u#get_component_type t_id in add_t t (Graph.add_vertice (V_data.of_component_type t#id) res)) u#get_component_type_ids;
+  Data_model.Port_set.iter (fun (p_id : Data_model.port_id) ->
+    add_p p_id (Graph.add_vertice (V_data.of_port p_id) res)
+  ) u#get_port_ids;
+  Data_model.Component_type_id_set.iter (fun (t_id : Data_model.component_type_id) ->
+    add_t t_id (Graph.add_vertice (V_data.of_component_type t_id) res)
+  ) u#get_component_type_ids;
+
   (* 2. create edges and conflicts *)
-  let add_conflict p t = let (p', t') = (find_p p, find_t t#id) in
+  let add_conflict (p : Data_model.port_id) (t_id : Data_model.component_type_id) = 
+    let (p', t') = (find_p p, find_t t_id) in
     V_data.conflict_add (data_v p') t';
     V_data.conflict_add (data_v t') p' in
+
   let edges_of_component_type t_id =
     let t = u#get_component_type t_id in
-    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_t t#id) (E_data.of_require_arity (t#require p)) (find_p p) res)) t#require_domain;
-    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_p p) (E_data.of_provide_arity (t#provide p)) (find_t t#id) res)) t#provide_domain;
-    Data_model.Port_set.iter (fun p -> add_conflict p t) t#conflict in
+    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_t t_id) (E_data.of_require_arity (t#require p)) (find_p p) res)) t#require_domain;
+    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_p p) (E_data.of_provide_arity (t#provide p)) (find_t t_id) res)) t#provide_domain;
+    Data_model.Port_set.iter (fun p -> add_conflict p t_id) t#conflict in
+
   Data_model.Component_type_id_set.iter edges_of_component_type u#get_component_type_ids;
+  
   (* 3. Compute loops *)
- (* let ls = Graph.loops res in *)
+  (* let ls = Graph.loops res in *)
   (* TODO: compute all informations about loops *)
+  
   (* 4. return the full flat universe *)
   { f_graph = res; f_p_map = find_p; f_t_map = find_t; f_p_map_implem = !port_map; f_t_map_implem = !component_type_map }
 

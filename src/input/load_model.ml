@@ -231,11 +231,11 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* create the component type object *)
     let new_component_type = new component_type
-      ~id:       id 
       ~provide:  provide 
       ~require:  require 
       ~conflict: conflict 
       ~consume:  consume
+      ()
     in
 
     (* store the component type *)
@@ -273,10 +273,10 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* create the package object *)
     let new_package = new package
-      ~id:       id
       ~depend:   depend
       ~conflict: conflict
       ~consume:  consume
+      ()
     in
 
     (* store the package *)
@@ -304,8 +304,8 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* create the repository object *)
     let new_repository = new repository
-      ~id:       id
       ~packages: packages
+      ()
     in
 
     (* store the repository *)
@@ -388,11 +388,11 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
 
     (* create the location object *)    
     let new_location = new location
-      ~id:                 id
       ~repository:         repository
       ~packages_installed: packages_installed
       ~provide_resources:  resources
       ~cost:               cost
+      ()
     in
 
     (* store the location *)
@@ -416,9 +416,9 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
 
     (* create the component object *)
     let new_component = new component
-      ~id:       id
       ~typ:      typ
       ~location: location
+      ()
     in
     
     (* create all the structure to store the new component c *)

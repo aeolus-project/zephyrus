@@ -175,9 +175,9 @@ let generate_components
               let component_name = fresh_component_name (location_name_of_id location_id) (component_type_name_of_id component_type_id) used_names in
               let component_id   = new_component_catalog#get_else_add component_name in
               new component
-                ~id:       component_id
                 ~typ:      component_type_id
                 ~location: location_id
+                ()
             ) in
           new_components := NewComponent(new_component) :: !new_components
         end

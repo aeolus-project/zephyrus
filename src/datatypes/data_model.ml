@@ -116,15 +116,13 @@ class component_type
   ?(require  = Port_id_map.empty)
   ?(conflict = Port_id_set.empty)
   ?(consume  = Resource_id_map.empty)
-  ~id = object (self)
+  () = object (self)
 
-  val id       : component_type_id                        = id        (** The unique id of this component type. *)
   val provide  : provide_arity Port_id_map.t              = provide   (** Which ports does this component type provide and with what arities. *)
   val require  : require_arity Port_id_map.t              = require   (** Which ports does this component type require and with what arities. *)
   val conflict : Port_id_set.t                            = conflict  (** With which ports is this component type in conflict. *)
   val consume  : resource_consume_arity Resource_id_map.t = consume   (** Which resources does this component type consume and in what amounts. *)
   
-  method id                        : component_type_id      = id
   method provide (p : port_id)     : provide_arity          = try Port_id_map.find p provide with Not_found -> raise (Component_type_provide_port_not_found p)
   method provide_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys provide
   method require (p : port_id)     : require_arity          = try Port_id_map.find p require with Not_found -> raise (Component_type_require_port_not_found p)
@@ -166,14 +164,12 @@ class package
   ?(depend   = Package_id_set_set.empty) 
   ?(conflict = Package_id_set.empty)
   ?(consume  = Resource_id_map.empty) 
-  ~id = object (self)
+  () = object (self)
 
-  val id       : package_id                               = id       (** The unique id of this package. *)
   val depend   : Package_id_set_set.t                     = depend   (** Which packages does this package depend on (a disjunction of conjunctions). *)
   val conflict : Package_id_set.t                         = conflict (** Which packages is this package is in conflict with. *)
   val consume  : resource_consume_arity Resource_id_map.t = consume  (** Which resources does this package consume and in what amounts. *)
 
-  method id                        : package_id              = id   
   method depend                    : Package_id_set_set.t    = depend                                                
   method conflict                  : Package_id_set.t        = conflict                                              
   method consume (r : resource_id) : resource_consume_arity  = try Resource_id_map.find r consume with Not_found -> 0
@@ -233,12 +229,10 @@ exception Repository_package_not_found of package_id
 
 class repository 
   ?(packages  = Package_id_set.empty)
-  ~id = object (self)
+  () = object (self)
 
-  val id       : component_type_id = id       (** The unique id of this repository. *)
   val packages : Package_id_set.t  = packages (** Which packages does this repository contain. *)
   
-  method id          : component_type_id = id
   method package_ids : Package_id_set.t  = packages
 
   method trim_by_package_ids (package_ids : Package_id_set.t) =
@@ -431,15 +425,13 @@ class location
   ?(packages_installed = Package_id_set.empty)
   ?(provide_resources  = Resource_id_map.empty)
   ?(cost = 1)
-  ~id = object (self)
+  () = object (self)
 
-  val id                 : location_id                              = id                 (** The unique id of this location. *)
   val repository         : repository_id                            = repository         (** The id of the package repository used by this location. *)
   val packages_installed : Package_id_set.t                         = packages_installed (** Ids of packages installed at this location. *)
   val provide_resources  : resource_provide_arity Resource_id_map.t = provide_resources  (** Which resources does this location provide and in what amounts. *)
   val cost               : location_cost                            = cost               (** The cost of using this location *)
   
-  method id                                  : location_id            = id
   method repository                          : repository_id          = repository
   method packages_installed                  : Package_id_set.t       = packages_installed
   method provide_resources (r : resource_id) : resource_provide_arity = try Resource_id_map.find r provide_resources with Not_found -> 0
@@ -453,14 +445,12 @@ class location
     ?(packages_installed = packages_installed)
     ?(provide_resources  = provide_resources)
     ?(cost               = cost)
-    ?(id                 = id)
     () =
     {<
       repository         = repository;
       packages_installed = packages_installed;
       provide_resources  = provide_resources;
       cost               = cost;
-      id                 = id;
     >}
 
 end
@@ -498,13 +488,11 @@ module Component_id_map_extract_key = Keys_of_Int_map
 class component 
   ~typ
   ~location
-  ~id = object (self)
+  () = object (self)
 
-  val id       : component_id      = id       (** The unique id of this component. *)
   val typ      : component_type_id = typ      (** The type of this component. *)
   val location : location_id       = location (** The location where this component is installed. *)
 
-  method id       : component_id      = id
   method typ      : component_type_id = typ
   method location : location_id       = location
 end
