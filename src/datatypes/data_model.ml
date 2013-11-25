@@ -341,35 +341,50 @@ class universe
   method ur (p : port_id) : Component_type_id_set.t = 
     (*  - requirers computes the set of component types (id) that requires the port in parameter *)
     let requirers component_types port_id = 
-      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
-        if Port_id_set.mem port_id t#require_domain then (t#require port_id) > 0 else false)
-      component_types) 
+      Component_type_id_map_extract_key.set_of_keys (
+        Component_type_id_map.filter (fun id t ->
+          if Port_id_set.mem port_id t#require_domain 
+          then t#require port_id > 0 
+          else false
+      ) component_types) 
     in
     try Port_id_map.find p implem_ur 
-    with Not_found -> let tmp = (requirers component_types p) in implem_ur <- Port_id_map.add p tmp implem_ur; tmp
+    with Not_found -> 
+      let tmp = requirers component_types p in
+      implem_ur <- Port_id_map.add p tmp implem_ur; tmp
 
   method up (p : port_id) : Component_type_id_set.t = 
     (*  - computes the set of component types (id) that provides the port in parameter *)
     let providers component_types port_id = 
       (*  - check if a provide does really provide a port *)
       let port_is_provide_strict prov = 
-        match prov with | Finite_provide i -> i > 0 | Infinite_provide -> true in
-      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t -> 
-        if Port_id_set.mem port_id t#provide_domain then port_is_provide_strict (t#provide port_id) else false)
-      component_types)
+        match prov with
+        | Finite_provide i -> i > 0 
+        | Infinite_provide -> true in
+      Component_type_id_map_extract_key.set_of_keys (
+        Component_type_id_map.filter (fun id t -> 
+          if Port_id_set.mem port_id t#provide_domain
+          then port_is_provide_strict (t#provide port_id)
+          else false
+      ) component_types)
     in
     try Port_id_map.find p implem_up
-    with Not_found -> let tmp = (providers component_types p) in implem_up <- Port_id_map.add p tmp implem_up; tmp
+    with Not_found -> 
+      let tmp = providers component_types p in 
+      implem_up <- Port_id_map.add p tmp implem_up; tmp
 
   method uc (p : port_id) : Component_type_id_set.t =
     (*  - computes the set of component types (id) that are in conflict with the port in parameter *)
     let conflicters component_types port_id = 
-      Component_type_id_map_extract_key.set_of_keys (Component_type_id_map.filter (fun id t ->
-        Port_id_set.mem port_id (t#conflict))
-      component_types)
+      Component_type_id_map_extract_key.set_of_keys (
+        Component_type_id_map.filter (fun id t ->
+          Port_id_set.mem port_id (t#conflict)
+      ) component_types)
     in
     try Port_id_map.find p implem_uc
-    with Not_found -> let tmp = (conflicters component_types p) in implem_uc <- Port_id_map.add p tmp implem_uc; tmp
+    with Not_found -> 
+      let tmp = (conflicters component_types p) in 
+      implem_uc <- Port_id_map.add p tmp implem_uc; tmp
 
   (* This method is almost like a constructor, but based on a existing object:
      it will replace only the given fields of the existing object, leaving the rest as it was. *)

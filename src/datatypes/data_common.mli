@@ -157,6 +157,7 @@ module Set : sig
     val keep_elements : int -> t -> t
     val set_of_direct_list: elt list -> t
     val set_of_list: ('a -> elt) -> 'a list -> t
+    val fold_to_list: (elt -> 'a) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t

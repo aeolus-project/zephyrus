@@ -82,7 +82,7 @@ let provided_port_id port_name = "provided_" ^ (port_id port_name)
 (*| 1. Components                                                         |*)
 (*\************************************************************************/*)
 
-let configuration (graph_settings : graph_settings) (universe : universe) (configuration : configuration) : string =
+let configuration_with_graph_settings (graph_settings : graph_settings) (universe : universe) (configuration : configuration) : string =
 
   let string_of_component (c_id : component_id) : string =
     let c = configuration#get_component c_id in
@@ -208,4 +208,5 @@ let configuration (graph_settings : graph_settings) (universe : universe) (confi
   String.concat "\n" (before @ (List.map (fun s -> Printf.sprintf "  %s" s) content) @ after)
 
 
-
+let configuration (graph_type : graph_type) : universe -> configuration -> string =
+  configuration_with_graph_settings (graph_settings_of_graph_type graph_type)
