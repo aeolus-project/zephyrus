@@ -1,0 +1,10 @@
+# Default settings file.
+
+# Settings from this file as always loaded by Zephyrus first.
+# Settings redeclared in other settings files (included using the --settings option)
+# will overwrite these settings (e.g. in case of solver choice setting)
+# or append new values to them (e.g. in case of output files setting).
+
+# Uncomment these lines to always use a custom solver:
+#solver = custom
+#custom-solver-command = "flatzinc -o <OUT> <IN>"
