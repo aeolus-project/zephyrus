@@ -60,7 +60,7 @@ let require u_dp ur up get_component_type =
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res -> (
         ((get_require_arity (get_component_type tr) p) *~ (eNt tr))
-          <=~ (sum (Data_model.Component_id_set.fold (fun tp res -> (eB p tp tr)::res) (up p) [])))::res
+          <=~ (sum (Data_model.Component_type_id_set.fold (fun tp res -> (eB p tp tr)::res) (up p) [])))::res
     ) (ur p) res
   ) u_dp []
 
@@ -69,7 +69,7 @@ let provide u_dp up ur get_component_type =
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tp res -> (
           ((get_provide_arity (get_component_type tp) p) *~ (eNt tp))
-          >=~ (sum (Data_model.Component_id_set.fold (fun tr res -> (eB p tp tr)::res) (ur p) [])))::res
+          >=~ (sum (Data_model.Component_type_id_set.fold (fun tr res -> (eB p tp tr)::res) (ur p) [])))::res
     ) (up p) res
   ) u_dp []
 

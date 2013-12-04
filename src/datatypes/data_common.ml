@@ -256,6 +256,8 @@ end
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set = struct
 
+  module type OrderedType = Set_global_from_stdlib.OrderedType
+
   module type S = sig
     include Set_from_stblib
     

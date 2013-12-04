@@ -24,13 +24,19 @@
 
 open Data_constraint
 
-val location_all_variables : Data_model.Port_set.t -> Data_model.Component_type_id_set.t -> Data_model.Package_id_set.t ->
-    Data_model.Location_id_set.t -> (Data_model.port -> Data_model.Component_type_id_set.t) -> (Data_model.component_type_id -> Data_model.component_type) ->
-    (string * (konstraint)) list (* generate the constraints linking all the global variables to their local variant *)
+(* generate the constraints linking all the global variables to their local variant *)
+val location_all_variables : 
+  Data_model.Port_id_set.t ->
+  Data_model.Component_type_id_set.t ->
+  Data_model.Package_id_set.t ->
+  Data_model.Location_id_set.t -> 
+  (Data_model.port -> Data_model.Component_type_id_set.t) -> 
+  (Data_model.component_type_id -> Data_model.component_type) ->
+  (string * (konstraint)) list
 
-val universe      : Data_model.Location_id_set.t -> Data_model.universe -> ((konstraint list ref) * (konstraint list)) list
-val specification : Data_model.Location_id_set.t -> Data_model.specification -> ((konstraint option ref) * (konstraint)) list
-val locations     : Data_model.Resource_set.t    -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> ((konstraint list ref) * (konstraint list)) list
+val universe      : Data_model.Location_id_set.t -> Data_model.universe          -> ((konstraint list   ref) * (konstraint list)) list
+val specification : Data_model.Location_id_set.t -> Data_model.specification     -> ((konstraint option ref) * (konstraint)) list
+val locations     : Data_model.Resource_id_set.t -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> ((konstraint list ref) * (konstraint list)) list
 
 val universe_full : unit -> unit      (* set the universe-related constraints in Data_state using what is provided in Data_state *)
 val specification_full : unit -> unit (* set the specification-related constraints in Data_state using what is provided in Data_state *)

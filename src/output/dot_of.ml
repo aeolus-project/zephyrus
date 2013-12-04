@@ -98,7 +98,7 @@ let configuration_with_graph_settings (graph_settings : graph_settings) (univers
       let ct = universe#get_component_type c#typ  in
 
       let required_ports_table : string =
-        let required_ports_strings = Port_set.fold (fun p res ->
+        let required_ports_strings = Port_id_set.fold (fun p res ->
           let p_name = String_of.port_name (Name_of.port_id p) in
           (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (required_port_id p_name) p_name)::res
         ) ct#require_domain [] in
@@ -107,7 +107,7 @@ let configuration_with_graph_settings (graph_settings : graph_settings) (univers
         else Printf.sprintf "<table border=\"0\" cellborder=\"1\" cellspacing=\"0\" bgcolor=\"red\">%s</table>" (String.concat "\n" required_ports_strings) in
 
       let provided_ports_table : string =
-        let provided_ports_strings = Port_set.fold (fun p res ->
+        let provided_ports_strings = Port_id_set.fold (fun p res ->
           let p_name = String_of.port_name (Name_of.port_id p) in 
           (Printf.sprintf "<tr><td port=\"%s\">%s</td></tr>" (provided_port_id p_name) p_name)::res
         ) ct#provide_domain [] in

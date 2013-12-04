@@ -213,7 +213,7 @@ let () = Load_model.set_initial_model_of_settings ();
   let sol = match Variable_bounds.get_initial_mins preprocess_solver u s (Location_categories.domain cat) with (* WaC <- may not work *)
   | None -> Zephyrus_log.log_panic "The specification does not have a solution. Exiting."
   | Some(sol) -> let (mp, mt) =  Variable_bounds.core_solution sol in
-    Zephyrus_log.log_data "\nCORE LOWER BOUNDS ==>\n" (lazy ("  ports " ^ (String_of.int_map string_of_int mp) ^ "\n  types " ^ (String_of.int_map string_of_int mt) ^ "\n"));
+    Zephyrus_log.log_data "\nCORE LOWER BOUNDS ==>\n" (lazy ("  ports " ^ (String_of.port_id_map string_of_int mp) ^ "\n  types " ^ (String_of.component_type_id_map string_of_int mt) ^ "\n"));
     sol in
   let fu = Variable_bounds.create u in
   Variable_bounds.add_bound_min_all sol fu;

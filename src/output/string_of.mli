@@ -28,12 +28,6 @@ module type S = sig
   val string_list : string list -> string
   val int_list    : int list -> string
 
-  val string_set  : Data_common.String_set.t -> string
-  val int_set     : Data_common.Int_set.t    -> string
-
-  val string_map  : ('a -> string) -> 'a Data_common.String_map.t -> string
-  val int_map     : ('a -> string) -> 'a Data_common.Int_map.t -> string
-
   (*/********************************\*)
   (*  Model                           *)
   (*\********************************/*)
@@ -52,12 +46,14 @@ module type S = sig
   val port_name_set : Data_model.Port_name_set.t -> string
   val port_id       : Data_model.port_id -> string
   val port_id_set   : Data_model.Port_id_set.t -> string
+  val port_id_map   : ('a -> string) -> 'a Data_model.Port_id_map.t -> string
   val port          : Data_model.port -> string
 
   val component_type_name     : Data_model.component_type_name       -> string
   val component_type_name_set : Data_model.Component_type_name_set.t -> string
   val component_type_id       : Data_model.component_type_id         -> string
   val component_type_id_set   : Data_model.Component_type_id_set.t   -> string
+  val component_type_id_map   : ('a -> string) -> 'a Data_model.Component_type_id_map.t -> string
 
   val provide_arity : Data_model.provide_arity -> string
   val require_arity : Data_model.require_arity -> string

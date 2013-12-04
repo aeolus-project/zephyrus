@@ -332,7 +332,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
 
     ) location_ids Location_id_map.empty in
 
-  let location_obj_catalog : Location_obj_catalog.obj_catalog_iface = Location_obj_catalog.of_id_to_obj_map location_id_to_location_map in
+  let location_obj_catalog : Location_obj_catalog.obj_catalog_iface = 
+    Location_obj_catalog.of_id_to_obj_map location_id_to_location_map in
 
   let component_catalog : Component_catalog.catalog = 
     match !Data_state.catalog_full with

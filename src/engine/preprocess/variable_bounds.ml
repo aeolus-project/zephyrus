@@ -140,7 +140,7 @@ end
 type flat_universe = { 
   f_graph : Graph.t;
   f_p_map : Data_model.port -> Graph.Vertice.t; f_t_map : Data_model.component_type_id -> Graph.Vertice.t;
-  f_p_map_implem : Graph.Vertice.t Data_model.Port_map.t; f_t_map_implem : Graph.Vertice.t Data_model.Component_type_id_map.t 
+  f_p_map_implem : Graph.Vertice.t Data_model.Port_id_map.t; f_t_map_implem : Graph.Vertice.t Data_model.Component_type_id_map.t 
 }
 
 
@@ -159,16 +159,16 @@ let data_e = Graph.Edge.data
 let create u = 
   let res = Graph.create () in
   
-  let port_map = ref Data_model.Port_map.empty in
-  let find_p (p_id : Data_model.port_id)    : Graph.Vertice.t  = Data_model.Port_map.find p_id !port_map in
-  let add_p  (p_id : Data_model.port_id) (v : Graph.Vertice.t) = port_map := Data_model.Port_map.add p_id v !port_map in
+  let port_map = ref Data_model.Port_id_map.empty in
+  let find_p (p_id : Data_model.port_id)    : Graph.Vertice.t  = Data_model.Port_id_map.find p_id !port_map in
+  let add_p  (p_id : Data_model.port_id) (v : Graph.Vertice.t) = port_map := Data_model.Port_id_map.add p_id v !port_map in
   
   let component_type_map = ref Data_model.Component_type_id_map.empty in
   let find_t (t_id : Data_model.component_type_id)    : Graph.Vertice.t  = Data_model.Component_type_id_map.find t_id !component_type_map in
   let add_t  (t_id : Data_model.component_type_id) (v : Graph.Vertice.t) = component_type_map := Data_model.Component_type_id_map.add t_id v !component_type_map in
   
   (* 1. create vertices *)
-  Data_model.Port_set.iter (fun (p_id : Data_model.port_id) ->
+  Data_model.Port_id_set.iter (fun (p_id : Data_model.port_id) ->
     add_p p_id (Graph.add_vertice (V_data.of_port p_id) res)
   ) u#get_port_ids;
   Data_model.Component_type_id_set.iter (fun (t_id : Data_model.component_type_id) ->
@@ -183,9 +183,9 @@ let create u =
 
   let edges_of_component_type t_id =
     let t = u#get_component_type t_id in
-    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_t t_id) (E_data.of_require_arity (t#require p)) (find_p p) res)) t#require_domain;
-    Data_model.Port_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_p p) (E_data.of_provide_arity (t#provide p)) (find_t t_id) res)) t#provide_domain;
-    Data_model.Port_set.iter (fun p -> add_conflict p t_id) t#conflict in
+    Data_model.Port_id_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_t t_id) (E_data.of_require_arity (t#require p)) (find_p p) res)) t#require_domain;
+    Data_model.Port_id_set.iter (fun p -> Pervasives.ignore (Graph.add_edge (find_p p) (E_data.of_provide_arity (t#provide p)) (find_t t_id) res)) t#provide_domain;
+    Data_model.Port_id_set.iter (fun p -> add_conflict p t_id) t#conflict in
 
   Data_model.Component_type_id_set.iter edges_of_component_type u#get_component_type_ids;
   
@@ -320,13 +320,13 @@ let core_solution sol =
   let inner var ((mp, mt) as accu) = match var with
   | Data_constraint.Global_variable(e) -> begin let v = sol.Data_constraint.variable_values var in match e with
     | Data_constraint.Component_type(t) -> (mp, Data_model.Component_type_id_map.add t v mt)
-    | Data_constraint.Port(p)           -> (Data_model.Port_map.add p v mp, mt)
+    | Data_constraint.Port(p)           -> (Data_model.Port_id_map.add p v mp, mt)
     | Data_constraint.Package _         -> (mp, mt) end
   | _ -> accu in
-  Data_constraint.Variable_set.fold inner sol.Data_constraint.domain (Data_model.Port_map.empty, Data_model.Component_type_id_map.empty)
+  Data_constraint.Variable_set.fold inner sol.Data_constraint.domain (Data_model.Port_id_map.empty, Data_model.Component_type_id_map.empty)
 
 let add_bound_min_all sol fu = let (mp, mt) = core_solution sol in
-  Data_model.Port_map.iter (fun id v -> add_bound_min_p id (Data_constraint.Value.of_int v) fu) mp;
+  Data_model.Port_id_map.iter (fun id v -> add_bound_min_p id (Data_constraint.Value.of_int v) fu) mp;
   Data_model.Component_type_id_map.iter (fun id v -> add_bound_min_t id (Data_constraint.Value.of_int v) fu) mt
 
 (*/************************************************************************\*)
@@ -340,21 +340,21 @@ let trim_categories categories fu =
      (Data_model.Location_id_set.keep_elements (Value.int_of nb (Data_model.Location_id_set.cardinal s)) s) res) categories Location_categories.empty
 
 let variable_bounds get_location fu v =
-  let init_p = Data_model.Port_map.empty in
+  let init_p = Data_model.Port_id_map.empty in
   let init_t = Data_model.Component_type_id_map.singleton Data_model.deprecated_component_type_id Bound.null in
   let inner_p p p_v (l_p, g_p) = let b = V_data.bound (Graph.Vertice.data p_v) in
-    (Data_model.Port_map.add p (Bound.create Value.zero (Bound.max b)) l_p, Data_model.Port_map.add p b g_p) in 
+    (Data_model.Port_id_map.add p (Bound.create Value.zero (Bound.max b)) l_p, Data_model.Port_id_map.add p b g_p) in 
   let inner_t t t_v (l_t, g_t) = let b = V_data.bound (Graph.Vertice.data t_v) in
     (Data_model.Component_type_id_map.add t (Bound.create Value.zero (Bound.max b)) l_t, Data_model.Component_type_id_map.add t b g_t) in 
-  let (local_p, global_p) = Data_model.Port_map.fold inner_p fu.f_p_map_implem (init_p, init_p) in
+  let (local_p, global_p) = Data_model.Port_id_map.fold inner_p fu.f_p_map_implem (init_p, init_p) in
   let (local_t, global_t) = Data_model.Component_type_id_map.fold inner_t fu.f_t_map_implem (init_t, init_t) in
 
   let bound_of_global_element e = match e with 
-    | Port p           -> Data_model.Port_map.find p global_p
+    | Port p           -> Data_model.Port_id_map.find p global_p
     | Component_type t -> Data_model.Component_type_id_map.find t global_t
     | Package k        -> if (Data_model.Package_id.compare k Data_model.deprecated_package_id) = 0 then Bound.null else Bound.big in
   let bound_of_local_element e = match e with 
-    | Port p           -> Data_model.Port_map.find p local_p
+    | Port p           -> Data_model.Port_id_map.find p local_p
     | Component_type t -> Data_model.Component_type_id_map.find t local_t
     | Package k        -> if (Data_model.Package_id.compare k Data_model.deprecated_package_id) = 0 then Bound.null else Bound.small in match v with
   | Simple_variable               _ -> Bound.big

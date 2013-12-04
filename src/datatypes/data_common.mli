@@ -151,6 +151,8 @@ end
 (** Extension of the Set module from the standard library with Construction and Conversion **)
 module Set : sig
 
+  module type OrderedType = OrderedType
+
   module type S = sig
     include Set_from_stblib
     

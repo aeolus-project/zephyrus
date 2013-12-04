@@ -116,7 +116,7 @@ class component_type
   ?(require  = Port_id_map.empty)
   ?(conflict = Port_id_set.empty)
   ?(consume  = Resource_id_map.empty)
-  () = object (self)
+  () = object (self : 'selftype)
 
   val provide  : provide_arity Port_id_map.t              = provide   (** Which ports does this component type provide and with what arities. *)
   val require  : require_arity Port_id_map.t              = require   (** Which ports does this component type require and with what arities. *)
@@ -164,7 +164,7 @@ class package
   ?(depend   = Package_id_set_set.empty) 
   ?(conflict = Package_id_set.empty)
   ?(consume  = Resource_id_map.empty) 
-  () = object (self)
+  () = object (self : 'selftype)
 
   val depend   : Package_id_set_set.t                     = depend   (** Which packages does this package depend on (a disjunction of conjunctions). *)
   val conflict : Package_id_set.t                         = conflict (** Which packages is this package is in conflict with. *)
@@ -175,7 +175,7 @@ class package
   method consume (r : resource_id) : resource_consume_arity  = try Resource_id_map.find r consume with Not_found -> 0
   method consume_domain            : Resource_id_set.t       = Resource_id_map_extract_key.set_of_keys consume
 
-  method trim_by_package_ids (package_ids : Package_id_set.t) =
+  method trim_by_package_ids (package_ids : Package_id_set.t) : 'selftype =
     (* Helper function: takes a set of package ids and returns only these which belong to the trimmed repository. *)
     let trim_package_id_set : (Package_id_set.t -> Package_id_set.t) = 
       Package_id_set.filter (fun package_id -> Package_id_set.mem package_id package_ids) in
@@ -229,7 +229,7 @@ exception Repository_package_not_found of package_id
 
 class repository 
   ?(packages  = Package_id_set.empty)
-  () = object (self)
+  () = object (self : 'selftype)
 
   val packages : Package_id_set.t  = packages (** Which packages does this repository contain. *)
   
@@ -263,7 +263,7 @@ class universe
   ?(component_types           = Component_type_id_map.empty)
   ?(implementation            = Component_type_id_map.empty)
   ?(repositories              = Repository_id_map.empty)
-  () = object (self)
+  () = object (self : 'selftype)
 
   val ports           : Port_id_set.t                            = ports
   val packages        : package Package_id_map.t                 = packages
@@ -440,7 +440,7 @@ class location
   ?(packages_installed = Package_id_set.empty)
   ?(provide_resources  = Resource_id_map.empty)
   ?(cost = 1)
-  () = object (self)
+  () = object (self : 'selftype)
 
   val repository         : repository_id                            = repository         (** The id of the package repository used by this location. *)
   val packages_installed : Package_id_set.t                         = packages_installed (** Ids of packages installed at this location. *)
@@ -474,7 +474,8 @@ module Location = struct
   type t = location
   let compare = compare
 end 
-module Location_set = Set.Make(Location) module Location_map = Map.Make(Location)
+module Location_set = Set.Make(Location) 
+module Location_map = Map.Make(Location)
 module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
 
 (** Assertions:
@@ -503,7 +504,7 @@ module Component_id_map_extract_key = Keys_of_Int_map
 class component 
   ~typ
   ~location
-  () = object (self)
+  () = object (self : 'selftype)
 
   val typ      : component_type_id = typ      (** The type of this component. *)
   val location : location_id       = location (** The location where this component is installed. *)
@@ -534,7 +535,7 @@ module Id_set_of_components = Set.Convert(Component_set)(Component_id_set)
 class binding 
   ~port
   ~requirer
-  ~provider = object (self)
+  ~provider = object (self : 'selftype)
 
   val port     : port_id      = port     (** The port of this binding. *)
   val requirer : component_id = requirer (** The id of the requiring component. *)
@@ -567,7 +568,7 @@ class configuration
   ?(locations  = Location_id_map.empty)
   ?(components = Component_id_map.empty)
   ?(bindings   = Binding_set.empty)
-  () = object (self)
+  () = object (self : 'selftype)
 
   val locations       : location Location_id_map.t   = locations   (** Locations in this configuration. *)
   val components      : component Component_id_map.t = components  (** Components in this configuration. *)
@@ -756,13 +757,13 @@ type specification =
   | Spec_impl of (specification * specification)
   | Spec_not of specification
 
-let uv_empty = (Port_set.empty, Component_type_id_set.empty, Package_id_set.empty)
-let uv_union (s1,s2,s3) (s1',s2',s3') = (Port_set.union s1 s1', Component_type_id_set.union s2 s2', Package_id_set.union s3 s3')
+let uv_empty = (Port_id_set.empty, Component_type_id_set.empty, Package_id_set.empty)
+let uv_union (s1,s2,s3) (s1',s2',s3') = (Port_id_set.union s1 s1', Component_type_id_set.union s2 s2', Package_id_set.union s3 s3')
 
 let uv_of_spec_local_element e = match e with 
-  | Spec_local_element_package       (k) -> (Port_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
-  | Spec_local_element_component_type(t) -> (Port_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
-  | Spec_local_element_port          (p) -> (Port_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
+  | Spec_local_element_package       (k) -> (Port_id_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
+  | Spec_local_element_component_type(t) -> (Port_id_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
+  | Spec_local_element_port          (p) -> (Port_id_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
 let rec uv_of_spec_local_expr e = match e with
   | Spec_local_expr_var   _ -> uv_empty
   | Spec_local_expr_const _ -> uv_empty
@@ -779,9 +780,9 @@ let rec uv_of_spec_local_specification ls = match ls with
   | Spec_local_not (s')    -> uv_of_spec_local_specification s'
 
 let rec uv_of_spec_element e = match e with
-  | Spec_element_package       (k) -> (Port_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
-  | Spec_element_component_type(t) -> (Port_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
-  | Spec_element_port          (p) -> (Port_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
+  | Spec_element_package       (k) -> (Port_id_set.empty, Component_type_id_set.empty, Package_id_set.singleton k)
+  | Spec_element_component_type(t) -> (Port_id_set.empty, Component_type_id_set.singleton t, Package_id_set.empty)
+  | Spec_element_port          (p) -> (Port_id_set.singleton p, Component_type_id_set.empty, Package_id_set.empty)
   | Spec_element_location (_,_,ls) -> uv_of_spec_local_specification ls
 let rec uv_of_spec_expr e = match e with
   | Spec_expr_var   _ -> uv_empty

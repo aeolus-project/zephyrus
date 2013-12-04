@@ -28,12 +28,6 @@ module type S = sig
   val string_list : string list -> string
   val int_list    : int list -> string
 
-  val string_set  : Data_common.String_set.t -> string
-  val int_set     : Data_common.Int_set.t    -> string
-
-  val string_map  : ('a -> string) -> 'a Data_common.String_map.t -> string
-  val int_map     : ('a -> string) -> 'a Data_common.Int_map.t -> string
-
   (*/********************************\*)
   (*  Model                           *)
   (*\********************************/*)
@@ -52,18 +46,20 @@ module type S = sig
   val port_name_set : Data_model.Port_name_set.t -> string
   val port_id       : Data_model.port_id -> string
   val port_id_set   : Data_model.Port_id_set.t -> string
+  val port_id_map   : ('a -> string) -> 'a Data_model.Port_id_map.t -> string
   val port          : Data_model.port -> string
 
   val component_type_name     : Data_model.component_type_name       -> string
   val component_type_name_set : Data_model.Component_type_name_set.t -> string
   val component_type_id       : Data_model.component_type_id         -> string
   val component_type_id_set   : Data_model.Component_type_id_set.t   -> string
+  val component_type_id_map   : ('a -> string) -> 'a Data_model.Component_type_id_map.t -> string
 
   val provide_arity : Data_model.provide_arity -> string
   val require_arity : Data_model.require_arity -> string
 
   (** 3. Packages *)
-  val package_name      : Data_model.package_name      -> string
+  val package_name     : Data_model.package_name      -> string
   val package_name_set : Data_model.Package_name_set.t -> string
   val package_id       : Data_model.package_id         -> string
   val package_id_set   : Data_model.Package_id_set.t   -> string
@@ -168,17 +164,12 @@ end
 module Make =
   functor (String_of_id : STRING_OF_ID) -> struct
 
+  open Data_model
+
   let identity = fun x -> x
   let string_list s = "{" ^ (String.concat ", " s) ^ "}"
   let int_list    s = string_list (List.map string_of_int s)
-
-  let string_set s = string_list (Data_common.String_set.elements s)
-  let string_set_set s = "[ " ^ (String.concat "; " (List.map string_set (Data_common.String_set_set.elements s))) ^ " ]"
-  let int_set s =  int_list (Data_common.Int_set.elements s)
-  let int_set_set s = "[ " ^ (String.concat "; " (List.map int_set (Data_common.Int_set_set.elements s))) ^ " ]"
-
-  let string_map f m = string_list (List.map (fun (k,a) -> k ^ ": " ^ (f a)) (Data_common.String_map.bindings m))
-  let int_map    f m = string_list (List.map (fun (k,a) -> (string_of_int k) ^ ": " ^ (f a)) (Data_common.Int_map.bindings m))
+  let string_assoc_list s = string_list (List.map (fun (k,v) -> Printf.sprintf "%s: %s" k v) s)
 
   (************************************)
   (** Model                           *)
@@ -186,52 +177,56 @@ module Make =
 
   (** 1. Resources *)
   let resource_name     = identity
-  let resource_name_set = string_set
+  let resource_name_set set = string_list (List.map resource_name (Resource_name_set.elements set))
   let resource_id       = String_of_id.resource_id
-  let resource_id_set   = int_set
+  let resource_id_set  set = string_list (List.map resource_id (Resource_id_set.elements set))
 
   let resource_provide_arity r = string_of_int r
   let resource_consume_arity r = string_of_int r
 
   (** 2. Component types *)
   let port_name     = identity
-  let port_name_set = string_set
+  let port_name_set set = string_list (List.map port_name (Port_name_set.elements set))
   let port_id       = String_of_id.port_id
-  let port_id_set   = int_set
+  let port_id_set  set = string_list (List.map port_id (Port_id_set.elements set))
+  let port_id_map string_of_value map = string_assoc_list (List.map (fun (k,v) -> (port_id k, string_of_value v) ) (Port_id_map.bindings map))
+
   let port          = port_id
 
   let component_type_name     = identity
-  let component_type_name_set = string_set
+  let component_type_name_set set = string_list (List.map component_type_name (Component_type_name_set.elements set))
   let component_type_id       = String_of_id.component_type_id
-  let component_type_id_set   = int_set
+  let component_type_id_set  set = string_list (List.map component_type_id (Component_type_id_set.elements set))
+  let component_type_id_map string_of_value map = string_assoc_list (List.map (fun (k,v) -> (component_type_id k, string_of_value v) ) (Component_type_id_map.bindings map))
 
   let provide_arity arity = match arity with | Data_model.Infinite_provide -> "infinite" | Data_model.Finite_provide i -> string_of_int i
   let require_arity       = string_of_int
 
   (** 3. Packages *)
   let package_name     = identity
-  let package_name_set = string_set
+  let package_name_set set = string_list (List.map package_name (Package_name_set.elements set))
   let package_id       = String_of_id.package_id
-  let package_id_set   = int_set
+  let package_id_set  set = string_list (List.map package_id (Package_id_set.elements set))
 
   (** 4. Repositories *)
   let repository_name   r = r
-  let repository_name_set = string_set
+  let repository_name_set set = string_list (List.map repository_name (Repository_name_set.elements set))
   let repository_id       = String_of_id.repository_id
-  let repository_id_set   = int_set
+  let repository_id_set  set = string_list (List.map repository_id (Repository_id_set.elements set))
 
   (** 5. Location *)
   let location_name l   = l
-  let location_name_set = string_set
+  let location_name_set set = string_list (List.map location_name (Location_name_set.elements set))
   let location_id       = String_of_id.location_id
-  let location_id_set   = int_set
+  let location_id_set  set = string_list (List.map location_id (Location_id_set.elements set))
 
-  let location_categories = int_set_set
+  let location_category   set = string_list (List.map location_id (Location_id_set.elements set))
+  let location_categories set = string_list (List.map location_category (Location_categories.elements set))
 
   let component_name c   = c
-  let component_name_set = string_set
+  let component_name_set set = string_list (List.map component_name (Component_name_set.elements set))
   let component_id       = String_of_id.component_id
-  let component_id_set   = int_set
+  let component_id_set  set = string_list (List.map component_id (Component_id_set.elements set))
 
   (** Specification *)
   let spec_variable_name v = v
@@ -422,7 +417,7 @@ module Make =
   let configuration universe configuration =
     let open Data_model in
     
-    Printf.printf "\n%s\n" (int_set universe#get_repository_ids);
+    Printf.printf "\n%s\n" (repository_id_set universe#get_repository_ids);
 
     let location_ids = Location_id_set.elements configuration#get_location_ids in
     
@@ -442,7 +437,7 @@ module Make =
       let kids = l#packages_installed in
       let module Package_name_set_of_package_id_set = Data_common.Set.Convert(Package_id_set)(Package_name_set) in
       let knames = Package_name_set_of_package_id_set.convert (fun package_id -> Name_of.package_id package_id) kids in
-      let line3 = Printf.sprintf "    + packages : %s\n" (string_set knames) in
+      let line3 = Printf.sprintf "    + packages : %s\n" (package_name_set knames) in
 
       Printf.sprintf "%s%s%s" line1 line2 line3
     ) location_ids in
@@ -458,32 +453,32 @@ module Make =
       
       String.concat "\n" [
         "component_types";
-        component_type_id_set   model_catalog#component_type#ids;
-        component_type_name_set model_catalog#component_type#names;
+        string_list (List.map component_type_id   (Data_model.Component_type_id_set  .elements model_catalog#component_type#ids));
+        string_list (List.map component_type_name (Data_model.Component_type_name_set.elements model_catalog#component_type#names));
 
         "ports";
-        port_id_set   model_catalog#port#ids;
-        port_name_set model_catalog#port#names;
+        string_list (List.map port_id   (Data_model.Port_id_set  .elements model_catalog#port#ids));
+        string_list (List.map port_name (Data_model.Port_name_set.elements model_catalog#port#names));
 
         "repositories";
-        repository_id_set   model_catalog#repository#ids;
-        repository_name_set model_catalog#repository#names;
+        string_list (List.map repository_id   (Data_model.Repository_id_set  .elements model_catalog#repository#ids));
+        string_list (List.map repository_name (Data_model.Repository_name_set.elements model_catalog#repository#names));
 
         "packages";
-        package_id_set   model_catalog#package#ids;
-        package_name_set (Extract_package_names.convert snd model_catalog#package#names);
+        string_list (List.map package_id   (Data_model.Package_id_set  .elements model_catalog#package#ids));
+        string_list (List.map package_name (Data_model.Package_name_set.elements (Extract_package_names.convert snd model_catalog#package#names)));
 
         "resources";
-        resource_id_set   model_catalog#resource#ids;
-        resource_name_set model_catalog#resource#names;
+        string_list (List.map resource_id   (Data_model.Resource_id_set  .elements model_catalog#resource#ids));
+        string_list (List.map resource_name (Data_model.Resource_name_set.elements model_catalog#resource#names));
 
         "locations";
-        location_id_set   model_catalog#location#ids;
-        location_name_set model_catalog#location#names;
+        string_list (List.map location_id   (Data_model.Location_id_set  .elements model_catalog#location#ids));
+        string_list (List.map location_name (Data_model.Location_name_set.elements model_catalog#location#names));
 
         "components";
-        component_id_set   model_catalog#component#ids;
-        component_name_set model_catalog#component#names;
+        string_list (List.map component_id   (Data_model.Component_id_set  .elements model_catalog#component#ids));
+        string_list (List.map component_name (Data_model.Component_name_set.elements model_catalog#component#names));
       ]
 end
 
