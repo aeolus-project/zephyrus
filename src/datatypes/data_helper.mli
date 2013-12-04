@@ -25,4 +25,4 @@
 (*  Constraints *)
 
 val parse_nary_op : 'a -> ('b -> 'a) -> ('a -> 'a -> 'a) -> ('b list) -> 'a
-val int_of_value : Data_constraint.value -> int
+val int_of_value  : Data_constraint.value -> int

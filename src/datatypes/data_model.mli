@@ -134,7 +134,6 @@ end
 module Component_type : Set.OrderedType with type t = component_type
 module Component_type_set : Set.S with type elt = Component_type.t
 module Component_type_map : Map.S with type key = Component_type.t
-module Id_map_of_component_types : module type of Map.Convert(Component_type_map)(Component_type_id_map)
 
   (** 2.2. Packages *)
 
@@ -300,10 +299,10 @@ module Location_cost : Set.OrderedType with type t = location_cost
 
   (** Location. *)
 class location :
-   repository : repository_id ->
+   repository         : repository_id ->
   ?packages_installed : Package_id_set.t ->
   ?provide_resources  : resource_provide_arity Resource_id_map.t ->
-  ?cost : location_cost ->
+  ?cost               : location_cost ->
   unit -> object ('selftype)
 
   val repository         : repository_id                            (** The id of the package repository used by this location. *)
@@ -371,8 +370,6 @@ end
 module Component     : Set.OrderedType with type t = component
 module Component_set : Set.S with type elt = Component.t
 module Component_map : Map.S with type key = Component.t
-module Component_set_of_ids : module type of Set.Convert(Component_id_set)(Component_set)
-module Id_set_of_components : module type of Set.Convert(Component_set)(Component_id_set)
 
 (** Assertions:
     {ul
@@ -482,36 +479,36 @@ type spec_op =
 
 type local_specification = 
   | Spec_local_true
-  | Spec_local_op of (spec_local_expr * spec_op * spec_local_expr)
-  | Spec_local_and of (local_specification * local_specification)
-  | Spec_local_or of (local_specification * local_specification)
+  | Spec_local_op   of (spec_local_expr * spec_op * spec_local_expr)
+  | Spec_local_and  of (local_specification * local_specification)
+  | Spec_local_or   of (local_specification * local_specification)
   | Spec_local_impl of (local_specification * local_specification)
-  | Spec_local_not of local_specification
+  | Spec_local_not  of  local_specification
 
 type spec_repository_constraint = repository_id list
 type spec_resource_constraint = (resource_id * spec_op * spec_const) list
 
 type spec_element = 
-  | Spec_element_package of package_id
+  | Spec_element_package        of package_id
   | Spec_element_component_type of component_type_id
-  | Spec_element_port of port_id
-  | Spec_element_location of (spec_resource_constraint * spec_repository_constraint * local_specification)
+  | Spec_element_port           of port_id
+  | Spec_element_location       of (spec_resource_constraint * spec_repository_constraint * local_specification)
 
 type spec_expr = 
-  | Spec_expr_var of spec_variable_name
+  | Spec_expr_var   of spec_variable_name
   | Spec_expr_const of spec_const
   | Spec_expr_arity of spec_element
-  | Spec_expr_add of (spec_expr * spec_expr)
-  | Spec_expr_sub of (spec_expr * spec_expr)
-  | Spec_expr_mul of (spec_const * spec_expr)
+  | Spec_expr_add   of (spec_expr * spec_expr)
+  | Spec_expr_sub   of (spec_expr * spec_expr)
+  | Spec_expr_mul   of (spec_const * spec_expr)
 
 type specification = 
   | Spec_true
-  | Spec_op of (spec_expr * spec_op * spec_expr)
-  | Spec_and of (specification * specification)
-  | Spec_or of (specification * specification)
+  | Spec_op   of (spec_expr * spec_op * spec_expr)
+  | Spec_and  of (specification * specification)
+  | Spec_or   of (specification * specification)
   | Spec_impl of (specification * specification)
-  | Spec_not of specification
+  | Spec_not  of  specification
 
 
 val uv_of_specification : specification -> Port_id_set.t * Component_type_id_set.t * Package_id_set.t

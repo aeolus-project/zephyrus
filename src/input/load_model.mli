@@ -28,17 +28,23 @@
 *)
 
 val model_of_file_options :
-  string option -> (* universe *)
+  string option ->                 (* universe *)
   (string * string) list option -> (* external repositories *)
-  string option -> (* configuration *)
-  string option -> (* specification *)
-  Settings.optim option -> (* optimization function *)
-  ( Data_model_catalog.closed_model_catalog * (Data_model.universe option) * (Data_model.configuration option) *
-    (Data_model.specification option) * (Data_model.optimization_function option)  )
+  string option ->                 (* configuration *)
+  string option ->                 (* specification *)
+  Settings.optim option ->         (* optimization function *)
+  ( Data_model_catalog.closed_model_catalog * 
+    Data_model.universe option              *
+    Data_model.configuration option         *
+    Data_model.specification option         *
+    Data_model.optimization_function option )
 
 val model_of_settings : unit ->
-  ( Data_model_catalog.closed_model_catalog * (Data_model.universe option) * (Data_model.configuration option) *
-    (Data_model.specification option) * (Data_model.optimization_function option)  )
+  ( Data_model_catalog.closed_model_catalog * 
+    Data_model.universe option              * 
+    Data_model.configuration option         *
+    Data_model.specification option         * 
+    Data_model.optimization_function option )
 
 val set_initial_model_of_settings : unit -> unit
 

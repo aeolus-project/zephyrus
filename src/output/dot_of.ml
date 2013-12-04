@@ -70,12 +70,12 @@ let graph_settings_of_graph_type = function
 let my_regexp = Str.regexp "[^a-z0-9]"
 let sanitize_name name = Str.global_replace my_regexp "_" (String.lowercase name)
 
-let component_id component_name = "component_" ^ (sanitize_name component_name)
-let location_id  location_name  = "location_" ^ (sanitize_name location_name)
+let component_id           component_name           = "component_" ^ (sanitize_name component_name)
+let location_id            location_name            = "location_"  ^ (sanitize_name location_name)
 let package_at_location_id location_name package_id = (location_id location_name) ^ "_package_" ^ (sanitize_name (String_of.package_id package_id))
-let port_id          port_name = "port_" ^ (sanitize_name port_name)
-let required_port_id port_name = "required_" ^ (port_id port_name)
-let provided_port_id port_name = "provided_" ^ (port_id port_name)
+let port_id                port_name                = "port_"      ^ (sanitize_name port_name)
+let required_port_id       port_name                = "required_"  ^ (port_id       port_name)
+let provided_port_id       port_name                = "provided_"  ^ (port_id       port_name)
 
 
 (*/************************************************************************\*)

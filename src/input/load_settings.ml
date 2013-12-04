@@ -29,7 +29,8 @@
 (* for now, keep the same semantics as before *)
 (* TODO: change everything *)
 
-let usage = "usage: " ^ Sys.argv.(0)
+let usage = 
+    "usage: " ^ Sys.argv.(0)
   ^ " [-settings settings-file]"
   ^ " [-u universe-file]"
   ^ " [-ic initial-configuration-file]"

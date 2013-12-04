@@ -26,7 +26,7 @@
 
 (* 1. For indentation *) 
 
-let a_capo = ref true
+let a_capo       = ref true
 let indent_stage = ref ""
 let new_stage () = indent_stage := "  " ^ (!indent_stage)
 let end_stage () = indent_stage := String.sub (!indent_stage) 0 ((String.length (!indent_stage)) -2)
@@ -46,7 +46,7 @@ let rec indent_string_rec s =
 let indent_string s = (* Printf.printf "%b\n" (!a_capo); *) if !a_capo then (!indent_stage) ^ (indent_string_rec s) else (indent_string_rec s)
 
 
-let print file s = Pervasives.output_string file (indent_string s); flush file
+let print   file s = Pervasives.output_string file (indent_string s); flush file
 let println file s = print file (s ^ "\n")
 
 (* 3. print output *)

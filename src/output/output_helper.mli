@@ -25,11 +25,11 @@
 *)
 
 
-val new_stage  : unit -> unit
-val end_stage : unit -> unit
-val get_current_indent   : unit -> string (** deprecated *)
+val new_stage          : unit -> unit
+val end_stage          : unit -> unit
+val get_current_indent : unit -> string (** deprecated *)
 
-val print : out_channel -> string -> unit
+val print   : out_channel -> string -> unit
 val println : out_channel -> string -> unit
 
 val print_output : string -> string -> unit

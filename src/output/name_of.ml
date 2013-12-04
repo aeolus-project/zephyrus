@@ -24,13 +24,13 @@
 
 let get_catalog () = !Data_state.catalog_full
 
-let resource_f       = (string_of_int,       (fun catalog -> catalog#resource#name_of_id)      )
+let resource_f       = (string_of_int, (fun catalog -> catalog#resource#name_of_id)      )
 let component_type_f = (string_of_int, (fun catalog -> catalog#component_type#name_of_id))
-let port_f           = (string_of_int,           (fun catalog -> catalog#port#name_of_id)          )
-let package_f        = (string_of_int,        (fun catalog -> fun package_id -> let (_, package_name) = catalog#package#name_of_id package_id in package_name))
-let repository_f     = (string_of_int,     (fun catalog -> catalog#repository#name_of_id)    )
-let location_f       = (string_of_int,       (fun catalog -> catalog#location#name_of_id)      )
-let component_f      = (string_of_int,      (fun catalog -> catalog#component#name_of_id)     )
+let port_f           = (string_of_int, (fun catalog -> catalog#port#name_of_id)          )
+let package_f        = (string_of_int, (fun catalog -> fun package_id -> let (_, package_name) = catalog#package#name_of_id package_id in package_name))
+let repository_f     = (string_of_int, (fun catalog -> catalog#repository#name_of_id)    )
+let location_f       = (string_of_int, (fun catalog -> catalog#location#name_of_id)      )
+let component_f      = (string_of_int, (fun catalog -> catalog#component#name_of_id)     )
 
 let object_name_of_id object_f =
   match get_catalog () with

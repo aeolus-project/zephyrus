@@ -610,7 +610,7 @@ let set_initial_model_of_settings () = let (catalog, universe, initial_configura
 let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
   let u  : Json_t.universe                  = benchmark#universe in
-  let rs = [] in
+  let rs                                    = [] in
   let c  : Json_t.configuration             = benchmark#initial_configuration in
   let s  : Json_t.specification             = benchmark#specification in
   let f  : Data_model.optimization_function = benchmark#optimisation_function in

@@ -209,15 +209,15 @@ let (  !~   ) x    = UnaryKonstraint  ( Not, x        )
 
 
 let rec variables_of_expression e = match e with
-  | Constant(v)                     -> Variable_set.empty
-  | Variable(v)                     -> Variable_set.singleton v
-  | Reified(c)                      -> variables_of_konstraint c
+  | Constant              (v)       -> Variable_set.empty
+  | Variable              (v)       -> Variable_set.singleton v
+  | Reified               (c)       -> variables_of_konstraint c
   | UnaryArithExpression  (_,e')    -> variables_of_expression e'
   | BinaryArithExpression (_,e1,e2) -> Variable_set.union (variables_of_expression e1) (variables_of_expression e2)
   | NaryArithExpression   (_,l)     -> List.fold_left (fun vars e -> Variable_set.union (variables_of_expression e) vars) Variable_set.empty l
 and variables_of_konstraint c = match c with
-  | True            -> Variable_set.empty
-  | False           -> Variable_set.empty
+  | True                       -> Variable_set.empty
+  | False                      -> Variable_set.empty
   | ArithKonstraint  (_,e1,e2) -> Variable_set.union (variables_of_expression e1) (variables_of_expression e2)
   | UnaryKonstraint  (_,c')    -> variables_of_konstraint c'
   | BinaryKonstraint (_,c1,c2) -> Variable_set.union (variables_of_konstraint c1) (variables_of_konstraint c2)
@@ -230,13 +230,13 @@ and variables_of_konstraint c = match c with
 (*\************************************************************************/*)
 
 type optimization_function = 
-  | Minimize of expression
-  | Maximize of expression
+  | Minimize      of expression
+  | Maximize      of expression
   | Lexicographic of optimization_function list
 
 let rec variables_of_optimization_function f = match f with
-  | Minimize (e) -> variables_of_expression e
-  | Maximize (e) -> variables_of_expression e
+  | Minimize      (e) -> variables_of_expression e
+  | Maximize      (e) -> variables_of_expression e
   | Lexicographic (l) -> List.fold_left (fun res f' -> Variable_set.union (variables_of_optimization_function f') res) Variable_set.empty l
 
 (*/************************************************************************\*)
@@ -277,12 +277,3 @@ type solution = {
 
 let is_empty sol = 
   Variable_set.fold (fun v res -> if not res then (if (sol.variable_values v) != 0 then false else res) else res) sol.domain true
-
-(*
-let value_of_provide_arity a = match a with Data_model.Infinite_provide -> Infinite_value | Data_model.Finite_provide(i) -> Finite_value(i)
-let value_of_require_arity a = Finite_value(a)
-let value i = Finite_value(i)
-let infinite_value = Infinite_value
-*)
-
-

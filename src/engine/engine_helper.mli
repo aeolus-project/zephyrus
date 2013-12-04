@@ -74,12 +74,10 @@ type file = {dirname : string; basename : string; suffix : string}
 val file_default : file
 
 val file_process_name : string -> file
-val file_create : bool -> file -> string
-val file_print : bool -> file -> string -> string
+val file_create       : bool -> file -> string
+val file_print        : bool -> file -> string -> string
 
 (*
 val file_create : ?keep:bool -> file -> string
 val file_print : ?keep:bool -> file -> string -> string
 *)
-
-
