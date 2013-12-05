@@ -27,94 +27,21 @@
 (*| 1. Custom sets and maps                                                |*)
 (*\************************************************************************/*)
 
-module Map_global_from_stdlib = Map
 module Set_global_from_stdlib = Set
+module Map_global_from_stdlib = Map
 
-module type OrderedType = Map_global_from_stdlib.OrderedType
+module type Set_OrderedType = Set_global_from_stdlib.OrderedType
+module type Map_OrderedType = Map_global_from_stdlib.OrderedType
+
 module type Map_from_stblib = Map_global_from_stdlib.S
 module type Set_from_stblib = Set_global_from_stdlib.S
-module type String_from_stdlib = sig
-  type t = string
-  val compare: t -> t -> int
 
-  val length : string -> int
-  val get : string -> int -> char
-  val set : string -> int -> char -> unit
-  val create : int -> string
-  val make : int -> char -> string
-  val copy : string -> string
-  val sub : string -> int -> int -> string
-  val fill : string -> int -> int -> char -> unit
-  val blit : string -> int -> string -> int -> int -> unit
-  val concat : string -> string list -> string
-  val iter : (char -> unit) -> string -> unit
-  val escaped : string -> string
-  val index : string -> char -> int
-  val rindex : string -> char -> int
-  val index_from : string -> int -> char -> int
-  val rindex_from : string -> int -> char -> int
-  val contains : string -> char -> bool
-  val contains_from : string -> int -> char -> bool
-  val rcontains_from : string -> int -> char -> bool
-  val uppercase : string -> string
-  val lowercase : string -> string
-  val capitalize : string -> string
-  val uncapitalize : string -> string
-end
-
-module type List_from_stdlib = sig
-  val length : 'a list -> int
-  val hd : 'a list -> 'a
-  val tl : 'a list -> 'a list
-  val nth : 'a list -> int -> 'a
-  val rev : 'a list -> 'a list
-  val append : 'a list -> 'a list -> 'a list
-  val rev_append : 'a list -> 'a list -> 'a list
-  val concat : 'a list list -> 'a list
-  val flatten : 'a list list -> 'a list
-
-  val iter : ('a -> unit) -> 'a list -> unit
-  val map : ('a -> 'b) -> 'a list -> 'b list
-  val rev_map : ('a -> 'b) -> 'a list -> 'b list
-  val fold_left : ('a -> 'b -> 'a) -> 'a -> 'b list -> 'a
-  val fold_right : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
- 
-  val iter2 : ('a -> 'b -> unit) -> 'a list -> 'b list -> unit
-  val map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-  val rev_map2 : ('a -> 'b -> 'c) -> 'a list -> 'b list -> 'c list
-  val fold_left2 : ('a -> 'b -> 'c -> 'a) -> 'a -> 'b list -> 'c list -> 'a
-  val fold_right2 : ('a -> 'b -> 'c -> 'c) -> 'a list -> 'b list -> 'c -> 'c
-
-  val for_all : ('a -> bool) -> 'a list -> bool
-  val exists : ('a -> bool) -> 'a list -> bool
-  val for_all2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
-  val exists2 : ('a -> 'b -> bool) -> 'a list -> 'b list -> bool
-  val mem : 'a -> 'a list -> bool
-  val memq : 'a -> 'a list -> bool
-
-  val find : ('a -> bool) -> 'a list -> 'a
-  val filter : ('a -> bool) -> 'a list -> 'a list
-  val find_all : ('a -> bool) -> 'a list -> 'a list
-  val partition : ('a -> bool) -> 'a list -> 'a list * 'a list
-
-  val assoc : 'a -> ('a * 'b) list -> 'b
-  val assq : 'a -> ('a * 'b) list -> 'b
-  val mem_assoc : 'a -> ('a * 'b) list -> bool
-  val mem_assq : 'a -> ('a * 'b) list -> bool
-  val remove_assoc : 'a -> ('a * 'b) list -> ('a * 'b) list
-  val remove_assq : 'a -> ('a * 'b) list -> ('a * 'b) list
-
-  val split : ('a * 'b) list -> 'a list * 'b list
-  val combine : 'a list -> 'b list -> ('a * 'b) list
-
-  val sort : ('a -> 'a -> int) -> 'a list -> 'a list
-  val stable_sort : ('a -> 'a -> int) -> 'a list -> 'a list
-  val fast_sort : ('a -> 'a -> int) -> 'a list -> 'a list
-  val merge : ('a -> 'a -> int) -> 'a list -> 'a list -> 'a list
-end
+module type String_from_stdlib = module type of String
+module type List_from_stdlib   = module type of List
 
 module Int    = struct type t = int let compare = (-) end
 module String = String
+
 module List_from_stdlib_implem = List
 module List = struct
   include List_from_stdlib_implem
@@ -309,6 +236,8 @@ module Int_set_to_String_set = Set.Convert(Int_set)(String_set)
 let setstring_of_setint    s = Int_set_to_String_set.convert string_of_int s
 
 module Map = struct
+
+  module type OrderedType = Map_global_from_stdlib.OrderedType
 
   module type S = sig
     include Map_from_stblib
