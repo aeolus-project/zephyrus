@@ -28,24 +28,120 @@ open Data_common
 
 
 (*/************************************************************************\*)
-(*| 2. Universe                                                           |*)
+(*| 1. Ids and names                                                       |*)
 (*\************************************************************************/*)
 
-  (** 2.0. Resources *)
+(** Ids *)
 
-  (** A name of a resource provided by a location or consumed by a component type or a package. *)
-type resource_name = string
-module Resource_name         : Set.OrderedType with type t = resource_name
-module Resource_name_set     : Set.S with type elt = Resource_name.t
-module Resource_name_set_set : Set.S with type elt = Resource_name_set.t
-module Resource_name_map     : Map.S with type key = Resource_name.t
-
-type resource_id = int
+  (** The id of a resource provided by a location or consumed by a component type or a package. *)
+type   resource_id = int
 module Resource_id         : Set.OrderedType with type t = resource_id
 module Resource_id_set     : Set.S with type elt = Resource_id.t
 module Resource_id_set_set : Set.S with type elt = Resource_id_set.t
 module Resource_id_map     : Map.S with type key = Resource_id.t
 module Resource_id_map_extract_key : sig val set_of_keys : 'a Resource_id_map.t -> Resource_id_set.t end
+
+  (** The id of a component type in the universe. *)
+type   component_type_id = int
+module Component_type_id     : Set.OrderedType with type t = component_type_id
+module Component_type_id_set : Set.S with type elt = Component_type_id.t
+module Component_type_id_map : Map.S with type key = Component_type_id.t
+module Component_type_id_map_extract_key : sig val set_of_keys : 'a Component_type_id_map.t -> Component_type_id_set.t end
+
+  (** The id of a port in provided or required or conflicted by a component type. *)
+type   port_id = int
+module Port_id         : Set.OrderedType with type t = port_id
+module Port_id_set     : Set.S with type elt = Port_id.t
+module Port_id_set_set : Set.S with type elt = Port_id_set.t
+module Port_id_map     : Map.S with type key = Port_id.t
+module Port_id_map_extract_key : sig val set_of_keys : 'a Port_id_map.t -> Port_id_set.t end
+
+  (** The id of a package in a repository. *)
+type   package_id = int
+module Package_id         : Set.OrderedType with type t = package_id
+module Package_id_set     : Set.S with type elt = Package_id.t
+module Package_id_set_set : Set.S with type elt = Package_id_set.t
+module Package_id_map     : Map.S with type key = Package_id.t
+module Package_id_map_extract_key : sig val set_of_keys : 'a Package_id_map.t -> Package_id_set.t end
+
+  (** The id of a repository in the universe. *)
+type   repository_id = int
+module Repository_id         : Set.OrderedType with type t = repository_id
+module Repository_id_set     : Set.S with type elt = Repository_id.t
+module Repository_id_set_set : Set.S with type elt = Repository_id_set.t
+module Repository_id_map     : Map.S with type key = Repository_id.t
+module Repository_id_map_extract_key : sig val set_of_keys : 'a Repository_id_map.t -> Repository_id_set.t end
+
+  (** The id of a location in the configuration. *)
+type   location_id = int
+module Location_id         : Set.OrderedType with type t = location_id
+module Location_id_set     : Set.S with type elt = Location_id.t
+module Location_id_set_set : Set.S with type elt = Location_id_set.t
+module Location_id_map     : Map.S with type key = Location_id.t
+module Location_id_map_extract_key : sig val set_of_keys : 'a Location_id_map.t -> Location_id_set.t end
+
+  (** The id of a component in the configuration. *)
+type   component_id = int
+module Component_id     : Set.OrderedType with type t = component_id
+module Component_id_set : Set.S with type elt = Component_id.t
+module Component_id_map : Map.S with type key = Component_id.t
+module Component_id_map_extract_key : sig val set_of_keys : 'a Component_id_map.t -> Component_id_set.t end
+
+
+(** Names *)
+
+  (** The name of a resource provided by a location or consumed by a component type or a package. *)
+type   resource_name = string
+module Resource_name         : Set.OrderedType with type t = resource_name
+module Resource_name_set     : Set.S with type elt = Resource_name.t
+module Resource_name_set_set : Set.S with type elt = Resource_name_set.t
+module Resource_name_map     : Map.S with type key = Resource_name.t
+
+  (** The name of a component type in the universe. *)
+type   component_type_name = string
+module Component_type_name     : Set.OrderedType with type t = component_type_name
+module Component_type_name_set : Set.S with type elt = Component_type_name.t
+module Component_type_name_map : Map.S with type key = Component_type_name.t
+
+  (** The name of a port in provided or required or conflicted by a component type. *)
+type   port_name = string
+module Port_name         : Set.OrderedType with type t = port_name
+module Port_name_set     : Set.S with type elt = Port_name.t
+module Port_name_set_set : Set.S with type elt = Port_name_set.t
+module Port_name_map     : Map.S with type key = Port_name.t
+
+  (** The name of a package in a repository. *)
+type   package_name = string
+module Package_name         : Set.OrderedType with type t = package_name
+module Package_name_set     : Set.S with type elt = Package_name.t
+module Package_name_set_set : Set.S with type elt = Package_name_set.t
+module Package_name_map     : Map.S with type key = Package_name.t
+
+  (** The name of a repository in the universe. *)
+type   repository_name = string
+module Repository_name         : Set.OrderedType with type t = repository_name
+module Repository_name_set     : Set.S with type elt = Repository_name.t
+module Repository_name_set_set : Set.S with type elt = Repository_name_set.t
+module Repository_name_map     : Map.S with type key = Repository_name.t
+
+  (** The name of a location in the configuration. *)
+type   location_name = string
+module Location_name     : Set.OrderedType with type t = location_name
+module Location_name_set : Set.S with type elt = Location_name.t
+module Location_name_map : Map.S with type key = Location_name.t
+
+  (** The name of a component in the configuration. *)
+type   component_name = string
+module Component_name     : Set.OrderedType with type t = component_name
+module Component_name_set : Set.S with type elt = Component_name.t
+module Component_name_map : Map.S with type key = Component_name.t
+
+
+(*/************************************************************************\*)
+(*| 2. Universe                                                            |*)
+(*\************************************************************************/*)
+
+  (** 2.0. Resources. *)
 
 type resource = resource_id
 module Resource         : Set.OrderedType with type t = resource
@@ -58,35 +154,8 @@ type resource_provide_arity = int
   (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
 type resource_consume_arity = int
 
-
-  (** 2.1. Component types *)
-
-  (** The name of a component type in the universe. *)
-type component_type_name = string
-module Component_type_name     : Set.OrderedType with type t = component_type_name
-module Component_type_name_set : Set.S with type elt = Component_type_name.t
-module Component_type_name_map : Map.S with type key = Component_type_name.t
-
-type component_type_id = int
-val deprecated_component_type_id : component_type_id
-module Component_type_id     : Set.OrderedType with type t = component_type_id
-module Component_type_id_set : Set.S with type elt = Component_type_id.t
-module Component_type_id_map : Map.S with type key = Component_type_id.t
-module Component_type_id_map_extract_key : sig val set_of_keys : 'a Component_type_id_map.t -> Component_type_id_set.t end
-
-  (** The name of a port in provided or required or conflicted by a component type. *)
-type port_name = string
-module Port_name         : Set.OrderedType with type t = port_name
-module Port_name_set     : Set.S with type elt = Port_name.t
-module Port_name_set_set : Set.S with type elt = Port_name_set.t
-module Port_name_map     : Map.S with type key = Port_name.t
-
-type port_id = int
-module Port_id         : Set.OrderedType with type t = port_id
-module Port_id_set     : Set.S with type elt = Port_id.t
-module Port_id_set_set : Set.S with type elt = Port_id_set.t
-module Port_id_map     : Map.S with type key = Port_id.t
-module Port_id_map_extract_key : sig val set_of_keys : 'a Port_id_map.t -> Port_id_set.t end
+  
+  (** 2.0 Ports. *)
 
 type port = port_id
 module Port         : Set.OrderedType with type t = port
@@ -94,6 +163,11 @@ module Port_set     : Set.S with type elt = Port.t
 module Port_set_set : Set.S with type elt = Port_set.t
 module Port_map     : Map.S with type key = Port.t
 module Port_map_extract_key : sig val set_of_keys : 'a Port_map.t -> Port_set.t end
+
+
+  (** 2.1. Component types. *)
+
+val deprecated_component_type_id : component_type_id
 
   (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
@@ -104,8 +178,6 @@ type provide_arity =
   (** A quantity describing how many bindings with different components providing a port are required by this component type. 
     Note: it is always finite, because an infinite require arity would be simply insatiable. *)
 type require_arity = int
-
-  (** Component type. *)
 
 exception Component_type_provide_port_not_found of port_id
 exception Component_type_require_port_not_found of port_id
@@ -135,25 +207,10 @@ module Component_type : Set.OrderedType with type t = component_type
 module Component_type_set : Set.S with type elt = Component_type.t
 module Component_type_map : Map.S with type key = Component_type.t
 
-  (** 2.2. Packages *)
 
-  (** A name of a package in a repository. *)
-type package_name = string
-module Package_name         : Set.OrderedType with type t = package_name
-module Package_name_set     : Set.S with type elt = Package_name.t
-module Package_name_set_set : Set.S with type elt = Package_name_set.t
-module Package_name_map     : Map.S with type key = Package_name.t
+  (** 2.2. Packages. *)
 
-type package_id = int
 val deprecated_package_id : package_id
-module Package_id         : Set.OrderedType with type t = package_id
-module Package_id_set     : Set.S with type elt = Package_id.t
-module Package_id_set_set : Set.S with type elt = Package_id_set.t
-module Package_id_map     : Map.S with type key = Package_id.t
-module Package_id_map_extract_key : sig val set_of_keys : 'a Package_id_map.t -> Package_id_set.t end
-
-
-  (** Package. *)
 
 class package :
   ?depend   : Package_id_set_set.t ->
@@ -180,23 +237,7 @@ module Package_set_set : Set.S with type elt = Package_set.t
 module Package_map     : Map.S with type key = Package.t
 
 
-  (** 2.3. Repositories *)
-
-  (** A name of a repository in the universe. *)
-type repository_name = string
-module Repository_name         : Set.OrderedType with type t = repository_name
-module Repository_name_set     : Set.S with type elt = Repository_name.t
-module Repository_name_set_set : Set.S with type elt = Repository_name_set.t
-module Repository_name_map     : Map.S with type key = Repository_name.t
-
-type repository_id = int
-module Repository_id         : Set.OrderedType with type t = repository_id
-module Repository_id_set     : Set.S with type elt = Repository_id.t
-module Repository_id_set_set : Set.S with type elt = Repository_id_set.t
-module Repository_id_map     : Map.S with type key = Repository_id.t
-module Repository_id_map_extract_key : sig val set_of_keys : 'a Repository_id_map.t -> Repository_id_set.t end
-
-  (** Repository. *)
+  (** 2.3. Repositories. *)
 
 exception Repository_package_not_found of package_id
 
@@ -217,7 +258,7 @@ module Repository_set : Set.S with type elt = Repository.t
 module Repository_map : Map.S with type key = Repository.t
 
 
-  (** 2.4. Universes *)
+  (** 2.4. Universes. *)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
@@ -280,24 +321,10 @@ end
 (*| 3. Configuration                                                       |*)
 (*\************************************************************************/*)
 
-  (** 3.1. Locations *)
-  (** A name of a location in the configuration. *)
-type location_name = string
-module Location_name     : Set.OrderedType with type t = location_name
-module Location_name_set : Set.S with type elt = Location_name.t
-module Location_name_map : Map.S with type key = Location_name.t
-
-type location_id = int
-module Location_id         : Set.OrderedType with type t = location_id
-module Location_id_set     : Set.S with type elt = Location_id.t
-module Location_id_set_set : Set.S with type elt = Location_id_set.t
-module Location_id_map     : Map.S with type key = Location_id.t
-module Location_id_map_extract_key : sig val set_of_keys : 'a Location_id_map.t -> Location_id_set.t end
-
+  (** 3.1. Locations. *)
 type location_cost = int
 module Location_cost : Set.OrderedType with type t = location_cost
 
-  (** Location. *)
 class location :
    repository         : repository_id ->
   ?packages_installed : Package_id_set.t ->
@@ -340,20 +367,7 @@ module Location_set_of_location_ids : module type of Set.Convert(Location_id_set
     } *)
 
 
-  (** 3.2. Component. *)
-  (** A name of a component in the configuration. *)
-type component_name = string
-module Component_name     : Set.OrderedType with type t = component_name
-module Component_name_set : Set.S with type elt = Component_name.t
-module Component_name_map : Map.S with type key = Component_name.t
-
-type component_id = int
-module Component_id     : Set.OrderedType with type t = component_id
-module Component_id_set : Set.S with type elt = Component_id.t
-module Component_id_map : Map.S with type key = Component_id.t
-module Component_id_map_extract_key : sig val set_of_keys : 'a Component_id_map.t -> Component_id_set.t end
-
-  (** Components *)
+  (** 3.2. Components. *)
 
 class component : 
   typ      : component_type_id ->
@@ -379,7 +393,7 @@ module Component_map : Map.S with type key = Component.t
 
 
 
-  (** 3.3. Binding. *)
+  (** 3.3. Bindings. *)
 
 class binding :
   port     : port_id ->
@@ -405,7 +419,7 @@ module Binding_set : Set.S with type elt = Binding.t
     } *)
 
 
-  (** 3.4. Configuration. *)
+  (** 3.4. Configurations. *)
 
 exception Configuration_location_not_found  of location_id
 exception Configuration_component_not_found of component_id

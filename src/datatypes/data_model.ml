@@ -29,24 +29,121 @@ open Data_common
 
 
 (*/************************************************************************\*)
-(*| 2. Universe                                                           |*)
+(*| 1. Ids and names                                                       |*)
 (*\************************************************************************/*)
 
-  (** 2.0. Resources *)
+(** Ids *)
 
-  (** A name of a resource provided by a location or consumed by a component type or a package. *)
-type resource_name = string
-module Resource_name         = String
-module Resource_name_set     = String_set
-module Resource_name_set_set = String_set_set
-module Resource_name_map     = String_map
-
+  (** The id of a resource provided by a location or consumed by a component type or a package. *)
 type resource_id = int
 module Resource_id         = Int
 module Resource_id_set     = Int_set
 module Resource_id_set_set = Int_set_set
 module Resource_id_map     = Int_map
 module Resource_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a component type in the universe. *)
+type component_type_id = int
+module Component_type_id     = Int
+module Component_type_id_set = Int_set
+module Component_type_id_map = Int_map
+module Component_type_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a port in provided or required or conflicted by a component type. *)
+type port_id = int
+module Port_id         = Int
+module Port_id_set     = Int_set
+module Port_id_set_set = Int_set_set
+module Port_id_map     = Int_map
+module Port_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a package in a repository. *)
+type package_id = int
+module Package_id         = Int
+module Package_id_set     = Int_set
+module Package_id_set_set = Int_set_set
+module Package_id_map     = Int_map
+module Package_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a repository in the universe. *)
+type repository_id = int
+module Repository_id         = Int
+module Repository_id_set     = Int_set
+module Repository_id_set_set = Int_set_set
+module Repository_id_map     = Int_map
+module Repository_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a location in the configuration. *)
+type location_id = int
+module Location_id         = Int
+module Location_id_set     = Int_set
+module Location_id_set_set = Int_set_set
+module Location_id_map     = Int_map
+module Location_id_map_extract_key = Keys_of_Int_map
+
+  (** The id of a component in the configuration. *)
+type component_id = int
+module Component_id     = Int
+module Component_id_set = Int_set
+module Component_id_map = Int_map
+module Component_id_map_extract_key = Keys_of_Int_map
+
+
+(** Names *)
+
+  (** The name of a resource provided by a location or consumed by a component type or a package. *)
+type resource_name = string
+module Resource_name         = String
+module Resource_name_set     = String_set
+module Resource_name_set_set = String_set_set
+module Resource_name_map     = String_map
+
+  (** The name of a component type in the universe. *)
+type component_type_name = string
+module Component_type_name     = String
+module Component_type_name_set = String_set
+module Component_type_name_map = String_map
+
+  (** The name of a port in provided or required or conflicted by a component type. *)
+type port_name = string
+module Port_name         = String
+module Port_name_set     = String_set
+module Port_name_set_set = String_set_set
+module Port_name_map     = String_map
+
+  (** The name of a package in a repository. *)
+type package_name = string
+module Package_name         = String
+module Package_name_set     = String_set
+module Package_name_set_set = String_set_set
+module Package_name_map     = String_map
+
+  (** The name of a repository in the universe. *)
+type repository_name = string
+module Repository_name         = String
+module Repository_name_set     = String_set
+module Repository_name_set_set = String_set_set
+module Repository_name_map     = String_map
+
+  (** The name of a location in the configuration. *)
+type location_name = string
+module Location_name     = String
+module Location_name_set = String_set
+module Location_name_map = String_map
+
+  (** The name of a component in the configuration. *)
+type component_name = string
+module Component_name     = String
+module Component_name_set = String_set
+module Component_name_map = String_map
+
+
+
+(*/************************************************************************\*)
+(*| 2. Universe                                                           |*)
+(*\************************************************************************/*)
+
+  (** 2.0. Resources. *)
 
 type resource = resource_id
 module Resource         = Resource_id
@@ -60,34 +157,7 @@ type resource_provide_arity = int
 type resource_consume_arity = int
 
 
-  (** 2.1. Component types *)
-
-  (** The name of a component type in the universe. *)
-type component_type_name = string
-module Component_type_name     = String
-module Component_type_name_set = String_set
-module Component_type_name_map = String_map
-
-type component_type_id = int
-let deprecated_component_type_id = -1
-module Component_type_id     = Int
-module Component_type_id_set = Int_set
-module Component_type_id_map = Int_map
-module Component_type_id_map_extract_key = Keys_of_Int_map
-
-  (** The name of a port in provided or required or conflicted by a component type. *)
-type port_name = string
-module Port_name         = String
-module Port_name_set     = String_set
-module Port_name_set_set = String_set_set
-module Port_name_map     = String_map
-
-type port_id = int
-module Port_id         = Int
-module Port_id_set     = Int_set
-module Port_id_set_set = Int_set_set
-module Port_id_map     = Int_map
-module Port_id_map_extract_key = Keys_of_Int_map
+  (** 2.0. Ports. *)
 
 type port = port_id
 module Port         = Port_id
@@ -95,6 +165,11 @@ module Port_set     = Port_id_set
 module Port_set_set = Port_id_set_set
 module Port_map     = Port_id_map
 module Port_map_extract_key = Port_id_map_extract_key
+
+
+  (** 2.1. Component types. *)
+
+let deprecated_component_type_id = -1
 
   (** A quantity describing to how many other components this component type can provide a port.
     Note: some component types can provide an infinite amount of a port *)
@@ -105,8 +180,6 @@ type provide_arity =
   (** A quantity describing how many bindings with different components providing a port are required by this component type. 
     Note: it is always finite, because an infinite require arity would be simply insatiable. *)
 type require_arity = int
-
-  (** Component type. *)
 
 exception Component_type_provide_port_not_found of port_id
 exception Component_type_require_port_not_found of port_id
@@ -136,25 +209,10 @@ module Component_type = struct type t = component_type let compare = compare end
 module Component_type_set = Set.Make(Component_type) 
 module Component_type_map = Map.Make(Component_type)
 
-  (** 2.2. Packages *)
 
-  (** A name of a package in a repository. *)
-type package_name = string
-module Package_name         = String
-module Package_name_set     = String_set
-module Package_name_set_set = String_set_set
-module Package_name_map     = String_map
+  (** 2.2. Packages. *)
 
-type package_id = int
 let deprecated_package_id = -1
-module Package_id         = Int
-module Package_id_set     = Int_set
-module Package_id_set_set = Int_set_set
-module Package_id_map     = Int_map
-module Package_id_map_extract_key = Keys_of_Int_map
-
-
-  (** Package. *)
 
 class package 
   ?(depend   = Package_id_set_set.empty) 
@@ -200,23 +258,7 @@ module Package_set_set = Set.Make(Package_set)
 module Package_map     = Map.Make(Package)
 
 
-  (** 2.3. Repositories *)
-
-  (** A name of a repository in the universe. *)
-type repository_name = string
-module Repository_name         = String
-module Repository_name_set     = String_set
-module Repository_name_set_set = String_set_set
-module Repository_name_map     = String_map
-
-type repository_id = int
-module Repository_id         = Int
-module Repository_id_set     = Int_set
-module Repository_id_set_set = Int_set_set
-module Repository_id_map     = Int_map
-module Repository_id_map_extract_key = Keys_of_Int_map
-
-  (** Repository. *)
+  (** 2.3. Repositories. *)
 
 exception Repository_package_not_found of package_id
 
@@ -239,7 +281,7 @@ module Repository_set = Set.Make(Repository)
 module Repository_map = Map.Make(Repository)
 
 
-  (** 2.4. Universes *)
+  (** 2.4. Universes. *)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
@@ -407,24 +449,11 @@ end
 (*| 3. Configuration                                                       |*)
 (*\************************************************************************/*)
 
-  (** 3.1. Locations *)
-  (** A name of a location in the configuration. *)
-type location_name = string
-module Location_name     = String
-module Location_name_set = String_set
-module Location_name_map = String_map
-
-type location_id = int
-module Location_id         = Int
-module Location_id_set     = Int_set
-module Location_id_set_set = Int_set_set
-module Location_id_map     = Int_map
-module Location_id_map_extract_key = Keys_of_Int_map
+  (** 3.1. Locations. *)
 
 type location_cost = int
 module Location_cost = Int
 
-  (** Location. *)
 class location 
   ~repository
   ?(packages_installed = Package_id_set.empty)
@@ -473,20 +502,7 @@ module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
     } *)
 
 
-  (** 3.2. Component. *)
-  (** A name of a component in the configuration. *)
-type component_name = string
-module Component_name     = String
-module Component_name_set = String_set
-module Component_name_map = String_map
-
-type component_id = int
-module Component_id     = Int
-module Component_id_set = Int_set
-module Component_id_map = Int_map
-module Component_id_map_extract_key = Keys_of_Int_map
-
-  (** Components *)
+  (** 3.2. Components. *)
 
 class component 
   ~typ
@@ -512,7 +528,7 @@ module Component_map = Map.Make(Component)
 
 
 
-  (** 3.3. Binding. *)
+  (** 3.3. Bindings. *)
 
 class binding 
   ~port
@@ -538,7 +554,7 @@ module Binding_set = Set.Make(Binding)
     } *)
 
 
-  (** 3.4. Configuration. *)
+  (** 3.4. Configurations. *)
 
 exception Configuration_location_not_found  of location_id
 exception Configuration_component_not_found of component_id
