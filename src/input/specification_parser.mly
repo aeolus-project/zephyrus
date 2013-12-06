@@ -42,7 +42,7 @@
 %left TIMES                  /* medium precedence */
 %nonassoc NOT                /* highest precedence */
 %start main                  /* the entry point */
-%type <Json_t.specification> main
+%type <Abstract_io.specification> main
 
 %%
 main:
@@ -85,57 +85,57 @@ spec_variable_name:
   | LPAREN spec_variable_name RPAREN { $2 }
 
 specification:
-  | TRUE                             { `SpecTrue              }
-  | spec_expr spec_op spec_expr      { `SpecOp   ($1, $2, $3) }
-  | specification AND  specification { `SpecAnd  ($1, $3)     }
-  | specification OR   specification { `SpecOr   ($1, $3)     }
-  | specification IMPL specification { `SpecImpl ($1, $3)     }
-  | NOT specification                { `SpecNot  ($2)         }
+  | TRUE                             { Abstract_io.SpecTrue              }
+  | spec_expr spec_op spec_expr      { Abstract_io.SpecOp   ($1, $2, $3) }
+  | specification AND  specification { Abstract_io.SpecAnd  ($1, $3)     }
+  | specification OR   specification { Abstract_io.SpecOr   ($1, $3)     }
+  | specification IMPL specification { Abstract_io.SpecImpl ($1, $3)     }
+  | NOT specification                { Abstract_io.SpecNot  ($2)         }
   | LPAREN specification RPAREN      { $2 }
 
 
 spec_expr:
-  | spec_variable_name          { `SpecExprVar   ($1) }
-  | spec_const                  { `SpecExprConst ($1) }
-  | HASH spec_element           { `SpecExprArity ($2) }
-  | spec_const TIMES spec_expr  { `SpecExprMul ($1, $3) }
-  | spec_expr  TIMES spec_const { `SpecExprMul ($3, $1) }
-  | spec_expr  PLUS  spec_expr  { `SpecExprAdd ($1, $3) }
-  | spec_expr  MINUS spec_expr  { `SpecExprSub ($1, $3) }
+  | spec_variable_name          { Abstract_io.SpecExprVar   ($1)     }
+  | spec_const                  { Abstract_io.SpecExprConst ($1)     }
+  | HASH spec_element           { Abstract_io.SpecExprArity ($2)     }
+  | spec_const TIMES spec_expr  { Abstract_io.SpecExprMul   ($1, $3) }
+  | spec_expr  TIMES spec_const { Abstract_io.SpecExprMul   ($3, $1) }
+  | spec_expr  PLUS  spec_expr  { Abstract_io.SpecExprAdd   ($1, $3) }
+  | spec_expr  MINUS spec_expr  { Abstract_io.SpecExprSub   ($1, $3) }
   | LPAREN spec_expr RPAREN     { $2 }
 
 spec_element:
-  | LPAREN repository_name COMMA package_name RPAREN       { `SpecElementPackage       ($2,$4) }
-  | component_type_name { `SpecElementComponentType ($1) }
-  | port_name           { `SpecElementPort          ($1) }
+  | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecElementPackage       ($2,$4) }
+  | component_type_name { Abstract_io.SpecElementComponentType ($1) }
+  | port_name           { Abstract_io.SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
     LCURLY spec_repository_constraints COLON local_specification RCURLY
-     { `SpecElementLocalisation ($2, $5, $7) }
+     { Abstract_io.SpecElementLocalisation ($2, $5, $7) }
   | LPAREN spec_element RPAREN { $2 }
 
 local_specification:
-  | TRUE                                         { `SpecLocalTrue              }
-  | spec_local_expr spec_op spec_local_expr      { `SpecLocalOp   ($1, $2, $3) }
-  | local_specification AND  local_specification { `SpecLocalAnd  ($1, $3)     }
-  | local_specification OR   local_specification { `SpecLocalOr   ($1, $3)     }
-  | local_specification IMPL local_specification { `SpecLocalImpl ($1, $3)     }
-  | NOT local_specification                      { `SpecLocalNot  ($2)         }
+  | TRUE                                         { Abstract_io.SpecLocalTrue              }
+  | spec_local_expr spec_op spec_local_expr      { Abstract_io.SpecLocalOp   ($1, $2, $3) }
+  | local_specification AND  local_specification { Abstract_io.SpecLocalAnd  ($1, $3)     }
+  | local_specification OR   local_specification { Abstract_io.SpecLocalOr   ($1, $3)     }
+  | local_specification IMPL local_specification { Abstract_io.SpecLocalImpl ($1, $3)     }
+  | NOT local_specification                      { Abstract_io.SpecLocalNot  ($2)         }
   | LPAREN local_specification RPAREN            { $2 }
 
 spec_local_expr:
-  | spec_variable_name                      { `SpecLocalExprVar   ($1) }
-  | spec_const                              { `SpecLocalExprConst ($1) }
-  | HASH spec_local_element                 { `SpecLocalExprArity ($2) }
-  | spec_const      TIMES spec_local_expr   { `SpecLocalExprMul ($1, $3) }
-  | spec_local_expr TIMES spec_const        { `SpecLocalExprMul ($3, $1) }
-  | spec_local_expr PLUS  spec_local_expr   { `SpecLocalExprAdd ($1, $3) }
-  | spec_local_expr MINUS spec_local_expr   { `SpecLocalExprSub ($1, $3) }
+  | spec_variable_name                      { Abstract_io.SpecLocalExprVar   ($1) }
+  | spec_const                              { Abstract_io.SpecLocalExprConst ($1) }
+  | HASH spec_local_element                 { Abstract_io.SpecLocalExprArity ($2) }
+  | spec_const      TIMES spec_local_expr   { Abstract_io.SpecLocalExprMul ($1, $3) }
+  | spec_local_expr TIMES spec_const        { Abstract_io.SpecLocalExprMul ($3, $1) }
+  | spec_local_expr PLUS  spec_local_expr   { Abstract_io.SpecLocalExprAdd ($1, $3) }
+  | spec_local_expr MINUS spec_local_expr   { Abstract_io.SpecLocalExprSub ($1, $3) }
   | LPAREN spec_local_expr RPAREN           { $2 }
 
 spec_local_element:
-  | LPAREN repository_name COMMA package_name RPAREN       { `SpecLocalElementPackage       ($2,$4) }
-  | component_type_name { `SpecLocalElementComponentType ($1) }
-  | port_name           { `SpecLocalElementPort          ($1) }
+  | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecLocalElementPackage       ($2,$4) }
+  | component_type_name { Abstract_io.SpecLocalElementComponentType ($1) }
+  | port_name           { Abstract_io.SpecLocalElementPort          ($1) }
   | LPAREN spec_local_element RPAREN { $2 }
 
 spec_resource_constraints:
@@ -156,9 +156,9 @@ spec_repository_constraint:
     repository_name { $1 }
 
 spec_op:
-  | LT  { `Lt  }
-  | LEQ { `LEq }
-  | EQ  { `Eq  }
-  | GEQ { `GEq }
-  | GT  { `Gt  }
-  | NEQ { `NEq }
+  | LT  { Abstract_io.Lt  }
+  | LEQ { Abstract_io.LEq }
+  | EQ  { Abstract_io.Eq  }
+  | GEQ { Abstract_io.GEq }
+  | GT  { Abstract_io.Gt  }
+  | NEQ { Abstract_io.NEq }

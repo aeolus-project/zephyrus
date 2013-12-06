@@ -1,0 +1,126 @@
+(****************************************************************************)
+(*                                                                          *)
+(*    This file is part of Zephyrus.                                        *)
+(*                                                                          *)
+(*    Zephyrus is free software: you can redistribute it and/or modify      *)
+(*    it under the terms of the GNU General Public License as published by  *)
+(*    the Free Software Foundation, either version 3 of the License, or     *)
+(*    (at your option) any later version.                                   *)
+(*                                                                          *)
+(*    Zephyrus is distributed in the hope that it will be useful,           *)
+(*    but WITHOUT ANY WARRANTY; without even the implied warranty of        *)
+(*    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *)
+(*    GNU General Public License for more details.                          *)
+(*                                                                          *)
+(*    You should have received a copy of the GNU General Public License     *)
+(*    along with Zephyrus.  If not, see <http://www.gnu.org/licenses/>.     *)
+(*                                                                          *)
+(****************************************************************************)
+
+
+<doc text="Type definitions for naming.">
+
+type component_type_name = string
+type port_name           = string
+type component_name      = string
+type package_name        = string
+type repository_name     = string
+type location_name       = string
+type resource_name       = string
+
+
+
+
+<doc text="Type definitions for Component Type.">
+
+type provide_arity = [ InfiniteProvide | FiniteProvide of int ] <ocaml repr="classic">
+type require_arity = int
+type resource_consumption   = int
+type resource_provide_arity = int (* Better name? *)
+
+type component_type = {
+  name                           : component_type_name;
+  ~provide  <ocaml default="[]"> : (port_name * provide_arity) list;
+  ~require  <ocaml default="[]"> : (port_name * require_arity) list;
+  ~conflict <ocaml default="[]"> : port_name list;
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+} <ocaml field_prefix="component_type_">
+
+type component_types = component_type list
+
+
+
+
+<doc text="Type definitions for Universe.">
+
+type package = {
+  name                           : package_name;
+  ~depend   <ocaml default="[]"> : (package_name list) list;
+  ~conflict <ocaml default="[]"> : package_name list;
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+} <ocaml field_prefix="package_">
+
+type packages = package list
+
+type repository = {
+	name                           : repository_name;
+	~packages <ocaml default="[]"> : package list;
+} <ocaml field_prefix="repository_">
+
+type repositories = repository list
+
+type package_names = (repository_name * package_name) list
+  (* This definition is useless, but ATD won't swallow the next one with a type which has nested lists and tuples in the same type. WHY? *)
+
+type universe = {
+  ~component_types <ocaml default="[]"> : component_types;
+  ~implementation  <ocaml default="[]"> : (component_type_name * package_names) list; (* mapping from component type name to sets of package names *)
+  ~repositories    <ocaml default="[]"> : repositories
+} <ocaml field_prefix="universe_">
+
+
+
+
+<doc text="Type definitions for Configuration.">
+
+type resources_provided = (resource_name * resource_provide_arity) list
+type location_cost = int
+
+type location = {
+  name                                     : location_name;
+  ~provide_resources  <ocaml default="[]"> : resources_provided;
+  repository                               : repository_name;
+  ~packages_installed <ocaml default="[]"> : package_name list;
+  ~cost               <ocaml default="1" > : location_cost
+} <ocaml field_prefix="location_">
+
+type component = {
+  component_name     : component_name;
+  component_type     : component_type_name;
+  component_location : location_name;
+} (* A little inconsistency: no "field_prefix" parameter here!
+   * If we try to do it with a "component_" field prefix, we cannot name a field named "component_type",
+   * because "type" is a keyword... So instead we add the "component_" prefix manually to each field. *)
+
+type binding = {
+  port : port_name;
+  requirer : component_name;
+  provider : component_name;
+} <ocaml field_prefix="binding_">
+
+type configuration = {
+  ~locations  <ocaml default="[]"> : location list;
+  ~components <ocaml default="[]"> : component list;
+  ~bindings   <ocaml default="[]"> : binding list;
+} <ocaml field_prefix="configuration_">
+
+
+(* 
+ * Correctness: 
+ *
+ * 1. the validity of components           (ports: requires / provides, conflicts)
+ * 2. the validity of implementation       (all components are implemented by packages)
+ * 3. the validity of package dependencies (all package dependencies are satisfied, no package conflicts are violated)
+ * 4. the validity of resource consumption (all consumed resources are provided)
+ *
+ *)

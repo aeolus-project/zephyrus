@@ -31,33 +31,28 @@ type resource_name       = string
 
 
 
-<doc text="Type definitions for Component Type.">
+<doc text="Type definitions for Universe.">
 
-type provide_arity = [ InfiniteProvide | FiniteProvide of int ]
+type provide_arity = string
 type require_arity = int
 type resource_consumption   = int
 type resource_provide_arity = int (* Better name? *)
 
 type component_type = {
   name                           : component_type_name;
-  ~provide  <ocaml default="[]"> : (port_name * provide_arity) list;
-  ~require  <ocaml default="[]"> : (port_name * require_arity) list;
+  ~provide  <ocaml default="[]"> : (port_name * provide_arity) list <json repr = "object">;
+  ~require  <ocaml default="[]"> : (port_name * require_arity) list <json repr = "object">;
   ~conflict <ocaml default="[]"> : port_name list;
-  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
 } <ocaml field_prefix="component_type_">
 
 type component_types = component_type list
-
-
-
-
-<doc text="Type definitions for Universe.">
 
 type package = {
   name                           : package_name;
   ~depend   <ocaml default="[]"> : (package_name list) list;
   ~conflict <ocaml default="[]"> : package_name list;
-  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object">
 } <ocaml field_prefix="package_">
 
 type packages = package list
@@ -74,7 +69,7 @@ type package_names = (repository_name * package_name) list
 
 type universe = {
   ~component_types <ocaml default="[]"> : component_types;
-  ~implementation  <ocaml default="[]"> : (component_type_name * package_names) list; (* mapping from component type name to sets of package names *)
+  ~implementation  <ocaml default="[]"> : (component_type_name * package_names) list <json repr = "object">; (* mapping from component type name to sets of package names *)
   ~repositories    <ocaml default="[]"> : repositories
 } <ocaml field_prefix="universe_">
 
@@ -83,7 +78,7 @@ type universe = {
 
 <doc text="Type definitions for Configuration.">
 
-type resources_provided = (resource_name * resource_provide_arity) list
+type resources_provided = (resource_name * resource_provide_arity) list <json repr = "object">
 type location_cost = int
 
 type location = {
@@ -95,12 +90,13 @@ type location = {
 } <ocaml field_prefix="location_">
 
 type component = {
-  component_name     : component_name;
-  component_type     : component_type_name;
-  component_location : location_name;
-} (* A little inconsistency: no "field_prefix" parameter here!
-   * If we try to do it with a "component_" field prefix, we cannot name a field named "component_type",
-   * because "type" is a keyword... So instead we add the "component_" prefix manually to each field. *)
+  name                            : component_name;
+  component_type_workaround 
+    <json name="type"> 
+    <ocaml name="component_type"> : component_type_name;
+  (* This is a little workaround around the little problem, that the word "type" is an ATD keyword. *)
+  location                        : location_name;
+} <ocaml field_prefix="component_">
 
 type binding = {
   port : port_name;
@@ -124,75 +120,3 @@ type configuration = {
  * 4. the validity of resource consumption (all consumed resources are provided)
  *
  *)
-
-
-
-
-<doc text="Type definitions for Specification.">
-
-type spec_variable_name = string
-type spec_const = int
-
-type specification = 
-  [ SpecTrue
-  | SpecOp     of (spec_expr * spec_op * spec_expr)
-  | SpecAnd    of (specification * specification)
-  | SpecOr     of (specification * specification)
-  | SpecImpl   of (specification * specification)
-  | SpecNot    of specification
-  ]
-
-type spec_expr =
-  [ SpecExprVar   of spec_variable_name
-  | SpecExprConst of spec_const
-  | SpecExprArity of spec_element
-  | SpecExprAdd   of (spec_expr  * spec_expr)
-  | SpecExprSub   of (spec_expr  * spec_expr)
-  | SpecExprMul   of (spec_const * spec_expr)
-  ]
-
-type spec_element =
-  [ SpecElementPackage       of (repository_name * package_name)
-  | SpecElementComponentType of component_type_name
-  | SpecElementPort          of port_name
-  | SpecElementLocalisation  of (spec_resource_constraints * spec_repository_constraints * local_specification)
-  ]
-
-type local_specification = 
-  [ SpecLocalTrue
-  | SpecLocalOp     of (spec_local_expr * spec_op * spec_local_expr)
-  | SpecLocalAnd    of (local_specification * local_specification)
-  | SpecLocalOr     of (local_specification * local_specification)
-  | SpecLocalImpl   of (local_specification * local_specification)
-  | SpecLocalNot    of local_specification
-  ]
-
-type spec_local_expr =
-  [ SpecLocalExprVar   of spec_variable_name
-  | SpecLocalExprConst of spec_const
-  | SpecLocalExprArity of spec_local_element
-  | SpecLocalExprAdd   of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprSub   of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprMul   of (spec_const      * spec_local_expr)
-  ]
-
-type spec_local_element =
-  [ SpecLocalElementPackage       of (repository_name * package_name)
-  | SpecLocalElementComponentType of component_type_name
-  | SpecLocalElementPort          of port_name
-  ]
-
-type spec_resource_constraint = (resource_name * spec_op * spec_const)
-type spec_resource_constraints = spec_resource_constraint list
-
-type spec_repository_constraint = repository_name
-type spec_repository_constraints = spec_repository_constraint list
-
-type spec_op =
-  [ Lt
-  | LEq
-  | Eq
-  | GEq
-  | Gt
-  | NEq
-  ]

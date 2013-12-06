@@ -1,4 +1,4 @@
-(* Auto-generated from "json.atd" *)
+(* Auto-generated from "json_v0.atd" *)
 
 
 (** Type definitions for naming. *)
@@ -18,7 +18,7 @@ type location_name = string
 (** Type definitions for Component Type. *)
 type resource_name = string
 
-type provide_arity = [ `InfiniteProvide | `FiniteProvide of int ]
+type provide_arity =  InfiniteProvide | FiniteProvide of int 
 
 type require_arity = int
 
@@ -89,77 +89,8 @@ type binding = {
   binding_provider (*atd provider *): component_name
 }
 
-(** Type definitions for Specification. *)
 type configuration = {
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
 }
-
-type spec_variable_name = string
-
-type spec_const = int
-
-type spec_local_element = [
-    `SpecLocalElementPackage of (repository_name * package_name)
-  | `SpecLocalElementComponentType of component_type_name
-  | `SpecLocalElementPort of port_name
-]
-
-type spec_local_expr = [
-    `SpecLocalExprVar of spec_variable_name
-  | `SpecLocalExprConst of spec_const
-  | `SpecLocalExprArity of spec_local_element
-  | `SpecLocalExprAdd of (spec_local_expr * spec_local_expr)
-  | `SpecLocalExprSub of (spec_local_expr * spec_local_expr)
-  | `SpecLocalExprMul of (spec_const * spec_local_expr)
-]
-
-type spec_op = [ `Lt | `LEq | `Eq | `GEq | `Gt | `NEq ]
-
-type local_specification = [
-    `SpecLocalTrue
-  | `SpecLocalOp of (spec_local_expr * spec_op * spec_local_expr)
-  | `SpecLocalAnd of (local_specification * local_specification)
-  | `SpecLocalOr of (local_specification * local_specification)
-  | `SpecLocalImpl of (local_specification * local_specification)
-  | `SpecLocalNot of local_specification
-]
-
-type spec_repository_constraint = repository_name
-
-type spec_repository_constraints = spec_repository_constraint list
-
-type spec_resource_constraint = (resource_name * spec_op * spec_const)
-
-type spec_resource_constraints = spec_resource_constraint list
-
-type spec_element = [
-    `SpecElementPackage of (repository_name * package_name)
-  | `SpecElementComponentType of component_type_name
-  | `SpecElementPort of port_name
-  | `SpecElementLocalisation
-      of (
-          spec_resource_constraints
-        * spec_repository_constraints
-        * local_specification
-      )
-]
-
-type spec_expr = [
-    `SpecExprVar of spec_variable_name
-  | `SpecExprConst of spec_const
-  | `SpecExprArity of spec_element
-  | `SpecExprAdd of (spec_expr * spec_expr)
-  | `SpecExprSub of (spec_expr * spec_expr)
-  | `SpecExprMul of (spec_const * spec_expr)
-]
-
-type specification = [
-    `SpecTrue
-  | `SpecOp of (spec_expr * spec_op * spec_expr)
-  | `SpecAnd of (specification * specification)
-  | `SpecOr of (specification * specification)
-  | `SpecImpl of (specification * specification)
-  | `SpecNot of specification
-]

@@ -17,12 +17,12 @@
 (*                                                                          *)
 (****************************************************************************)
 
-open Json_t
+open Abstract_io
 
 class virtual benchmark = object
   method virtual universe              : universe
   method virtual initial_configuration : configuration
-  method virtual specification         : specification
+  method virtual specification         : Abstract_io.specification
   method virtual optimisation_function : Data_model.optimization_function
 end
 
@@ -106,7 +106,7 @@ struct
         };
         {
           component_type_name     = "Worker";
-          component_type_provide  = [("@work", (`FiniteProvide 1))];
+          component_type_provide  = [("@work", (FiniteProvide 1))];
           component_type_require  = [];
           component_type_conflict = [];
           component_type_consume  = [("ram", 1024)]

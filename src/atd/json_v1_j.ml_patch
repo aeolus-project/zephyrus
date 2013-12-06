@@ -1,0 +1,23 @@
+--- json_v1_j.ml.orig	2013-12-06 16:40:16.419939461 +0100
++++ json_v1_j.ml	2013-12-06 16:45:11.043944993 +0100
+@@ -179,14 +179,18 @@
+ let resource_name_of_string s =
+   read_resource_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+ let write_provide_arity = (
+-  Yojson.Safe.write_string
++  fun ob x -> match x with
++  | "infinity" -> Yojson.Safe.write_string ob x
++  | _          -> Yojson.Safe.write_int    ob (int_of_string x)
+ )
+ let string_of_provide_arity ?(len = 1024) x =
+   let ob = Bi_outbuf.create len in
+   write_provide_arity ob x;
+   Bi_outbuf.contents ob
+ let read_provide_arity = (
+-  Ag_oj_run.read_string
++  fun x y -> 
++    try                      Ag_oj_run.read_string x y
++    with _ -> string_of_int (Ag_oj_run.read_int    x y)
+ )
+ let provide_arity_of_string s =
+   read_provide_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)

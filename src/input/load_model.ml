@@ -27,6 +27,10 @@
     - input/Input_helper (for input file manipulation)
 *)
 
+module Json_t = Json_v0_t
+module Json_j = Json_v0_j
+module Json   = Json_v0
+
 open Data_model
 open Data_model_catalog
 
@@ -37,7 +41,7 @@ let convert_resource_consume_arity x = x
 let convert_resource_provide_arity x = x
 let convert_port_name              x = x
 let convert_component_type_name    x = x
-let convert_provide_arity          x = match x with | `InfiniteProvide -> Infinite_provide | `FiniteProvide(i) -> Finite_provide(i)
+let convert_provide_arity          x = match x with Abstract_io.InfiniteProvide -> Infinite_provide | Abstract_io.FiniteProvide(i) -> Finite_provide(i)
 let convert_require_arity          x = x
 let convert_package_name         r x = if Settings.find Settings.append_repository_to_package_name then r ^ x else x
 let convert_repository_name        x = x
@@ -51,7 +55,7 @@ let convert_component_name         x = x
 (*\*************************************************/*)
 
 (* A meta-catalog created from the Json_t model: universe, repositories, initial configuration and specification. *)
-let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repositories : Json_t.repository list) (initial_configuration : Json_t.configuration option) (specification : Json_t.specification option) : model_catalog = 
+let model_catalog_of_json_t (universe : Abstract_io.universe option) (additional_repositories : Abstract_io.repository list) (initial_configuration : Abstract_io.configuration option) (specification : Abstract_io.specification option) : model_catalog = 
 
   (* Mappings *)
   let component_type = new Component_type_catalog.catalog in (* component types *)
@@ -66,44 +70,44 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
   (* 1. Universe *)
 
   (* component_types *)
-  let add_component_type ct = component_type#add (convert_component_type_name ct.Json_t.component_type_name) in
+  let add_component_type ct = component_type#add (convert_component_type_name ct.Abstract_io.component_type_name) in
   
   (* ports *)
   let add_component_type_ports ct =
-    List.iter port#add (List.map convert_port_name (List.map fst ct.Json_t.component_type_provide )); (* add provide  ports *)
-    List.iter port#add (List.map convert_port_name (List.map fst ct.Json_t.component_type_require )); (* add require  ports *)
-    List.iter port#add (List.map convert_port_name               ct.Json_t.component_type_conflict)   (* add conflict ports *)
+    List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_provide )); (* add provide  ports *)
+    List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_require )); (* add require  ports *)
+    List.iter port#add (List.map convert_port_name               ct.Abstract_io.component_type_conflict)   (* add conflict ports *)
   in
 
   (* repositories *)
-  let add_repository r = repository#add (convert_repository_name r.Json_t.repository_name) in
-  let add_package r_id r_name k = package#add (r_id, (convert_package_name r_name k.Json_t.package_name)) in
+  let add_repository r = repository#add (convert_repository_name r.Abstract_io.repository_name) in
+  let add_package r_id r_name k = package#add (r_id, (convert_package_name r_name k.Abstract_io.package_name)) in
   
   (* packages *)
   let add_repository_packages r =
     let add_package =
-      let r_name = convert_repository_name r.Json_t.repository_name in (* repository name *)
+      let r_name = convert_repository_name r.Abstract_io.repository_name in (* repository name *)
       let r_id   = try repository#id_of_name r_name                    (* repository id   *)
                    with Not_found -> failwith "Loading packages from a repository before loading the repository first!" in
       add_package r_id r_name in
-    List.iter add_package r.Json_t.repository_packages (* add available packages *)
+    List.iter add_package r.Abstract_io.repository_packages (* add available packages *)
   in
 
   (* resources *)
-  let add_component_type_resources ct = List.iter resource#add (List.map convert_resource_name (List.map fst ct.Json_t.component_type_consume)) (* add consumed resources *) in
-  let add_package_resources        k  = List.iter resource#add (List.map convert_resource_name (List.map fst k.Json_t.package_consume))         (* add consumed resources *) in
+  let add_component_type_resources ct = List.iter resource#add (List.map convert_resource_name (List.map fst ct.Abstract_io.component_type_consume)) (* add consumed resources *) in
+  let add_package_resources        k  = List.iter resource#add (List.map convert_resource_name (List.map fst k.Abstract_io.package_consume))         (* add consumed resources *) in
   
   (* Add all the universe data and all the additional repositories data. *)
   begin
     match universe with
     | None   -> ()
     | Some u -> 
-        List.iter add_component_type           u.Json_t.universe_component_types; (* add component types *)
-        List.iter add_component_type_ports     u.Json_t.universe_component_types; (* add ports from component types *)
-        List.iter add_repository               u.Json_t.universe_repositories;    (* add repositories *)
-        List.iter add_repository_packages      u.Json_t.universe_repositories;    (* add packages from repositories *)
-        List.iter add_component_type_resources u.Json_t.universe_component_types; (* add resources from component types *)
-        List.iter add_package_resources        (List.flatten (List.map (fun r -> r.Json_t.repository_packages) u.Json_t.universe_repositories)) (* add resources from packages*)
+        List.iter add_component_type           u.Abstract_io.universe_component_types; (* add component types *)
+        List.iter add_component_type_ports     u.Abstract_io.universe_component_types; (* add ports from component types *)
+        List.iter add_repository               u.Abstract_io.universe_repositories;    (* add repositories *)
+        List.iter add_repository_packages      u.Abstract_io.universe_repositories;    (* add packages from repositories *)
+        List.iter add_component_type_resources u.Abstract_io.universe_component_types; (* add resources from component types *)
+        List.iter add_package_resources        (List.flatten (List.map (fun r -> r.Abstract_io.repository_packages) u.Abstract_io.universe_repositories)) (* add resources from packages*)
   end;
   List.iter add_repository          additional_repositories; (* add additional repositories *)
   List.iter add_repository_packages additional_repositories; (* add packages from additional repositories *)
@@ -112,29 +116,29 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
   (* 2. Configuration *)
 
   (* location *)
-  let add_location l = location#add (convert_location_name l.Json_t.location_name) in
+  let add_location l = location#add (convert_location_name l.Abstract_io.location_name) in
 
   (* component *)
-  let add_component c = component#add (convert_component_name c.Json_t.component_name)  in
+  let add_component c = component#add (convert_component_name c.Abstract_io.component_name)  in
 
   (* resources *)
-  let add_location_resources l = List.iter resource#add (List.map convert_resource_name (List.map fst l.Json_t.location_provide_resources)) in
+  let add_location_resources l = List.iter resource#add (List.map convert_resource_name (List.map fst l.Abstract_io.location_provide_resources)) in
 
   (* deprecated component types *)
   let add_component_deprecated_component_type c =
-    try let _ = component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in ()
+    try let _ = component_type#id_of_name (convert_component_type_name c.Abstract_io.component_type) in ()
     (* If there is an exception it means that this component type does not exist in the universe - it is deprecated. *)
-    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.Json_t.component_type) (Fresh_id.special Data_common.Deprecated) in
+    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.Abstract_io.component_type) (Fresh_id.special Data_common.Deprecated) in
 
   (* Add all the initial configuration data. *)
   begin
     match initial_configuration with
     | None   -> ()
     | Some c ->
-        List.iter add_location           c.Json_t.configuration_locations;  (* add locations *)
-        List.iter add_component          c.Json_t.configuration_components; (* add components *)
-        List.iter add_location_resources c.Json_t.configuration_locations;  (* add resources from locations *)
-        List.iter add_component_deprecated_component_type c.Json_t.configuration_components (* add deprecated component types *)
+        List.iter add_location           c.Abstract_io.configuration_locations;  (* add locations *)
+        List.iter add_component          c.Abstract_io.configuration_components; (* add components *)
+        List.iter add_location_resources c.Abstract_io.configuration_locations;  (* add resources from locations *)
+        List.iter add_component_deprecated_component_type c.Abstract_io.configuration_components (* add deprecated component types *)
   end;
 
   (* TODO: Add all the specification data. *) (*
@@ -144,7 +148,7 @@ let model_catalog_of_json_t (universe : Json_t.universe option) (additional_repo
     | Some s -> ()
   end; *)
 
-  (* The meta-catalog object.Json_t. *)
+  (* The meta-catalog object.Abstract_io. *)
   new model_catalog 
     ~component_type_catalog: component_type
     ~port_catalog:           port
@@ -198,7 +202,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
   let convert_component_type t : unit =
 
     (* name *)  
-    let name = convert_component_type_name t.Json_t.component_type_name in
+    let name = convert_component_type_name t.Abstract_io.component_type_name in
 
     (* id *)
     let id = catalog#component_type#id_of_name name in
@@ -208,26 +212,26 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
       Port_id_map.map_of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_provide_arity arity)
-      ) t.Json_t.component_type_provide in
+      ) t.Abstract_io.component_type_provide in
 
     (* create the mapping for require *)
     let require : require_arity Port_id_map.t = 
       Port_id_map.map_of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_require_arity arity)
-      ) t.Json_t.component_type_require in
+      ) t.Abstract_io.component_type_require in
 
     (* create the set for conflict *)
     let conflict : Port_id_set.t = 
       Port_id_set.set_of_list (fun name -> 
         catalog#port#id_of_name (convert_port_name name)
-      ) t.Json_t.component_type_conflict in 
+      ) t.Abstract_io.component_type_conflict in 
 
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (name, arity) -> 
         (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
-      ) t.Json_t.component_type_consume in
+      ) t.Abstract_io.component_type_consume in
 
     (* create the component type object *)
     let new_component_type = new component_type
@@ -247,7 +251,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
   let convert_package r_id r_name k : package_id =
 
     (* name *)
-    let name = convert_package_name r_name k.Json_t.package_name in
+    let name = convert_package_name r_name k.Abstract_io.package_name in
 
     (* id *)
     let id = catalog#package#id_of_name (r_id, name) in
@@ -257,19 +261,19 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
       Package_id_set_set.set_of_list (fun s -> 
         Package_id_set.set_of_list (fun n -> 
           catalog#package#id_of_name (r_id, convert_package_name r_name n)) s
-      ) k.Json_t.package_depend in
+      ) k.Abstract_io.package_depend in
     
     (* similar *)
     let conflict : Package_id_set.t = 
       Package_id_set.set_of_list (fun n -> 
         catalog#package#id_of_name (r_id, (convert_package_name r_name n))
-      ) k.Json_t.package_conflict in
+      ) k.Abstract_io.package_conflict in
     
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (r_id,n) -> 
         (catalog#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
-      ) k.Json_t.package_consume in
+      ) k.Abstract_io.package_consume in
 
     (* create the package object *)
     let new_package = new package
@@ -291,7 +295,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
   let convert_repository r : unit = 
 
     (* name *)
-    let name = convert_repository_name r.Json_t.repository_name in
+    let name = convert_repository_name r.Abstract_io.repository_name in
 
     (* id *)
     let id = catalog#repository#id_of_name name in
@@ -300,7 +304,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
     let packages : Package_id_set.t = 
       Package_id_set.set_of_list (fun k -> 
         convert_package id name k (* this returns the package id, thus the set is built *)
-      ) r.Json_t.repository_packages in
+      ) r.Abstract_io.repository_packages in
 
     (* create the repository object *)
     let new_repository = new repository
@@ -313,9 +317,9 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
   in
 
   (* universe *)
-  List.iter convert_repository     u.Json_t.universe_repositories;    (* include the repository and package data coming from the universe *) 
+  List.iter convert_repository     u.Abstract_io.universe_repositories;    (* include the repository and package data coming from the universe *) 
   List.iter convert_repository     external_repositories;             (* include the repository and package data coming from the external repositories *) 
-  List.iter convert_component_type u.Json_t.universe_component_types; (* include the component type data *)
+  List.iter convert_component_type u.Abstract_io.universe_component_types; (* include the component type data *)
   
   (* may add erroneous packages and component types *)
   let implementation = 
@@ -325,7 +329,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
          let r_name = convert_repository_name r in 
          catalog#package#id_of_name (catalog#repository#id_of_name r_name, convert_package_name r_name k)
        ) ks)
-    ) u.Json_t.universe_implementation in
+    ) u.Abstract_io.universe_implementation in
   
   new universe 
     ~ports:           catalog#port#ids
@@ -362,29 +366,29 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
   let convert_location l : unit =
 
     (* name *)
-    let name = convert_location_name l.Json_t.location_name in
+    let name = convert_location_name l.Abstract_io.location_name in
 
     (* id *)
     let id = catalog#location#id_of_name name in
 
     (* repository *)
-    let r_name = convert_repository_name l.Json_t.location_repository in 
+    let r_name = convert_repository_name l.Abstract_io.location_repository in 
     let repository = catalog#repository#id_of_name r_name in
 
     (* packages installed *)
     let packages_installed : Package_id_set.t = 
       Package_id_set.set_of_list (fun k -> 
         catalog#package#id_of_name (repository, (convert_package_name r_name k))
-      ) l.Json_t.location_packages_installed in
+      ) l.Abstract_io.location_packages_installed in
 
     (* resources *)
     let resources : resource_provide_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (r, n) -> 
         (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
-      ) l.Json_t.location_provide_resources in (* needs to be completed with non-mentioned resources *)
+      ) l.Abstract_io.location_provide_resources in (* needs to be completed with non-mentioned resources *)
 
     (* cost *)
-    let cost = convert_location_cost l.Json_t.location_cost in
+    let cost = convert_location_cost l.Abstract_io.location_cost in
 
     (* create the location object *)    
     let new_location = new location
@@ -403,16 +407,16 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
   let convert_component c : unit =
 
     (* name *)
-    let name = convert_component_name c.Json_t.component_name in
+    let name = convert_component_name c.Abstract_io.component_name in
 
     (* id *)
     let id = catalog#component#id_of_name name in
 
     (* type *)
-    let typ = catalog#component_type#id_of_name (convert_component_type_name c.Json_t.component_type) in
+    let typ = catalog#component_type#id_of_name (convert_component_type_name c.Abstract_io.component_type) in
 
     (* location *)
-    let location = catalog#location#id_of_name (convert_location_name c.Json_t.component_location) in
+    let location = catalog#location#id_of_name (convert_location_name c.Abstract_io.component_location) in
 
     (* create the component object *)
     let new_component = new component
@@ -427,9 +431,9 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     
   (* bindings *)
   let convert_binding b =
-    let port     = catalog#port#id_of_name      (convert_port_name      b.Json_t.binding_port) in
-    let requirer = catalog#component#id_of_name (convert_component_name b.Json_t.binding_requirer) in
-    let provider = catalog#component#id_of_name (convert_component_name b.Json_t.binding_provider) in 
+    let port     = catalog#port#id_of_name      (convert_port_name      b.Abstract_io.binding_port) in
+    let requirer = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_requirer) in
+    let provider = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_provider) in 
 
     new binding
       ~port:     port
@@ -438,9 +442,9 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     in
 
   (* configuration *)
-  List.iter convert_location  c.Json_t.configuration_locations;
-  List.iter convert_component c.Json_t.configuration_components;
-  let bindings = Binding_set.set_of_list (convert_binding) c.Json_t.configuration_bindings in
+  List.iter convert_location  c.Abstract_io.configuration_locations;
+  List.iter convert_component c.Abstract_io.configuration_components;
+  let bindings = Binding_set.set_of_list (convert_binding) c.Abstract_io.configuration_bindings in
 
   new configuration
     ~locations:  locations#id_to_obj_map
@@ -459,63 +463,63 @@ let empty_configuration = new configuration ()
 let convert_spec_variable_name = fun x -> x
 let convert_spec_const         = fun x -> x
 let convert_spec_op = function
-| `Lt -> Lt
-| `LEq -> LEq
-| `Eq -> Eq
-| `GEq -> GEq
-| `Gt -> Gt
-| `NEq -> NEq
+| Abstract_io.Lt -> Lt
+| Abstract_io.LEq -> LEq
+| Abstract_io.Eq -> Eq
+| Abstract_io.GEq -> GEq
+| Abstract_io.Gt -> Gt
+| Abstract_io.NEq -> NEq
 
 let convert_specification (catalog : closed_model_catalog) s =
 
   let convert_spec_local_element el = match el with
-  | `SpecLocalElementPackage(r,k)       -> let r_name = convert_repository_name r in let repo = catalog#repository#id_of_name r_name in
+  | Abstract_io.SpecLocalElementPackage(r,k)       -> let r_name = convert_repository_name r in let repo = catalog#repository#id_of_name r_name in
                                                Spec_local_element_package(catalog#package#id_of_name (repo, (convert_package_name r_name k)))
-  | `SpecLocalElementComponentType(t)   -> Spec_local_element_component_type(catalog#component_type#id_of_name (convert_component_type_name t))
-  | `SpecLocalElementPort(p)            -> Spec_local_element_port(catalog#port#id_of_name (convert_port_name p)) in
+  | Abstract_io.SpecLocalElementComponentType(t)   -> Spec_local_element_component_type(catalog#component_type#id_of_name (convert_component_type_name t))
+  | Abstract_io.SpecLocalElementPort(p)            -> Spec_local_element_port(catalog#port#id_of_name (convert_port_name p)) in
 
   let rec convert_spec_local_expr e = match e with
-  | `SpecLocalExprVar(v)        -> Spec_local_expr_var(convert_spec_variable_name v)
-  | `SpecLocalExprConst(c)      -> Spec_local_expr_const(convert_spec_const c)
-  | `SpecLocalExprArity(el)     -> Spec_local_expr_arity(convert_spec_local_element el)
-  | `SpecLocalExprAdd(ex1, ex2) -> Spec_local_expr_add(convert_spec_local_expr ex1, convert_spec_local_expr ex2)
-  | `SpecLocalExprSub(ex1, ex2) -> Spec_local_expr_sub(convert_spec_local_expr ex1, convert_spec_local_expr ex2)
-  | `SpecLocalExprMul(n, ex)    -> Spec_local_expr_mul(convert_spec_const n, convert_spec_local_expr ex) in
+  | Abstract_io.SpecLocalExprVar(v)        -> Spec_local_expr_var(convert_spec_variable_name v)
+  | Abstract_io.SpecLocalExprConst(c)      -> Spec_local_expr_const(convert_spec_const c)
+  | Abstract_io.SpecLocalExprArity(el)     -> Spec_local_expr_arity(convert_spec_local_element el)
+  | Abstract_io.SpecLocalExprAdd(ex1, ex2) -> Spec_local_expr_add(convert_spec_local_expr ex1, convert_spec_local_expr ex2)
+  | Abstract_io.SpecLocalExprSub(ex1, ex2) -> Spec_local_expr_sub(convert_spec_local_expr ex1, convert_spec_local_expr ex2)
+  | Abstract_io.SpecLocalExprMul(n, ex)    -> Spec_local_expr_mul(convert_spec_const n, convert_spec_local_expr ex) in
 
   let rec convert_local_specification sl = match sl with 
-  | `SpecLocalTrue            -> Spec_local_true
-  | `SpecLocalOp(ex1, o, ex2) -> Spec_local_op(convert_spec_local_expr ex1, convert_spec_op o, convert_spec_local_expr ex2)
-  | `SpecLocalAnd(sl1, sl2)   -> Spec_local_and(convert_local_specification sl1, convert_local_specification sl2)
-  | `SpecLocalOr(sl1, sl2)    -> Spec_local_or(convert_local_specification sl1, convert_local_specification sl2)
-  | `SpecLocalImpl(sl1, sl2)  -> Spec_local_impl(convert_local_specification sl1, convert_local_specification sl2)
-  | `SpecLocalNot(sl')        -> Spec_local_not(convert_local_specification sl') in
+  | Abstract_io.SpecLocalTrue            -> Spec_local_true
+  | Abstract_io.SpecLocalOp(ex1, o, ex2) -> Spec_local_op(convert_spec_local_expr ex1, convert_spec_op o, convert_spec_local_expr ex2)
+  | Abstract_io.SpecLocalAnd(sl1, sl2)   -> Spec_local_and(convert_local_specification sl1, convert_local_specification sl2)
+  | Abstract_io.SpecLocalOr(sl1, sl2)    -> Spec_local_or(convert_local_specification sl1, convert_local_specification sl2)
+  | Abstract_io.SpecLocalImpl(sl1, sl2)  -> Spec_local_impl(convert_local_specification sl1, convert_local_specification sl2)
+  | Abstract_io.SpecLocalNot(sl')        -> Spec_local_not(convert_local_specification sl') in
 
   let convert_spec_repository_constraint x = catalog#repository#id_of_name (convert_repository_name x) in
   let convert_spec_resource_constraint (r, o, c) = (catalog#resource#id_of_name (convert_resource_name r), convert_spec_op o, convert_spec_const c) in
 
   let convert_spec_element el = match el with
-  | `SpecElementPackage(r,k)           -> let r_name = convert_repository_name r in let repo = catalog#repository#id_of_name r_name in
+  | Abstract_io.SpecElementPackage(r,k)           -> let r_name = convert_repository_name r in let repo = catalog#repository#id_of_name r_name in
                                             Spec_element_package(catalog#package#id_of_name (repo, (convert_package_name r_name k)))
-  | `SpecElementComponentType(t)       -> Spec_element_component_type(catalog#component_type#id_of_name (convert_component_type_name t))
-  | `SpecElementPort(p)                -> Spec_element_port(catalog#port#id_of_name (convert_port_name p))
-  | `SpecElementLocalisation(phi,r,sl) -> Spec_element_location(
+  | Abstract_io.SpecElementComponentType(t)       -> Spec_element_component_type(catalog#component_type#id_of_name (convert_component_type_name t))
+  | Abstract_io.SpecElementPort(p)                -> Spec_element_port(catalog#port#id_of_name (convert_port_name p))
+  | Abstract_io.SpecElementLocalisation(phi,r,sl) -> Spec_element_location(
           List.map convert_spec_resource_constraint phi, List.map convert_spec_repository_constraint r, convert_local_specification sl) in
 
   let rec convert_spec_expr e = match e with
-  | `SpecExprVar(v)        -> Spec_expr_var(convert_spec_variable_name v)
-  | `SpecExprConst(c)      -> Spec_expr_const(convert_spec_const c)
-  | `SpecExprArity(el)     -> Spec_expr_arity(convert_spec_element el)
-  | `SpecExprAdd(ex1, ex2) -> Spec_expr_add(convert_spec_expr ex1, convert_spec_expr ex2)
-  | `SpecExprSub(ex1, ex2) -> Spec_expr_sub(convert_spec_expr ex1, convert_spec_expr ex2)
-  | `SpecExprMul(n, ex)    -> Spec_expr_mul(convert_spec_const n, convert_spec_expr ex) in
+  | Abstract_io.SpecExprVar(v)        -> Spec_expr_var(convert_spec_variable_name v)
+  | Abstract_io.SpecExprConst(c)      -> Spec_expr_const(convert_spec_const c)
+  | Abstract_io.SpecExprArity(el)     -> Spec_expr_arity(convert_spec_element el)
+  | Abstract_io.SpecExprAdd(ex1, ex2) -> Spec_expr_add(convert_spec_expr ex1, convert_spec_expr ex2)
+  | Abstract_io.SpecExprSub(ex1, ex2) -> Spec_expr_sub(convert_spec_expr ex1, convert_spec_expr ex2)
+  | Abstract_io.SpecExprMul(n, ex)    -> Spec_expr_mul(convert_spec_const n, convert_spec_expr ex) in
 
   let rec convert s = match s with 
-  | `SpecTrue            -> Spec_true
-  | `SpecOp(ex1, o, ex2) -> Spec_op(convert_spec_expr ex1, convert_spec_op o, convert_spec_expr ex2)
-  | `SpecAnd(s1, s2)     -> Spec_and(convert s1, convert s2)
-  | `SpecOr(s1, s2)      -> Spec_or(convert s1, convert s2)
-  | `SpecImpl(s1, s2)    -> Spec_impl(convert s1, convert s2)
-  | `SpecNot(s')         -> Spec_not(convert s') in 
+  | Abstract_io.SpecTrue            -> Spec_true
+  | Abstract_io.SpecOp(ex1, o, ex2) -> Spec_op(convert_spec_expr ex1, convert_spec_op o, convert_spec_expr ex2)
+  | Abstract_io.SpecAnd(s1, s2)     -> Spec_and(convert s1, convert s2)
+  | Abstract_io.SpecOr(s1, s2)      -> Spec_or(convert s1, convert s2)
+  | Abstract_io.SpecImpl(s1, s2)    -> Spec_impl(convert s1, convert s2)
+  | Abstract_io.SpecNot(s')         -> Spec_not(convert s') in 
 
   convert s
 
@@ -581,16 +585,20 @@ let load_optimization_function = convert_optimization_function
 
 let model_of_file_options file_u file_repos file_conf file_spec optim =
 
-  let u  = match file_u     with None -> None | Some(file_u')     -> load_basic_universe      file_u' in
-  let rs = match file_repos with None -> []   | Some(file_repos') -> load_basic_repositories  file_repos' in
-  let c  = match file_conf  with None -> None | Some(file_conf')  -> load_basic_configuration file_conf' in
-  let s  = match file_spec  with None -> None | Some(file_spec')  -> load_basic_specification file_spec' in
-  let f  = match optim      with None -> None | Some(optim')      -> Some(load_optimization_function optim') in
+  let u  : Json_t.universe                  option = match file_u     with None -> None | Some(file_u')     -> load_basic_universe      file_u' in
+  let rs : Json_t.repository                list   = match file_repos with None -> []   | Some(file_repos') -> load_basic_repositories  file_repos' in
+  let c  : Json_t.configuration             option = match file_conf  with None -> None | Some(file_conf')  -> load_basic_configuration file_conf' in
+  let s  : Abstract_io.specification        option = match file_spec  with None -> None | Some(file_spec')  -> load_basic_specification file_spec' in
+  let f  : Data_model.optimization_function option = match optim      with None -> None | Some(optim')      -> Some(load_optimization_function optim') in
+
+  let u  : Abstract_io.universe      option = match u  with None -> None | Some u -> Some (Json.To_abstract_io.universe      u) in
+  let rs : Abstract_io.repository    list   = List.map                                     Json.To_abstract_io.repository    rs in
+  let c  : Abstract_io.configuration option = match c  with None -> None | Some c -> Some (Json.To_abstract_io.configuration c) in
 
   let catalog = load_catalog u rs c s in
-  let final_u = match u with None -> None | Some(u') -> Some(load_universe catalog rs u') in
-  let final_c = match c with None -> None | Some(c') -> Some(load_configuration catalog c') in
-  let final_s = match s with None -> None | Some(s') -> Some(load_specification catalog s') in
+  let final_u = match u with None -> None | Some(u') -> Some(load_universe      catalog rs u') in
+  let final_c = match c with None -> None | Some(c') -> Some(load_configuration catalog    c') in
+  let final_s = match s with None -> None | Some(s') -> Some(load_specification catalog    s') in
   (catalog, final_u, final_c, final_s, f)
 
 let model_of_settings () = model_of_file_options
@@ -609,10 +617,10 @@ let set_initial_model_of_settings () = let (catalog, universe, initial_configura
 
 let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-  let u  : Json_t.universe                  = benchmark#universe in
-  let rs                                    = [] in
-  let c  : Json_t.configuration             = benchmark#initial_configuration in
-  let s  : Json_t.specification             = benchmark#specification in
+  let u  : Abstract_io.universe             = benchmark#universe in
+  let rs  : Abstract_io.repository list     = [] in
+  let c  : Abstract_io.configuration        = benchmark#initial_configuration in
+  let s  : Abstract_io.specification        = benchmark#specification in
   let f  : Data_model.optimization_function = benchmark#optimisation_function in
 
   let catalog               = load_catalog (Some u) rs (Some c) (Some s) in

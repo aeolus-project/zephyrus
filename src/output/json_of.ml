@@ -25,22 +25,21 @@
     - atd/Json_j
 *)
 
-(* 0. Name Conversion *)
+module Json_t = Json_v0_t
+module Json_j = Json_v0_j
 
-
+open Data_model
 
 (*/**********************************************\*)
 (* 1. Translation to Json internal representation *)
 (*\**********************************************/*)
-
-open Data_model
 
 let convert_resource_name          x = x
 let convert_resource_consume_arity x = x
 let convert_resource_provide_arity x = x
 let convert_port_name              x = x
 let convert_component_type_name    x = x
-let convert_provide_arity          x = match x with | Infinite_provide -> `InfiniteProvide | Finite_provide(i) -> `FiniteProvide(i)
+let convert_provide_arity          x = match x with Infinite_provide -> Json_t.InfiniteProvide | Finite_provide(i) -> Json_t.FiniteProvide(i)
 let convert_require_arity          x = x
 let convert_package_name           x = x
 let convert_repository_name        x = x
