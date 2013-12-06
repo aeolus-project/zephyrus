@@ -188,9 +188,10 @@ let string_of_provide_arity ?(len = 1024) x =
   write_provide_arity ob x;
   Bi_outbuf.contents ob
 let read_provide_arity = (
-  fun x y -> 
+  Ag_oj_run.read_string
+  (*fun x y -> 
     try                      Ag_oj_run.read_string x y
-    with _ -> string_of_int (Ag_oj_run.read_int    x y)
+    with _ -> string_of_int (Ag_oj_run.read_int    x y) *)
 )
 let provide_arity_of_string s =
   read_provide_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)

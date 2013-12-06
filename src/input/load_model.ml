@@ -27,10 +27,6 @@
     - input/Input_helper (for input file manipulation)
 *)
 
-module Json_t = Json_v0_t
-module Json_j = Json_v0_j
-module Json   = Json_v0
-
 open Data_model
 open Data_model_catalog
 
@@ -554,20 +550,40 @@ let load_version file : int =
 let load_basic_universe file =
   let syntax_version = load_version file in
   Zephyrus_log.log_execution (Printf.sprintf "Universe syntax version = %d%!\n" syntax_version);
-  Input_helper.parse_json Json_j.read_universe file
+  match syntax_version with
+  | 0 -> (match Input_helper.parse_json Json_v0_j.read_universe file with
+          | None   -> None
+          | Some u -> Some (Json_v0.To_abstract_io.universe u))
+  | 1 -> (match Input_helper.parse_json Json_v1_j.read_universe file with
+          | None   -> None
+          | Some u -> Some (Json_v1.To_abstract_io.universe u))
+  | _ -> failwith "Unsupported universe syntax version!"
+  
 
 let load_basic_repositories l = 
   List.fold_left (fun res (n,f) -> 
-    let r = Input_helper.parse_json Json_j.read_packages f in 
+    let r = Input_helper.parse_json Json_v0_j.read_packages f in 
     match r with 
     | None -> res
-    | Some(ks) -> { Json_j.repository_name = n; Json_j.repository_packages = ks }::res
+    | Some(ks) -> { 
+        Abstract_io.repository_name = n;
+        Abstract_io.repository_packages = List.map Json_v0.To_abstract_io.package ks
+      }::res
   ) [] l
 
 let load_basic_configuration file = 
   let syntax_version = load_version file in
   Zephyrus_log.log_execution (Printf.sprintf "Configuration syntax version = %d%!\n" syntax_version);
-  Input_helper.parse_json Json_j.read_configuration file
+    match syntax_version with
+  | 0 -> (match Input_helper.parse_json Json_v0_j.read_configuration file with
+          | None   -> None
+          | Some c -> Some (Json_v0.To_abstract_io.configuration c))
+  | 1 -> (match Input_helper.parse_json Json_v1_j.read_configuration file with
+          | None   -> None
+          | Some c -> Some (Json_v1.To_abstract_io.configuration c))
+  | _ -> failwith "Unsupported configuration syntax version!"
+
+  
 
 let load_basic_specification file = 
   Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
@@ -585,15 +601,17 @@ let load_optimization_function = convert_optimization_function
 
 let model_of_file_options file_u file_repos file_conf file_spec optim =
 
-  let u  : Json_t.universe                  option = match file_u     with None -> None | Some(file_u')     -> load_basic_universe      file_u' in
-  let rs : Json_t.repository                list   = match file_repos with None -> []   | Some(file_repos') -> load_basic_repositories  file_repos' in
-  let c  : Json_t.configuration             option = match file_conf  with None -> None | Some(file_conf')  -> load_basic_configuration file_conf' in
+  let u  : Abstract_io.universe             option = match file_u     with None -> None | Some(file_u')     -> load_basic_universe      file_u' in
+  let rs : Abstract_io.repository           list   = match file_repos with None -> []   | Some(file_repos') -> load_basic_repositories  file_repos' in
+  let c  : Abstract_io.configuration        option = match file_conf  with None -> None | Some(file_conf')  -> load_basic_configuration file_conf' in
   let s  : Abstract_io.specification        option = match file_spec  with None -> None | Some(file_spec')  -> load_basic_specification file_spec' in
   let f  : Data_model.optimization_function option = match optim      with None -> None | Some(optim')      -> Some(load_optimization_function optim') in
 
+  (*
   let u  : Abstract_io.universe      option = match u  with None -> None | Some u -> Some (Json.To_abstract_io.universe      u) in
   let rs : Abstract_io.repository    list   = List.map                                     Json.To_abstract_io.repository    rs in
   let c  : Abstract_io.configuration option = match c  with None -> None | Some c -> Some (Json.To_abstract_io.configuration c) in
+  *)
 
   let catalog = load_catalog u rs c s in
   let final_u = match u with None -> None | Some(u') -> Some(load_universe      catalog rs u') in
