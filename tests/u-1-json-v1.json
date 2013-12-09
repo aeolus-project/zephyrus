@@ -3,7 +3,7 @@
 	"component_types": [
 		{
 			"name": "Provider",
-			"provide": {"@port" : "3"},
+			"provide": {"@port" : 3},
 			"consume": {"resource" : 5}
 		},
 		{

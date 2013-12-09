@@ -179,19 +179,33 @@ let read_resource_name = (
 let resource_name_of_string s =
   read_resource_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_provide_arity = (
-  fun ob x -> match x with
-  | "infinity" -> Yojson.Safe.write_string ob x
-  | _          -> Yojson.Safe.write_int    ob (int_of_string x)
+  (* Workaround: 
+     - a string containing a number should be printed as a JSON number (i.e. no surrounding quotes), 
+     - any other string should be printed as a JSON string (i.e. with surrounding quotes). *)
+  fun ob x -> 
+  try
+    let i = int_of_string x in
+    Yojson.Safe.write_int ob i
+  with _ -> 
+    Yojson.Safe.write_string ob x
 )
 let string_of_provide_arity ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
   write_provide_arity ob x;
   Bi_outbuf.contents ob
 let read_provide_arity = (
-  Ag_oj_run.read_string
-  (*fun x y -> 
-    try                      Ag_oj_run.read_string x y
-    with _ -> string_of_int (Ag_oj_run.read_int    x y) *)
+  (* Workaround: as we expect a JSON string or a JSON integer here,
+     and we have to output a string either way:
+     - in case of a string we return it directly,
+     - in case of an integer we convert it to string before returning,
+     - otherwise we raise an exception. *)
+  fun (p : Yojson.Safe.lexer_state) (lb : Lexing.lexbuf) ->
+    Yojson.Safe.read_space p lb;
+    let json = Yojson.Safe.from_lexbuf p lb ~stream: true in
+    match json with
+    | `Int    (i) -> string_of_int i
+    | `String (s) -> s
+    | _ -> failwith "Universe parsing: provide arity must be a string or an integer." (* TODO: Raise a proper ATD exception? *)
 )
 let provide_arity_of_string s =
   read_provide_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)

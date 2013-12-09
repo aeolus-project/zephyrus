@@ -17,6 +17,19 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Settings concerning the notation of infinite provide arity. *)
+
+(** Which strings will be recognised as an infinite provide arity in the input. *)
+let infinite_provide_arity_strings = [
+  "inf"; "infinity"; "infinite";
+  "Inf"; "Infinity"; "Infinite";
+  "INF"; "INFINITY"; "INFINITE"
+]
+
+(** How the infinite provide arity should be printed in the output. *)
+let default_infinite_provide_arity_string = "infinity"
+
+
 module To_abstract_io = struct
 
   module I = Json_v1_t
@@ -31,10 +44,10 @@ module To_abstract_io = struct
   let component_name      component_name'      = component_name'
 
   let provide_arity provide_arity' = 
-    match provide_arity' with
-    | "infinity" -> O.InfiniteProvide
-    | _          -> try O.FiniteProvide (int_of_string provide_arity')
-                    with _ -> failwith (Printf.sprintf "Conversion to generic IO format failed! Wrong provide_arity: %s" provide_arity')
+    if List.mem provide_arity' infinite_provide_arity_strings
+    then O.InfiniteProvide
+    else try O.FiniteProvide (int_of_string provide_arity')
+         with _ -> failwith (Printf.sprintf "Conversion to generic IO format failed! Wrong provide_arity: %s" provide_arity')
   
   let require_arity          require_arity'          = require_arity'
   let resource_consumption   resource_consumption'   = resource_consumption'
@@ -125,7 +138,7 @@ module Of_abstract_io = struct
   let provide_arity provide_arity' = 
     match provide_arity' with
     | I.FiniteProvide (i) -> Printf.sprintf "%d" i
-    | I.InfiniteProvide   -> "infinity"
+    | I.InfiniteProvide   -> default_infinite_provide_arity_string
   
   let require_arity          require_arity'          = require_arity'
   let resource_consumption   resource_consumption'   = resource_consumption'
