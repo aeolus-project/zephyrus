@@ -1,7 +1,10 @@
 (* Auto-generated from "json_v1.atd" *)
 
 
+(** Type definition for syntax version. *)
+
 (** Type definitions for naming. *)
+type version = Json_versions_t.version
 
 type component_type_name = string
 
@@ -58,6 +61,7 @@ type package_names = (repository_name * package_name) list
 
 (** Type definitions for Configuration. *)
 type universe = {
+  universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
@@ -89,6 +93,7 @@ type binding = {
 }
 
 type configuration = {
+  configuration_version (*atd version *): version;
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list

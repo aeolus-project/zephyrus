@@ -227,6 +227,8 @@ let gen_packages_domain_message = String.concat " | " gen_packages_names
 type out_file_inner = 
   | Out_file_plain
   | Out_file_json
+  | Out_file_json_v0
+  | Out_file_json_v1
   | Out_file_graph_deployment
   | Out_file_graph_simplified
   | Out_file_graph_components
@@ -237,6 +239,8 @@ type out_files = out_file list
 let out_files_assoc = [
   ("plain"                      , Out_file_plain);
   ("json"                       , Out_file_json);
+  ("json-v0"                    , Out_file_json_v0);
+  ("json-v1"                    , Out_file_json_v1);
   ("simplified-deployment-graph", Out_file_graph_simplified);
   ("components-graph"           , Out_file_graph_components);
   ("packages-graph"             , Out_file_graph_packages);

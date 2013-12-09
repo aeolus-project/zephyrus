@@ -17,18 +17,9 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
 (* Depends on
     - datatypes/Data_model
-    - datatypes/Data_constraint
-    - datatypes/Data_helper
 *)
 
-(* Does not work, do not know why yet *)
-val universe      : Data_model.universe                             -> out_channel -> unit
-val configuration : Data_model.universe -> Data_model.configuration -> out_channel -> unit
-
-(* for now, use that *)
-val universe_string      : Data_model.universe                             -> string
-val configuration_string : Data_model.universe -> Data_model.configuration -> string
-
+val universe      : Data_model.universe -> string
+val configuration : Data_model.universe -> Data_model.configuration -> string

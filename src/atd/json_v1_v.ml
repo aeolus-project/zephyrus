@@ -1,7 +1,10 @@
 (* Auto-generated from "json_v1.atd" *)
 
 
+(** Type definition for syntax version. *)
+
 (** Type definitions for naming. *)
+type version = Json_versions_t.version
 
 type component_type_name = Json_v1_t.component_type_name
 
@@ -58,6 +61,7 @@ type package_names = Json_v1_t.package_names
 
 (** Type definitions for Configuration. *)
 type universe = Json_v1_t.universe = {
+  universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
@@ -89,11 +93,15 @@ type binding = Json_v1_t.binding = {
 }
 
 type configuration = Json_v1_t.configuration = {
+  configuration_version (*atd version *): version;
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
 }
 
+let validate_version = (
+  Json_versions_v.validate_version
+)
 let validate_component_type_name = (
   (fun _ _ -> None)
 )
@@ -182,7 +190,10 @@ let validate__11 = (
   fun _ _ -> None
 )
 let validate_universe = (
-  fun _ _ -> None
+  fun path x ->
+    (
+      validate_version
+    ) (`Field "universe_version" :: path) x.universe_version
 )
 let validate__12 = (
   fun _ _ -> None
@@ -212,7 +223,10 @@ let validate__15 = (
   fun _ _ -> None
 )
 let validate_configuration = (
-  fun _ _ -> None
+  fun path x ->
+    (
+      validate_version
+    ) (`Field "configuration_version" :: path) x.configuration_version
 )
 let create_component_type 
   ~component_type_name
@@ -249,11 +263,13 @@ let create_repository
     repository_packages = repository_packages;
   }
 let create_universe 
+  ~universe_version
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
   () =
   {
+    universe_version = universe_version;
     universe_component_types = universe_component_types;
     universe_implementation = universe_implementation;
     universe_repositories = universe_repositories;
@@ -293,11 +309,13 @@ let create_binding
     binding_provider = binding_provider;
   }
 let create_configuration 
+  ~configuration_version
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
   () =
   {
+    configuration_version = configuration_version;
     configuration_locations = configuration_locations;
     configuration_components = configuration_components;
     configuration_bindings = configuration_bindings;

@@ -176,6 +176,7 @@ module Of_abstract_io = struct
     (component_type_name component_type_name', List.map package_path package_path_list)
 
   let universe universe' = {
+    O.universe_version         = 1;
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
@@ -206,6 +207,7 @@ module Of_abstract_io = struct
   }
 
   let configuration configuration' = {
+    O.configuration_version    = 1;
     O.configuration_locations  = List.map location  configuration'.I.configuration_locations;
     O.configuration_components = List.map component configuration'.I.configuration_components;
     O.configuration_bindings   = List.map binding   configuration'.I.configuration_bindings;

@@ -1,7 +1,10 @@
 (* Auto-generated from "json_v1.atd" *)
 
 
+(** Type definition for syntax version. *)
+
 (** Type definitions for naming. *)
+type version = Json_versions_t.version
 
 type component_type_name = Json_v1_t.component_type_name
 
@@ -58,6 +61,7 @@ type package_names = Json_v1_t.package_names
 
 (** Type definitions for Configuration. *)
 type universe = Json_v1_t.universe = {
+  universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
@@ -89,10 +93,15 @@ type binding = Json_v1_t.binding = {
 }
 
 type configuration = Json_v1_t.configuration = {
+  configuration_version (*atd version *): version;
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
 }
+
+val validate_version :
+  Ag_util.Validation.path -> version -> Ag_util.Validation.error option
+  (** Validate a value of type {!version}. *)
 
 val validate_component_type_name :
   Ag_util.Validation.path -> component_type_name -> Ag_util.Validation.error option
@@ -190,6 +199,7 @@ val validate_package_names :
   (** Validate a value of type {!package_names}. *)
 
 val create_universe :
+  universe_version: version ->
   ?universe_component_types: component_types ->
   ?universe_implementation: (component_type_name * package_names) list ->
   ?universe_repositories: repositories ->
@@ -244,6 +254,7 @@ val validate_binding :
   (** Validate a value of type {!binding}. *)
 
 val create_configuration :
+  configuration_version: version ->
   ?configuration_locations: location list ->
   ?configuration_components: component list ->
   ?configuration_bindings: binding list ->

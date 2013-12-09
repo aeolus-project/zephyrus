@@ -1,6 +1,6 @@
---- json_v1_j.ml.orig	2013-12-06 16:40:16.419939461 +0100
-+++ json_v1_j.ml	2013-12-09 14:43:34.096674120 +0100
-@@ -179,14 +179,33 @@
+--- json_v1_j.ml.orig	2013-12-09 16:10:42.608772278 +0100
++++ json_v1_j.ml	2013-12-09 16:12:30.044774295 +0100
+@@ -196,14 +196,33 @@
  let resource_name_of_string s =
    read_resource_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
  let write_provide_arity = (

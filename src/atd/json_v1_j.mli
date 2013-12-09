@@ -1,7 +1,10 @@
 (* Auto-generated from "json_v1.atd" *)
 
 
+(** Type definition for syntax version. *)
+
 (** Type definitions for naming. *)
+type version = Json_versions_t.version
 
 type component_type_name = Json_v1_t.component_type_name
 
@@ -58,6 +61,7 @@ type package_names = Json_v1_t.package_names
 
 (** Type definitions for Configuration. *)
 type universe = Json_v1_t.universe = {
+  universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
@@ -89,10 +93,31 @@ type binding = Json_v1_t.binding = {
 }
 
 type configuration = Json_v1_t.configuration = {
+  configuration_version (*atd version *): version;
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
 }
+
+val write_version :
+  Bi_outbuf.t -> version -> unit
+  (** Output a JSON value of type {!version}. *)
+
+val string_of_version :
+  ?len:int -> version -> string
+  (** Serialize a value of type {!version}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_version :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> version
+  (** Input JSON data of type {!version}. *)
+
+val version_of_string :
+  string -> version
+  (** Deserialize JSON data of type {!version}. *)
 
 val write_component_type_name :
   Bi_outbuf.t -> component_type_name -> unit

@@ -1,7 +1,10 @@
 (* Auto-generated from "json_v1.atd" *)
 
 
+(** Type definition for syntax version. *)
+
 (** Type definitions for naming. *)
+type version = Json_versions_t.version
 
 type component_type_name = Json_v1_t.component_type_name
 
@@ -58,6 +61,7 @@ type package_names = Json_v1_t.package_names
 
 (** Type definitions for Configuration. *)
 type universe = Json_v1_t.universe = {
+  universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
@@ -89,11 +93,24 @@ type binding = Json_v1_t.binding = {
 }
 
 type configuration = Json_v1_t.configuration = {
+  configuration_version (*atd version *): version;
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
 }
 
+let write_version = (
+  Json_versions_j.write_version
+)
+let string_of_version ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_version ob x;
+  Bi_outbuf.contents ob
+let read_version = (
+  Json_versions_j.read_version
+)
+let version_of_string s =
+  read_version (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_component_type_name = (
   Yojson.Safe.write_string
 )
@@ -1230,6 +1247,15 @@ let write_universe = (
       is_first := false
     else
       Bi_outbuf.add_char ob ',';
+    Bi_outbuf.add_string ob "\"version\":";
+    (
+      write_version
+    )
+      ob x.universe_version;
+    if !is_first then
+      is_first := false
+    else
+      Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"component_types\":";
     (
       write_component_types
@@ -1265,11 +1291,13 @@ let read_universe = (
     Yojson.Safe.read_lcurl p lb;
     let x =
       {
+        universe_version = Obj.magic 0.0;
         universe_component_types = [];
         universe_implementation = [];
-        universe_repositories = (fun x -> x) ([]);
+        universe_repositories = [];
       }
     in
+    let bits0 = ref 0 in
     try
       Yojson.Safe.read_space p lb;
       Yojson.Safe.read_object_end lb;
@@ -1279,9 +1307,17 @@ let read_universe = (
           if pos < 0 || len < 0 || pos + len > String.length s then
             invalid_arg "out-of-bounds substring position or length";
           match len with
+            | 7 -> (
+                if String.unsafe_get s pos = 'v' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'r' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'n' then (
+                  0
+                )
+                else (
+                  -1
+                )
+              )
             | 12 -> (
                 if String.unsafe_get s pos = 'r' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'p' && String.unsafe_get s (pos+3) = 'o' && String.unsafe_get s (pos+4) = 's' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 't' && String.unsafe_get s (pos+7) = 'o' && String.unsafe_get s (pos+8) = 'r' && String.unsafe_get s (pos+9) = 'i' && String.unsafe_get s (pos+10) = 'e' && String.unsafe_get s (pos+11) = 's' then (
-                  2
+                  3
                 )
                 else (
                   -1
@@ -1289,7 +1325,7 @@ let read_universe = (
               )
             | 14 -> (
                 if String.unsafe_get s pos = 'i' && String.unsafe_get s (pos+1) = 'm' && String.unsafe_get s (pos+2) = 'p' && String.unsafe_get s (pos+3) = 'l' && String.unsafe_get s (pos+4) = 'e' && String.unsafe_get s (pos+5) = 'm' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = 'a' && String.unsafe_get s (pos+10) = 't' && String.unsafe_get s (pos+11) = 'i' && String.unsafe_get s (pos+12) = 'o' && String.unsafe_get s (pos+13) = 'n' then (
-                  1
+                  2
                 )
                 else (
                   -1
@@ -1297,7 +1333,7 @@ let read_universe = (
               )
             | 15 -> (
                 if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'm' && String.unsafe_get s (pos+3) = 'p' && String.unsafe_get s (pos+4) = 'o' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = '_' && String.unsafe_get s (pos+10) = 't' && String.unsafe_get s (pos+11) = 'y' && String.unsafe_get s (pos+12) = 'p' && String.unsafe_get s (pos+13) = 'e' && String.unsafe_get s (pos+14) = 's' then (
-                  0
+                  1
                 )
                 else (
                   -1
@@ -1312,19 +1348,18 @@ let read_universe = (
       (
         match i with
           | 0 ->
-            if not (Yojson.Safe.read_null_if_possible p lb) then (
-              let v =
-                (
-                  read_component_types
-                ) p lb
-              in
-              Obj.set_field (Obj.repr x) 0 (Obj.repr v);
-            )
+            let v =
+              (
+                read_version
+              ) p lb
+            in
+            Obj.set_field (Obj.repr x) 0 (Obj.repr v);
+            bits0 := !bits0 lor 0x1;
           | 1 ->
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__11
+                  read_component_types
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -1333,10 +1368,19 @@ let read_universe = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read_repositories
+                  read__11
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+            )
+          | 3 ->
+            if not (Yojson.Safe.read_null_if_possible p lb) then (
+              let v =
+                (
+                  read_repositories
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 3 (Obj.repr v);
             )
           | _ -> (
               Yojson.Safe.skip_json p lb
@@ -1351,9 +1395,17 @@ let read_universe = (
             if pos < 0 || len < 0 || pos + len > String.length s then
               invalid_arg "out-of-bounds substring position or length";
             match len with
+              | 7 -> (
+                  if String.unsafe_get s pos = 'v' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'r' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'n' then (
+                    0
+                  )
+                  else (
+                    -1
+                  )
+                )
               | 12 -> (
                   if String.unsafe_get s pos = 'r' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'p' && String.unsafe_get s (pos+3) = 'o' && String.unsafe_get s (pos+4) = 's' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 't' && String.unsafe_get s (pos+7) = 'o' && String.unsafe_get s (pos+8) = 'r' && String.unsafe_get s (pos+9) = 'i' && String.unsafe_get s (pos+10) = 'e' && String.unsafe_get s (pos+11) = 's' then (
-                    2
+                    3
                   )
                   else (
                     -1
@@ -1361,7 +1413,7 @@ let read_universe = (
                 )
               | 14 -> (
                   if String.unsafe_get s pos = 'i' && String.unsafe_get s (pos+1) = 'm' && String.unsafe_get s (pos+2) = 'p' && String.unsafe_get s (pos+3) = 'l' && String.unsafe_get s (pos+4) = 'e' && String.unsafe_get s (pos+5) = 'm' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = 'a' && String.unsafe_get s (pos+10) = 't' && String.unsafe_get s (pos+11) = 'i' && String.unsafe_get s (pos+12) = 'o' && String.unsafe_get s (pos+13) = 'n' then (
-                    1
+                    2
                   )
                   else (
                     -1
@@ -1369,7 +1421,7 @@ let read_universe = (
                 )
               | 15 -> (
                   if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'm' && String.unsafe_get s (pos+3) = 'p' && String.unsafe_get s (pos+4) = 'o' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = '_' && String.unsafe_get s (pos+10) = 't' && String.unsafe_get s (pos+11) = 'y' && String.unsafe_get s (pos+12) = 'p' && String.unsafe_get s (pos+13) = 'e' && String.unsafe_get s (pos+14) = 's' then (
-                    0
+                    1
                   )
                   else (
                     -1
@@ -1384,19 +1436,18 @@ let read_universe = (
         (
           match i with
             | 0 ->
-              if not (Yojson.Safe.read_null_if_possible p lb) then (
-                let v =
-                  (
-                    read_component_types
-                  ) p lb
-                in
-                Obj.set_field (Obj.repr x) 0 (Obj.repr v);
-              )
+              let v =
+                (
+                  read_version
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 0 (Obj.repr v);
+              bits0 := !bits0 lor 0x1;
             | 1 ->
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__11
+                    read_component_types
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -1405,10 +1456,19 @@ let read_universe = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read_repositories
+                    read__11
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+              )
+            | 3 ->
+              if not (Yojson.Safe.read_null_if_possible p lb) then (
+                let v =
+                  (
+                    read_repositories
+                  ) p lb
+                in
+                Obj.set_field (Obj.repr x) 3 (Obj.repr v);
               )
             | _ -> (
                 Yojson.Safe.skip_json p lb
@@ -1417,6 +1477,7 @@ let read_universe = (
       done;
       assert false;
     with Yojson.End_of_object -> (
+        if !bits0 <> 0x1 then Ag_oj_run.missing_fields [| !bits0 |] [| "version" |];
         Ag_oj_run.identity x
       )
 )
@@ -2232,6 +2293,15 @@ let write_configuration = (
       is_first := false
     else
       Bi_outbuf.add_char ob ',';
+    Bi_outbuf.add_string ob "\"version\":";
+    (
+      write_version
+    )
+      ob x.configuration_version;
+    if !is_first then
+      is_first := false
+    else
+      Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"locations\":";
     (
       write__13
@@ -2267,11 +2337,13 @@ let read_configuration = (
     Yojson.Safe.read_lcurl p lb;
     let x =
       {
+        configuration_version = Obj.magic 0.0;
         configuration_locations = [];
         configuration_components = [];
-        configuration_bindings = (fun x -> x) ([]);
+        configuration_bindings = [];
       }
     in
+    let bits0 = ref 0 in
     try
       Yojson.Safe.read_space p lb;
       Yojson.Safe.read_object_end lb;
@@ -2281,9 +2353,17 @@ let read_configuration = (
           if pos < 0 || len < 0 || pos + len > String.length s then
             invalid_arg "out-of-bounds substring position or length";
           match len with
+            | 7 -> (
+                if String.unsafe_get s pos = 'v' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'r' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'n' then (
+                  0
+                )
+                else (
+                  -1
+                )
+              )
             | 8 -> (
                 if String.unsafe_get s pos = 'b' && String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'd' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'g' && String.unsafe_get s (pos+7) = 's' then (
-                  2
+                  3
                 )
                 else (
                   -1
@@ -2291,7 +2371,7 @@ let read_configuration = (
               )
             | 9 -> (
                 if String.unsafe_get s pos = 'l' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'a' && String.unsafe_get s (pos+4) = 't' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 'o' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 's' then (
-                  0
+                  1
                 )
                 else (
                   -1
@@ -2299,7 +2379,7 @@ let read_configuration = (
               )
             | 10 -> (
                 if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'm' && String.unsafe_get s (pos+3) = 'p' && String.unsafe_get s (pos+4) = 'o' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = 's' then (
-                  1
+                  2
                 )
                 else (
                   -1
@@ -2314,19 +2394,18 @@ let read_configuration = (
       (
         match i with
           | 0 ->
-            if not (Yojson.Safe.read_null_if_possible p lb) then (
-              let v =
-                (
-                  read__13
-                ) p lb
-              in
-              Obj.set_field (Obj.repr x) 0 (Obj.repr v);
-            )
+            let v =
+              (
+                read_version
+              ) p lb
+            in
+            Obj.set_field (Obj.repr x) 0 (Obj.repr v);
+            bits0 := !bits0 lor 0x1;
           | 1 ->
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__14
+                  read__13
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -2335,10 +2414,19 @@ let read_configuration = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__15
+                  read__14
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+            )
+          | 3 ->
+            if not (Yojson.Safe.read_null_if_possible p lb) then (
+              let v =
+                (
+                  read__15
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 3 (Obj.repr v);
             )
           | _ -> (
               Yojson.Safe.skip_json p lb
@@ -2353,9 +2441,17 @@ let read_configuration = (
             if pos < 0 || len < 0 || pos + len > String.length s then
               invalid_arg "out-of-bounds substring position or length";
             match len with
+              | 7 -> (
+                  if String.unsafe_get s pos = 'v' && String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'r' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'o' && String.unsafe_get s (pos+6) = 'n' then (
+                    0
+                  )
+                  else (
+                    -1
+                  )
+                )
               | 8 -> (
                   if String.unsafe_get s pos = 'b' && String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'd' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'g' && String.unsafe_get s (pos+7) = 's' then (
-                    2
+                    3
                   )
                   else (
                     -1
@@ -2363,7 +2459,7 @@ let read_configuration = (
                 )
               | 9 -> (
                   if String.unsafe_get s pos = 'l' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'a' && String.unsafe_get s (pos+4) = 't' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 'o' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 's' then (
-                    0
+                    1
                   )
                   else (
                     -1
@@ -2371,7 +2467,7 @@ let read_configuration = (
                 )
               | 10 -> (
                   if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'm' && String.unsafe_get s (pos+3) = 'p' && String.unsafe_get s (pos+4) = 'o' && String.unsafe_get s (pos+5) = 'n' && String.unsafe_get s (pos+6) = 'e' && String.unsafe_get s (pos+7) = 'n' && String.unsafe_get s (pos+8) = 't' && String.unsafe_get s (pos+9) = 's' then (
-                    1
+                    2
                   )
                   else (
                     -1
@@ -2386,19 +2482,18 @@ let read_configuration = (
         (
           match i with
             | 0 ->
-              if not (Yojson.Safe.read_null_if_possible p lb) then (
-                let v =
-                  (
-                    read__13
-                  ) p lb
-                in
-                Obj.set_field (Obj.repr x) 0 (Obj.repr v);
-              )
+              let v =
+                (
+                  read_version
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 0 (Obj.repr v);
+              bits0 := !bits0 lor 0x1;
             | 1 ->
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__14
+                    read__13
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -2407,10 +2502,19 @@ let read_configuration = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__15
+                    read__14
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+              )
+            | 3 ->
+              if not (Yojson.Safe.read_null_if_possible p lb) then (
+                let v =
+                  (
+                    read__15
+                  ) p lb
+                in
+                Obj.set_field (Obj.repr x) 3 (Obj.repr v);
               )
             | _ -> (
                 Yojson.Safe.skip_json p lb
@@ -2419,6 +2523,7 @@ let read_configuration = (
       done;
       assert false;
     with Yojson.End_of_object -> (
+        if !bits0 <> 0x1 then Ag_oj_run.missing_fields [| !bits0 |] [| "version" |];
         Ag_oj_run.identity x
       )
 )
