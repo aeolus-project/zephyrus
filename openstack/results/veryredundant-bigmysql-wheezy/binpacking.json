@@ -12,13 +12,13 @@
       "sizes": { "ram": 128 },
       "arity": 2
     },
-    { "name": "Glance-DB", "sizes": {}, "arity": 1 },
+    { "name": "Glance-DB", "sizes": { "ram": 0 }, "arity": 1 },
     { "name": "Nova-API-LB", "sizes": { "ram": 128 }, "arity": 2 },
     { "name": "Nova-API-backend", "sizes": { "ram": 128 }, "arity": 2 },
     { "name": "Nova-Scheduler", "sizes": { "ram": 128 }, "arity": 2 },
     { "name": "Nova-Conductor", "sizes": { "ram": 128 }, "arity": 2 },
     { "name": "Nova-Compute", "sizes": { "ram": 128 }, "arity": 4 },
-    { "name": "Nova-DB", "sizes": {}, "arity": 1 },
+    { "name": "Nova-DB", "sizes": { "ram": 0 }, "arity": 1 },
     { "name": "Queue-LB", "sizes": { "ram": 128 }, "arity": 2 },
     { "name": "Queue-backend", "sizes": { "ram": 128 }, "arity": 3 }
   ],

@@ -72,7 +72,8 @@ let convert_configuration (u : universe) (c : configuration) =
       (* Size of the item in different dimensions. 
          Corresponds to the resource consumption of the component type. *)
       let sizes = 
-        let consume_domain = Resource_id_set.elements component_type#consume_domain in
+        (* let consume_domain = Resource_id_set.elements component_type#consume_domain in *)
+        let consume_domain = Resource_id_set.elements u#get_resource_ids in
         List.map (fun resource_id ->
           let dimension = dimension_of_resource_id                               resource_id in
           let size      = size_of_resource_consume_arity (component_type#consume resource_id) in
@@ -117,7 +118,8 @@ let convert_configuration (u : universe) (c : configuration) =
       (* Size of the bin in different dimensions. 
          Corresponds to the resources provided by the location. *)
       let sizes = 
-        let provide_domain = Resource_id_set.elements location#provide_resources_domain in
+        (* let provide_domain = Resource_id_set.elements location#provide_resources_domain in *)
+        let provide_domain = Resource_id_set.elements u#get_resource_ids in
         List.map (fun resource_id ->
           let dimension = dimension_of_resource_id                                   resource_id in
           let size      = size_of_resource_provide_arity (location#provide_resources resource_id) in
