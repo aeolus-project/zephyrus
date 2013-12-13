@@ -51,9 +51,10 @@ module Port_id_map_extract_key : sig val set_of_keys : 'a Port_id_map.t -> Port_
 
 (** The id of a component type in the universe. *)
 type   component_type_id = int
-module Component_type_id     : Set.OrderedType with type t = component_type_id
-module Component_type_id_set : Set.S with type elt = Component_type_id.t
-module Component_type_id_map : Map.S with type key = Component_type_id.t
+module Component_type_id         : Set.OrderedType with type t = component_type_id
+module Component_type_id_set     : Set.S with type elt = Component_type_id.t
+module Component_type_id_set_set : Set.S with type elt = Component_type_id_set.t
+module Component_type_id_map     : Map.S with type key = Component_type_id.t
 module Component_type_id_map_extract_key : sig val set_of_keys : 'a Component_type_id_map.t -> Component_type_id_set.t end
 
 (** The id of a package in a repository. *)
@@ -82,9 +83,10 @@ module Location_id_map_extract_key : sig val set_of_keys : 'a Location_id_map.t 
 
 (** The id of a component in the configuration. *)
 type   component_id = int
-module Component_id     : Set.OrderedType with type t = component_id
-module Component_id_set : Set.S with type elt = Component_id.t
-module Component_id_map : Map.S with type key = Component_id.t
+module Component_id         : Set.OrderedType with type t = component_id
+module Component_id_set     : Set.S with type elt = Component_id.t
+module Component_id_set_set : Set.S with type elt = Component_id_set.t
+module Component_id_map     : Map.S with type key = Component_id.t
 module Component_id_map_extract_key : sig val set_of_keys : 'a Component_id_map.t -> Component_id_set.t end
 
 
@@ -99,9 +101,10 @@ module Resource_name_map     : Map.S with type key = Resource_name.t
 
 (** The name of a component type in the universe. *)
 type   component_type_name = string
-module Component_type_name     : Set.OrderedType with type t = component_type_name
-module Component_type_name_set : Set.S with type elt = Component_type_name.t
-module Component_type_name_map : Map.S with type key = Component_type_name.t
+module Component_type_name         : Set.OrderedType with type t = component_type_name
+module Component_type_name_set     : Set.S with type elt = Component_type_name.t
+module Component_type_name_set_set : Set.S with type elt = Component_type_name_set.t
+module Component_type_name_map     : Map.S with type key = Component_type_name.t
 
 (** The name of a port in provided or required or conflicted by a component type. *)
 type   port_name = string
@@ -126,15 +129,17 @@ module Repository_name_map     : Map.S with type key = Repository_name.t
 
 (** The name of a location in the configuration. *)
 type   location_name = string
-module Location_name     : Set.OrderedType with type t = location_name
-module Location_name_set : Set.S with type elt = Location_name.t
-module Location_name_map : Map.S with type key = Location_name.t
+module Location_name         : Set.OrderedType with type t = location_name
+module Location_name_set     : Set.S with type elt = Location_name.t
+module Location_name_set_set : Set.S with type elt = Location_name_set.t
+module Location_name_map     : Map.S with type key = Location_name.t
 
 (** The name of a component in the configuration. *)
 type   component_name = string
-module Component_name     : Set.OrderedType with type t = component_name
-module Component_name_set : Set.S with type elt = Component_name.t
-module Component_name_map : Map.S with type key = Component_name.t
+module Component_name         : Set.OrderedType with type t = component_name
+module Component_name_set     : Set.S with type elt = Component_name.t
+module Component_name_set_set : Set.S with type elt = Component_name_set.t
+module Component_name_map     : Map.S with type key = Component_name.t
 
 
 (*/************************************************************************\*)

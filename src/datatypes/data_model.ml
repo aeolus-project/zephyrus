@@ -35,107 +35,112 @@ open Data_common
 (** Ids *)
 
 (** The id of a resource provided by a location or consumed by a component type or a package. *)
-type resource_id = int
-module Resource_id         = Int
-module Resource_id_set     = Int_set
-module Resource_id_set_set = Int_set_set
-module Resource_id_map     = Int_map
-module Resource_id_map_extract_key = Keys_of_Int_map
+type   resource_id = int
+module Resource_id         = struct type t = resource_id let compare = compare end
+module Resource_id_set     = Set.Make(Resource_id)
+module Resource_id_set_set = Set.Make(Resource_id_set)
+module Resource_id_map     = Map.Make(Resource_id)
+module Resource_id_map_extract_key = Resource_id_map.Set_of_keys(Resource_id_set)
 
 (** The id of a port in provided or required or conflicted by a component type. *)
-type port_id = int
-module Port_id         = Int
-module Port_id_set     = Int_set
-module Port_id_set_set = Int_set_set
-module Port_id_map     = Int_map
-module Port_id_map_extract_key = Keys_of_Int_map
+type   port_id = int
+module Port_id         = struct type t = port_id let compare = compare end
+module Port_id_set     = Set.Make(Port_id)
+module Port_id_set_set = Set.Make(Port_id_set)
+module Port_id_map     = Map.Make(Port_id)
+module Port_id_map_extract_key = Port_id_map.Set_of_keys(Port_id_set)
 
 (** The id of a component type in the universe. *)
-type component_type_id = int
-module Component_type_id     = Int
-module Component_type_id_set = Int_set
-module Component_type_id_map = Int_map
-module Component_type_id_map_extract_key = Keys_of_Int_map
+type   component_type_id = int
+module Component_type_id         = struct type t = component_type_id let compare = compare end
+module Component_type_id_set     = Set.Make(Component_type_id)
+module Component_type_id_set_set = Set.Make(Component_type_id_set)
+module Component_type_id_map     = Map.Make(Component_type_id)
+module Component_type_id_map_extract_key = Component_type_id_map.Set_of_keys(Component_type_id_set)
 
 (** The id of a package in a repository. *)
-type package_id = int
-module Package_id         = Int
-module Package_id_set     = Int_set
-module Package_id_set_set = Int_set_set
-module Package_id_map     = Int_map
-module Package_id_map_extract_key = Keys_of_Int_map
+type   package_id = int
+module Package_id         = struct type t = package_id let compare = compare end
+module Package_id_set     = Set.Make(Package_id)
+module Package_id_set_set = Set.Make(Package_id_set)
+module Package_id_map     = Map.Make(Package_id)
+module Package_id_map_extract_key = Package_id_map.Set_of_keys(Package_id_set)
 
 (** The id of a repository in the universe. *)
-type repository_id = int
-module Repository_id         = Int
-module Repository_id_set     = Int_set
-module Repository_id_set_set = Int_set_set
-module Repository_id_map     = Int_map
-module Repository_id_map_extract_key = Keys_of_Int_map
+type   repository_id = int
+module Repository_id         = struct type t = repository_id let compare = compare end
+module Repository_id_set     = Set.Make(Repository_id)
+module Repository_id_set_set = Set.Make(Repository_id_set)
+module Repository_id_map     = Map.Make(Repository_id)
+module Repository_id_map_extract_key = Repository_id_map.Set_of_keys(Repository_id_set)
 
 (** The id of a location in the configuration. *)
-type location_id = int
-module Location_id         = Int
-module Location_id_set     = Int_set
-module Location_id_set_set = Int_set_set
-module Location_id_map     = Int_map
-module Location_id_map_extract_key = Keys_of_Int_map
+type   location_id = int
+module Location_id         = struct type t = location_id let compare = compare end
+module Location_id_set     = Set.Make(Location_id)
+module Location_id_set_set = Set.Make(Location_id_set)
+module Location_id_map     = Map.Make(Location_id)
+module Location_id_map_extract_key = Location_id_map.Set_of_keys(Location_id_set)
 
 (** The id of a component in the configuration. *)
-type component_id = int
-module Component_id     = Int
-module Component_id_set = Int_set
-module Component_id_map = Int_map
-module Component_id_map_extract_key = Keys_of_Int_map
+type   component_id = int
+module Component_id         = struct type t = component_id let compare = compare end
+module Component_id_set     = Set.Make(Component_id)
+module Component_id_set_set = Set.Make(Component_id_set)
+module Component_id_map     = Map.Make(Component_id)
+module Component_id_map_extract_key = Component_id_map.Set_of_keys(Component_id_set)
 
 
 (** Names *)
 
 (** The name of a resource provided by a location or consumed by a component type or a package. *)
-type resource_name = string
-module Resource_name         = String
-module Resource_name_set     = String_set
-module Resource_name_set_set = String_set_set
-module Resource_name_map     = String_map
+type   resource_name = string
+module Resource_name         = struct type t = resource_name let compare = compare end
+module Resource_name_set     = Set.Make(Resource_name)
+module Resource_name_set_set = Set.Make(Resource_name_set)
+module Resource_name_map     = Map.Make(Resource_name)
 
 (** The name of a component type in the universe. *)
-type component_type_name = string
-module Component_type_name     = String
-module Component_type_name_set = String_set
-module Component_type_name_map = String_map
+type   component_type_name = string
+module Component_type_name         = struct type t = component_type_name let compare = compare end
+module Component_type_name_set     = Set.Make(Component_type_name)
+module Component_type_name_set_set = Set.Make(Component_type_name_set)
+module Component_type_name_map     = Map.Make(Component_type_name)
 
 (** The name of a port in provided or required or conflicted by a component type. *)
-type port_name = string
-module Port_name         = String
-module Port_name_set     = String_set
-module Port_name_set_set = String_set_set
-module Port_name_map     = String_map
+type   port_name = string
+module Port_name         = struct type t = port_name let compare = compare end
+module Port_name_set     = Set.Make(Port_name)
+module Port_name_set_set = Set.Make(Port_name_set)
+module Port_name_map     = Map.Make(Port_name)
 
 (** The name of a package in a repository. *)
-type package_name = string
-module Package_name         = String
-module Package_name_set     = String_set
-module Package_name_set_set = String_set_set
-module Package_name_map     = String_map
+type   package_name = string
+module Package_name         = struct type t = package_name let compare = compare end
+module Package_name_set     = Set.Make(Package_name)
+module Package_name_set_set = Set.Make(Package_name_set)
+module Package_name_map     = Map.Make(Package_name)
 
 (** The name of a repository in the universe. *)
-type repository_name = string
-module Repository_name         = String
-module Repository_name_set     = String_set
-module Repository_name_set_set = String_set_set
-module Repository_name_map     = String_map
+type   repository_name = string
+module Repository_name         = struct type t = repository_name let compare = compare end
+module Repository_name_set     = Set.Make(Repository_name)
+module Repository_name_set_set = Set.Make(Repository_name_set)
+module Repository_name_map     = Map.Make(Repository_name)
 
 (** The name of a location in the configuration. *)
-type location_name = string
-module Location_name     = String
-module Location_name_set = String_set
-module Location_name_map = String_map
+type   location_name = string
+module Location_name         = struct type t = location_name let compare = compare end
+module Location_name_set     = Set.Make(Location_name)
+module Location_name_set_set = Set.Make(Location_name_set)
+module Location_name_map     = Map.Make(Location_name)
 
 (** The name of a component in the configuration. *)
-type component_name = string
-module Component_name     = String
-module Component_name_set = String_set
-module Component_name_map = String_map
+type   component_name = string
+module Component_name         = struct type t = component_name let compare = compare end
+module Component_name_set     = Set.Make(Component_name)
+module Component_name_set_set = Set.Make(Component_name_set)
+module Component_name_map     = Map.Make(Component_name)
 
 
 
@@ -355,7 +360,7 @@ class universe
       ) self#get_package_ids Package_id_map.empty in
 
     let repository_of_repository_id_map_trimmed : repository Repository_id_map.t =
-      Package_id_set.fold (fun repository_id repository_of_repository_id_map ->
+      Repository_id_set.fold (fun repository_id repository_of_repository_id_map ->
         let repository = self#get_repository repository_id in                                    (* The old repository. *)
         let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in           (* The trimmed repository. *)
         if not (Package_id_set.is_empty trimmed_repository#package_ids) then                     (* If the repository is not empty now... *)
