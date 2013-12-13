@@ -17,49 +17,41 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Module introducing the mapping concept and some basic operations on it. *)
+
 (* Depends on
-    -Data_common_int
-    -Data_common_string
-    -Data_common_list
-    -Data_common_linked_list
-    -Data_common_set
-    -Data_common_map
-    -Data_common_unique_id
-    -Data_common_mapping
-    -Data_common_catalog
-    -Data_common_database
-    -Data_common_graph
+    - Data_common_set
+    - Data_common_map
 *)
 
-(** 1. Custom and extended versions of standard library modules. *)
+open Data_common_set
+open Data_common_map
 
-(** Custom Int and String modules. *)
-include module type of Data_common_int
-include module type of Data_common_string
+module Mapping :
+  functor (Key_set   : Set.S) ->
+  functor (Value_set : Set.S) ->
+  functor (Key_map   : Map.S with type key = Key_set.elt) ->
+  sig
+    
+    type key   = Key_set.elt
+    type value = Value_set.elt
 
-(** Custom List module and a Linked_List module. *)
-include module type of Data_common_list
-include module type of Data_common_linked_list
+    class type mapping_iface = object
+      (* Access *)
+      method domain           : Key_set.t            (* All the keys. *)
+      method codomain         : Value_set.t          (* All the values. *)
+      method find             : key -> value         (* Get the value corresponding to the given key. May throw Not_found exception. *)
+      (* Modify *)
+      method add              : key -> value -> unit (* Update the data structures with the given (key, value) pair. *)
+      method remove           : key          -> unit (* Remove the given key and its value from the data structures. *)
+      (* Lower level access *)
+      method key_to_value_map : value Key_map.t      (* Retrieve directly the key -> value map. *)
+    end
 
-(** Custom sets and maps. *)
-include module type of Data_common_set (** Extension of the Set module from the standard library with construction and conversion. **)
-include module type of Data_common_map (** Extension of the Map module from the standard library with construction, conversion and extraction. **)
+    (* Implementation of the mapping. *)
+    class mapping : mapping_iface
 
+    (* Create a new catalog corresponding to a given id -> object map. *)
+    val of_key_to_value_map : value Key_map.t -> mapping_iface
 
-(** 2. Some basic tools used mostly for managing ids and mappings between them. *)
-
-(** Unique identifier management *)
-include module type of Data_common_unique_id
-
-(** One-way mappings. *)
-include module type of Data_common_mapping
-
-(** Catalogs: two-way mappings. *)
-include module type of Data_common_catalog
-
-
-(** 3. Database. *)
-include module type of Data_common_database
-
-(** 4. Generic Graph. *)
-include module type of Data_common_graph
+  end

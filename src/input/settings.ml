@@ -101,7 +101,7 @@ let mode_assoc = [
 let mode_assoc_revert = revert mode_assoc
 
 let mode_names          = extract_names mode_assoc
-let mode_map            = Data_common.String_map.of_direct_list mode_assoc
+let mode_map            = Data_common.String_map.of_assoc_list mode_assoc
 let convert_mode v      = convert mode_map (get_ident v)
 let string_of_mode v    = string_of_string (List.assoc v mode_assoc_revert)
 let default_mode        = Mode_classic
@@ -130,7 +130,7 @@ let optim_assoc = [
 let optim_assoc_revert = revert optim_assoc
 
 let optim_names          = extract_names optim_assoc
-let optim_map            = Data_common.String_map.of_direct_list optim_assoc
+let optim_map            = Data_common.String_map.of_assoc_list optim_assoc
 let convert_optim v      = convert optim_map (get_ident v)
 let string_of_optim v    = string_of_string (List.assoc v optim_assoc_revert)
 let default_optim        = Optim_none
@@ -149,7 +149,7 @@ let constraint_kind_assoc = [
 let constraint_kind_assoc_revert = revert constraint_kind_assoc
 
 let constraint_kind_names          = extract_names constraint_kind_assoc
-let constraint_kind_map            = Data_common.String_map.of_direct_list constraint_kind_assoc
+let constraint_kind_map            = Data_common.String_map.of_assoc_list constraint_kind_assoc
 let convert_constraint_kind v      = convert constraint_kind_map (get_ident v)
 let string_of_constraint_kind v    = string_of_string (List.assoc v constraint_kind_assoc_revert)
 let default_constraint_kind        = Constraint_classic
@@ -170,7 +170,7 @@ let solver_assoc = [
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
-let solver_map = Data_common.String_map.of_direct_list solver_assoc
+let solver_map = Data_common.String_map.of_assoc_list solver_assoc
 let convert_solver v = convert solver_map (get_ident v)
 let string_of_solver v = string_of_string (List.assoc v solver_assoc_revert)
 let default_solver = Solver_gcode
@@ -182,7 +182,7 @@ let solver_bin_packing_assoc =  []
 let solver_bin_packing_assoc_revert = revert solver_bin_packing_assoc
 
 let solver_bin_packing_names          = extract_names solver_bin_packing_assoc
-let solver_bin_packing_map            = Data_common.String_map.of_direct_list solver_bin_packing_assoc
+let solver_bin_packing_map            = Data_common.String_map.of_assoc_list solver_bin_packing_assoc
 let convert_solver_bin_packing v      = convert solver_bin_packing_map (get_ident v)
 let string_of_solver_bin_packing v    = string_of_string (List.assoc v solver_bin_packing_assoc_revert)
 let default_solver_bin_packing        = Solver_bin_packing_unknown
@@ -199,7 +199,7 @@ let gen_bindings_assoc = [
 let gen_bindings_assoc_revert = revert gen_bindings_assoc
 
 let gen_bindings_names          = extract_names gen_bindings_assoc
-let gen_bindings_map            = Data_common.String_map.of_direct_list gen_bindings_assoc
+let gen_bindings_map            = Data_common.String_map.of_assoc_list gen_bindings_assoc
 let convert_gen_bindings v      = convert gen_bindings_map (get_ident v)
 let string_of_gen_bindings v    = string_of_string (List.assoc v gen_bindings_assoc_revert)
 let default_gen_bindings        = Gen_bindings_candy
@@ -216,7 +216,7 @@ let gen_packages_assoc = [
 let gen_packages_assoc_revert = revert gen_packages_assoc
 
 let gen_packages_names          = extract_names gen_packages_assoc
-let gen_packages_map            = Data_common.String_map.of_direct_list gen_packages_assoc
+let gen_packages_map            = Data_common.String_map.of_assoc_list gen_packages_assoc
 let convert_gen_packages v      = convert gen_packages_map (get_ident v)
 let string_of_gen_packages v    = string_of_string (List.assoc v gen_packages_assoc_revert)
 let default_gen_packages        = Gen_packages_one
@@ -249,7 +249,7 @@ let out_files_assoc = [
 let out_files_assoc_revert = revert out_files_assoc
 
 let out_files_names = (extract_names out_files_assoc)
-let out_files_map = Data_common.String_map.of_direct_list out_files_assoc
+let out_files_map = Data_common.String_map.of_assoc_list out_files_assoc
 let convert_out_files v = List.map (fun e -> let (k,f) = get_pair e in (convert out_files_map (get_ident k), get_ident f)) (get_list v)
 let string_of_out_files v = string_of_list (List.map (fun (k,f) -> string_of_pair (string_of_string (List.assoc k out_files_assoc_revert)) (string_of_string f)) v)
 let out_files_domain_message = string_of_pair "any string" (String.concat " | " out_files_names)

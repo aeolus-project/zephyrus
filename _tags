@@ -10,6 +10,9 @@ true: use_menhir
 <src/datatypes/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/datatypes>: include
 
+<src/datatypes/common/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
+<src/datatypes/common>: include
+
 <src/input/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/input>: include
 

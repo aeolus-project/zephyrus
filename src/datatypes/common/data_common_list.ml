@@ -18,48 +18,16 @@
 (****************************************************************************)
 
 (* Depends on
-    -Data_common_int
-    -Data_common_string
-    -Data_common_list
-    -Data_common_linked_list
-    -Data_common_set
-    -Data_common_map
-    -Data_common_unique_id
-    -Data_common_mapping
-    -Data_common_catalog
-    -Data_common_database
-    -Data_common_graph
+    - List
 *)
 
-(** 1. Custom and extended versions of standard library modules. *)
+module List_from_stdlib = List
 
-(** Custom Int and String modules. *)
-include module type of Data_common_int
-include module type of Data_common_string
-
-(** Custom List module and a Linked_List module. *)
-include module type of Data_common_list
-include module type of Data_common_linked_list
-
-(** Custom sets and maps. *)
-include module type of Data_common_set (** Extension of the Set module from the standard library with construction and conversion. **)
-include module type of Data_common_map (** Extension of the Map module from the standard library with construction, conversion and extraction. **)
-
-
-(** 2. Some basic tools used mostly for managing ids and mappings between them. *)
-
-(** Unique identifier management *)
-include module type of Data_common_unique_id
-
-(** One-way mappings. *)
-include module type of Data_common_mapping
-
-(** Catalogs: two-way mappings. *)
-include module type of Data_common_catalog
-
-
-(** 3. Database. *)
-include module type of Data_common_database
-
-(** 4. Generic Graph. *)
-include module type of Data_common_graph
+module List = struct
+  include List_from_stdlib
+  let is_empty l = (l = [])
+  let rec fold_combine conv combine l init = match l with
+    | [] -> init
+    | [el] -> conv el
+    | el::l' -> combine (conv el) (fold_combine conv combine l' init)
+end
