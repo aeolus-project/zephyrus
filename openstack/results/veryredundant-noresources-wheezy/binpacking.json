@@ -1,27 +1,27 @@
 {
   "items": [
-    { "name": "MySQL-LB", "consume": [], "arity": 2 },
-    { "name": "MySQL-backend", "consume": [], "arity": 4 },
-    { "name": "Keystone-LB", "consume": [], "arity": 2 },
-    { "name": "Keystone-backend", "consume": [], "arity": 3 },
-    { "name": "Glance-API-LB", "consume": [], "arity": 2 },
-    { "name": "Glance-API-backend", "consume": [], "arity": 2 },
-    { "name": "Glance-Registry-LB", "consume": [], "arity": 2 },
-    { "name": "Glance-Registry-backend", "consume": [], "arity": 2 },
-    { "name": "Glance-DB", "consume": [], "arity": 1 },
-    { "name": "Nova-API-LB", "consume": [], "arity": 2 },
-    { "name": "Nova-API-backend", "consume": [], "arity": 2 },
-    { "name": "Nova-Scheduler", "consume": [], "arity": 2 },
-    { "name": "Nova-Conductor", "consume": [], "arity": 2 },
-    { "name": "Nova-Compute", "consume": [], "arity": 4 },
-    { "name": "Nova-DB", "consume": [], "arity": 1 },
-    { "name": "Queue-LB", "consume": [], "arity": 2 },
-    { "name": "Queue-backend", "consume": [], "arity": 3 }
+    { "name": "MySQL-LB", "sizes": {}, "arity": 2 },
+    { "name": "MySQL-backend", "sizes": {}, "arity": 4 },
+    { "name": "Keystone-LB", "sizes": {}, "arity": 2 },
+    { "name": "Keystone-backend", "sizes": {}, "arity": 3 },
+    { "name": "Glance-API-LB", "sizes": {}, "arity": 2 },
+    { "name": "Glance-API-backend", "sizes": {}, "arity": 2 },
+    { "name": "Glance-Registry-LB", "sizes": {}, "arity": 2 },
+    { "name": "Glance-Registry-backend", "sizes": {}, "arity": 2 },
+    { "name": "Glance-DB", "sizes": {}, "arity": 1 },
+    { "name": "Nova-API-LB", "sizes": {}, "arity": 2 },
+    { "name": "Nova-API-backend", "sizes": {}, "arity": 2 },
+    { "name": "Nova-Scheduler", "sizes": {}, "arity": 2 },
+    { "name": "Nova-Conductor", "sizes": {}, "arity": 2 },
+    { "name": "Nova-Compute", "sizes": {}, "arity": 4 },
+    { "name": "Nova-DB", "sizes": {}, "arity": 1 },
+    { "name": "Queue-LB", "sizes": {}, "arity": 2 },
+    { "name": "Queue-backend", "sizes": {}, "arity": 3 }
   ],
   "bins": [
     {
       "name": "Location_category_1",
-      "provide": [ ("ram", 2048) ],
+      "sizes": { "ram": 2048 },
       "cost": 1,
       "arity": 6
     }

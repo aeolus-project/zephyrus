@@ -3,12 +3,10 @@
 
 (** Resources. *)
 
-type resource_name = Json_binpacking_t.resource_name
-
-type resource_consume_arity = Json_binpacking_t.resource_consume_arity
+type dimension = Json_binpacking_t.dimension
 
 (** Items. *)
-type resource_provide_arity = Json_binpacking_t.resource_provide_arity
+type size = Json_binpacking_t.size
 
 type item_name = Json_binpacking_t.item_name
 
@@ -17,8 +15,7 @@ type item_arity = Json_binpacking_t.item_arity
 (** Bins. *)
 type item = Json_binpacking_t.item = {
   item_name (*atd name *): item_name;
-  item_consume (*atd consume *):
-    (resource_name * resource_consume_arity) list;
+  item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
 
@@ -31,7 +28,7 @@ type bin_arity = Json_binpacking_t.bin_arity
 (** Binpacking problem. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
-  bin_provide (*atd provide *): (resource_name * resource_provide_arity) list;
+  bin_sizes (*atd sizes *): (dimension * size) list;
   bin_cost (*atd cost *): bin_cost;
   bin_arity (*atd arity *): bin_arity
 }
@@ -41,65 +38,45 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_bins (*atd bins *): bin list
 }
 
-val write_resource_name :
-  Bi_outbuf.t -> resource_name -> unit
-  (** Output a JSON value of type {!resource_name}. *)
+val write_dimension :
+  Bi_outbuf.t -> dimension -> unit
+  (** Output a JSON value of type {!dimension}. *)
 
-val string_of_resource_name :
-  ?len:int -> resource_name -> string
-  (** Serialize a value of type {!resource_name}
+val string_of_dimension :
+  ?len:int -> dimension -> string
+  (** Serialize a value of type {!dimension}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_resource_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_name
-  (** Input JSON data of type {!resource_name}. *)
+val read_dimension :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> dimension
+  (** Input JSON data of type {!dimension}. *)
 
-val resource_name_of_string :
-  string -> resource_name
-  (** Deserialize JSON data of type {!resource_name}. *)
+val dimension_of_string :
+  string -> dimension
+  (** Deserialize JSON data of type {!dimension}. *)
 
-val write_resource_consume_arity :
-  Bi_outbuf.t -> resource_consume_arity -> unit
-  (** Output a JSON value of type {!resource_consume_arity}. *)
+val write_size :
+  Bi_outbuf.t -> size -> unit
+  (** Output a JSON value of type {!size}. *)
 
-val string_of_resource_consume_arity :
-  ?len:int -> resource_consume_arity -> string
-  (** Serialize a value of type {!resource_consume_arity}
+val string_of_size :
+  ?len:int -> size -> string
+  (** Serialize a value of type {!size}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_resource_consume_arity :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_consume_arity
-  (** Input JSON data of type {!resource_consume_arity}. *)
+val read_size :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> size
+  (** Input JSON data of type {!size}. *)
 
-val resource_consume_arity_of_string :
-  string -> resource_consume_arity
-  (** Deserialize JSON data of type {!resource_consume_arity}. *)
-
-val write_resource_provide_arity :
-  Bi_outbuf.t -> resource_provide_arity -> unit
-  (** Output a JSON value of type {!resource_provide_arity}. *)
-
-val string_of_resource_provide_arity :
-  ?len:int -> resource_provide_arity -> string
-  (** Serialize a value of type {!resource_provide_arity}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_resource_provide_arity :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_provide_arity
-  (** Input JSON data of type {!resource_provide_arity}. *)
-
-val resource_provide_arity_of_string :
-  string -> resource_provide_arity
-  (** Deserialize JSON data of type {!resource_provide_arity}. *)
+val size_of_string :
+  string -> size
+  (** Deserialize JSON data of type {!size}. *)
 
 val write_item_name :
   Bi_outbuf.t -> item_name -> unit

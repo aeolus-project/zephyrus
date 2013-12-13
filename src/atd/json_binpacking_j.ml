@@ -3,12 +3,10 @@
 
 (** Resources. *)
 
-type resource_name = Json_binpacking_t.resource_name
-
-type resource_consume_arity = Json_binpacking_t.resource_consume_arity
+type dimension = Json_binpacking_t.dimension
 
 (** Items. *)
-type resource_provide_arity = Json_binpacking_t.resource_provide_arity
+type size = Json_binpacking_t.size
 
 type item_name = Json_binpacking_t.item_name
 
@@ -17,8 +15,7 @@ type item_arity = Json_binpacking_t.item_arity
 (** Bins. *)
 type item = Json_binpacking_t.item = {
   item_name (*atd name *): item_name;
-  item_consume (*atd consume *):
-    (resource_name * resource_consume_arity) list;
+  item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
 
@@ -31,7 +28,7 @@ type bin_arity = Json_binpacking_t.bin_arity
 (** Binpacking problem. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
-  bin_provide (*atd provide *): (resource_name * resource_provide_arity) list;
+  bin_sizes (*atd sizes *): (dimension * size) list;
   bin_cost (*atd cost *): bin_cost;
   bin_arity (*atd arity *): bin_arity
 }
@@ -41,42 +38,30 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_bins (*atd bins *): bin list
 }
 
-let write_resource_name = (
+let write_dimension = (
   Yojson.Safe.write_string
 )
-let string_of_resource_name ?(len = 1024) x =
+let string_of_dimension ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
-  write_resource_name ob x;
+  write_dimension ob x;
   Bi_outbuf.contents ob
-let read_resource_name = (
+let read_dimension = (
   Ag_oj_run.read_string
 )
-let resource_name_of_string s =
-  read_resource_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_resource_consume_arity = (
+let dimension_of_string s =
+  read_dimension (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_size = (
   Yojson.Safe.write_int
 )
-let string_of_resource_consume_arity ?(len = 1024) x =
+let string_of_size ?(len = 1024) x =
   let ob = Bi_outbuf.create len in
-  write_resource_consume_arity ob x;
+  write_size ob x;
   Bi_outbuf.contents ob
-let read_resource_consume_arity = (
+let read_size = (
   Ag_oj_run.read_int
 )
-let resource_consume_arity_of_string s =
-  read_resource_consume_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_resource_provide_arity = (
-  Yojson.Safe.write_int
-)
-let string_of_resource_provide_arity ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_resource_provide_arity ob x;
-  Bi_outbuf.contents ob
-let read_resource_provide_arity = (
-  Ag_oj_run.read_int
-)
-let resource_provide_arity_of_string s =
-  read_resource_provide_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let size_of_string s =
+  read_size (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_item_name = (
   Yojson.Safe.write_string
 )
@@ -102,21 +87,8 @@ let read_item_arity = (
 let item_arity_of_string s =
   read_item_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__1 = (
-  Ag_oj_run.write_list (
-    fun ob x ->
-      Bi_outbuf.add_char ob '[';
-      (let x, _ = x in
-      (
-        write_resource_name
-      ) ob x
-      );
-      Bi_outbuf.add_char ob ',';
-      (let _, x = x in
-      (
-        write_resource_consume_arity
-      ) ob x
-      );
-      Bi_outbuf.add_char ob ']';
+  Ag_oj_run.write_assoc_list (
+    write_size
   )
 )
 let string_of__1 ?(len = 1024) x =
@@ -124,48 +96,8 @@ let string_of__1 ?(len = 1024) x =
   write__1 ob x;
   Bi_outbuf.contents ob
 let read__1 = (
-  Ag_oj_run.read_list (
-    fun p lb ->
-      Yojson.Safe.read_space p lb;
-      let std_tuple = Yojson.Safe.start_any_tuple p lb in
-      let len = ref 0 in
-      let end_of_tuple = ref false in
-      (try
-        let x0 =
-          let x =
-            (
-              read_resource_name
-            ) p lb
-          in
-          incr len;
-          Yojson.Safe.read_space p lb;
-          Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-          x
-        in
-        let x1 =
-          let x =
-            (
-              read_resource_consume_arity
-            ) p lb
-          in
-          incr len;
-          (try
-            Yojson.Safe.read_space p lb;
-            Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-          with Yojson.End_of_tuple -> end_of_tuple := true);
-          x
-        in
-        if not !end_of_tuple then (
-          try
-            while true do
-              Yojson.Safe.skip_json p lb;
-              Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-            done
-          with Yojson.End_of_tuple -> ()
-        );
-        (x0, x1)
-      with Yojson.End_of_tuple ->
-        Ag_oj_run.missing_tuple_fields !len [ 0; 1 ]);
+  Ag_oj_run.read_assoc_list (
+    read_size
   )
 )
 let _1_of_string s =
@@ -187,11 +119,11 @@ let write_item = (
       is_first := false
     else
       Bi_outbuf.add_char ob ',';
-    Bi_outbuf.add_string ob "\"consume\":";
+    Bi_outbuf.add_string ob "\"sizes\":";
     (
       write__1
     )
-      ob x.item_consume;
+      ob x.item_sizes;
     if !is_first then
       is_first := false
     else
@@ -214,7 +146,7 @@ let read_item = (
     let x =
       {
         item_name = Obj.magic 0.0;
-        item_consume = Obj.magic 0.0;
+        item_sizes = Obj.magic 0.0;
         item_arity = Obj.magic 0.0;
       }
     in
@@ -237,20 +169,26 @@ let read_item = (
                 )
               )
             | 5 -> (
-                if String.unsafe_get s pos = 'a' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
-                  2
-                )
-                else (
-                  -1
-                )
-              )
-            | 7 -> (
-                if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'u' && String.unsafe_get s (pos+5) = 'm' && String.unsafe_get s (pos+6) = 'e' then (
-                  1
-                )
-                else (
-                  -1
-                )
+                match String.unsafe_get s pos with
+                  | 'a' -> (
+                      if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
+                        2
+                      )
+                      else (
+                        -1
+                      )
+                    )
+                  | 's' -> (
+                      if String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'z' && String.unsafe_get s (pos+3) = 'e' && String.unsafe_get s (pos+4) = 's' then (
+                        1
+                      )
+                      else (
+                        -1
+                      )
+                    )
+                  | _ -> (
+                      -1
+                    )
               )
             | _ -> (
                 -1
@@ -306,20 +244,26 @@ let read_item = (
                   )
                 )
               | 5 -> (
-                  if String.unsafe_get s pos = 'a' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
-                    2
-                  )
-                  else (
-                    -1
-                  )
-                )
-              | 7 -> (
-                  if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 's' && String.unsafe_get s (pos+4) = 'u' && String.unsafe_get s (pos+5) = 'm' && String.unsafe_get s (pos+6) = 'e' then (
-                    1
-                  )
-                  else (
-                    -1
-                  )
+                  match String.unsafe_get s pos with
+                    | 'a' -> (
+                        if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
+                          2
+                        )
+                        else (
+                          -1
+                        )
+                      )
+                    | 's' -> (
+                        if String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'z' && String.unsafe_get s (pos+3) = 'e' && String.unsafe_get s (pos+4) = 's' then (
+                          1
+                        )
+                        else (
+                          -1
+                        )
+                      )
+                    | _ -> (
+                        -1
+                      )
                 )
               | _ -> (
                   -1
@@ -360,7 +304,7 @@ let read_item = (
       done;
       assert false;
     with Yojson.End_of_object -> (
-        if !bits0 <> 0x7 then Ag_oj_run.missing_fields [| !bits0 |] [| "name"; "consume"; "arity" |];
+        if !bits0 <> 0x7 then Ag_oj_run.missing_fields [| !bits0 |] [| "name"; "sizes"; "arity" |];
         Ag_oj_run.identity x
       )
 )
@@ -402,75 +346,6 @@ let read_bin_arity = (
 )
 let bin_arity_of_string s =
   read_bin_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__2 = (
-  Ag_oj_run.write_list (
-    fun ob x ->
-      Bi_outbuf.add_char ob '[';
-      (let x, _ = x in
-      (
-        write_resource_name
-      ) ob x
-      );
-      Bi_outbuf.add_char ob ',';
-      (let _, x = x in
-      (
-        write_resource_provide_arity
-      ) ob x
-      );
-      Bi_outbuf.add_char ob ']';
-  )
-)
-let string_of__2 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__2 ob x;
-  Bi_outbuf.contents ob
-let read__2 = (
-  Ag_oj_run.read_list (
-    fun p lb ->
-      Yojson.Safe.read_space p lb;
-      let std_tuple = Yojson.Safe.start_any_tuple p lb in
-      let len = ref 0 in
-      let end_of_tuple = ref false in
-      (try
-        let x0 =
-          let x =
-            (
-              read_resource_name
-            ) p lb
-          in
-          incr len;
-          Yojson.Safe.read_space p lb;
-          Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-          x
-        in
-        let x1 =
-          let x =
-            (
-              read_resource_provide_arity
-            ) p lb
-          in
-          incr len;
-          (try
-            Yojson.Safe.read_space p lb;
-            Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-          with Yojson.End_of_tuple -> end_of_tuple := true);
-          x
-        in
-        if not !end_of_tuple then (
-          try
-            while true do
-              Yojson.Safe.skip_json p lb;
-              Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-            done
-          with Yojson.End_of_tuple -> ()
-        );
-        (x0, x1)
-      with Yojson.End_of_tuple ->
-        Ag_oj_run.missing_tuple_fields !len [ 0; 1 ]);
-  )
-)
-let _2_of_string s =
-  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_bin = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -488,11 +363,11 @@ let write_bin = (
       is_first := false
     else
       Bi_outbuf.add_char ob ',';
-    Bi_outbuf.add_string ob "\"provide\":";
+    Bi_outbuf.add_string ob "\"sizes\":";
     (
-      write__2
+      write__1
     )
-      ob x.bin_provide;
+      ob x.bin_sizes;
     if !is_first then
       is_first := false
     else
@@ -524,7 +399,7 @@ let read_bin = (
     let x =
       {
         bin_name = Obj.magic 0.0;
-        bin_provide = Obj.magic 0.0;
+        bin_sizes = Obj.magic 0.0;
         bin_cost = Obj.magic 0.0;
         bin_arity = Obj.magic 0.0;
       }
@@ -562,20 +437,26 @@ let read_bin = (
                     )
               )
             | 5 -> (
-                if String.unsafe_get s pos = 'a' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
-                  3
-                )
-                else (
-                  -1
-                )
-              )
-            | 7 -> (
-                if String.unsafe_get s pos = 'p' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'o' && String.unsafe_get s (pos+3) = 'v' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'd' && String.unsafe_get s (pos+6) = 'e' then (
-                  1
-                )
-                else (
-                  -1
-                )
+                match String.unsafe_get s pos with
+                  | 'a' -> (
+                      if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
+                        3
+                      )
+                      else (
+                        -1
+                      )
+                    )
+                  | 's' -> (
+                      if String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'z' && String.unsafe_get s (pos+3) = 'e' && String.unsafe_get s (pos+4) = 's' then (
+                        1
+                      )
+                      else (
+                        -1
+                      )
+                    )
+                  | _ -> (
+                      -1
+                    )
               )
             | _ -> (
                 -1
@@ -596,7 +477,7 @@ let read_bin = (
           | 1 ->
             let v =
               (
-                read__2
+                read__1
               ) p lb
             in
             Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -653,20 +534,26 @@ let read_bin = (
                       )
                 )
               | 5 -> (
-                  if String.unsafe_get s pos = 'a' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
-                    3
-                  )
-                  else (
-                    -1
-                  )
-                )
-              | 7 -> (
-                  if String.unsafe_get s pos = 'p' && String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'o' && String.unsafe_get s (pos+3) = 'v' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'd' && String.unsafe_get s (pos+6) = 'e' then (
-                    1
-                  )
-                  else (
-                    -1
-                  )
+                  match String.unsafe_get s pos with
+                    | 'a' -> (
+                        if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'i' && String.unsafe_get s (pos+3) = 't' && String.unsafe_get s (pos+4) = 'y' then (
+                          3
+                        )
+                        else (
+                          -1
+                        )
+                      )
+                    | 's' -> (
+                        if String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'z' && String.unsafe_get s (pos+3) = 'e' && String.unsafe_get s (pos+4) = 's' then (
+                          1
+                        )
+                        else (
+                          -1
+                        )
+                      )
+                    | _ -> (
+                        -1
+                      )
                 )
               | _ -> (
                   -1
@@ -687,7 +574,7 @@ let read_bin = (
             | 1 ->
               let v =
                 (
-                  read__2
+                  read__1
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -715,15 +602,31 @@ let read_bin = (
       done;
       assert false;
     with Yojson.End_of_object -> (
-        if !bits0 <> 0xf then Ag_oj_run.missing_fields [| !bits0 |] [| "name"; "provide"; "cost"; "arity" |];
+        if !bits0 <> 0xf then Ag_oj_run.missing_fields [| !bits0 |] [| "name"; "sizes"; "cost"; "arity" |];
         Ag_oj_run.identity x
       )
 )
 let bin_of_string s =
   read_bin (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__3 = (
+let write__2 = (
   Ag_oj_run.write_list (
     write_item
+  )
+)
+let string_of__2 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__2 ob x;
+  Bi_outbuf.contents ob
+let read__2 = (
+  Ag_oj_run.read_list (
+    read_item
+  )
+)
+let _2_of_string s =
+  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__3 = (
+  Ag_oj_run.write_list (
+    write_bin
   )
 )
 let string_of__3 ?(len = 1024) x =
@@ -732,27 +635,11 @@ let string_of__3 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__3 = (
   Ag_oj_run.read_list (
-    read_item
+    read_bin
   )
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__4 = (
-  Ag_oj_run.write_list (
-    write_bin
-  )
-)
-let string_of__4 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__4 ob x;
-  Bi_outbuf.contents ob
-let read__4 = (
-  Ag_oj_run.read_list (
-    read_bin
-  )
-)
-let _4_of_string s =
-  read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_binpacking_problem = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -763,7 +650,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"items\":";
     (
-      write__3
+      write__2
     )
       ob x.binpacking_problem_items;
     if !is_first then
@@ -772,7 +659,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"bins\":";
     (
-      write__4
+      write__3
     )
       ob x.binpacking_problem_bins;
     Bi_outbuf.add_char ob '}';
@@ -828,7 +715,7 @@ let read_binpacking_problem = (
           | 0 ->
             let v =
               (
-                read__3
+                read__2
               ) p lb
             in
             Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -836,7 +723,7 @@ let read_binpacking_problem = (
           | 1 ->
             let v =
               (
-                read__4
+                read__3
               ) p lb
             in
             Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -881,7 +768,7 @@ let read_binpacking_problem = (
             | 0 ->
               let v =
                 (
-                  read__3
+                  read__2
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -889,7 +776,7 @@ let read_binpacking_problem = (
             | 1 ->
               let v =
                 (
-                  read__4
+                  read__3
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);

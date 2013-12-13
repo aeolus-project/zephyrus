@@ -3,12 +3,10 @@
 
 (** Resources. *)
 
-type resource_name = Json_binpacking_t.resource_name
-
-type resource_consume_arity = Json_binpacking_t.resource_consume_arity
+type dimension = Json_binpacking_t.dimension
 
 (** Items. *)
-type resource_provide_arity = Json_binpacking_t.resource_provide_arity
+type size = Json_binpacking_t.size
 
 type item_name = Json_binpacking_t.item_name
 
@@ -17,8 +15,7 @@ type item_arity = Json_binpacking_t.item_arity
 (** Bins. *)
 type item = Json_binpacking_t.item = {
   item_name (*atd name *): item_name;
-  item_consume (*atd consume *):
-    (resource_name * resource_consume_arity) list;
+  item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
 
@@ -31,7 +28,7 @@ type bin_arity = Json_binpacking_t.bin_arity
 (** Binpacking problem. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
-  bin_provide (*atd provide *): (resource_name * resource_provide_arity) list;
+  bin_sizes (*atd sizes *): (dimension * size) list;
   bin_cost (*atd cost *): bin_cost;
   bin_arity (*atd arity *): bin_arity
 }
@@ -41,17 +38,13 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_bins (*atd bins *): bin list
 }
 
-val validate_resource_name :
-  Ag_util.Validation.path -> resource_name -> Ag_util.Validation.error option
-  (** Validate a value of type {!resource_name}. *)
+val validate_dimension :
+  Ag_util.Validation.path -> dimension -> Ag_util.Validation.error option
+  (** Validate a value of type {!dimension}. *)
 
-val validate_resource_consume_arity :
-  Ag_util.Validation.path -> resource_consume_arity -> Ag_util.Validation.error option
-  (** Validate a value of type {!resource_consume_arity}. *)
-
-val validate_resource_provide_arity :
-  Ag_util.Validation.path -> resource_provide_arity -> Ag_util.Validation.error option
-  (** Validate a value of type {!resource_provide_arity}. *)
+val validate_size :
+  Ag_util.Validation.path -> size -> Ag_util.Validation.error option
+  (** Validate a value of type {!size}. *)
 
 val validate_item_name :
   Ag_util.Validation.path -> item_name -> Ag_util.Validation.error option
@@ -63,7 +56,7 @@ val validate_item_arity :
 
 val create_item :
   item_name: item_name ->
-  item_consume: (resource_name * resource_consume_arity) list ->
+  item_sizes: (dimension * size) list ->
   item_arity: item_arity ->
   unit -> item
   (** Create a record of type {!item}. *)
@@ -86,7 +79,7 @@ val validate_bin_arity :
 
 val create_bin :
   bin_name: bin_name ->
-  bin_provide: (resource_name * resource_provide_arity) list ->
+  bin_sizes: (dimension * size) list ->
   bin_cost: bin_cost ->
   bin_arity: bin_arity ->
   unit -> bin

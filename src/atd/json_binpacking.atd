@@ -19,9 +19,8 @@
 
 <doc text="Resources.">
 
-type resource_name          = string
-type resource_consume_arity = int
-type resource_provide_arity = int
+type dimension = string
+type size      = int
 
 
 <doc text="Items.">
@@ -30,9 +29,9 @@ type item_name  = string
 type item_arity = int
 
 type item = {
-  name    : item_name;
-  consume : (resource_name * resource_consume_arity) list;
-  arity   : item_arity;
+  name  : item_name;
+  sizes : (dimension * size) list <json repr = "object"> ;
+  arity : item_arity;
 } <ocaml field_prefix="item_">
 
 
@@ -43,10 +42,10 @@ type bin_cost   = int
 type bin_arity  = int
 
 type bin = {
-  name    : bin_name;
-  provide : (resource_name * resource_provide_arity) list;
-  cost    : bin_cost;
-  arity   : bin_arity;
+  name  : bin_name;
+  sizes : (dimension * size) list <json repr = "object"> ;
+  cost  : bin_cost;
+  arity : bin_arity;
 } <ocaml field_prefix="bin_">
 
 

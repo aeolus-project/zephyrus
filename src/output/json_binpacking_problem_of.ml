@@ -20,13 +20,13 @@
 
 (* Depends on
     - datatypes/Data_model
-    - datatypes/Data_helper
+    - atd/Json_binpacking_t
     - atd/Json_binpacking_j
 *)
 
 open Data_model
 
-(* Helpers:*)
+(* Helpers: *)
 
 (* Extend the List module with mapi function (it's not necessary after OCaml 4.00.0). *)
 module List_global_from_stdlib = List
@@ -48,12 +48,11 @@ end
 
 
 (* Basic conversion functions. *)
-let item_name_of_component_type_id (component_type_id : component_type_id) : Json_binpacking_t.item_name     = Name_of.component_type_id component_type_id
-let resource_name_of_resource_id   (resource_id       : resource_id)       : Json_binpacking_t.resource_name = Name_of.resource_id       resource_id
-let bin_cost_of_location_cost      (location_cost     : location_cost)     : Json_binpacking_t.bin_cost      = location_cost
-
-let convert_resource_consume_arity (resource_consume_arity : resource_consume_arity) : Json_binpacking_t.resource_consume_arity = resource_consume_arity
-let convert_resource_provide_arity (resource_provide_arity : resource_provide_arity) : Json_binpacking_t.resource_provide_arity = resource_provide_arity
+let item_name_of_component_type_id (component_type_id      : component_type_id)      : Json_binpacking_t.item_name = Name_of.component_type_id component_type_id
+let dimension_of_resource_id       (resource_id            : resource_id)            : Json_binpacking_t.dimension = Name_of.resource_id       resource_id
+let bin_cost_of_location_cost      (location_cost          : location_cost)          : Json_binpacking_t.bin_cost  = location_cost
+let size_of_resource_consume_arity (resource_consume_arity : resource_consume_arity) : Json_binpacking_t.size      = resource_consume_arity
+let size_of_resource_provide_arity (resource_provide_arity : resource_provide_arity) : Json_binpacking_t.size      = resource_provide_arity
 
 (* Main convertion function. *)
 let convert_configuration (u : universe) (c : configuration) =
@@ -66,19 +65,22 @@ let convert_configuration (u : universe) (c : configuration) =
     List.map (fun component_type_id ->
       let component_type = u#get_component_type component_type_id in
 
-      (* Name. *)
+      (* Name of the item. 
+         Is equal to the name of the component type. *)
       let name = item_name_of_component_type_id component_type_id in
 
-      (* Resource consumption. *)
-      let consume = 
+      (* Size of the item in different dimensions. 
+         Corresponds to the resource consumption of the component type. *)
+      let sizes = 
         let consume_domain = Resource_id_set.elements component_type#consume_domain in
         List.map (fun resource_id ->
-          let resource_name          = resource_name_of_resource_id                     resource_id in
-          let resource_consume_arity = convert_resource_consume_arity (component_type#consume resource_id) in
-          (resource_name, resource_consume_arity)
+          let dimension = dimension_of_resource_id                               resource_id in
+          let size      = size_of_resource_consume_arity (component_type#consume resource_id) in
+          (dimension, size)
         ) consume_domain in
 
-      (* Arity. *)
+      (* Arity: how many of these items are there.
+         Corresponds to the number of components of this type in the configuration. *)
       let arity =
         Component_id_set.cardinal (
           Component_id_set.filter (fun component_id ->
@@ -88,9 +90,9 @@ let convert_configuration (u : universe) (c : configuration) =
 
       (* The item: *)
       {
-        Json_binpacking_t.item_name    = name;
-        Json_binpacking_t.item_consume = consume;
-        Json_binpacking_t.item_arity   = arity;
+        Json_binpacking_t.item_name  = name;
+        Json_binpacking_t.item_sizes = sizes;
+        Json_binpacking_t.item_arity = arity;
       }
     ) component_type_ids
   in
@@ -101,33 +103,41 @@ let convert_configuration (u : universe) (c : configuration) =
 
     (* Create a bin from each location category. *)
     List.mapi (fun category_number location_category ->
-      (* Category representant and arity. *)
+
+      (* Category representant.
+         All the locations in the category are the same (they only have different names)
+         so we can take any single one. *)
       let representant_location_id = Location_id_set.choose   location_category in
-      let arity                    = Location_id_set.cardinal location_category in
-      
       let location = c#get_location representant_location_id in
 
-      (* Name. *)
+      (* Name of the bin. 
+         We generate a unique name corresponding to each location category. *)
       let name = Printf.sprintf "Location_category_%d" (category_number + 1) in
 
-      (* Resources provided. *)
-      let provide = 
+      (* Size of the bin in different dimensions. 
+         Corresponds to the resources provided by the location. *)
+      let sizes = 
         let provide_domain = Resource_id_set.elements location#provide_resources_domain in
         List.map (fun resource_id ->
-          let resource_name          = resource_name_of_resource_id                     resource_id in
-          let resource_provide_arity = convert_resource_provide_arity (location#provide_resources resource_id) in
-          (resource_name, resource_provide_arity)
+          let dimension = dimension_of_resource_id                                   resource_id in
+          let size      = size_of_resource_provide_arity (location#provide_resources resource_id) in
+          (dimension, size)
         ) provide_domain in
 
-      (* Cost. *)
+      (* Cost of using the bin. 
+         Is equal to the cost of using the location. *)
       let cost = bin_cost_of_location_cost location#cost in
 
+      (* Arity: how many of these bins are available.
+         Corresponds to the number of locations in the location category. *)
+      let arity = Location_id_set.cardinal location_category in
+      
       (* The bin: *)
       {
-        Json_binpacking_t.bin_name    = name;
-        Json_binpacking_t.bin_provide = provide;
-        Json_binpacking_t.bin_cost    = cost;
-        Json_binpacking_t.bin_arity   = arity;
+        Json_binpacking_t.bin_name  = name;
+        Json_binpacking_t.bin_sizes = sizes;
+        Json_binpacking_t.bin_cost  = cost;
+        Json_binpacking_t.bin_arity = arity;
       }
 
     ) location_categories
