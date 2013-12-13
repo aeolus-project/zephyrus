@@ -17,6 +17,9 @@
 (*                                                                          *)
 (****************************************************************************)
 
+module J = Json_v1_j
+module T = Json_v1_t
+
 (** Settings concerning the notation of infinite provide arity. *)
 
 (** Which strings will be recognised as an infinite provide arity in the input. *)
@@ -32,7 +35,7 @@ let default_infinite_provide_arity_string = "infinity"
 
 module To_abstract_io = struct
 
-  module I = Json_v1_t
+  module I = T
   module O = Abstract_io
 
   let port_name           port_name'           = port_name'
@@ -125,7 +128,7 @@ end
 module Of_abstract_io = struct
   
   module I = Abstract_io
-  module O = Json_v1_t
+  module O = T
 
   let port_name           port_name'           = port_name'
   let resource_name       resource_name'       = resource_name'

@@ -17,9 +17,12 @@
 (*                                                                          *)
 (****************************************************************************)
 
+module J = Json_v0_j
+module T = Json_v0_t
+
 module To_abstract_io = struct
 
-  module I = Json_v0_t
+  module I = T
   module O = Abstract_io
 
   let port_name           port_name'           = port_name'
@@ -111,7 +114,7 @@ end
 module Of_abstract_io = struct
   
   module I = Abstract_io
-  module O = Json_v0_t
+  module O = T
 
   let port_name           port_name'           = port_name'
   let resource_name       resource_name'       = resource_name'

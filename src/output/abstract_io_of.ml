@@ -24,9 +24,6 @@
 
 open Data_model
 
-(*/**********************************************\*)
-(* 1. Translation to Json internal representation *)
-(*\**********************************************/*)
 
 let component_type_id = Name_of.component_type_id
 let port_id           = Name_of.port_id

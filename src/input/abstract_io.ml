@@ -17,24 +17,31 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Type definitions for naming. *)
+(** Abstract syntax used as a common intermediate form of the model. *)
 
-type component_type_name = string
+
+(** -- General type definitions for naming. -- *)
+
+type resource_name       = string
 type port_name           = string
-type component_name      = string
+type component_type_name = string
 type package_name        = string
 type repository_name     = string
 type location_name       = string
-type resource_name       = string
+type component_name      = string
 
 
-(** Type definitions for Component Type. *)
+(** -- Type definitions for the universe. -- *)
 
+(** Type definitions for provides / requires. *)
 type provide_arity = FiniteProvide of int | InfiniteProvide
 type require_arity = int
+
+(** Type definitions for resource provide / consume. *)
 type resource_consumption   = int
 type resource_provide_arity = int
 
+(** Type definitions for component types. *)
 type component_type = {
   component_type_name     : component_type_name;
   component_type_provide  : (port_name * provide_arity) list;
@@ -43,9 +50,7 @@ type component_type = {
   component_type_consume  : (resource_name * resource_consumption) list
 }
 
-
-(** Type definitions for Universe. *)
-
+(** Type definitions for packages. *)
 type package = {
   package_name     : package_name;
   package_depend   : package_name list list;
@@ -53,11 +58,13 @@ type package = {
   package_consume  : (resource_name * resource_consumption) list
 }
 
+(** Type definitions for package repositories. *)
 type repository = {
   repository_name     : repository_name;
   repository_packages : package list
 }
 
+(** Type definitions for universe. *)
 type universe = {
   universe_component_types : component_type list;
   universe_implementation  : (component_type_name * (repository_name * package_name) list) list;
@@ -65,8 +72,9 @@ type universe = {
 }
 
 
-(** Type definitions for Configuration. *)
+(** -- Type definitions for the configuration. -- *)
 
+(** Type definitions for locations. *)
 type location_cost = int
 
 type location = {
@@ -77,18 +85,21 @@ type location = {
   location_cost               : location_cost
 }
 
+(** Type definitions for components. *)
 type component = {
   component_name     : component_name;
   component_type     : component_type_name;
   component_location : location_name
 }
 
+(** Type definitions for bindings. *)
 type binding = {
   binding_port     : port_name;
   binding_requirer : component_name;
   binding_provider : component_name
 }
 
+(** Type definitions for configurations. *)
 type configuration = {
   configuration_locations  : location list;
   configuration_components : component list;
@@ -96,66 +107,61 @@ type configuration = {
 }
 
 
-(** Type definitions for Specification. *)
+(** -- Type definitions for the specification. -- *)
 
 type spec_variable_name = string
 
 type spec_const = int
 
 type spec_local_element =
-  | SpecLocalElementPackage of (repository_name * package_name)
+  | SpecLocalElementPackage       of repository_name * package_name
   | SpecLocalElementComponentType of component_type_name
-  | SpecLocalElementPort of port_name
+  | SpecLocalElementPort          of port_name
 
 type spec_local_expr =
-  | SpecLocalExprVar of spec_variable_name
+  | SpecLocalExprVar   of spec_variable_name
   | SpecLocalExprConst of spec_const
   | SpecLocalExprArity of spec_local_element
-  | SpecLocalExprAdd of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprSub of (spec_local_expr * spec_local_expr)
-  | SpecLocalExprMul of (spec_const * spec_local_expr)
+  | SpecLocalExprAdd   of spec_local_expr * spec_local_expr
+  | SpecLocalExprSub   of spec_local_expr * spec_local_expr
+  | SpecLocalExprMul   of spec_const * spec_local_expr
 
 type spec_op = Lt | LEq | Eq | GEq | Gt | NEq
 
 type local_specification =
   | SpecLocalTrue
-  | SpecLocalOp of (spec_local_expr * spec_op * spec_local_expr)
-  | SpecLocalAnd of (local_specification * local_specification)
-  | SpecLocalOr of (local_specification * local_specification)
-  | SpecLocalImpl of (local_specification * local_specification)
-  | SpecLocalNot of local_specification
+  | SpecLocalOp   of spec_local_expr * spec_op * spec_local_expr
+  | SpecLocalAnd  of local_specification * local_specification
+  | SpecLocalOr   of local_specification * local_specification
+  | SpecLocalImpl of local_specification * local_specification
+  | SpecLocalNot  of local_specification
 
 type spec_repository_constraint = repository_name
 
 type spec_repository_constraints = spec_repository_constraint list
 
-type spec_resource_constraint = (resource_name * spec_op * spec_const)
+type spec_resource_constraint = resource_name * spec_op * spec_const
 
 type spec_resource_constraints = spec_resource_constraint list
 
 type spec_element =
-  | SpecElementPackage of (repository_name * package_name)
+  | SpecElementPackage       of repository_name * package_name
   | SpecElementComponentType of component_type_name
-  | SpecElementPort of port_name
-  | SpecElementLocalisation
-      of (
-          spec_resource_constraints
-        * spec_repository_constraints
-        * local_specification
-      )
+  | SpecElementPort          of port_name
+  | SpecElementLocalisation  of spec_resource_constraints * spec_repository_constraints * local_specification
 
 type spec_expr =
-  | SpecExprVar of spec_variable_name
+  | SpecExprVar   of spec_variable_name
   | SpecExprConst of spec_const
   | SpecExprArity of spec_element
-  | SpecExprAdd of (spec_expr * spec_expr)
-  | SpecExprSub of (spec_expr * spec_expr)
-  | SpecExprMul of (spec_const * spec_expr)
+  | SpecExprAdd   of spec_expr * spec_expr
+  | SpecExprSub   of spec_expr * spec_expr
+  | SpecExprMul   of spec_const * spec_expr
 
 type specification =
   | SpecTrue
-  | SpecOp of (spec_expr * spec_op * spec_expr)
-  | SpecAnd of (specification * specification)
-  | SpecOr of (specification * specification)
-  | SpecImpl of (specification * specification)
-  | SpecNot of specification
+  | SpecOp   of spec_expr * spec_op * spec_expr
+  | SpecAnd  of specification * specification
+  | SpecOr   of specification * specification
+  | SpecImpl of specification * specification
+  | SpecNot  of specification

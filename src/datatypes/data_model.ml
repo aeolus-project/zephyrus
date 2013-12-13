@@ -25,7 +25,7 @@ open Data_common
 
 
 (** Types for main values for Zephyrus data. *)
-(** For efficiency and to avoid name clash, all names are paired with identifiers *)
+(** For efficiency and to avoid name clash, all names are paired with identifiers. *)
 
 
 (*/************************************************************************\*)
@@ -34,7 +34,7 @@ open Data_common
 
 (** Ids *)
 
-  (** The id of a resource provided by a location or consumed by a component type or a package. *)
+(** The id of a resource provided by a location or consumed by a component type or a package. *)
 type resource_id = int
 module Resource_id         = Int
 module Resource_id_set     = Int_set
@@ -42,14 +42,7 @@ module Resource_id_set_set = Int_set_set
 module Resource_id_map     = Int_map
 module Resource_id_map_extract_key = Keys_of_Int_map
 
-  (** The id of a component type in the universe. *)
-type component_type_id = int
-module Component_type_id     = Int
-module Component_type_id_set = Int_set
-module Component_type_id_map = Int_map
-module Component_type_id_map_extract_key = Keys_of_Int_map
-
-  (** The id of a port in provided or required or conflicted by a component type. *)
+(** The id of a port in provided or required or conflicted by a component type. *)
 type port_id = int
 module Port_id         = Int
 module Port_id_set     = Int_set
@@ -57,7 +50,14 @@ module Port_id_set_set = Int_set_set
 module Port_id_map     = Int_map
 module Port_id_map_extract_key = Keys_of_Int_map
 
-  (** The id of a package in a repository. *)
+(** The id of a component type in the universe. *)
+type component_type_id = int
+module Component_type_id     = Int
+module Component_type_id_set = Int_set
+module Component_type_id_map = Int_map
+module Component_type_id_map_extract_key = Keys_of_Int_map
+
+(** The id of a package in a repository. *)
 type package_id = int
 module Package_id         = Int
 module Package_id_set     = Int_set
@@ -65,7 +65,7 @@ module Package_id_set_set = Int_set_set
 module Package_id_map     = Int_map
 module Package_id_map_extract_key = Keys_of_Int_map
 
-  (** The id of a repository in the universe. *)
+(** The id of a repository in the universe. *)
 type repository_id = int
 module Repository_id         = Int
 module Repository_id_set     = Int_set
@@ -73,7 +73,7 @@ module Repository_id_set_set = Int_set_set
 module Repository_id_map     = Int_map
 module Repository_id_map_extract_key = Keys_of_Int_map
 
-  (** The id of a location in the configuration. *)
+(** The id of a location in the configuration. *)
 type location_id = int
 module Location_id         = Int
 module Location_id_set     = Int_set
@@ -81,7 +81,7 @@ module Location_id_set_set = Int_set_set
 module Location_id_map     = Int_map
 module Location_id_map_extract_key = Keys_of_Int_map
 
-  (** The id of a component in the configuration. *)
+(** The id of a component in the configuration. *)
 type component_id = int
 module Component_id     = Int
 module Component_id_set = Int_set
@@ -91,47 +91,47 @@ module Component_id_map_extract_key = Keys_of_Int_map
 
 (** Names *)
 
-  (** The name of a resource provided by a location or consumed by a component type or a package. *)
+(** The name of a resource provided by a location or consumed by a component type or a package. *)
 type resource_name = string
 module Resource_name         = String
 module Resource_name_set     = String_set
 module Resource_name_set_set = String_set_set
 module Resource_name_map     = String_map
 
-  (** The name of a component type in the universe. *)
+(** The name of a component type in the universe. *)
 type component_type_name = string
 module Component_type_name     = String
 module Component_type_name_set = String_set
 module Component_type_name_map = String_map
 
-  (** The name of a port in provided or required or conflicted by a component type. *)
+(** The name of a port in provided or required or conflicted by a component type. *)
 type port_name = string
 module Port_name         = String
 module Port_name_set     = String_set
 module Port_name_set_set = String_set_set
 module Port_name_map     = String_map
 
-  (** The name of a package in a repository. *)
+(** The name of a package in a repository. *)
 type package_name = string
 module Package_name         = String
 module Package_name_set     = String_set
 module Package_name_set_set = String_set_set
 module Package_name_map     = String_map
 
-  (** The name of a repository in the universe. *)
+(** The name of a repository in the universe. *)
 type repository_name = string
 module Repository_name         = String
 module Repository_name_set     = String_set
 module Repository_name_set_set = String_set_set
 module Repository_name_map     = String_map
 
-  (** The name of a location in the configuration. *)
+(** The name of a location in the configuration. *)
 type location_name = string
 module Location_name     = String
 module Location_name_set = String_set
 module Location_name_map = String_map
 
-  (** The name of a component in the configuration. *)
+(** The name of a component in the configuration. *)
 type component_name = string
 module Component_name     = String
 module Component_name_set = String_set
@@ -143,7 +143,7 @@ module Component_name_map = String_map
 (*| 2. Universe                                                           |*)
 (*\************************************************************************/*)
 
-  (** 2.0. Resources. *)
+(** 2.1. Resources. *)
 
 type resource = resource_id
 module Resource         = Resource_id
@@ -151,13 +151,13 @@ module Resource_set     = Resource_id_set
 module Resource_set_set = Resource_id_set_set
 module Resource_map     = Resource_id_map
 
-  (** A quantity describing how much units of a resource is provided by a location. *)
+(** A quantity describing how many units of a resource are provided by a location. *)
 type resource_provide_arity = int
-  (** A quantity describing how much units of a resource is consumed by a component type or a package. *)
+(** A quantity describing how many units of a resource are consumed by a component type or a package. *)
 type resource_consume_arity = int
 
 
-  (** 2.0. Ports. *)
+(** 2.2. Ports. *)
 
 type port = port_id
 module Port         = Port_id
@@ -167,18 +167,18 @@ module Port_map     = Port_id_map
 module Port_map_extract_key = Port_id_map_extract_key
 
 
-  (** 2.1. Component types. *)
+(** 2.3. Component types. *)
 
 let deprecated_component_type_id = -1
 
-  (** A quantity describing to how many other components this component type can provide a port.
-    Note: some component types can provide an infinite amount of a port *)
+(** A quantity describing to how many other components this component type can provide a binding on a given port.
+    Note: Some component types can provide a binding to an infinite number of components. *)
 type provide_arity = 
   | Finite_provide of int
   | Infinite_provide 
 
-  (** A quantity describing how many bindings with different components providing a port are required by this component type. 
-    Note: it is always finite, because an infinite require arity would be simply insatiable. *)
+(** A quantity describing how many bindings with different components providing a given port are required by this component type. 
+    Note: It is always finite, because an infinite require arity would be simply never satiable. *)
 type require_arity = int
 
 exception Component_type_provide_port_not_found of port_id
@@ -210,7 +210,7 @@ module Component_type_set = Set.Make(Component_type)
 module Component_type_map = Map.Make(Component_type)
 
 
-  (** 2.2. Packages. *)
+(** 2.4. Packages. *)
 
 let deprecated_package_id = -1
 
@@ -258,7 +258,7 @@ module Package_set_set = Set.Make(Package_set)
 module Package_map     = Map.Make(Package)
 
 
-  (** 2.3. Repositories. *)
+(** 2.5. Repositories. *)
 
 exception Repository_package_not_found of package_id
 
@@ -281,7 +281,7 @@ module Repository_set = Set.Make(Repository)
 module Repository_map = Map.Make(Repository)
 
 
-  (** 2.4. Universes. *)
+(** 2.6. Universes. *)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
@@ -304,12 +304,12 @@ class universe
   val implementation  : Package_id_set.t Component_type_id_map.t = implementation  (** Which packages implement the component types of this universe. *)
   val repositories    : repository Repository_id_map.t           = repositories    (** Package repositories available in this universe. *)
 
-  (* private *)
-  val mutable implem_ur = Port_id_map.empty; (* set of component type requiring.   Not directly computed, filled when requested *)
-  val mutable implem_up = Port_id_map.empty; (* set of component type providing.   Not directly computed, filled when requested *)
-  val mutable implem_uc = Port_id_map.empty; (* set of component type conflicting. Not directly computed, filled when requested *)
+  (* Private *)
+  val mutable implem_ur = Port_id_map.empty; (* Set of component types requiring.   Not directly computed, filled when requested. *)
+  val mutable implem_up = Port_id_map.empty; (* Set of component types providing.   Not directly computed, filled when requested. *)
+  val mutable implem_uc = Port_id_map.empty; (* Set of component types conflicting. Not directly computed, filled when requested. *)
 
-  (* basic methods *)
+  (* Methods *)
   method get_port_ids              : Port_id_set.t           = ports
   method get_package_ids           : Package_id_set.t        = Package_id_map_extract_key.set_of_keys        packages
   method get_resource_ids          : Resource_id_set.t       = resources
@@ -368,7 +368,8 @@ class universe
       repositories = repository_of_repository_id_map_trimmed;
     >}
 
-  (* methods coming from the paper. *)
+
+  (* Methods coming from the paper. *)
 
   method ur (p : port_id) : Component_type_id_set.t = 
     (*  - requirers computes the set of component types (id) that requires the port in parameter *)
@@ -436,7 +437,7 @@ class universe
       implementation  = implementation;
       repositories    = repositories;
 
-      (* reset mutable fields *)
+      (* Reset mutable fields. *)
       implem_ur = Port_id_map.empty;
       implem_up = Port_id_map.empty;
       implem_uc = Port_id_map.empty;
@@ -449,7 +450,7 @@ end
 (*| 3. Configuration                                                       |*)
 (*\************************************************************************/*)
 
-  (** 3.1. Locations. *)
+(** 3.1. Locations. *)
 
 type location_cost = int
 module Location_cost = Int
@@ -502,7 +503,7 @@ module Location_set_of_location_ids = Set.Convert(Location_id_set)(Location_set)
     } *)
 
 
-  (** 3.2. Components. *)
+(** 3.2. Components. *)
 
 class component 
   ~typ
@@ -528,7 +529,7 @@ module Component_map = Map.Make(Component)
 
 
 
-  (** 3.3. Bindings. *)
+(** 3.3. Bindings. *)
 
 class binding 
   ~port
@@ -554,7 +555,7 @@ module Binding_set = Set.Make(Binding)
     } *)
 
 
-  (** 3.4. Configurations. *)
+(** 3.4. Configurations. *)
 
 exception Configuration_location_not_found  of location_id
 exception Configuration_component_not_found of component_id
@@ -569,11 +570,11 @@ class configuration
   val components : component Component_id_map.t = components (** Components in this configuration. *)
   val bindings   : Binding_set.t                = bindings   (** Bindings in this configuration. *)
 
-  (* private *)
+  (* Private *)
   val mutable implem_get_local_component : Component_id_set.t Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
   val mutable implem_get_local_package   : Package_id_set.t   Location_id_map.t = Location_id_map.empty; (* computed incrementally *)
 
-  (* methods *)
+  (* Methods *)
   method get_location (id : location_id) : location  = 
     try Location_id_map.find id locations
     with Not_found -> raise (Configuration_location_not_found id)
@@ -654,9 +655,9 @@ class configuration
 
 end
 
-(* Merge two configurations. 
-   First configuration locations and components are prioritary: 
-   if both c1 and c2 have a location/component with the same id, the c1's version will be used. *)
+(** Merge two configurations. 
+    First configuration locations and components are prioritary: 
+    if both c1 and c2 have a location/component with the same id, the c1's version will be used. *)
 let merge_configurations (c1 : configuration) (c2 : configuration) : configuration =
   
   let locations : location Location_id_map.t =
@@ -707,9 +708,9 @@ type spec_local_expr =
   | Spec_local_expr_var   of spec_variable_name
   | Spec_local_expr_const of spec_const
   | Spec_local_expr_arity of spec_local_element
-  | Spec_local_expr_add   of (spec_local_expr * spec_local_expr)
-  | Spec_local_expr_sub   of (spec_local_expr * spec_local_expr)
-  | Spec_local_expr_mul   of (spec_const      * spec_local_expr)
+  | Spec_local_expr_add   of spec_local_expr * spec_local_expr
+  | Spec_local_expr_sub   of spec_local_expr * spec_local_expr
+  | Spec_local_expr_mul   of spec_const      * spec_local_expr
 
 type spec_op = 
   | Lt  (** Less-than operator *)
@@ -721,11 +722,11 @@ type spec_op =
 
 type local_specification = 
   | Spec_local_true
-  | Spec_local_op   of (spec_local_expr * spec_op * spec_local_expr)
-  | Spec_local_and  of (local_specification * local_specification)
-  | Spec_local_or   of (local_specification * local_specification)
-  | Spec_local_impl of (local_specification * local_specification)
-  | Spec_local_not  of  local_specification
+  | Spec_local_op   of spec_local_expr * spec_op * spec_local_expr
+  | Spec_local_and  of local_specification * local_specification
+  | Spec_local_or   of local_specification * local_specification
+  | Spec_local_impl of local_specification * local_specification
+  | Spec_local_not  of local_specification
 
 type spec_repository_constraint = repository_id list
 type spec_resource_constraint   = (resource_id * spec_op * spec_const) list
@@ -734,23 +735,26 @@ type spec_element =
   | Spec_element_package        of package_id
   | Spec_element_component_type of component_type_id
   | Spec_element_port           of port_id
-  | Spec_element_location       of (spec_resource_constraint * spec_repository_constraint * local_specification)
+  | Spec_element_location       of spec_resource_constraint * spec_repository_constraint * local_specification
 
 type spec_expr = 
   | Spec_expr_var   of spec_variable_name
   | Spec_expr_const of spec_const
   | Spec_expr_arity of spec_element
-  | Spec_expr_add   of (spec_expr * spec_expr)
-  | Spec_expr_sub   of (spec_expr * spec_expr)
-  | Spec_expr_mul   of (spec_const * spec_expr)
+  | Spec_expr_add   of spec_expr * spec_expr
+  | Spec_expr_sub   of spec_expr * spec_expr
+  | Spec_expr_mul   of spec_const * spec_expr
 
 type specification = 
   | Spec_true
-  | Spec_op   of (spec_expr * spec_op * spec_expr)
-  | Spec_and  of (specification * specification)
-  | Spec_or   of (specification * specification)
-  | Spec_impl of (specification * specification)
-  | Spec_not  of  specification
+  | Spec_op   of spec_expr * spec_op * spec_expr
+  | Spec_and  of specification * specification
+  | Spec_or   of specification * specification
+  | Spec_impl of specification * specification
+  | Spec_not  of specification
+
+
+(**  *)
 
 let uv_empty = (Port_id_set.empty, Component_type_id_set.empty, Package_id_set.empty)
 let uv_union (s1,s2,s3) (s1',s2',s3') = (Port_id_set.union s1 s1', Component_type_id_set.union s2 s2', Package_id_set.union s3 s3')

@@ -24,8 +24,8 @@
 *)
 
 module Json   = Json_v1
-module Json_t = Json_v1_t
-module Json_j = Json_v1_j
+module Json_t = Json.T
+module Json_j = Json.J
 
 let universe (data_model_universe : Data_model.universe) : string =
   let abstract_io_universe = Abstract_io_of.universe data_model_universe in
