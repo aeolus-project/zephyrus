@@ -690,11 +690,7 @@ let merge_configurations (c1 : configuration) (c2 : configuration) : configurati
   let bindings : Binding_set.t = 
     Binding_set.union c1#get_bindings c2#get_bindings in
 
-  new configuration
-    ~locations:  locations
-    ~components: components
-    ~bindings:   bindings
-    ()
+  new configuration ~locations ~components ~bindings ()
 
 
 (*/************************************************************************\*)

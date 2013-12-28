@@ -225,13 +225,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
       ) t.Abstract_io.component_type_consume in
 
     (* create the component type object *)
-    let new_component_type = new component_type
-      ~provide:  provide 
-      ~require:  require 
-      ~conflict: conflict 
-      ~consume:  consume
-      ()
-    in
+    let new_component_type = new component_type ~provide ~require ~conflict ~consume () in
 
     (* store the component type *)
     component_types#add_id_obj_pair id new_component_type
@@ -267,12 +261,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
       ) k.Abstract_io.package_consume in
 
     (* create the package object *)
-    let new_package = new package
-      ~depend:   depend
-      ~conflict: conflict
-      ~consume:  consume
-      ()
-    in
+    let new_package = new package ~depend ~conflict ~consume () in
 
     (* store the package *)
     packages#add_id_obj_pair id new_package;
@@ -370,8 +359,8 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
         catalog#package#id_of_name (repository, (convert_package_name r_name k))
       ) l.Abstract_io.location_packages_installed in
 
-    (* resources *)
-    let resources : resource_provide_arity Resource_id_map.t = 
+    (* provide_resources *)
+    let provide_resources : resource_provide_arity Resource_id_map.t = 
       Resource_id_map.map_of_list (fun (r, n) -> 
         (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
       ) l.Abstract_io.location_provide_resources in (* needs to be completed with non-mentioned resources *)
@@ -380,13 +369,7 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     let cost = convert_location_cost l.Abstract_io.location_cost in
 
     (* create the location object *)    
-    let new_location = new location
-      ~repository:         repository
-      ~packages_installed: packages_installed
-      ~provide_resources:  resources
-      ~cost:               cost
-      ()
-    in
+    let new_location = new location ~repository ~packages_installed ~provide_resources ~cost () in
 
     (* store the location *)
     locations#add_id_obj_pair id new_location
@@ -408,11 +391,7 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     let location = catalog#location#id_of_name (convert_location_name c.Abstract_io.component_location) in
 
     (* create the component object *)
-    let new_component = new component
-      ~typ:      typ
-      ~location: location
-      ()
-    in
+    let new_component = new component ~typ ~location () in
     
     (* store the component *)
     components#add_id_obj_pair id new_component
@@ -424,11 +403,7 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
     let requirer = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_requirer) in
     let provider = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_provider) in 
 
-    new binding
-      ~port:     port
-      ~requirer: requirer
-      ~provider: provider 
-    in
+    new binding ~port ~requirer ~provider in
 
   (* configuration *)
   List.iter convert_location  c.Abstract_io.configuration_locations;
