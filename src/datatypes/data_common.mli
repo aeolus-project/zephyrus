@@ -21,14 +21,11 @@
     -Data_common_int
     -Data_common_string
     -Data_common_list
-    -Data_common_linked_list
     -Data_common_set
     -Data_common_map
     -Data_common_unique_id
     -Data_common_mapping
     -Data_common_catalog
-    -Data_common_database
-    -Data_common_graph
 *)
 
 (** 1. Custom and extended versions of standard library modules. *)
@@ -37,9 +34,8 @@
 include module type of Data_common_int
 include module type of Data_common_string
 
-(** Custom List module and a Linked_List module. *)
+(** Custom List module. *)
 include module type of Data_common_list
-include module type of Data_common_linked_list
 
 (** Custom sets and maps. *)
 include module type of Data_common_set (** Extension of the Set module from the standard library with construction and conversion. **)
@@ -56,10 +52,3 @@ include module type of Data_common_mapping
 
 (** Catalogs: two-way mappings. *)
 include module type of Data_common_catalog
-
-
-(** 3. Database. *)
-include module type of Data_common_database
-
-(** 4. Generic Graph. *)
-include module type of Data_common_graph

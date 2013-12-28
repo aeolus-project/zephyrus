@@ -415,7 +415,7 @@ let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings wi
 (*| 3. Database and functions                                              |*)
 (*\************************************************************************/*)
 
-open Data_common.Database.Table
+open Data_common_database.Database.Table
 
 type 'a column = setting_kind
 

@@ -21,24 +21,18 @@
     -Data_common_int
     -Data_common_string
     -Data_common_list
-    -Data_common_linked_list
     -Data_common_set
     -Data_common_map
     -Data_common_unique_id
     -Data_common_mapping
     -Data_common_catalog
-    -Data_common_database
-    -Data_common_graph
 *)
 
 include Data_common_int
 include Data_common_string
 include Data_common_list
-include Data_common_linked_list
 include Data_common_set
 include Data_common_map
 include Data_common_unique_id
 include Data_common_mapping
 include Data_common_catalog
-include Data_common_database
-include Data_common_graph

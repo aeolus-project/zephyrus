@@ -55,7 +55,7 @@ end = struct
   let value_of v = v
 
   let to_string = String_of.value
-end and Graph : Data_common.Graph.S with type vertice_data = V_data_init.t and type edge_data = E_data.t = Data_common.Graph.Make(V_data_init)(E_data)
+end and Graph : Data_common_graph.Graph.S with type vertice_data = V_data_init.t and type edge_data = E_data.t = Data_common_graph.Graph.Make(V_data_init)(E_data)
 
 
 module V_data : sig

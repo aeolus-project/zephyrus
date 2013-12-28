@@ -218,8 +218,9 @@ let () = Load_model.set_initial_model_of_settings ();
 
 (*
 (* test the database *)
+(* TODO: Remove this from here! *)
 module Database_test = struct
-  open Data_common.Database
+  open Data_common_database.Database
   module DBBase = struct
     type 'a column = int
     type key = int
@@ -264,7 +265,7 @@ module Database_test = struct
 (* test the graph *)
 (* TODO: Remove this from here! *)
 module Test_graph_data = struct type t = int end
-module Test_graph = Data_common.Graph.Make(Test_graph_data)(Test_graph_data)
+module Test_graph = Data_common_graph.Graph.Make(Test_graph_data)(Test_graph_data)
 let () =
   let g = Test_graph.create () in
 (*                               *)

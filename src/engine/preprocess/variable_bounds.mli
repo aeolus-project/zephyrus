@@ -21,6 +21,7 @@
     - datatypes/Data_constraint
     - datatypes/Data_model
     - datatypes/Data_common
+    - datatypes/common/Data_common_graph
 *)
 
 (*/************************************************************************\*)
@@ -32,7 +33,7 @@ module rec V_data_init : sig
 end and E_data : sig
   type t
   val value_of : t -> Data_constraint.Value.t
-end and Graph : (Data_common.Graph.S with type vertice_data = V_data_init.t and type edge_data = E_data.t)
+end and Graph : (Data_common_graph.Graph.S with type vertice_data = V_data_init.t and type edge_data = E_data.t)
 
 module V_data : sig
   type t = V_data_init.t
