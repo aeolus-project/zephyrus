@@ -108,7 +108,17 @@ let () = Load_model.set_initial_model_of_settings ();
   Zephyrus_log.log_stage_end ();
 
 
-(* === Perform the trimming === *)
+  (* TEST: Output a CUDF file for each repository. *)
+  (*
+  Repository_id_set.iter (fun repository_id ->
+    let s = Cudf_of.repository String_of.package_id u repository_id in
+    let repository_name = Name_of.repository_id repository_id in
+    let filepath = Printf.sprintf "tmp/%s.cudf" repository_name in
+    Output_helper.print_output filepath s
+  ) u#get_repository_ids;
+  *)
+
+  (* === Perform the trimming === *)
   Zephyrus_log.log_stage_new "TRIMMING SECTION";
   (* ====  Trim the universe ==== *)
   Zephyrus_log.log_stage_new "TRIMMING UNIVERSE";

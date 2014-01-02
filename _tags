@@ -1,4 +1,4 @@
-<*.{ml,mli,byte,native}>:package(atdgen),package(unix)
+<src/**/.{ml,mli,byte,native}>:package(atdgen),package(unix)
 true: use_menhir
 
 <src/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
@@ -39,7 +39,6 @@ true: use_menhir
 
 <src/engine/constraint_generation/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/constraint_generation>: include
-
 
 <src/engine/solvers/facile/*.{ml,mli,byte,native}>:package(atdgen),package(unix)
 <src/engine/solvers/facile>: include
