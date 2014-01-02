@@ -1,0 +1,3 @@
+[submodule "coinst"]
+	path = coinst
+	url = git@github.com:vouillon/coinst.git

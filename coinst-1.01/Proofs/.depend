@@ -1,4 +1,0 @@
-formel.vo: formel.v
-Lattice.vo: Lattice.v ./Po.vo
-Po.vo: Po.v
-Relation.vo: Relation.v ./Lattice.vo
