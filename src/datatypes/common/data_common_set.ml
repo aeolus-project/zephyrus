@@ -38,7 +38,7 @@ module Set = struct
     val keep_elements : int -> t -> t
     val set_of_direct_list: elt list -> t
     val set_of_list: ('a -> elt) -> 'a list -> t
-    val fold_to_list: (elt -> 'a) -> t -> 'a list
+    val map_to_list: (elt -> 'a) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t = struct
@@ -47,7 +47,7 @@ module Set = struct
     let keep_elements n s = if n <= 0 then empty else (let rec f n s = if n <= 0 then s else f (n - 1) (remove (choose s) s) in f ((cardinal s) - n) s)
     let set_of_direct_list l = List.fold_left (fun res v -> add v res) empty l
     let set_of_list f l = List.fold_left (fun res v -> add (f v) res) empty l
-    let fold_to_list f s = fold (fun el res -> (f el)::res) s []
+    let map_to_list f s = fold (fun el res -> (f el)::res) s []
   end
 
   module Convert(Set_origin : S) (Set_target : S) = struct

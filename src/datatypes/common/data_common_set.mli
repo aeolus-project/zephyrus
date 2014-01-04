@@ -45,7 +45,7 @@ module Set : sig
     val set_of_list: ('a -> elt) -> 'a list -> t
 
     (** Create a list of all the elements of a set, while applying a given function to each of them. *)
-    val fold_to_list: (elt -> 'a) -> t -> 'a list
+    val map_to_list: (elt -> 'a) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t
