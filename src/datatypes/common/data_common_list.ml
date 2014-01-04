@@ -33,6 +33,14 @@ module List = struct
       | Some x -> x :: l
     ) l []
 
+  let rec indices l current_index =
+    match l with
+    | []   -> []
+    | _::t -> current_index :: (indices t (current_index + 1))
+
+  let mapi : (int -> 'a -> 'b) -> 'a list -> 'b list = 
+    fun f l -> List.map2 f (indices l 0) l  
+
   let is_empty l = (l = [])
 
   let rec fold_combine conv combine l init = 
@@ -40,5 +48,5 @@ module List = struct
     | [] -> init
     | [el] -> conv el
     | el::l' -> combine (conv el) (fold_combine conv combine l' init)
-  
+
 end
