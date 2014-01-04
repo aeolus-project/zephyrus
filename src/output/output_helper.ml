@@ -54,11 +54,3 @@ let println file s = print file (s ^ "\n")
 let print_output filename s = let file = Pervasives.open_out filename in
   Pervasives.output_string file s;
   Pervasives.close_out file
-
-(* Because there is no general Helper module... *) (* TODO: should go in datatypes/Data_common.List *)
-let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
-  List.fold_right (fun (el : 'a) (l : 'b list) -> 
-    match f el with
-    | None   -> l 
-    | Some x -> x :: l
-  ) l []

@@ -192,7 +192,7 @@ let generate_components
   (* We have prepared all the almost-done-components. Now we can extract all their names
      and we will have the initial set of names already used in the configuration
      (all coming from reused components, cause the new ones are unnamed for now). *)
-  let reused_component_names = Output_helper.filter_map (function
+  let reused_component_names = List.filter_map (function
     | ReusedComponent (component_id, component) -> Some (Name_of.component_id component_id)
     | NewComponent    _                         -> None
   ) !almost_done_components in
@@ -231,7 +231,7 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
 
       (* 1. Mapping from component name to their require arity on port p. *)
       let requirers : My_matching_algorithm.Int_list_requirer_provider_types.Requirers.t = 
-        Output_helper.filter_map (fun component_id ->
+        List.filter_map (fun component_id ->
           let component      = get_component component_id in
           let component_type = universe#get_component_type component#typ in
           if Port_id_set.mem port_id component_type#require_domain
@@ -245,7 +245,7 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
   
       (* 2. Mapping from component name to their provide arity on port p. *)
       and providers : My_matching_algorithm.Int_list_requirer_provider_types.Providers.t = 
-        Output_helper.filter_map (fun component_id ->
+        List.filter_map (fun component_id ->
           let component      = get_component component_id in
           let component_type = universe#get_component_type component#typ in
           if Port_id_set.mem port_id component_type#provide_domain

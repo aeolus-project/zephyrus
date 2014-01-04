@@ -17,13 +17,11 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
 (* Depends on
   MUST DEPEND ON NOTHING !!
     - Str (ocaml standard library, for pattern matching)
     - Printf
 *)
-
 
 val new_stage          : unit -> unit
 val end_stage          : unit -> unit
@@ -33,8 +31,3 @@ val print   : out_channel -> string -> unit
 val println : out_channel -> string -> unit
 
 val print_output : string -> string -> unit
-
-
-val filter_map : ('a -> 'b option) -> ('a list) -> ('b list) (* TODO: should go in datatypes/Data_common.List *)
-
-

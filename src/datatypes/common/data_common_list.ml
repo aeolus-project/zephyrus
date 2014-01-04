@@ -25,9 +25,20 @@ module List_from_stdlib = List
 
 module List = struct
   include List_from_stdlib
+
+  let filter_map (f : 'a -> 'b option) (l : 'a list) : ('b list) = 
+    List.fold_right (fun (el : 'a) (l : 'b list) -> 
+      match f el with
+      | None   -> l 
+      | Some x -> x :: l
+    ) l []
+
   let is_empty l = (l = [])
-  let rec fold_combine conv combine l init = match l with
+
+  let rec fold_combine conv combine l init = 
+    match l with
     | [] -> init
     | [el] -> conv el
     | el::l' -> combine (conv el) (fold_combine conv combine l' init)
+  
 end
