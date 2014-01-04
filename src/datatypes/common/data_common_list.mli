@@ -30,5 +30,6 @@ module List : sig
   val filter_map : ('a -> 'b option) -> ('a list) -> ('b list)
   val mapi : (int -> 'a -> 'b) -> 'a list -> 'b list
   val is_empty : 'a list -> bool
-  val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b 
+  val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b
+  val cartesian_product : (('a list) list) -> (('a list) list)
 end

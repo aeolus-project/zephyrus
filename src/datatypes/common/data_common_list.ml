@@ -49,4 +49,13 @@ module List = struct
     | [el] -> conv el
     | el::l' -> combine (conv el) (fold_combine conv combine l' init)
 
+  let rec cartesian_product l =
+    match l with
+    | []     -> []
+    | h::[]  -> map (fun el -> [el]) h
+    | h::t   -> flatten (
+                  map (fun el ->
+                    map (fun res -> el::res) (cartesian_product t)
+                  ) h)
+
 end
