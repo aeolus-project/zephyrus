@@ -25,7 +25,7 @@ type bin_cost = Json_binpacking_t.bin_cost
 
 type bin_arity = Json_binpacking_t.bin_arity
 
-(** Binpacking problem. *)
+(** Incompatibilities. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
   bin_sizes (*atd sizes *): (dimension * size) list;
@@ -33,9 +33,14 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
+(** Binpacking problem. *)
+type incompatibility = Json_binpacking_t.incompatibility
+
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
-  binpacking_problem_bins (*atd bins *): bin list
+  binpacking_problem_bins (*atd bins *): bin list;
+  binpacking_problem_incompatibilities (*atd incompatibilities *):
+    incompatibility list
 }
 
 let validate_dimension = (
@@ -71,7 +76,16 @@ let validate_bin = (
 let validate__2 = (
   fun _ _ -> None
 )
+let validate_incompatibility = (
+  validate__2
+)
 let validate__3 = (
+  fun _ _ -> None
+)
+let validate__4 = (
+  fun _ _ -> None
+)
+let validate__5 = (
   fun _ _ -> None
 )
 let validate_binpacking_problem = (
@@ -102,8 +116,10 @@ let create_bin
 let create_binpacking_problem 
   ~binpacking_problem_items
   ~binpacking_problem_bins
+  ~binpacking_problem_incompatibilities
   () =
   {
     binpacking_problem_items = binpacking_problem_items;
     binpacking_problem_bins = binpacking_problem_bins;
+    binpacking_problem_incompatibilities = binpacking_problem_incompatibilities;
   }

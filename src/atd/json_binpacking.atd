@@ -48,10 +48,13 @@ type bin = {
   arity : bin_arity;
 } <ocaml field_prefix="bin_">
 
+<doc text="Incompatibilities.">
+type incompatibility = item_name list
 
 <doc text="Binpacking problem.">
 
 type binpacking_problem = {
-  items     : item list;
-  bins      : bin  list;
+  items             : item            list;
+  bins              : bin             list;
+  incompatibilities : incompatibility list;
 } <ocaml field_prefix="binpacking_problem_">

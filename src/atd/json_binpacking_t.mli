@@ -25,7 +25,7 @@ type bin_cost = int
 
 type bin_arity = int
 
-(** Binpacking problem. *)
+(** Incompatibilities. *)
 type bin = {
   bin_name (*atd name *): bin_name;
   bin_sizes (*atd sizes *): (dimension * size) list;
@@ -33,7 +33,12 @@ type bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
+(** Binpacking problem. *)
+type incompatibility = item_name list
+
 type binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
-  binpacking_problem_bins (*atd bins *): bin list
+  binpacking_problem_bins (*atd bins *): bin list;
+  binpacking_problem_incompatibilities (*atd incompatibilities *):
+    incompatibility list
 }

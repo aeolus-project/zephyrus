@@ -25,7 +25,7 @@ type bin_cost = Json_binpacking_t.bin_cost
 
 type bin_arity = Json_binpacking_t.bin_arity
 
-(** Binpacking problem. *)
+(** Incompatibilities. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
   bin_sizes (*atd sizes *): (dimension * size) list;
@@ -33,9 +33,14 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
+(** Binpacking problem. *)
+type incompatibility = Json_binpacking_t.incompatibility
+
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
-  binpacking_problem_bins (*atd bins *): bin list
+  binpacking_problem_bins (*atd bins *): bin list;
+  binpacking_problem_incompatibilities (*atd incompatibilities *):
+    incompatibility list
 }
 
 val write_dimension :
@@ -217,6 +222,26 @@ val read_bin :
 val bin_of_string :
   string -> bin
   (** Deserialize JSON data of type {!bin}. *)
+
+val write_incompatibility :
+  Bi_outbuf.t -> incompatibility -> unit
+  (** Output a JSON value of type {!incompatibility}. *)
+
+val string_of_incompatibility :
+  ?len:int -> incompatibility -> string
+  (** Serialize a value of type {!incompatibility}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_incompatibility :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> incompatibility
+  (** Input JSON data of type {!incompatibility}. *)
+
+val incompatibility_of_string :
+  string -> incompatibility
+  (** Deserialize JSON data of type {!incompatibility}. *)
 
 val write_binpacking_problem :
   Bi_outbuf.t -> binpacking_problem -> unit

@@ -25,7 +25,7 @@ type bin_cost = Json_binpacking_t.bin_cost
 
 type bin_arity = Json_binpacking_t.bin_arity
 
-(** Binpacking problem. *)
+(** Incompatibilities. *)
 type bin = Json_binpacking_t.bin = {
   bin_name (*atd name *): bin_name;
   bin_sizes (*atd sizes *): (dimension * size) list;
@@ -33,9 +33,14 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
+(** Binpacking problem. *)
+type incompatibility = Json_binpacking_t.incompatibility
+
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
-  binpacking_problem_bins (*atd bins *): bin list
+  binpacking_problem_bins (*atd bins *): bin list;
+  binpacking_problem_incompatibilities (*atd incompatibilities *):
+    incompatibility list
 }
 
 let write_dimension = (
@@ -610,7 +615,7 @@ let bin_of_string s =
   read_bin (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__2 = (
   Ag_oj_run.write_list (
-    write_item
+    write_item_name
   )
 )
 let string_of__2 ?(len = 1024) x =
@@ -619,14 +624,26 @@ let string_of__2 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__2 = (
   Ag_oj_run.read_list (
-    read_item
+    read_item_name
   )
 )
 let _2_of_string s =
   read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_incompatibility = (
+  write__2
+)
+let string_of_incompatibility ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_incompatibility ob x;
+  Bi_outbuf.contents ob
+let read_incompatibility = (
+  read__2
+)
+let incompatibility_of_string s =
+  read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__3 = (
   Ag_oj_run.write_list (
-    write_bin
+    write_item
   )
 )
 let string_of__3 ?(len = 1024) x =
@@ -635,11 +652,43 @@ let string_of__3 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__3 = (
   Ag_oj_run.read_list (
-    read_bin
+    read_item
   )
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__4 = (
+  Ag_oj_run.write_list (
+    write_bin
+  )
+)
+let string_of__4 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__4 ob x;
+  Bi_outbuf.contents ob
+let read__4 = (
+  Ag_oj_run.read_list (
+    read_bin
+  )
+)
+let _4_of_string s =
+  read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__5 = (
+  Ag_oj_run.write_list (
+    write_incompatibility
+  )
+)
+let string_of__5 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__5 ob x;
+  Bi_outbuf.contents ob
+let read__5 = (
+  Ag_oj_run.read_list (
+    read_incompatibility
+  )
+)
+let _5_of_string s =
+  read__5 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_binpacking_problem = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -650,7 +699,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"items\":";
     (
-      write__2
+      write__3
     )
       ob x.binpacking_problem_items;
     if !is_first then
@@ -659,9 +708,18 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"bins\":";
     (
-      write__3
+      write__4
     )
       ob x.binpacking_problem_bins;
+    if !is_first then
+      is_first := false
+    else
+      Bi_outbuf.add_char ob ',';
+    Bi_outbuf.add_string ob "\"incompatibilities\":";
+    (
+      write__5
+    )
+      ob x.binpacking_problem_incompatibilities;
     Bi_outbuf.add_char ob '}';
 )
 let string_of_binpacking_problem ?(len = 1024) x =
@@ -676,6 +734,7 @@ let read_binpacking_problem = (
       {
         binpacking_problem_items = Obj.magic 0.0;
         binpacking_problem_bins = Obj.magic 0.0;
+        binpacking_problem_incompatibilities = Obj.magic 0.0;
       }
     in
     let bits0 = ref 0 in
@@ -704,6 +763,14 @@ let read_binpacking_problem = (
                   -1
                 )
               )
+            | 17 -> (
+                if String.unsafe_get s pos = 'i' && String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'o' && String.unsafe_get s (pos+4) = 'm' && String.unsafe_get s (pos+5) = 'p' && String.unsafe_get s (pos+6) = 'a' && String.unsafe_get s (pos+7) = 't' && String.unsafe_get s (pos+8) = 'i' && String.unsafe_get s (pos+9) = 'b' && String.unsafe_get s (pos+10) = 'i' && String.unsafe_get s (pos+11) = 'l' && String.unsafe_get s (pos+12) = 'i' && String.unsafe_get s (pos+13) = 't' && String.unsafe_get s (pos+14) = 'i' && String.unsafe_get s (pos+15) = 'e' && String.unsafe_get s (pos+16) = 's' then (
+                  2
+                )
+                else (
+                  -1
+                )
+              )
             | _ -> (
                 -1
               )
@@ -715,7 +782,7 @@ let read_binpacking_problem = (
           | 0 ->
             let v =
               (
-                read__2
+                read__3
               ) p lb
             in
             Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -723,11 +790,19 @@ let read_binpacking_problem = (
           | 1 ->
             let v =
               (
-                read__3
+                read__4
               ) p lb
             in
             Obj.set_field (Obj.repr x) 1 (Obj.repr v);
             bits0 := !bits0 lor 0x2;
+          | 2 ->
+            let v =
+              (
+                read__5
+              ) p lb
+            in
+            Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+            bits0 := !bits0 lor 0x4;
           | _ -> (
               Yojson.Safe.skip_json p lb
             )
@@ -757,6 +832,14 @@ let read_binpacking_problem = (
                     -1
                   )
                 )
+              | 17 -> (
+                  if String.unsafe_get s pos = 'i' && String.unsafe_get s (pos+1) = 'n' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'o' && String.unsafe_get s (pos+4) = 'm' && String.unsafe_get s (pos+5) = 'p' && String.unsafe_get s (pos+6) = 'a' && String.unsafe_get s (pos+7) = 't' && String.unsafe_get s (pos+8) = 'i' && String.unsafe_get s (pos+9) = 'b' && String.unsafe_get s (pos+10) = 'i' && String.unsafe_get s (pos+11) = 'l' && String.unsafe_get s (pos+12) = 'i' && String.unsafe_get s (pos+13) = 't' && String.unsafe_get s (pos+14) = 'i' && String.unsafe_get s (pos+15) = 'e' && String.unsafe_get s (pos+16) = 's' then (
+                    2
+                  )
+                  else (
+                    -1
+                  )
+                )
               | _ -> (
                   -1
                 )
@@ -768,7 +851,7 @@ let read_binpacking_problem = (
             | 0 ->
               let v =
                 (
-                  read__2
+                  read__3
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -776,11 +859,19 @@ let read_binpacking_problem = (
             | 1 ->
               let v =
                 (
-                  read__3
+                  read__4
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
               bits0 := !bits0 lor 0x2;
+            | 2 ->
+              let v =
+                (
+                  read__5
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 2 (Obj.repr v);
+              bits0 := !bits0 lor 0x4;
             | _ -> (
                 Yojson.Safe.skip_json p lb
               )
@@ -788,7 +879,7 @@ let read_binpacking_problem = (
       done;
       assert false;
     with Yojson.End_of_object -> (
-        if !bits0 <> 0x3 then Ag_oj_run.missing_fields [| !bits0 |] [| "items"; "bins" |];
+        if !bits0 <> 0x7 then Ag_oj_run.missing_fields [| !bits0 |] [| "items"; "bins"; "incompatibilities" |];
         Ag_oj_run.identity x
       )
 )

@@ -17,11 +17,21 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(* The JSON syntax of coinst's "-conflicts" output. *)
 
-(* Depends on
-    - datatypes/Data_model
-*)
+(* Package id. *)
+type id = string
 
-val conflicts_of_repository : Data_model.universe -> Data_model.repository_id -> Data_model.component_type_id list list
+(* Definition of a class of equivalence. 
+   Consists of the class representant (used to reference the class)
+   and a list of the class members. *)
+type class_definition = (id * id list)
 
-val configuration : Data_model.universe -> Data_model.configuration -> string
+(* List of packages (classes) which cannot be installed all together. *)
+type incompatibility = id list
+
+(* The whole object. *)
+type coinst_conflicts = {
+  classes           : class_definition list;
+  incompatibilities : incompatibility list;
+}
