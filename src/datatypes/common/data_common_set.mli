@@ -46,6 +46,8 @@ module Set : sig
 
     (** Create a list of all the elements of a set, while applying a given function to each of them. *)
     val map_to_list: (elt -> 'a) -> t -> 'a list
+
+    val filter_map_to_list: (elt -> 'a option) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t

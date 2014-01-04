@@ -39,6 +39,7 @@ module Set = struct
     val set_of_direct_list: elt list -> t
     val set_of_list: ('a -> elt) -> 'a list -> t
     val map_to_list: (elt -> 'a) -> t -> 'a list
+    val filter_map_to_list: (elt -> 'a option) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t = struct
@@ -48,6 +49,7 @@ module Set = struct
     let set_of_direct_list l = List.fold_left (fun res v -> add v res) empty l
     let set_of_list f l = List.fold_left (fun res v -> add (f v) res) empty l
     let map_to_list f s = fold (fun el res -> (f el)::res) s []
+    let filter_map_to_list f s = fold (fun el res -> let v_opt = f el in match v_opt with Some(v) -> v::res | None -> res) s []
   end
 
   module Convert(Set_origin : S) (Set_target : S) = struct
