@@ -111,10 +111,7 @@ let () = Load_model.set_initial_model_of_settings ();
   (* TEST: Output a CUDF file for each repository. *)
   (*
   Repository_id_set.iter (fun repository_id ->
-    let s = Cudf_of.repository String_of.package_id u repository_id in
-    let repository_name = Name_of.repository_id repository_id in
-    let filepath = Printf.sprintf "tmp/%s.cudf" repository_name in
-    Output_helper.print_output filepath s
+    Json_binpacking_problem_of.conflicts_of_repository u repository_id
   ) u#get_repository_ids;
   *)
 

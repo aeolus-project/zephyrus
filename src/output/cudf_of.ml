@@ -22,47 +22,49 @@ open Printf
 
 let default_package_version = 1
 
+let package (convert_package_id : package_id -> string) (package_field : string) (package : package) =
+  
+  (* Package field. *)
+  let package_field_lines = [sprintf "package: %s" package_field] in
+  
+  (* Package version field. *)
+  (* As we already have expanded versions this field is in fact useless, but CUDF requires it. *)
+  let package_version_field_lines = [sprintf "version: %d" default_package_version] in
+  
+  (* Package depends field. *)
+  let package_depends_field_lines =
+    let depend' : string list list = 
+      List.map (fun package_id_set ->
+        List.map convert_package_id (Package_id_set.elements package_id_set)
+      ) (Package_id_set_set.elements package#depend) in
+    let depends_string = String.concat ", " (List.map (String.concat " | ") depend') in
+    if depends_string = "" 
+    then []
+    else [sprintf "depends: %s" depends_string] in
+
+  (* Package conflicts field. *)
+  let package_conflicts_field_lines =
+    let conflict' : string list =
+      List.map convert_package_id (Package_id_set.elements package#conflict) in
+    let conflicts_string = String.concat ", " conflict' in
+    if conflicts_string = ""
+    then []
+    else [sprintf "conflicts: %s" conflicts_string] in
+  
+  (* Putting all the fields together. *)
+  String.concat "\n" (
+      package_field_lines
+    @ package_version_field_lines
+    @ package_depends_field_lines
+    @ package_conflicts_field_lines)
+
 let repository convert_package_id universe repository_id =
 
   (* let convert_package_id = Name_of.package_id in *)
   (* let convert_package_id = String_of.package_id in *)
   
   let convert_package package_id =
-    let package = universe#get_package package_id in
-    
-    (* Package field. *)
-    let package_name_field_lines = [sprintf "package: %s" (convert_package_id package_id)] in
-    
-    (* Package version field. *)
-    (* As we already have expanded versions this field is in fact useless, but CUDF requires it. *)
-    let package_version_field_lines = [sprintf "version: %d" default_package_version] in
-    
-    (* Package depends field. *)
-    let package_depends_field_lines =
-      let depend' : string list list = 
-        List.map (fun package_id_set ->
-          List.map convert_package_id (Package_id_set.elements package_id_set)
-        ) (Package_id_set_set.elements package#depend) in
-      let depends_string = String.concat ", " (List.map (String.concat " | ") depend') in
-      if depends_string = "" 
-      then []
-      else [sprintf "depends: %s" depends_string] in
-  
-    (* Package conflicts field. *)
-    let package_conflicts_field_lines =
-      let conflict' : string list =
-        List.map convert_package_id (Package_id_set.elements package#conflict) in
-      let conflicts_string = String.concat ", " conflict' in
-      if conflicts_string = ""
-      then []
-      else [sprintf "conflicts: %s" conflicts_string] in
-    
-    (* Putting all the fields together. *)
-    String.concat "\n" (
-        package_name_field_lines
-      @ package_version_field_lines
-      @ package_depends_field_lines
-      @ package_conflicts_field_lines) in
+    package convert_package_id (convert_package_id package_id) (universe#get_package package_id) in
   
   let convert_repository repository_id =
     let repository = universe#get_repository repository_id in

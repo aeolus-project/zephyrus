@@ -22,4 +22,6 @@
     - datatypes/Data_model
 *)
 
+val conflicts_of_repository : Data_model.universe -> Data_model.repository_id -> unit
+
 val configuration : Data_model.universe -> Data_model.configuration -> string
