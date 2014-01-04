@@ -583,19 +583,21 @@ let model_of_file_options file_u file_rs file_c file_s optim =
 
   (catalog, u, c, s, opt)
 
-let model_of_settings () = model_of_file_options
-  (Settings.get_input_file_universe              ())
-  (Settings.get_input_file_repositories          ())
-  (Settings.get_input_file_initial_configuration ())
-  (Settings.get_input_file_specification         ())
-  (Settings.get_input_optimization_function      ())
+let model_of_settings () = 
+  model_of_file_options
+    (Settings.get_input_file_universe              ())
+    (Settings.get_input_file_repositories          ())
+    (Settings.get_input_file_initial_configuration ())
+    (Settings.get_input_file_specification         ())
+    (Settings.get_input_optimization_function      ())
 
-let set_initial_model_of_settings () = let (catalog, universe, initial_configuration, specification, f) = model_of_settings () in
+let set_initial_model_of_settings () = 
+  let (catalog, universe, initial_configuration, specification, optimization_function) = model_of_settings () in
   Data_state.catalog_full               := Some catalog;
   Data_state.universe_full              := universe;
   Data_state.initial_configuration_full := initial_configuration;
   Data_state.specification_full         := specification;
-  Data_state.optimization_function      := f
+  Data_state.optimization_function      := optimization_function
 
 let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
