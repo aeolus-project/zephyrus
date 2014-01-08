@@ -33,12 +33,16 @@ type bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-(** Binpacking problem. *)
+type repository_name = string
+
 type incompatibility = item_name list
+
+(** Binpacking problem. *)
+type incompatibilities = incompatibility list
 
 type binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
   binpacking_problem_incompatibilities (*atd incompatibilities *):
-    incompatibility list
+    (repository_name * incompatibilities) list
 }

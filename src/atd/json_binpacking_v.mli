@@ -33,14 +33,18 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-(** Binpacking problem. *)
+type repository_name = Json_binpacking_t.repository_name
+
 type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
   binpacking_problem_incompatibilities (*atd incompatibilities *):
-    incompatibility list
+    (repository_name * incompatibilities) list
 }
 
 val validate_dimension :
@@ -94,14 +98,22 @@ val validate_bin :
   Ag_util.Validation.path -> bin -> Ag_util.Validation.error option
   (** Validate a value of type {!bin}. *)
 
+val validate_repository_name :
+  Ag_util.Validation.path -> repository_name -> Ag_util.Validation.error option
+  (** Validate a value of type {!repository_name}. *)
+
 val validate_incompatibility :
   Ag_util.Validation.path -> incompatibility -> Ag_util.Validation.error option
   (** Validate a value of type {!incompatibility}. *)
 
+val validate_incompatibilities :
+  Ag_util.Validation.path -> incompatibilities -> Ag_util.Validation.error option
+  (** Validate a value of type {!incompatibilities}. *)
+
 val create_binpacking_problem :
   binpacking_problem_items: item list ->
   binpacking_problem_bins: bin list ->
-  binpacking_problem_incompatibilities: incompatibility list ->
+  binpacking_problem_incompatibilities: (repository_name * incompatibilities) list ->
   unit -> binpacking_problem
   (** Create a record of type {!binpacking_problem}. *)
 

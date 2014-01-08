@@ -33,14 +33,18 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-(** Binpacking problem. *)
+type repository_name = Json_binpacking_t.repository_name
+
 type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
   binpacking_problem_incompatibilities (*atd incompatibilities *):
-    incompatibility list
+    (repository_name * incompatibilities) list
 }
 
 let validate_dimension = (
@@ -73,6 +77,9 @@ let validate_bin_arity = (
 let validate_bin = (
   fun _ _ -> None
 )
+let validate_repository_name = (
+  (fun _ _ -> None)
+)
 let validate__2 = (
   fun _ _ -> None
 )
@@ -82,10 +89,16 @@ let validate_incompatibility = (
 let validate__3 = (
   fun _ _ -> None
 )
+let validate_incompatibilities = (
+  validate__3
+)
 let validate__4 = (
   fun _ _ -> None
 )
 let validate__5 = (
+  fun _ _ -> None
+)
+let validate__6 = (
   fun _ _ -> None
 )
 let validate_binpacking_problem = (

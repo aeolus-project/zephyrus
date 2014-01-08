@@ -253,10 +253,15 @@ let convert_configuration (u : universe) (c : configuration) =
     ) location_categories
   in
 
-  let incompatibilities = [] (*
-    let conflicts : component_type_id list list = 
-      List.flatten (Repository_id_set.map_to_list (conflicts_of_repository u) u#get_repository_ids) in
-    List.map (List.map item_name_of_component_type_id) conflicts 
+  let incompatibilities = []
+  (*
+      Repository_id_set.map_to_list (fun repository_id ->
+        let repository_name   : Json_binpacking_t.repository_name   = Name_of.repository_id repository_id in
+        let incompatibilities : Json_binpacking_t.incompatibilities = 
+          let incompatibilities' : component_type_id list list = conflicts_of_repository u repository_id in
+          List.map (List.map item_name_of_component_type_id) incompatibilities' in
+        (repository_name, incompatibilities)
+      ) u#get_repository_ids
   *)
   in
 

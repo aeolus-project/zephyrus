@@ -33,14 +33,18 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-(** Binpacking problem. *)
+type repository_name = Json_binpacking_t.repository_name
+
 type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
   binpacking_problem_incompatibilities (*atd incompatibilities *):
-    incompatibility list
+    (repository_name * incompatibilities) list
 }
 
 let write_dimension = (
@@ -613,6 +617,18 @@ let read_bin = (
 )
 let bin_of_string s =
   read_bin (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_repository_name = (
+  Yojson.Safe.write_string
+)
+let string_of_repository_name ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_repository_name ob x;
+  Bi_outbuf.contents ob
+let read_repository_name = (
+  Ag_oj_run.read_string
+)
+let repository_name_of_string s =
+  read_repository_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__2 = (
   Ag_oj_run.write_list (
     write_item_name
@@ -643,7 +659,7 @@ let incompatibility_of_string s =
   read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__3 = (
   Ag_oj_run.write_list (
-    write_item
+    write_incompatibility
   )
 )
 let string_of__3 ?(len = 1024) x =
@@ -652,14 +668,26 @@ let string_of__3 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__3 = (
   Ag_oj_run.read_list (
-    read_item
+    read_incompatibility
   )
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_incompatibilities = (
+  write__3
+)
+let string_of_incompatibilities ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_incompatibilities ob x;
+  Bi_outbuf.contents ob
+let read_incompatibilities = (
+  read__3
+)
+let incompatibilities_of_string s =
+  read_incompatibilities (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__4 = (
   Ag_oj_run.write_list (
-    write_bin
+    write_item
   )
 )
 let string_of__4 ?(len = 1024) x =
@@ -668,14 +696,14 @@ let string_of__4 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__4 = (
   Ag_oj_run.read_list (
-    read_bin
+    read_item
   )
 )
 let _4_of_string s =
   read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__5 = (
   Ag_oj_run.write_list (
-    write_incompatibility
+    write_bin
   )
 )
 let string_of__5 ?(len = 1024) x =
@@ -684,11 +712,27 @@ let string_of__5 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__5 = (
   Ag_oj_run.read_list (
-    read_incompatibility
+    read_bin
   )
 )
 let _5_of_string s =
   read__5 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__6 = (
+  Ag_oj_run.write_assoc_list (
+    write_incompatibilities
+  )
+)
+let string_of__6 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__6 ob x;
+  Bi_outbuf.contents ob
+let read__6 = (
+  Ag_oj_run.read_assoc_list (
+    read_incompatibilities
+  )
+)
+let _6_of_string s =
+  read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_binpacking_problem = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -699,7 +743,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"items\":";
     (
-      write__3
+      write__4
     )
       ob x.binpacking_problem_items;
     if !is_first then
@@ -708,7 +752,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"bins\":";
     (
-      write__4
+      write__5
     )
       ob x.binpacking_problem_bins;
     if !is_first then
@@ -717,7 +761,7 @@ let write_binpacking_problem = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"incompatibilities\":";
     (
-      write__5
+      write__6
     )
       ob x.binpacking_problem_incompatibilities;
     Bi_outbuf.add_char ob '}';
@@ -782,7 +826,7 @@ let read_binpacking_problem = (
           | 0 ->
             let v =
               (
-                read__3
+                read__4
               ) p lb
             in
             Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -790,7 +834,7 @@ let read_binpacking_problem = (
           | 1 ->
             let v =
               (
-                read__4
+                read__5
               ) p lb
             in
             Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -798,7 +842,7 @@ let read_binpacking_problem = (
           | 2 ->
             let v =
               (
-                read__5
+                read__6
               ) p lb
             in
             Obj.set_field (Obj.repr x) 2 (Obj.repr v);
@@ -851,7 +895,7 @@ let read_binpacking_problem = (
             | 0 ->
               let v =
                 (
-                  read__3
+                  read__4
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 0 (Obj.repr v);
@@ -859,7 +903,7 @@ let read_binpacking_problem = (
             | 1 ->
               let v =
                 (
-                  read__4
+                  read__5
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -867,7 +911,7 @@ let read_binpacking_problem = (
             | 2 ->
               let v =
                 (
-                  read__5
+                  read__6
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 2 (Obj.repr v);

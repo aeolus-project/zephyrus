@@ -33,14 +33,18 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-(** Binpacking problem. *)
+type repository_name = Json_binpacking_t.repository_name
+
 type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
   binpacking_problem_incompatibilities (*atd incompatibilities *):
-    incompatibility list
+    (repository_name * incompatibilities) list
 }
 
 val write_dimension :
@@ -223,6 +227,26 @@ val bin_of_string :
   string -> bin
   (** Deserialize JSON data of type {!bin}. *)
 
+val write_repository_name :
+  Bi_outbuf.t -> repository_name -> unit
+  (** Output a JSON value of type {!repository_name}. *)
+
+val string_of_repository_name :
+  ?len:int -> repository_name -> string
+  (** Serialize a value of type {!repository_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_repository_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> repository_name
+  (** Input JSON data of type {!repository_name}. *)
+
+val repository_name_of_string :
+  string -> repository_name
+  (** Deserialize JSON data of type {!repository_name}. *)
+
 val write_incompatibility :
   Bi_outbuf.t -> incompatibility -> unit
   (** Output a JSON value of type {!incompatibility}. *)
@@ -242,6 +266,26 @@ val read_incompatibility :
 val incompatibility_of_string :
   string -> incompatibility
   (** Deserialize JSON data of type {!incompatibility}. *)
+
+val write_incompatibilities :
+  Bi_outbuf.t -> incompatibilities -> unit
+  (** Output a JSON value of type {!incompatibilities}. *)
+
+val string_of_incompatibilities :
+  ?len:int -> incompatibilities -> string
+  (** Serialize a value of type {!incompatibilities}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_incompatibilities :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> incompatibilities
+  (** Input JSON data of type {!incompatibilities}. *)
+
+val incompatibilities_of_string :
+  string -> incompatibilities
+  (** Deserialize JSON data of type {!incompatibilities}. *)
 
 val write_binpacking_problem :
   Bi_outbuf.t -> binpacking_problem -> unit
