@@ -253,8 +253,6 @@ let transitive_closure_domain c domain =
   done; !res
 
 let configuration (configuration : configuration) (location_ids : Location_id_set.t) =
-  let get_location = configuration#get_location in
-  
   let location_ids_trimmed = Location_id_set.inter configuration#get_location_ids location_ids in
   let location_ids_rest    = Location_id_set.diff  configuration#get_location_ids location_ids_trimmed in
 

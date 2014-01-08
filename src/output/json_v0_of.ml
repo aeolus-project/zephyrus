@@ -32,8 +32,7 @@ let universe (data_model_universe : Data_model.universe) : string =
   let json_universe        = Json.Of_abstract_io.universe abstract_io_universe in
   Yojson.Safe.prettify (Json_j.string_of_universe json_universe)
 
-let configuration (data_model_universe : Data_model.universe) (data_model_configuration : Data_model.configuration) : string = 
-  let abstract_io_universe      = Abstract_io_of.universe      data_model_universe in
+let configuration (data_model_universe : Data_model.universe) (data_model_configuration : Data_model.configuration) : string =
   let abstract_io_configuration = Abstract_io_of.configuration data_model_universe data_model_configuration in
   let json_configuration        = Json.Of_abstract_io.configuration abstract_io_configuration in
   Yojson.Safe.prettify (Json_j.string_of_configuration json_configuration)

@@ -149,7 +149,7 @@ let generate_components
            components of the given type (-> component_type_id). *)
 
       (* Get the components of this type installed at this location in the initial configuration. *)
-      let initial_components : Component_id_set.t =
+      let initial_component_ids : Component_id_set.t =
         Component_id_set.filter (fun component_id ->
           let component = get_component component_id in
           (component#typ = component_type_id) && (component#location = location_id)
