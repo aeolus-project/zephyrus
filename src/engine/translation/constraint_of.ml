@@ -256,29 +256,33 @@ let spec_variable_name v = Variable(Simple_variable(v))
 let spec_const = constant
 
 let spec_local_element l e = match e with
-  | Data_model.Spec_local_element_package (package_id) -> eNlk l package_id
+  | Data_model.Spec_local_element_package        (package_id)        -> eNlk l package_id
   | Data_model.Spec_local_element_component_type (component_type_id) -> eNlt l component_type_id
-  | Data_model.Spec_local_element_port (port_id) -> eNlp l port_id
+  | Data_model.Spec_local_element_port           (port_id)           -> eNlp l port_id
 
 let rec spec_local_expr l e = match e with
-  | Data_model.Spec_local_expr_var v -> spec_variable_name v
-  | Data_model.Spec_local_expr_const c -> spec_const c
-  | Data_model.Spec_local_expr_arity e -> spec_local_element l e
-  | Data_model.Spec_local_expr_add (e1, e2) -> (spec_local_expr l e1) +~ (spec_local_expr l e2)
-  | Data_model.Spec_local_expr_sub (e1, e2) -> (spec_local_expr l e1) -~ (spec_local_expr l e2)
-  | Data_model.Spec_local_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_var   (v)      -> spec_variable_name v
+  | Data_model.Spec_local_expr_const (c)      -> spec_const c
+  | Data_model.Spec_local_expr_arity (e)      -> spec_local_element l e
+  | Data_model.Spec_local_expr_add   (e1, e2) -> (spec_local_expr l e1) +~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_sub   (e1, e2) -> (spec_local_expr l e1) -~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_mul   (e1, e2) -> (spec_const e1) *~ (spec_local_expr l e2)
 
 let spec_op o = match o with
-  | Data_model.Lt  -> (<~) | Data_model.LEq -> (<=~) | Data_model.Eq  -> (=~)
-  | Data_model.GEq -> (>=~) | Data_model.Gt  -> (>~) | Data_model.NEq -> (<>~)
+  | Data_model.Lt  -> ( <~  )
+  | Data_model.LEq -> ( <=~ )
+  | Data_model.Eq  -> ( =~  )
+  | Data_model.GEq -> ( >=~ )
+  | Data_model.Gt  -> ( >~  )
+  | Data_model.NEq -> ( <>~ )
 
 let rec local_specification l s = match s with
-  | Data_model.Spec_local_true -> True
-  | Data_model.Spec_local_op (e1, op, e2) -> (spec_op op) (spec_local_expr l e1) (spec_local_expr l e2)
-  | Data_model.Spec_local_and (s1, s2) -> (local_specification l s1) &&~~ (local_specification l s2)
-  | Data_model.Spec_local_or (s1, s2) -> (local_specification l s1) ||~~ (local_specification l s2)
-  | Data_model.Spec_local_impl (s1, s2) -> (local_specification l s1) =>~~ (local_specification l s2)
-  | Data_model.Spec_local_not (s') -> !~ (local_specification l s')
+  | Data_model.Spec_local_true              -> True
+  | Data_model.Spec_local_op   (e1, op, e2) -> (spec_op op) (spec_local_expr l e1) (spec_local_expr l e2)
+  | Data_model.Spec_local_and  (s1, s2)     -> (local_specification l s1) &&~~ (local_specification l s2)
+  | Data_model.Spec_local_or   (s1, s2)     -> (local_specification l s1) ||~~ (local_specification l s2)
+  | Data_model.Spec_local_impl (s1, s2)     -> (local_specification l s1) =>~~ (local_specification l s2)
+  | Data_model.Spec_local_not  (s')         -> !~ (local_specification l s')
 
 let spec_resource_constraint l co = List.fold_left (fun res (o, op, i) -> ((spec_op op) (eO l o) (constant i))::res) [] co
 let spec_repository_constraint l cr = match cr with 
@@ -286,27 +290,29 @@ let spec_repository_constraint l cr = match cr with
                                       | _  -> (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
 
 let spec_element location_ids e = match e with
-  | Data_model.Spec_element_package (package_id) -> eNk package_id
+  | Data_model.Spec_element_package        (package_id)        -> eNk package_id
   | Data_model.Spec_element_component_type (component_type_id) -> eNt component_type_id
-  | Data_model.Spec_element_port (port_id) -> eNp port_id
+  | Data_model.Spec_element_port           (port_id)           -> eNp port_id
   | Data_model.Spec_element_location (co, cr, ls) -> sum (Data_model.Location_id_set.fold
      (fun l res -> (reify (conj((local_specification l ls)::(spec_repository_constraint l cr)::(spec_resource_constraint l co))))::res ) location_ids [])
 
 let rec spec_expr location_ids e = match e with
-  | Data_model.Spec_expr_var v -> spec_variable_name v
-  | Data_model.Spec_expr_const c -> spec_const c
-  | Data_model.Spec_expr_arity e -> spec_element location_ids e
-  | Data_model.Spec_expr_add (e1, e2) -> (spec_expr location_ids e1) +~ (spec_expr location_ids e2)
-  | Data_model.Spec_expr_sub (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
-  | Data_model.Spec_expr_mul (e1, e2) -> (spec_const e1) *~ (spec_expr location_ids e2)
+  | Data_model.Spec_expr_var   (v)      -> spec_variable_name v
+  | Data_model.Spec_expr_const (c)      -> spec_const c
+  | Data_model.Spec_expr_arity (e)      -> spec_element location_ids e
+  | Data_model.Spec_expr_add   (e1, e2) -> (spec_expr location_ids e1) +~ (spec_expr location_ids e2)
+  | Data_model.Spec_expr_sub   (e1, e2) -> (spec_expr location_ids e1) -~ (spec_expr location_ids e2)
+  | Data_model.Spec_expr_mul   (e1, e2) -> (spec_const e1)             *~ (spec_expr location_ids e2)
 
 let rec specification_simple location_ids s = match s with
-  | Data_model.Spec_true -> True
-  | Data_model.Spec_op (e1, op, e2) -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
-  | Data_model.Spec_and (s1, s2) -> (specification_simple location_ids s1) &&~~ (specification_simple location_ids s2)
-  | Data_model.Spec_or  (s1, s2) -> (specification_simple location_ids s1) ||~~ (specification_simple location_ids s2)
-  | Data_model.Spec_impl (s1, s2) -> (specification_simple location_ids s1) =>~~ (specification_simple location_ids s2)
-  | Data_model.Spec_not (s') -> !~ (specification_simple location_ids s')
+  | Data_model.Spec_true                     -> True
+  | Data_model.Spec_op   (e1, op, e2)        -> (spec_op op) (spec_expr location_ids e1) (spec_expr location_ids e2)
+  | Data_model.Spec_and  (s1, s2)            -> (specification_simple location_ids s1) &&~~ (specification_simple location_ids s2)
+  | Data_model.Spec_or   (s1, s2)            -> (specification_simple location_ids s1) ||~~ (specification_simple location_ids s2)
+  | Data_model.Spec_impl (s1, s2)            -> (specification_simple location_ids s1) =>~~ (specification_simple location_ids s2)
+  | Data_model.Spec_not  (s')                -> !~ (specification_simple location_ids s')
+  | Data_model.Spec_everywhere          (ls) -> conj (List.map (fun l -> local_specification l ls) (Data_model.Location_id_set.elements location_ids))
+  | Data_model.Spec_at (at_location_ids, ls) -> conj (List.map (fun l -> local_specification l ls) at_location_ids)
 
 let specification locations s = Zephyrus_log.log_constraint_execution "Compute Specification\n"; 
   [(Data_state.constraint_specification_full, specification_simple locations s) ]

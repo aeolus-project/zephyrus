@@ -28,6 +28,7 @@
 %token <string> COMPONENT_TYPE_NAME
 %token <string> PORT_NAME
 %token <string> PACKAGE_NAME
+%token EVERYWHERE AT
 %token TRUE
 %token PLUS MINUS TIMES
 %token AND OR IMPL NOT
@@ -80,6 +81,10 @@ resource_name:
   | NAME                        { $1 }
   | LPAREN resource_name RPAREN { $2 }
 
+location_name:
+  | NAME                        { $1 }
+  | LPAREN location_name RPAREN { $2 }
+
 spec_variable_name:
   | NAME                             { $1 }
   | LPAREN spec_variable_name RPAREN { $2 }
@@ -92,7 +97,12 @@ specification:
   | specification IMPL specification { Abstract_io.SpecImpl ($1, $3)     }
   | NOT specification                { Abstract_io.SpecNot  ($2)         }
   | LPAREN specification RPAREN      { $2 }
+  | EVERYWHERE                           LPAREN local_specification RPAREN { Abstract_io.SpecEverywhere ($3)     }
+  | AT LCURLY spec_location_names RCURLY LPAREN local_specification RPAREN { Abstract_io.SpecAt         ($3, $6) }
 
+spec_location_names:
+  | location_name                            { [$1] }
+  | location_name COMMA spec_location_names  { $1 :: $3 }
 
 spec_expr:
   | spec_variable_name          { Abstract_io.SpecExprVar   ($1)     }

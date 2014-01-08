@@ -748,11 +748,13 @@ type spec_expr =
 
 type specification = 
   | Spec_true
-  | Spec_op   of spec_expr * spec_op * spec_expr
-  | Spec_and  of specification * specification
-  | Spec_or   of specification * specification
-  | Spec_impl of specification * specification
-  | Spec_not  of specification
+  | Spec_op         of spec_expr * spec_op * spec_expr
+  | Spec_and        of specification * specification
+  | Spec_or         of specification * specification
+  | Spec_impl       of specification * specification
+  | Spec_not        of specification
+  | Spec_everywhere of                    local_specification
+  | Spec_at         of location_id list * local_specification
 
 
 (**  *)
@@ -796,13 +798,15 @@ let rec uv_of_spec_expr e = match e with
   | Spec_expr_mul  (c ,e') -> uv_of_spec_expr e'
 
 let rec uv_of_specification s = match s with
-  | Spec_true           -> uv_empty
-  | Spec_op   (e1,_,e2) -> uv_union (uv_of_spec_expr e1) (uv_of_spec_expr e2)
-  | Spec_and  (s1,s2)   -> uv_union (uv_of_specification s1) (uv_of_specification s2)
-  | Spec_or   (s1,s2)   -> uv_union (uv_of_specification s1) (uv_of_specification s2)
-  | Spec_impl (s1,s2)   -> uv_union (uv_of_specification s1) (uv_of_specification s2)
-  | Spec_not  (s')      -> uv_of_specification s'
-
+  | Spec_true            -> uv_empty
+  | Spec_op   (e1,_,e2)  -> uv_union (uv_of_spec_expr e1) (uv_of_spec_expr e2)
+  | Spec_and  (s1,s2)    -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_or   (s1,s2)    -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_impl (s1,s2)    -> uv_union (uv_of_specification s1) (uv_of_specification s2)
+  | Spec_not  (s')       -> uv_of_specification s'
+  | Spec_everywhere (ls) -> uv_of_spec_local_specification ls
+  | Spec_at      (_, ls) -> uv_of_spec_local_specification ls
+  
 
 (*/************************************************************************\*)
 (*| 5. Optimization function                                               |*)

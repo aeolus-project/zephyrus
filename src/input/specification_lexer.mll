@@ -42,6 +42,10 @@ rule token = parse
   | [' ' '\t']         { token lexbuf }     (* skip blanks *)
   | ['\n' ]            { token lexbuf }     (* skip newlines *)
 
+  (* Keywords *)
+  | "everywhere"       { EVERYWHERE }
+  | "at"               { AT }
+
   (* Constants *)
   | "true"                               
   | "True"                               

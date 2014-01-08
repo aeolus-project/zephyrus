@@ -523,11 +523,13 @@ type spec_expr =
 
 type specification = 
   | Spec_true
-  | Spec_op   of spec_expr * spec_op * spec_expr
-  | Spec_and  of specification * specification
-  | Spec_or   of specification * specification
-  | Spec_impl of specification * specification
-  | Spec_not  of specification
+  | Spec_op         of spec_expr * spec_op * spec_expr
+  | Spec_and        of specification * specification
+  | Spec_or         of specification * specification
+  | Spec_impl       of specification * specification
+  | Spec_not        of specification
+  | Spec_everywhere of                    local_specification
+  | Spec_at         of location_id list * local_specification
 
 
 (**  *)

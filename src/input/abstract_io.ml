@@ -158,10 +158,14 @@ type spec_expr =
   | SpecExprSub   of spec_expr * spec_expr
   | SpecExprMul   of spec_const * spec_expr
 
+type spec_location_names = location_name list
+
 type specification =
   | SpecTrue
-  | SpecOp   of spec_expr * spec_op * spec_expr
-  | SpecAnd  of specification * specification
-  | SpecOr   of specification * specification
-  | SpecImpl of specification * specification
-  | SpecNot  of specification
+  | SpecOp         of spec_expr * spec_op * spec_expr
+  | SpecAnd        of specification * specification
+  | SpecOr         of specification * specification
+  | SpecImpl       of specification * specification
+  | SpecNot        of specification
+  | SpecEverywhere of                       local_specification
+  | SpecAt         of spec_location_names * local_specification

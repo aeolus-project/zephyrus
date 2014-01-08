@@ -589,8 +589,7 @@ let specification_validation (universe : universe) (configuration : configuratio
     | Data_model.Spec_local_element_package        (package_id)        -> number_of_packages_on_location       l package_id
     | Data_model.Spec_local_element_component_type (component_type_id) -> number_of_components_on_location     l component_type_id
     | Data_model.Spec_local_element_port           (port_id)           -> number_of_ports_provided_on_location l port_id
-        
-
+  
   and spec_local_expr l e = match e with
     | Data_model.Spec_local_expr_var   v       -> 0 (* TODO: Treat variables... *)
     | Data_model.Spec_local_expr_const c       -> c
@@ -632,7 +631,8 @@ let specification_validation (universe : universe) (configuration : configuratio
     | Data_model.Spec_element_package        (package_id)        -> number_of_packages_global       package_id
     | Data_model.Spec_element_component_type (component_type_id) -> number_of_components_global     component_type_id
     | Data_model.Spec_element_port           (port_id)           -> number_of_ports_provided_global port_id
-    | Data_model.Spec_element_location       (co, cr, ls)        -> (* For all locations fulfilling the conditions the local specification applies. *)
+    | Data_model.Spec_element_location       (co, cr, ls)        -> 
+        (* For all locations fulfilling the conditions the local specification applies. *)
         let concerned_locations = List.filter (fun l -> 
           (spec_resource_constraint l co) && (spec_repository_constraint l cr)
         ) (Location_id_set.elements configuration#get_location_ids) in
@@ -653,6 +653,11 @@ let specification_validation (universe : universe) (configuration : configuratio
     | Data_model.Spec_or   (s1, s2)     ->     (sspecification s1) || (sspecification s2)
     | Data_model.Spec_impl (s1, s2)     -> not (sspecification s1) || (sspecification s2)
     | Data_model.Spec_not  (s')         -> not (sspecification s')
+    | Data_model.Spec_everywhere (ls) ->
+        let concerned_locations = Location_id_set.elements configuration#get_location_ids in
+        sspecification (Data_model.Spec_at (concerned_locations, ls))
+    | Data_model.Spec_at (location_ids, ls) ->
+        List.for_all (fun location_id -> local_specification location_id ls) location_ids
 
   in
 

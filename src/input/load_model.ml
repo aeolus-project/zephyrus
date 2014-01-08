@@ -489,7 +489,11 @@ let convert_specification (catalog : closed_model_catalog) =
   | Abstract_io.SpecAnd  (s1, s2)      -> Spec_and  (convert_specification s1, convert_specification s2)
   | Abstract_io.SpecOr   (s1, s2)      -> Spec_or   (convert_specification s1, convert_specification s2)
   | Abstract_io.SpecImpl (s1, s2)      -> Spec_impl (convert_specification s1, convert_specification s2)
-  | Abstract_io.SpecNot  (s')          -> Spec_not  (convert_specification s') in 
+  | Abstract_io.SpecNot  (s')          -> Spec_not  (convert_specification s')
+  | Abstract_io.SpecEverywhere    (sl) -> Spec_everywhere (convert_local_specification sl)
+  | Abstract_io.SpecAt        (ls, sl) -> Spec_at(
+                                            List.map (fun location_name -> catalog#location#id_of_name (convert_location_name location_name)) ls, 
+                                            convert_local_specification sl) in
 
   convert_specification
 

@@ -286,8 +286,10 @@ module Make =
     | Data_model.Spec_op   (e1, op, e2) ->  (spec_expr e1) ^ (spec_op op) ^ (spec_expr  e2)
     | Data_model.Spec_and  (s1, s2)     -> "(" ^ (specification s1) ^ " /\\ " ^ (specification s2) ^ ")"
     | Data_model.Spec_or   (s1, s2)     -> "(" ^ (specification s1) ^ " \\/ " ^ (specification s2) ^ ")"
-    | Data_model.Spec_impl (s1, s2)     -> "(" ^ (specification s1) ^ " => " ^ (specification s2) ^ ")"
+    | Data_model.Spec_impl (s1, s2)     -> "(" ^ (specification s1) ^ " => "  ^ (specification s2) ^ ")"
     | Data_model.Spec_not  (s')         -> "not " ^ (specification s')
+    | Spec_everywhere              (ls) -> "everywhere(" ^ (local_specification ls) ^ ")"
+    | Spec_at        (location_ids, ls) ->         "at(" ^ (local_specification ls) ^ ")"
 
 
   let rec model_optimization_function f = match f with
