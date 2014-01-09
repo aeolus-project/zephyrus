@@ -142,6 +142,7 @@ After the installation you should make sure that the binaries **mzn2fzn** and **
 
 #####Installing the GeCode Solver
 You can install the GeCode solver in two ways:
+
 1. Either follow the installation instructions from its website: [GeCode website](http://www.gecode.org/).
 2. Or you can install it using a Debian package "flatzinc": `sudo apt-get install flatzinc`
 
