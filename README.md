@@ -134,13 +134,13 @@ There are currently two constraint solvers supported by Zephyrus:
 
 For now however you *always* need to install the C12 solver, as it containts **mzn2fzn**: a MiniZinc to FlatZinc converter.
 
-#####Installing C12 Solver
+#####Installing the C12 Solver
 
 In order to install the C12 constraint solver, follow instructions from this website: [G12 MiniZinc Distribution (version 1.6)](http://www.g12.csse.unimelb.edu.au/minizinc/download.html)
 
 After the installation you should make sure that the binaries **mzn2fzn** and **flatzinc** are in your PATH when you execute Zephyrus. Otherwise Zephyrus will not be able to find it by itself and you will have to specify custom solver settings to use it.
 
-#####GeCode Solver
+#####Installing the GeCode Solver
 You can install the GeCode solver in two ways:
 1. Either follow the installation instructions from its website: [GeCode website](http://www.gecode.org/).
 2. Or you can install it using a Debian package "flatzinc": `sudo apt-get install flatzinc`
@@ -154,4 +154,3 @@ To obtain basic information about using the tool type `./zephyrus.native -help`.
 For simple examples of use see files in *tests* subdirectory, especially all the test scripts "test*.bash".
 
 For several tests based on a more complicated example (the one presented in the paper), see files in the *example-inputs* subdirectory. Some results of these tests are available in the *example-results* subdirectory.
-
