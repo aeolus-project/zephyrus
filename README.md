@@ -1,6 +1,9 @@
 Zephyrus
 ========
 
+Introduction
+------------
+
 Zephyrus is a tool aiming to automate to a great extent the process of assembling complex distributed applications. Given as input a high-level specification of the desired system (a description of available software components and their relationships) and the current state of the system, Zephyrus is able to generate the system's architecture: place components in an optimal manner on the available machines and connect them as needed.
 
 The Zephyrus tool is a part of the [Aeolus Project](http://www.aeolus-project.org).
@@ -62,6 +65,7 @@ In order to compile Zephyrus you need to have these OCaml libraries installed:
 3. [Menhir](http://gallium.inria.fr/~fpottier/menhir/)
 
 There are two basic ways to install these:
+
 1. Through [OPAM](http://opam.ocamlpro.com) **(recommended)**
 2. Using Debian packages, i.e. through apt-get
 
@@ -71,7 +75,7 @@ The most simple way to get all the required OCaml libraries is to use OPAM (a pa
 
 1. Follow the instructions on the [OPAM website](http://opam.ocamlpro.com) in order to install OPAM on your machine.
   
-2. *(optional step; you probably don't need to do it, as Zephyrus is also available now in the main OPAM repository)*
+2. *(optional step; you don't need to do this anymore, as the zephyrus package is now available directly in the main OPAM repository)*
    
    Add Aeolus OPAM repository to your OPAM installation:
 
@@ -147,11 +151,120 @@ You can install the GeCode solver in two ways:
 2. Or you can install it using a Debian package "flatzinc": `sudo apt-get install flatzinc`
 
 
-Tutorial
---------
+User Guide
+----------
 
-To obtain basic information about using the tool type `./zephyrus.native -help`.
+####Basics
 
-For simple examples of use see files in *tests* subdirectory, especially all the test scripts "test*.bash".
+In this User Guide we assume that:
 
-For several tests based on a more complicated example (the one presented in the paper), see files in the *example-inputs* subdirectory. Some results of these tests are available in the *example-results* subdirectory.
+- you have successfuly managed to compile the Zephyrus tool
+- and the generated main executable file is called "zephyrus.native".
+
+To obtain a short description of basic options available when using the tool type `./zephyrus.native -help`.
+
+For simple examples of use see files in *tests* subdirectory, especially all the test scripts "test*.settings".
+
+For several tests based on a more complicated examples, see files in the *example-inputs* (the standard Wordpress use cases, appearing often in our papers) and *openstack* (our OpenStack use cases) subdirectories.
+
+####Features
+
+(What does Zephyrus do and how?)
+
+#####Modes
+
+The Zephyrus tool works in three different modes:
+
+1. *Classic mode* : find the final configuration.
+
+  This is the standard functioning mode of Zephyrus. In this mode it reads all the provided inputs (it requires at least a universe and a specification), generates the final configuration according to given parameters and outputs it to specified output files.
+
+2. *Validate mode* : check if the input configuration is valid.
+
+  In this mode Zephyrus reads the provided inputs (it requires at least a universe, a specification and an initial configuration) and checks if the given configuration is valid with respect to the given universe and specification. As an output, Zephyrus will either assure us that the configuration is valid or print a list of the universe and configuration constraints which the configuration violates (as detailed as possible).
+
+3. *No-solving mode* : translate between different formats.
+
+  This is a mode which serves principally to translate between different formats of data. For example we can use it to generate DOT configuration graphs from solutions already computed before and saved in the form of JSON files.
+  
+  In this mode Zephyrus takes the input data (it requires at least a universe and a configuration), it omits the solving step and it produces the output in the standard way, using the initial configuration directly as the final one.
+
+
+####Parameters
+
+(Usage of the program)
+
+In order to tell Zephyrus what to do (which input files to use, what outputs to produce, which constraint solver to use, etc.) we need to pass him some parameters. There are two ways to do it:
+
+1. Through the *setting files*
+
+   We write the parameters in setting files and tell Zephyrus to read them.
+
+2. Through command line arguments
+
+   We pass the parameters to Zephyrus directly on the command line when we execute the compiled program.
+
+The setting files mechanism is more complete and recommended on the long term (we do not need to retype the long list of parameters every time), but using the command-line arguments is often easier and faster on the short term. In practice we usually pass some parameters one way and some the other.
+
+(Moreover it would be difficult to completely avoid using the command line arguments, as we have to tell Zephyrus somehow where are the setting files we want to him to read).
+
+##### Example
+
+This is how a typical simple settings file looks like:
+
+*my.settings*
+```
+# Input
+input-file-universe         = "u.json"
+input-file-configuration    = "ic.json"
+input-file-specification    = "spec.spec"
+input-optimization-function = compact
+
+# Output
+results = [("json", "output.json"); ("graph-deployment", "output.dot")]
+```
+
+Executing Zephyrus using this settings file would be very simple `./zephyrus.native -settings my.settings`.
+
+The exact command-line arguments equivalent is a little heavier and looks like that:
+
+```
+./zephyrus-native -u u.json -ic ic.json -spec spec.spec -opt compact -out json output.json -out graph-deployment output.dot
+```
+
+#####Parameters handling
+
+(How setting files and command line parameters are handled and append to / ovverride each other)
+
+TODO
+
+#####Available parameters
+
+TODO: Reformat, fill information
+
+- mode                                (* The Zephyrus functioning mode: {classic|validate|no-solving}. *)
+- input_file_universe                 (* The universe file. *)
+- input_file_configuration            (* The initial configuration file. *) (* The file where Zephyrus should look for the input configuration. *)
+- input_file_specification            (* The specification file. *)
+- input_file_repositories             (* The external repositories files. *)
+- input_optimization_function         (* The optimization function choice: {simple|compact|conservative|spread|none}*)
+- append_repository_to_package_name   (* Prefix every package name with its repository name in the output. *)
+- solver                              (* Choose the main constraint solver: {none|g12|gcode|custom} *)
+- custom_solver_command               (* Defined a custom command used to launch the external FlatZinc solver. *)
+- custom_mzn2fzn_command              (* Defined a custom command used to launch the MiniZinc-to-FlatZinc converter. *)
+- results                             (* Which forms of output should Zephyrus produce and to which files. *)
+- verbose_level                       (* How much information should Zephyrus print: 0,1,2,3 *)
+- verbose_data                        (* Should Zephyrus print the input data during execution. *)
+
+#####Command-line only parameters
+
+TODO: Reformat, fill information
+
+- settings
+- print-path
+
+####Input / Output files syntax
+
+(Syntax of the Universe, Configuration, Specification and External Repository files)
+
+TODO

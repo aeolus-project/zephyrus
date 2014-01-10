@@ -159,13 +159,13 @@ type solver =
   | Solver_none
   | Solver_gcode
   | Solver_g12
-  | Solver_facile
+(*  | Solver_facile *)
   | Solver_custom
 let solver_assoc = [
-  ("facile", Solver_facile);
+(*  ("facile", Solver_facile); *)
+  ("none"  , Solver_none);
   ("g12"   , Solver_g12);
   ("gcode" , Solver_gcode);
-  ("none"  , Solver_none);
   ("custom", Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
@@ -361,50 +361,50 @@ let verbose_execution = ("verbose-execution", bool_setting)
 
 (* 2.2. list of all settings *)
 let all_settings = [
-    mode;
-    input_file_universe;
-    input_file_configuration;
-    input_file_specification;
-    input_file_repositories;
-    input_optimization_function;
-    import_universe;
-    import_repositories;
-    import_initial_configuration;
-    import_specification;
-    import_optimization_function;
-    append_repository_to_package_name;
-    check_universe;
-    check_repositories;
-    check_initial_configuration;
-    check_universe_full;
-    check_specification;
-    check_settings;
-    detect_spec_is_empty;
-    component_type_trim;
-    detect_component_types_have_loop;
-    detect_component_types_bounds;
-    package_trim;
-    constraint_kind;
-    preprocess_solver;
-    solver;
-    solver_bin_packing;
-    custom_solver_command;
-    custom_mzn2fzn_command;
-    preprocess_constraint_file;
-    preprocess_solution_file;
-    preprocess_keep_constraint_file;
-    preprocess_keep_solution_file;
-    solver_constraint_file;
-    solver_solution_file;
-    solver_keep_constraint_file;
-    solver_keep_solution_file;
-    generate_bindings;
-    generate_packages;
-    results;
-    verbose_level;
-    verbose_stage;
-    verbose_data;
-    verbose_execution
+    mode;                                (* The Zephyrus functioning mode: {classic|validate|no-solving}. *)
+    input_file_universe;                 (* The universe file. *)
+    input_file_configuration;            (* The initial configuration file. *) (* The file where Zephyrus should look for the input configuration. *)
+    input_file_specification;            (* The specification file. *)
+    input_file_repositories;             (* The external repositories files. *)
+    input_optimization_function;         (* The optimization function choice: {simple|compact|conservative|spread|none}*)
+    import_universe;                     (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus read the input universe file? *)
+    import_repositories;                 (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus read the input external repositories files? *)
+    import_initial_configuration;        (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus read the input initial configuration file? *)
+    import_specification;                (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus read the input specification file? *)
+    import_optimization_function;        (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus use the provided optimization function parameter? *)
+    append_repository_to_package_name;   (* Prefix every package name with its repository name in the output. *)
+    check_universe;                      (* UNUSED *)
+    check_repositories;                  (* UNUSED *)
+    check_initial_configuration;         (* UNUSED *)
+    check_universe_full;                 (* UNUSED *)
+    check_specification;                 (* UNUSED *)
+    check_settings;                      (* UNUSED *)
+    detect_spec_is_empty;                (* UNUSED *)
+    component_type_trim;                 (* UNUSED *)
+    detect_component_types_have_loop;    (* UNUSED *)
+    detect_component_types_bounds;       (* UNUSED *)
+    package_trim;                        (* UNUSED *)
+    constraint_kind;                     (* UNUSED *)
+    preprocess_solver;                   (* DUNNO *) (* TODO: I think that for now we always use the main solver? Check it! *) (* Choose the solver used for preprocessing. *)
+    solver;                              (* Choose the main constraint solver: {none|g12|gcode|custom} *)
+    solver_bin_packing;                  (* UNUSED *)
+    custom_solver_command;               (* Defined a custom command used to launch the external FlatZinc solver. *)
+    custom_mzn2fzn_command;              (* Defined a custom command used to launch the MiniZinc-to-FlatZinc converter. *)
+    preprocess_constraint_file;          (* ? *)
+    preprocess_solution_file;            (* ? *)
+    preprocess_keep_constraint_file;     (* ? *)
+    preprocess_keep_solution_file;       (* ? *)
+    solver_constraint_file;              (* ? *)
+    solver_solution_file;                (* ? *)
+    solver_keep_constraint_file;         (* ? *)
+    solver_keep_solution_file;           (* ? *)
+    generate_bindings;                   (* UNUSED *)
+    generate_packages;                   (* UNUSED *)
+    results;                             (* Which forms of output should Zephyrus produce and to which files. *)
+    verbose_level;                       (* How much information should Zephyrus print: 0,1,2,3 *)
+    verbose_stage;                       (* UNUSED *)
+    verbose_data;                        (* Should Zephyrus print the input data during execution. *)
+    verbose_execution                    (* UNUSED *)
   ]
 
 let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings with
