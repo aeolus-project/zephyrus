@@ -187,18 +187,18 @@ The Zephyrus tool works in three different modes:
 
   This is a mode which serves principally to translate between different formats of data. For example we can use it to generate DOT configuration graphs from solutions already computed before and saved in the form of JSON files.
   
-  In this mode Zephyrus takes the input data (it requires at least a universe and a configuration), it omits the solving step and it produces the output in the standard way, using the initial configuration directly as the final one.
+  In this mode Zephyrus takes the input data (it requires at least a universe and a configuration), it omits the solving step, producing the output in the standard way (exactly as in the *classic mode*), but using the initial configuration directly as the final one.
 
 
 ####Parameters
 
 (Usage of the program)
 
-In order to tell Zephyrus what to do (which input files to use, what outputs to produce, which constraint solver to use, etc.) we need to pass him some parameters. There are two ways to do it:
+In order to tell Zephyrus what to do (which input files to read, what outputs to produce, which constraint solver to use, etc.) we need to pass him some parameters. There are two ways to do it:
 
 1. Through the *setting files*
 
-   We write the parameters in setting files and tell Zephyrus to read them.
+   We write the parameters in the form of setting files and tell Zephyrus to read them.
 
 2. Through command line arguments
 
@@ -208,7 +208,7 @@ The setting files mechanism is more complete and recommended on the long term (w
 
 (Moreover it would be difficult to completely avoid using the command line arguments, as we have to tell Zephyrus somehow where are the setting files we want to him to read).
 
-##### Example
+###### Example
 
 This is how a typical simple settings file looks like:
 
@@ -224,7 +224,7 @@ input-optimization-function = compact
 results = [("json", "output.json"); ("graph-deployment", "output.dot")]
 ```
 
-Executing Zephyrus using this settings file would be very simple `./zephyrus.native -settings my.settings`.
+Executing Zephyrus using this settings file would be very simple: `./zephyrus.native -settings my.settings`.
 
 The exact command-line arguments equivalent is a little heavier and looks like that:
 
@@ -234,9 +234,64 @@ The exact command-line arguments equivalent is a little heavier and looks like t
 
 #####Parameters handling
 
-(How setting files and command line parameters are handled and append to / ovverride each other)
+(How setting files and command line parameters are handled and append to / override each other)
 
 TODO
+
+CHECK: If you want you can specify multiple settings files for Zephyrus to read and add some command-line arguments on top of it. All the   parameters form the settings files and all the command-line arguments will be taken into accound in a specific order. What happens when a parameter is declared twice depends on, in some cases parameter value is simply overriden and in others they stack.
+
+#####Setting files syntax
+
+Zephyrus setting file syntax is quite straightforward as settings are basically a list of key-value pairs.
+
+Assigning a value to a parameter takes form of a pair: the parameter name and the value, divided by an equality sign ('='):
+```
+parameter = value
+```
+
+There can be at most one assignment per line. Empty lines are ignored. We can also include comments in the setting files, as everything in a given line following a '#' symbol is also ignored.
+
+######Example:
+```
+key1 = value1
+key2=value2
+key3    =value3
+
+key4 = value4 # This is a comment.
+# This is also a comment.
+```
+
+Every parameter can be assigned values of a certain type and there are five types available:
+
+- Boolean
+  - `true`, `yes` and `y` mean **true**
+  - `false`, `no` and `n` mean **false**
+- Integer
+- String
+  (You can put quotes or double quotes around the strings, but they are necessary only if the string contains whitespaces.)
+- List: `[element_1; element_2; element_3; ... el_n]`
+- Pair: `(element_1, element_2)`
+
+Of course lists of pairs, pairs of lists etc. are also possible.
+
+######Example:
+```
+# A string without quotes:
+input-file-universe = u.json
+
+# A string with quotes:
+input-file-configuration = "ic.json"
+
+# An integer:
+verbose-level = 2
+
+# A boolean:
+verbose-data = y
+
+# A list of pairs of strings:
+results = [("json", "output.json"); ("graph-deployment", "output.dot")]
+```
+
 
 #####Available parameters
 

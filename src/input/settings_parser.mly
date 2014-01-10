@@ -22,8 +22,9 @@
     - datatypes/Data_common (for the map)
 *)
 
-let manage_element ident value = try Settings.add (Settings.setting_of_string ident) value with
-  | Not_found   -> Settings.Settings_log.log_wrong_setting ident
+let manage_element ident value =
+  try Settings.add (Settings.setting_of_string ident) value
+  with Not_found -> Settings.Settings_log.log_wrong_setting ident
 
 %}
 
