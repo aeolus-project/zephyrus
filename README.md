@@ -80,12 +80,12 @@ The most simple way to get all the required OCaml libraries is to use OPAM (a pa
 
 1. Follow the instructions on the [OPAM website](http://opam.ocamlpro.com) in order to install OPAM on your machine.
   
-2. *(optional step; you don't need to do this anymore, as the zephyrus package is now available directly in the main OPAM repository)*
+2. *(OPTIONAL STEP: you don't need to do this anymore, as the zephyrus package is now available directly in the main OPAM repository)*
    
    Add Aeolus OPAM repository to your OPAM installation:
 
   ```sh
-  opam repo add aeolus git@github.com:jakub-zwolakowski/opam.git"
+  opam repo add aeolus git@github.com:jakub-zwolakowski/opam.git
   ```
 
 3. Update the repository data:
