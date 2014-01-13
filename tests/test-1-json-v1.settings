@@ -1,5 +1,4 @@
-
-# 01. Input Files
+# Input
 
 input-file-universe         = "tests/u-1-json-v1.json"
 input-file-configuration    = "tests/ic-single-location-json-v1.json"
@@ -7,12 +6,13 @@ input-file-specification    = "tests/spec-1.spec"
 input-file-repositories     = []
 input-optimization-function = compact
 
-#solver = custom
-#custom-solver-command       = "flatzinc -o <OUT> <IN>"
 
-# 07. Output Configuration
+# Output
 
-results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot"); ("binpacking-problem", "tests/binpacking.json")]
+results = [("json-v1", "tests/output.json"); ("graph-deployment", "tests/output.dot"); ("binpacking-problem", "tests/binpacking.json")]
+
+
+# Printing
 
 verbose-level = 2
 verbose-data = y

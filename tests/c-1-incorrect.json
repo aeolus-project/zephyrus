@@ -1,0 +1,19 @@
+{
+  "version": 1,
+  "locations": [
+    {
+      "name": "location",
+      "provide_resources": { "resource": 100 },
+      "repository": "repository",
+      "packages_installed": [ "provider_package", "requirer_package" ],
+      "cost": 1
+    }
+  ],
+  "components": [
+    { "name": "Requirer-1", "type": "Requirer", "location": "location" },
+    { "name": "Provider-1", "type": "Provider", "location": "location" }
+  ],
+  "bindings": [
+    { "port": "@port", "requirer": "Requirer-1", "provider": "Provider-1" }
+  ]
+}

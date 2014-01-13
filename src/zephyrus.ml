@@ -67,11 +67,12 @@ let () = Load_settings.load ();
 let () = Load_model.set_initial_model_of_settings ();
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
+
+  (* In every mode we need at least the universe and an initial configuration. *)
   let u = check_option "universe"              !Data_state.universe_full in
   let c = check_option "initial configuration" !Data_state.initial_configuration_full in
   
-  (* If no-solving mode was chosen: *)
-  (* Remark: I've put this as early as possible in order to work also when specification and optimisation function are not given. *)
+  (* If ==> NO-SOLVING MODE <== was chosen: *)
   if Settings.find Settings.mode = Settings.Mode_no_solving
   then
     let final_configuration = c in
@@ -80,15 +81,15 @@ let () = Load_model.set_initial_model_of_settings ();
     print_string "\n\n\n <==========> THE END <==========>  \n\n"
   else
 
-  let s = check_option "specification"         !Data_state.specification_full in
-  let f = check_option "optimization function" !Data_state.optimization_function in
+  (* In validation mode we need also to have a specification. *)
+  let s = check_option "specification" !Data_state.specification_full in
 
   (* Validation *)
   Zephyrus_log.log_stage_new "MODEL VALIDATION";
   let validation_results = Validate.standard_model_check u c s in
   Zephyrus_log.log_stage_end ();
 
-  (* If validation mode was chosen:*)
+  (* If ==> VALIDATION MODE <== was chosen: *)
   if Settings.find Settings.mode = Settings.Mode_validate_initial_config 
   then
     let initial_configuration_validation_errors = Validate.filter_initial_configuration_validation_errors validation_results in
@@ -98,6 +99,11 @@ let () = Load_model.set_initial_model_of_settings ();
       Printf.printf "\nInitial configuration validation errors:\n";
       List.iter (fun validation_result -> Printf.printf "%s\n%!" (Validate.String_of.validation_result validation_result)) initial_configuration_validation_errors
   else
+  
+  (* In the classic mode we also need an optimization function. *)
+  let f = check_option "optimization function" !Data_state.optimization_function in
+
+  (* If we've got this far, we are in the ==> CLASSIC MODE <==. *)
 
   let keep_initial_configuration = match f with Optimization_function_conservative -> true | _ -> false in
   let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in

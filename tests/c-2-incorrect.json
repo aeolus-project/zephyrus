@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "locations": [
+    {
+      "name": "location",
+      "provide_resources": { "resource": 100 },
+      "repository": "repository",
+      "packages_installed": [ "provider_package", "requirer_package", "common_package" ],
+      "cost": 1
+    }
+  ],
+  "components": [
+    { "name": "Provider-1", "type": "Provider", "location": "location" },
+    { "name": "Provider-2", "type": "Provider", "location": "location" }
+  ],
+  "bindings": []
+}
