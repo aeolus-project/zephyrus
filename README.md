@@ -29,6 +29,7 @@ git clone git@github.com:aeolus-project/zephyrus.git
 ####Compile
 
 To compile the Zephyrus tool simply type `make`. However, before attempting the compilation you should make sure, that you have all the necessary ingredients installed on your system:
+
 1. [OCaml](http://caml.inria.fr/ocaml/) in at least version 3.12
 2. Required OCaml libraries (specified below in detail)
 3. At least one compatible constraint solver
@@ -422,8 +423,11 @@ TODO
 
 (Syntax of the Universe, Configuration, Specification and External Repository files)
 
+TODO: Find a good syntax to describe the JSON structure of each file.
+
 #####Universe
 
+```
 Universe ::=
 {
   "version"         : integer
@@ -431,7 +435,9 @@ Universe ::=
   "implementation"  : (component_type -> package name list) mapping
   "repositories"    : repository list
 }
+```
 
+```
 Component type ::=
 {
   "name"    : <component name>,
@@ -459,7 +465,9 @@ Component type ::=
                 <resource name n> : <consume arity n>
               }
 }
+```
 
+```
 Implementation ::=
 { 
   <component name 1> : package name list,
@@ -467,13 +475,17 @@ Implementation ::=
   ...
   <component name n> : package name list
 }
+```
 
+```
 Repository ::=
 {
   "name"     : <repository name>
   "packages" : package list
 }
+```
 
+```
 Package ::=
 {
   "name" : <package name>,
@@ -486,6 +498,9 @@ Package ::=
                 <resource name n> : <consume arity n>
               }
 }
+```
+
+######Example:
 
 ```
 {
