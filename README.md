@@ -195,23 +195,25 @@ The Zephyrus tool works in three different modes:
   In this mode Zephyrus takes the input data (it requires at least a universe and a configuration), it omits the solving step, producing the output in the standard way (exactly as in the *classic mode*), but using the initial configuration directly as the final one.
 
 
-####Parameters
+####Settings
 
 (Usage of the program)
 
-In order to tell Zephyrus what to do (which input files to read, what outputs to produce, which constraint solver to use, etc.) we need to pass him some parameters. There are two ways to do it:
+In order to tell Zephyrus what to do (which input files to read, what outputs to produce, which constraint solver to use, etc.) we need to pass him some parameters. From now on we will refer to each parameter passed to Zephyrus by a user as a "setting".
+
+There are two ways to pass settings to Zephyrus:
 
 1. Through the *setting files*
 
-   We write the parameters in the form of setting files and tell Zephyrus to read them.
+   We write the settings in the form of setting files and tell Zephyrus to read them.
 
 2. Through command line arguments
 
-   We pass the parameters to Zephyrus directly on the command line when we execute the compiled program.
+   We pass the settings to Zephyrus directly on the command line as the arguments when we are executing the program.
 
-The setting files mechanism is more complete and recommended on the long term (we do not need to retype the long list of parameters every time), but using the command-line arguments is often easier and faster on the short term. In practice we usually pass some parameters one way and some the other.
+The setting files mechanism is more complete and recommended on the long term (we do not need to retype the long list of parameters every time), but using the command-line arguments is often easier and faster on the short term. In practice we usually pass some settings one way and some the other.
 
-(Moreover it would be difficult to completely avoid using the command line arguments, as we have to tell Zephyrus somehow where are the setting files we want to him to read).
+Note: It is of course impossible to completely avoid using the command line arguments in favor of setting files, as we have to tell Zephyrus somehow where are the setting files we want to him to read.
 
 ###### Example
 
@@ -231,40 +233,42 @@ results = [("json", "output.json"); ("graph-deployment", "output.dot")]
 
 Executing Zephyrus using this settings file would be very simple: `./zephyrus.native -settings my.settings`.
 
-The exact command-line arguments equivalent is a little heavier and looks like that:
+The exact command-line arguments equivalent is definitely a little heavier and looks like that:
 
 ```
 ./zephyrus-native -u u.json -ic ic.json -spec spec.spec -opt compact -out json output.json -out graph-deployment output.dot
 ```
 
-#####Parameters handling
+#####Handling settings
 
-(How setting files and command line parameters are handled and append to / override each other)
+######How setting files and command line parameters are handled and how individual settings override / stack with each other.
 
 If you want you can specify multiple setting files for Zephyrus to read and add some command-line arguments on top of it. All the parameters from the setting files and all the command-line arguments will be taken into accound.
 
-The order in which the parameters are handled can be important if the same parameter is declared twice. What happens in this situation depends on the parameter itself, in most cases the its value is simply overriden by the new declaration, in some cases the two values stack (i.e. the new value is appended to the old one).
+The order in which the settings are handled can be important if the same setting is declared twice. What happens in this situation depends on the parameter itself: in most cases the the value declared before will be simply overriden by the one declared later ("before" or "later" in the settings handling order), but in some cases the two values will stack (i.e. the new value is appended to the old one).
 
-Zephyrus handles the parameters, including these declared in the setting files, always exactly in the order of the command line arguments. Also before doing anything else, it reads the default settings file "default.settings" (if it exists). So for example when you execute:
+Zephyrus handles the settings always exactly following the order of the command line arguments. This includes the settings declared in the setting files as all the setting files are included on with a command line argument (`-settings <settings-file-path>`). Also before doing anything else, Zephyrus reads the default settings file "default.settings" (if it exists).
+
+So for example when you execute
 
 ```
 ./zephyrus.native -u u.json -settings my-params.settings -ic ic.json
 ```
 
-then: 
+what happens is: 
 
-1. first Zephyrus will parse the "default.json" settings file and handle all the parameters declared inside,
-2. then it will the "-u" argument (assigning the value "u.json" to the "input_file_universe" parameter),
-3. after it will parse the settings file "my-params.settings" and handle all the parameter assignments which are inside (possibly overriding the value of the "input_file_universe" command line parameter and any other parameters declared in the "default.json" settings file),
-4. and finally it will handle the "-ic" argument (assigning the value "ic.json" to the "input_file_configuration" parameter, possibly overriding the previous value if it was declared in any of the setting files).
+1. first Zephyrus will parse the "default.json" settings file and handle all the settings declared inside,
+2. then it will handle the "-u" argument (assigning the value "u.json" to the "input_file_universe" setting),
+3. after it will parse the settings file "my-params.settings" and handle all the setting assignments which are inside (possibly overriding the value of the "input_file_universe" declared by the command line parameter `-u` and / or override any other settings already declared in the "default.json" settings file),
+4. and finally it will handle the "-ic" argument (assigning the value "ic.json" to the "input_file_configuration" parameter, possibly overriding the previous value if this setting was declared in any of the two parsed setting files).
 
-Note: As we said before, in some cases the parameter value is not overriden, but extended. Details can be found below, in the part of this document describing each available parameter. However if you plan on using this feature, you should check how it behaves in specific situations, because for now it was not tested thoroughly and there may be some strange things happening sometimes (e.g. in case of the "-out" parameter apparently all the values declared in the setting files are appended to each other correctly, but they override all the values declared as command line arguments, so only the "-out" arguments appearing after the last "-settings" argument will not be overriden, but appended to the parameter's value).
+Note: As we said before, in some cases a setting's value is not overriden, but extended. Details can be found below, in the part of this document describing each available setting. However if you plan on using this feature, you should check how it behaves in specific situations, because for now it was not tested thoroughly and there may be some strange things happening sometimes (e.g. in case of the "results" setting, corresponding to the `-out` command line argument, apparently all the values declared in the setting files are appended to each other correctly, but they override all the values declared as command line arguments, so only the `-out` arguments appearing after the last `-settings` argument will not be overriden, but appended to the parameter's value).
 
 #####Setting files syntax
 
-Zephyrus setting file syntax is quite straightforward as settings are basically a list of key-value pairs.
+Zephyrus setting file syntax is quite straightforward as settings are basically key-value pairs.
 
-Assigning a value to a parameter takes form of a pair: the parameter name and the value, divided by an equality sign ('='):
+Assigning a value to a setting takes form of a pair: the setting name and its value, divided by an equality sign:
 ```
 parameter = value
 ```
@@ -281,7 +285,7 @@ key4 = value4 # This is a comment.
 # This is also a comment.
 ```
 
-Every parameter can be assigned values of a certain type and there are five types available:
+Every setting can be assigned values of a certain type and there are five types available:
 
 - Boolean
   - `true`, `yes` and `y` mean **true**
@@ -292,7 +296,7 @@ Every parameter can be assigned values of a certain type and there are five type
 - List: `[element_1; element_2; element_3; ... el_n]`
 - Pair: `(element_1, element_2)`
 
-Of course lists of pairs, pairs of lists etc. are also possible.
+Complex types (lists of pairs, pairs of lists, etc.) are also possible.
 
 ######Example:
 ```
@@ -312,7 +316,6 @@ verbose-data = y
 results = [("json", "output.json"); ("graph-deployment", "output.dot")]
 ```
 
-
 #####Available parameters
 
 TODO: Reformat, fill information
@@ -320,57 +323,70 @@ TODO: Reformat, fill information
 - Mode
   - The Zephyrus functioning mode.
   - The setting name: `mode`
+  - Type: string
   - The command line argument: `-mode <mode>`
   - Values: {classic|validate|no-solving}
 - Universe
   - The universe file.
   - The setting name: `input_file_universe`
+  - Type: string
   - The command line argument: `-u <universe-file-path>`
 - Initial Configuration
   - The initial configuration file.
   - The setting name: `input_file_configuration`
+  - Type: string
   - The command line argument: `-ic <initial-configuration-file-path>`
 - Specification
   - The specification file.
   - The setting name: `input_file_specification`
+  - Type: string
   - The command line argument: `-spec <specification-file-path>`
 - External Repositories
   - The external repositories files.
   - The setting name: `input_file_repositories`
+  - Type: string pair list
   - The command line argument: `-repo <repository-name> <repository-file-path>`
 - Optimization Function
   - The optimization function choice.
   - The setting name: `input_optimization_function`
+  - Type: string
   - The command line argument: `-opt <optimization-function>`
   - Values: {simple|compact|conservative|spread|none}
 - Prefix package names
   - Prefix every package name with its repository name in the output.
   - The setting name: `append_repository_to_package_name`
+  - Type: boolean
   - The command line argument: `-prefix-repos`
 - Solver
   - The main constraint solver choice.
   - The setting name: `solver`
+  - Type: string
   - The command line argument: `-solver <solver>`
   - Values: {none|g12|gcode|custom}
 - Custom solver command
   - Define a custom command used to launch the external FlatZinc solver.
   - The setting name: `custom_solver_command`
+  - Type: string
   - The command line argument: `-custom_solver_command "<command>"`
 - Custom MiniZinc to FlatZinc conversion command 
   - Define a custom command used to launch the MiniZinc-to-FlatZinc conversion.
   - The setting name: `custom_mzn2fzn_command`
+  - Type: string
   - The command line argument: `-custom_mzn2fzn_command "<command>"`
 - Outputs
   - Which forms of output should Zephyrus produce and to which files.
   - The setting name: `results`
+  - Type: list of pairs of strings
   - The command line argument: `-out <output-type> <output-file-path>`
 - Debug printing
   - How much information should Zephyrus print.
   - The setting name: `verbose_level`
+  - Type: integer
   - Values: {0|1|2|3}
 - Debug printing
   - Should Zephyrus print the input data during execution.
   - The setting name: `verbose_data`
+  - Type: boolean
   
 #####Command-line only parameters
 
