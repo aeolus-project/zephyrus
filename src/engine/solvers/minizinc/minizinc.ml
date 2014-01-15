@@ -43,11 +43,12 @@ type minizinc = string
 
   (* unsafe name creation *)
 let my_regexp = Str.regexp "[^a-z0-9]"
+let handle_deprecated string_of_f id = if id = -1 then "deprecated" else string_of_f id
 let sanitize_name name = Str.global_replace my_regexp "_" (String.lowercase name)
-let name_of_t t = (sanitize_name (String_of.component_type_id t))
-let name_of_p p = (sanitize_name (String_of.port_id p))
-let name_of_k k = (sanitize_name (String_of.package_id k))
-let name_of_l l = (sanitize_name (String_of.location_id l))
+let name_of_t t = (sanitize_name (handle_deprecated Name_of.component_type_id t))
+let name_of_p p = (sanitize_name (handle_deprecated Name_of.port_id p))
+let name_of_k k = (sanitize_name (handle_deprecated Name_of.package_id k))
+let name_of_l l = (sanitize_name (handle_deprecated Name_of.location_id l))
 let name_of_element element = match element with
   | Component_type (t) -> "component_type_" ^ (name_of_t t)
   | Port           (p) -> "port_"           ^ (name_of_p p)
