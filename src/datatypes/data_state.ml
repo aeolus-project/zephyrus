@@ -84,6 +84,8 @@ let constraint_universe_package_conflict              : (konstraint list) ref = 
 let constraint_universe_resource_consumption          : (konstraint list) ref = ref []
 let constraint_universe_deprecated_element            : (konstraint list) ref = ref []
 let constraint_universe_used_locations                : (konstraint list) ref = ref []
+let constraint_universe_incompatibilities             : (konstraint list) ref = ref []
+
 
 let constraint_specification_full : konstraint option ref = ref None
 let constraint_configuration_full : (konstraint list) ref = ref []
@@ -110,7 +112,8 @@ let get_constraint_universe () = (get_constraint_flat_universe ()) @ [
     ("  pack_pb  " , (Data_constraint.conj(!constraint_universe_package_conflict)));
     ("  resource " , (Data_constraint.conj(!constraint_universe_resource_consumption)));
     ("  delete   " , (Data_constraint.conj(!constraint_universe_deprecated_element)));
-    ("  used_loc " , (Data_constraint.conj(!constraint_universe_used_locations))) ]
+    ("  used_loc " , (Data_constraint.conj(!constraint_universe_used_locations)));
+    ("  incompat " , (Data_constraint.conj(!constraint_universe_incompatibilities))) ]
 
 let get_constraint_specification () = [
     ("  specification constraint" , match !constraint_specification_full with None -> Data_constraint.true_konstraint | Some(k) -> k) ]
@@ -129,10 +132,10 @@ let constraint_variable_bounds       : variable_bounds option ref = ref None
 
 let basic_bounds_function v = (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
    match v with
-  | Simple_variable         _ -> Bound.big
-  | Global_variable         _ -> Bound.big
-  | Local_variable     (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
-  | Binding_variable        _ -> Bound.big
+  | Simple_variable           _ -> Bound.big
+  | Global_variable           _ -> Bound.big
+  | Local_variable       (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
+  | Binding_variable          _ -> Bound.big
   | Local_repository_variable _ -> Bound.small
   | Local_resource_variable   _ -> Bound.big
   | Location_used_variable    _ -> Bound.small

@@ -64,6 +64,7 @@ let speclist =
                     ), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories).");
 
     ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
+    ("-no-packages",  Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
     ("-mode",         Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
 
     (* Optimization function argument, solver choice *)

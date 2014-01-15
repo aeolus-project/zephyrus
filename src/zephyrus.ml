@@ -197,7 +197,9 @@ let () = Load_model.set_initial_model_of_settings ();
 (* === Generate and solve the main constraint === *)
   Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
 
-  Constraint_of.universe_full ();
+  if Settings.find Settings.eliminate_packages
+  then Constraint_of.universe_full_incompatibilities ()
+  else Constraint_of.universe_full ();
   Constraint_of.specification_full ();
   Constraint_of.configuration_full ();
   Constraint_of.optimization_function_full ();

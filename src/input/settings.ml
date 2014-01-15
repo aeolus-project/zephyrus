@@ -309,6 +309,7 @@ let import_specification = ("import-specification", bool_setting)
 let import_optimization_function = ("import-optimization-function", bool_setting)
 
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
+let eliminate_packages = ("eliminate-packages", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
@@ -373,6 +374,7 @@ let all_settings = [
     import_specification;                (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus read the input specification file? *)
     import_optimization_function;        (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus use the provided optimization function parameter? *)
     append_repository_to_package_name;   (* Prefix every package name with its repository name in the output. *)
+    eliminate_packages;                  (* Eliminate the packages from solving, use component incompatibilities instead. *)
     check_universe;                      (* UNUSED *)
     check_repositories;                  (* UNUSED *)
     check_initial_configuration;         (* UNUSED *)
@@ -488,6 +490,7 @@ let add_string s v = add s (IdentValue v)
 let add_double_lists s l1 l2  = add s (ListValue (List.map2 (fun n1 n2 -> PairValue(IdentValue(n1), IdentValue(n2))) l1 l2))
 
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
+let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
 
 let get_input_file_universe () = if (find import_universe = true) & (mem input_file_universe) then Some(find input_file_universe) else None
 let get_input_file_repositories () = if (find import_repositories = true) & (mem input_file_repositories) then Some(find input_file_repositories) else None
