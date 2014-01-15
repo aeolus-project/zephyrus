@@ -37,6 +37,7 @@ module Map = struct
     
     val of_assoc_list: (key * 'a) list -> 'a t
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
+    val map_to_list: ( (key * 'a) -> 'b) -> 'a t -> 'b list
     val map : ('a -> 'b) -> 'a t -> 'b t
 
     val keys : 'a t -> key list
@@ -57,6 +58,7 @@ module Map = struct
     let map_of_list f l = List.fold_left (fun res el -> let (k,v) = f el in add k v res) empty l
     let of_assoc_list l = List.fold_left (fun res (k,v) -> add k v res) empty l
     let map f m = fold (fun k v res -> add k (f v) res) m empty
+    let map_to_list f l = List.map f (bindings l)
     
     let values m = fold (fun _ v res -> v::res) m []
     let keys   m = fold (fun k _ res -> k::res) m []

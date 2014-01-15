@@ -43,6 +43,9 @@ module Map : sig
     (** Convert any list to a map. *)
     val map_of_list: ('a -> key * 'b) -> 'a list -> 'b t
 
+    (** Convert the map to a list, applying a given function to all pairs (key, value). *)
+    val map_to_list: ( (key * 'a) -> 'b) -> 'a t -> 'b list
+
     (** Functional "map" operation on map's values. *)
     val map : ('a -> 'b) -> 'a t -> 'b t
 
