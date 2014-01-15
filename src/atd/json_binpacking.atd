@@ -30,7 +30,7 @@ type item_arity = int
 
 type item = {
   name  : item_name;
-  sizes : (dimension * size) list <json repr = "object"> ;
+  sizes : (dimension * size) list <json repr = "object">;
   arity : item_arity;
 } <ocaml field_prefix="item_">
 

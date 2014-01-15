@@ -292,11 +292,12 @@ Every setting can be assigned values of a certain type and there are five types 
   - `false`, `no` and `n` mean **false**
 - Integer
 - String
-  (You can put quotes or double quotes around the strings, but they are necessary only if the string contains whitespaces.)
 - List: `[element_1; element_2; element_3; ... el_n]`
 - Pair: `(element_1, element_2)`
 
 Complex types (lists of pairs, pairs of lists, etc.) are also possible.
+
+Important Note: As the selection of characters which are allowed in strings is very broad (and includes some parsing-sensitive characters like commas, semicolons, parentheses, etc.) in case of any doubt it is strongly recommended to put quotes or double quotes around your string unless you are sure it will not interfere with the parsing (like in simple cases like `solver = custom` or `input-file-universe = u.json`).
 
 ######Example:
 ```
@@ -344,8 +345,12 @@ TODO: Reformat, fill information
 - External Repositories
   - The external repositories files.
   - The setting name: `input_file_repositories`
-  - Type: string pair list
+  - Type: list of pairs of strings
+  - Setting file syntax: `input_file_repositories = [(<repository-1-name>, <repository-1-file-path>), (<repository-2-name>, <repository-2-file-path>), ...]`
+  - Usage: each pair declares a repository name (any string you want, it will be used by Zephyrus to identify and reference this repository) and a path to the file which describes this repository (in the *External Repository* format)
+  - Example: `[("debian-squeeze", "repositories/DebianSqueeze.json"); ("debian-wheezy", "DebianWheezy.json")]`
   - The command line argument: `-repo <repository-name> <repository-file-path>`
+  - Example: `-repo debian-squeeze repositories/DebianSqueeze.json -repo debian-wheezy DebianWheezy.json`
 - Optimization Function
   - The optimization function choice.
   - The setting name: `input_optimization_function`

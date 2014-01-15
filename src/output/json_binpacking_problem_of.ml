@@ -208,7 +208,8 @@ let convert_configuration (u : universe) (c : configuration) =
   
   let bins = 
     (* Prepare location categories, their arity and their representants. *)
-    let location_categories : Location_id_set.t list = Location_id_set_set.elements (Location_categories.resource_categories u c) in
+    let location_categories : Location_id_set.t list = 
+      Location_id_set_set.elements (Location_categories.resource_categories u c) in
 
     (* Create a bin from each location category. *)
     List.mapi (fun category_number location_category ->
@@ -216,7 +217,7 @@ let convert_configuration (u : universe) (c : configuration) =
       (* Category representant.
          All the locations in the category are the same (they only have different names)
          so we can take any single one. *)
-      let representant_location_id = Location_id_set.choose   location_category in
+      let representant_location_id = Location_id_set.choose location_category in
       let location = c#get_location representant_location_id in
 
       (* Name of the bin. 
