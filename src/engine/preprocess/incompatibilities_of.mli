@@ -22,3 +22,4 @@
 *)
 
 val repository : Data_model.universe -> Data_model.repository_id -> Data_model.Component_type_id_set_set.t
+val universe   : Data_model.universe -> Data_model.Component_type_id_set_set.t Data_model.Repository_id_map.t

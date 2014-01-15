@@ -128,16 +128,13 @@ let convert_configuration (u : universe) (c : configuration) =
   in
 
   let incompatibilities = 
-      Repository_id_set.map_to_list (fun repository_id ->
-        let repository_name   : Json_binpacking_t.repository_name   = Name_of.repository_id repository_id in
-        let incompatibilities : Json_binpacking_t.incompatibilities = 
-          let incompatibilities' : component_type_id list list = 
-            let incompatibilities_set : Component_type_id_set_set.t = Incompatibilities_of.repository u repository_id in
-            Component_type_id_set_set.map_to_list Component_type_id_set.elements incompatibilities_set in
-          List.map (List.map item_name_of_component_type_id) incompatibilities' in
-        (repository_name, incompatibilities)
-      ) u#get_repository_ids
-
+    let universe_incompatibilities : Component_type_id_set_set.t Repository_id_map.t = Incompatibilities_of.universe u in
+    Repository_id_map.map_to_list (fun (repository_id, repository_incompatibilities) ->
+      let repository_name   : Json_binpacking_t.repository_name = Name_of.repository_id repository_id in
+      let incompatibilities : Json_binpacking_t.item_name list list = 
+        Component_type_id_set_set.map_to_list (Component_type_id_set.map_to_list item_name_of_component_type_id) repository_incompatibilities in
+      (repository_name, incompatibilities)
+    ) universe_incompatibilities
   in
 
   (* The binpacking problem: *)

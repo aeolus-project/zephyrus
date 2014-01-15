@@ -154,3 +154,12 @@ let repository universe repository_id =
   
   (* 11. Return the result. *)
   incompatibilities_set
+
+
+let universe universe =
+  let incompatibilities_list : (repository_id * Component_type_id_set_set.t) list =
+    Repository_id_set.map_to_list (fun repository_id ->
+      let incompatibilities = repository universe repository_id in
+      (repository_id, incompatibilities)
+    ) universe#get_repository_ids in
+  Repository_id_map.of_assoc_list incompatibilities_list
