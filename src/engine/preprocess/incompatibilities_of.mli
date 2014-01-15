@@ -17,9 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
-
 (* Depends on
     - datatypes/Data_model
 *)
 
-val configuration : Data_model.universe -> Data_model.configuration -> string
+val repository : Data_model.universe -> Data_model.repository_id -> Data_model.Component_type_id_set_set.t
