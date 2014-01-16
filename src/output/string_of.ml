@@ -392,7 +392,11 @@ module Make =
                                                       else String.concat (" " ^ (nary_konstraint_op op) ^ " ") (List.map konstraint l) )
 
 
-  let described_konstraint     (c,k) = c ^ (konstraint k) ^ "\n"
+  let rec described_konstraint     (c,k) = 
+    (* TODO: This is a dirty hack, we should just structure constraints better. *)
+    match k with 
+    | Data_constraint.NaryKonstraint(Data_constraint.And, ks) -> c ^ (String.concat "\n" (List.map konstraint ks)) ^ "\n"
+    | _                                                       -> c ^ (konstraint k)                                ^ "\n"
   let described_konstraint_list l    = List.fold_left (fun res el -> (described_konstraint el) ^ res) "" l
 
   let constraint_optimization_function f =

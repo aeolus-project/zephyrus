@@ -35,7 +35,8 @@ let component_f      = (string_of_int, (fun catalog -> catalog#component#name_of
 let object_name_of_id object_f =
   match get_catalog () with
   | None         -> (fst object_f)
-  | Some catalog -> (snd object_f) catalog
+  | Some catalog -> (* TODO: This is a dirty hack, we should just handle deprecated stuff better. *)
+                    (fun id -> if id = -1 then "DEPRECATED" else ((snd object_f) catalog) id)
 
 let resource_id       id = object_name_of_id resource_f id
 let component_type_id id = object_name_of_id component_type_f id

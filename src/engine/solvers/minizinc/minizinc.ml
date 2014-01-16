@@ -43,6 +43,7 @@ type minizinc = string
 
   (* unsafe name creation *)
 let my_regexp = Str.regexp "[^a-z0-9]"
+(* TODO: This is a dirty hack, we should just handle deprecated stuff better. *)
 let handle_deprecated string_of_f id = if id = -1 then "deprecated" else string_of_f id
 let sanitize_name name = Str.global_replace my_regexp "_" (String.lowercase name)
 let name_of_t t = (sanitize_name (handle_deprecated Name_of.component_type_id t))
@@ -50,16 +51,16 @@ let name_of_p p = (sanitize_name (handle_deprecated Name_of.port_id p))
 let name_of_k k = (sanitize_name (handle_deprecated Name_of.package_id k))
 let name_of_l l = (sanitize_name (handle_deprecated Name_of.location_id l))
 let name_of_element element = match element with
-  | Component_type (t) -> "component_type_" ^ (name_of_t t)
+  | Component_type (t) -> "component_" ^ (name_of_t t)
   | Port           (p) -> "port_"           ^ (name_of_p p)
   | Package        (k) -> "package_"        ^ (name_of_k k)
 let name_of_variable_unsafe v = match v with 
   | Simple_variable(v)             -> "spec_var_" ^ (sanitize_name (String_of.spec_variable_name v))
-  | Global_variable(e)             -> "global_element_" ^ (name_of_element e)
-  | Local_variable(l,e)            -> "local_element_" ^ (name_of_l l) ^ "_" ^ (name_of_element e)
+  | Global_variable(e)             -> "global_" ^ (name_of_element e)
+  | Local_variable(l,e)            -> "local_" ^ (name_of_l l) ^ "_" ^ (name_of_element e)
   | Binding_variable(p,t1,t2)      -> "binding_" ^ (name_of_p p) ^ "_" ^ (name_of_t t1) ^ "_" ^ (name_of_t t2)
-  | Local_repository_variable(l,r) -> "local_repository_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.repository_id r))
-  | Local_resource_variable(l,r)   -> "local_resource_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.resource_id r))
+  | Local_repository_variable(l,r) -> "localrepository_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.repository_id r))
+  | Local_resource_variable(l,r)   -> "localresource_" ^ (name_of_l l) ^ "_" ^ (sanitize_name (String_of.resource_id r))
   | Location_used_variable(l)      -> "location_used_" ^ (name_of_l l)
 
   (* safe name creation *)
@@ -160,7 +161,17 @@ and minizinc_of_konstraint v_map c = match c with
                                                     else String.concat (" " ^ (minizinc_of_nary_konstraint_op op) ^ " ") (List.map (minizinc_of_konstraint v_map) l) )
 
 let minizinc_of_konstraints v_map cs =
-  List.fold_left (fun res (s,c) -> ("\n%% " ^ s ^ "\n") ^ ("constraint " ^ (minizinc_of_konstraint v_map c) ^ ";") ^ res) "" cs
+  List.fold_left (fun res (s,c) -> 
+    (* TODO: This is a dirty hack, should just structure constraints better. *)
+    let pre = ("\n%% " ^ s ^ "\n") in
+    let minizinc_of_single_konstraint c = ("constraint " ^ (minizinc_of_konstraint v_map c) ^ ";") in
+    let content = 
+      match c with
+      | Data_constraint.NaryKonstraint(Data_constraint.And, cs) -> String.concat "\n" (List.map minizinc_of_single_konstraint cs)
+      | _                                                       -> minizinc_of_single_konstraint c 
+    in
+    pre ^ content ^ res
+  ) "" cs
 
 let output_of_variables v_map = 
   let output_of_variable v = "  \"" ^ v ^ " = \", show(" ^ v ^ "), \";\\n\"" in
