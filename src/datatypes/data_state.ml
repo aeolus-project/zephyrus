@@ -95,25 +95,25 @@ let constraint_optimization_function : optimization_function option ref = ref No
 let get_constraint_optimization_function () = match !constraint_optimization_function with None -> Data_constraint.Lexicographic [] | Some(f) -> f
 
 let get_constraint_flat_universe () = [
-    ("  require  " , (Data_constraint.conj(!constraint_universe_component_type_require)));
-    ("  provide  " , (Data_constraint.conj(!constraint_universe_component_type_provide)));
-    ("  conflict " , (Data_constraint.conj(!constraint_universe_component_type_conflict)));
-    ("  unicity  " , (Data_constraint.conj(!constraint_universe_binding_unicity))) ]
+    ("  Bindings require:  " , (Data_constraint.conj(!constraint_universe_component_type_require)));
+    ("  Bindings provide:  " , (Data_constraint.conj(!constraint_universe_component_type_provide)));
+    ("  Bindings conflict: " , (Data_constraint.conj(!constraint_universe_component_type_conflict)));
+    ("  Bindings unicity:  " , (Data_constraint.conj(!constraint_universe_binding_unicity))) ]
 
 let get_constraint_universe () = (get_constraint_flat_universe ()) @ [
-    ("  implem   " , (Data_constraint.conj(!constraint_universe_component_type_implementation)));
-    ("  distrib1 " , (Data_constraint.conj(!constraint_universe_location_component_type)));
-    ("  distrib2 " , (Data_constraint.conj(!constraint_universe_location_package)));
-    ("  distrib3 " , (Data_constraint.conj(!constraint_universe_location_port)));
-    ("  port_cal " , (Data_constraint.conj(!constraint_universe_definition_port)));
-    ("  repo_1   " , (Data_constraint.conj(!constraint_universe_repository_unicity)));
-    ("  repo_pac " , (Data_constraint.conj(!constraint_universe_repository_package)));
-    ("  pack_dep " , (Data_constraint.conj(!constraint_universe_package_dependency)));
-    ("  pack_pb  " , (Data_constraint.conj(!constraint_universe_package_conflict)));
-    ("  resource " , (Data_constraint.conj(!constraint_universe_resource_consumption)));
-    ("  delete   " , (Data_constraint.conj(!constraint_universe_deprecated_element)));
-    ("  used_loc " , (Data_constraint.conj(!constraint_universe_used_locations)));
-    ("  incompat " , (Data_constraint.conj(!constraint_universe_incompatibilities))) ]
+    ("  Component implementation by packages: " , (Data_constraint.conj(!constraint_universe_component_type_implementation)));
+    ("  Global component type t arity = sum of local component type t arities: " , (Data_constraint.conj(!constraint_universe_location_component_type)));
+    ("  Global package k arity = sum of local package k arities: " , (Data_constraint.conj(!constraint_universe_location_package)));
+    ("  Global port p arity = sum of local port p arities: " , (Data_constraint.conj(!constraint_universe_location_port)));
+    ("  How much port p arity is provided in total on each location: " , (Data_constraint.conj(!constraint_universe_definition_port)));
+    ("  Repository unicity (exactly one repository on each location): " , (Data_constraint.conj(!constraint_universe_repository_unicity)));
+    ("  Repository packages: " , (Data_constraint.conj(!constraint_universe_repository_package)));
+    ("  Package dependencies: " , (Data_constraint.conj(!constraint_universe_package_dependency)));
+    ("  Package conflicts:  " , (Data_constraint.conj(!constraint_universe_package_conflict)));
+    ("  Resources: " , (Data_constraint.conj(!constraint_universe_resource_consumption)));
+    ("  Remove deprecated components: " , (Data_constraint.conj(!constraint_universe_deprecated_element)));
+    ("  Number of used locations: " , (Data_constraint.conj(!constraint_universe_used_locations)));
+    ("  Incompatibilities between components: " , (Data_constraint.conj(!constraint_universe_incompatibilities))) ]
 
 let get_constraint_specification () = [
     ("  specification constraint" , match !constraint_specification_full with None -> Data_constraint.true_konstraint | Some(k) -> k) ]
