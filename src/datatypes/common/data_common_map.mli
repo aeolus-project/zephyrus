@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Extention of the Map module from the standard library with construction, conversion and extraction. *)
+(** Custom extension of the [Map] module from the standard library with construction, conversion and extraction. *)
 
 (* Depends on
     - Map

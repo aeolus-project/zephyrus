@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Module introducing some stuff used to manage and create unique identifiers. *)
+(** Manage unique identifiers. *)
 
 (* Depends on nothing.
 *)

@@ -17,11 +17,11 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Custom extension of the [List] module from the standard library. *)
+
 (* Depends on
     - List
 *)
-
-(* Comment: Extend the List module with mapi function is not necessary after OCaml 4.00.0 *)
 
 module List_from_stdlib : module type of List
 
@@ -29,6 +29,7 @@ module List : sig
   include module type of List_from_stdlib
   val filter_map : ('a -> 'b option) -> ('a list) -> ('b list)
   val mapi : (int -> 'a -> 'b) -> 'a list -> 'b list
+  (* Comment: Extending the [List] module with [mapi] function is not necessary after OCaml 4.00.0 *)
   val is_empty : 'a list -> bool
   val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b
   val cartesian_product : (('a list) list) -> (('a list) list)

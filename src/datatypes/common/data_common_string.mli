@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Custom extension of the [String] module from the standard library. *)
+
 (* Depends on
     - String
 *)

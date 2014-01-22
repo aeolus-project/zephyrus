@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Two-way mappings operations. *)
+
 (* Depends on
     - Data_common_set
     - Data_common_map

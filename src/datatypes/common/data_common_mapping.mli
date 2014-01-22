@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Module introducing the mapping concept and some basic operations on it. *)
+(** One-way mappings operations. *)
 
 (* Depends on
     - Data_common_set

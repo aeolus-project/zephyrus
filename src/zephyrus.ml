@@ -17,12 +17,15 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(* 
-  "Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
-   full of the captured winds so he could sail easily home to Ithaca on
-   the gentle west wind."
+(** Zephyrus main module. *)
 
-   Zephyrus : one of the Anemoi and the Greek god of the west wind.
+(** {i
+    Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
+    full of the captured winds so he could sail easily home to Ithaca on
+    the gentle west wind.
+    }
+
+    Zephyrus in the Greek mythology is one of the Anemoi and the god of the west wind.
 *)
 
 (* for now, I just trigger the compilation of all files with the opening of the different key modules *)

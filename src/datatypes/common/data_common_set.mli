@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Extention of the Set module from the standard library with construction and conversion. *)
+(** Custom extension of the [Set] module from the standard library with construction and conversion. *)
 
 (* Depends on
     - Set
