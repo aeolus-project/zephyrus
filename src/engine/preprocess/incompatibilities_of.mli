@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Extract the component incompatibilities from the universe repositories. *)
+
 (* Depends on
     - datatypes/Data_model
 *)

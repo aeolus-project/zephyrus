@@ -17,13 +17,13 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Helpers for operations on files and executing external programs. *)
+
 (* Depends on
     - Unix
     - Filename
     - String
 *)
-
-
 
 (** 1. helpers on external commands. *)
 

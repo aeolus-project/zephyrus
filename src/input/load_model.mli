@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of the Zephyrus abstract IO syntax to a full Zephyrus model in our internal representation.  *)
+
 (* Depends on
     - List (standard library)
     - datatypes/Data_model (all universe, configuration, specification)

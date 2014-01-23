@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Helper functions for writing output. *)
+
 (* Depends on
   MUST DEPEND ON NOTHING !!
     - Str (ocaml standard library, for pattern matching)

@@ -203,7 +203,7 @@ let generate_components
   (* Now we proceed to name the new components and make them "done" (in opposition to "almost-done"). 
      We pass the "used_names" around in order to do that: it is a reference and it will not only serve
      to generate a fresh name for each new component, but it also collects the new names as we go. *)
-  Component_set.set_of_direct_list (List.map (fun almost_done_component ->
+  Component_set.of_list_directly (List.map (fun almost_done_component ->
     match almost_done_component with
     | ReusedComponent (component_id, component) -> component
     | NewComponent     component_f              -> component_f used_names

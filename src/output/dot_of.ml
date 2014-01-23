@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of a Zephyrus model configuration to a graph description in the DOT format. *)
+
 open Data_model
 
 type graph_settings = {

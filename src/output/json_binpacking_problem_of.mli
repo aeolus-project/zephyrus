@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of a Zephyrus model to our JSON binpacking problem syntax. *)
 
 (* Depends on
     - datatypes/Data_model

@@ -150,7 +150,7 @@ let repository universe repository_id =
 
   (* 10. Make the list of lists a set of sets. *)
   let incompatibilities_set : Component_type_id_set_set.t =
-    Component_type_id_set_set.set_of_list Component_type_id_set.set_of_direct_list incompatibilities in
+    Component_type_id_set_set.of_list Component_type_id_set.of_list_directly incompatibilities in
   
   (* 11. Return the result. *)
   incompatibilities_set

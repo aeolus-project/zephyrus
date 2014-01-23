@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Different kinds of validation operations which can be performed on the Zephyrus model. *)
+
 (* Depends on
     - datatypes/Data_model
 *)

@@ -19,7 +19,6 @@
 
 (* Depends on
     -Data_common_int
-    -Data_common_string
     -Data_common_list
     -Data_common_set
     -Data_common_map
@@ -29,7 +28,6 @@
 *)
 
 include Data_common_int
-include Data_common_string
 include Data_common_list
 include Data_common_set
 include Data_common_map

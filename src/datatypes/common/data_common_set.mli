@@ -35,37 +35,47 @@ module Set : sig
   module type S = sig
     include Set_from_stdlib.S
     
+    (** [of_list_directly l] converts the list [l] directly into a set. *)
+    val of_list_directly : elt list -> t
+
+    (** [of_list f l] converts the list [l] to a set, applying the function [f] to each element of the list to get a set element. *)
+    val of_list : ('a -> elt) -> 'a list -> t
+
+    (** [map_to_list f s] converts the set [s] to a list, applying the function [f] to each element from the set to get a list element. *)
+    val map_to_list : (elt -> 'a) -> t -> 'a list
+    
+    (** [filter_map_to_list f s] converts the set [s] to a list, applying the function [f] to each element from the set. If for a given element [el] function [f el] returns [Some x], then the value [x] is included in the returned list. If [f el] returns [None], then the element is discarded. *)
+    val filter_map_to_list: (elt -> 'a option) -> t -> 'a list
+    
     (** TODO: What is this function doing? *)
     val keep_elements : int -> t -> t
-    
-    (** Convert a list directly to a set. *)
-    val set_of_direct_list: elt list -> t
 
-    (** Convert a list to a set, applying a given function to each element. *)
-    val set_of_list: ('a -> elt) -> 'a list -> t
-
-    (** Create a list of all the elements of a set, while applying a given function to each of them. *)
-    val map_to_list: (elt -> 'a) -> t -> 'a list
-
-    val filter_map_to_list: (elt -> 'a option) -> t -> 'a list
   end
   
   module Make(Ord : OrderedType) : S with type elt = Ord.t
 
-  (** A functor creating a module used to convert one type of sets to another. *)
+  (** A functor creating a module used to convert one type of sets to another type of sets. *)
   module Convert(Set_origin : S) (Set_target : S) : sig
+    (** [convert f s] applies the function [f] to all elements from the set [s] and builds a new set where each element [el] from the set [s] is replaced with [f el]. Functional "map" operation on sets of two different types. *)
     val convert : (Set_origin.elt -> Set_target.elt) -> Set_origin.t -> Set_target.t
+    (** [convert f s] applies the function [f] to all elements from the set [s] and builds a new set where: for each element [el] from the set [s] if [f el] returns [Some x] then [x] is included in the new set, if [f el] returns [None], then the the element is discarded. Functional "filter_map" operation on sets of two different types. *)
     val filter_convert : (Set_origin.elt -> Set_target.elt option) -> Set_origin.t -> Set_target.t
+    (** TODO: What is this function doing? *)
     val set_convert : (Set_origin.elt -> Set_target.t) -> Set_origin.t -> Set_target.t
   end
 
+  (** TODO *)
   module EquivalenceClass(Set_origin : S)(Set_target : S with type elt = Set_origin.t) : sig
     val compute : (Set_origin.elt -> Set_origin.elt -> bool) -> Set_origin.t -> Set_target.t
   end
 
 end
 
+(** A set with integers for elements. *)
 module Int_set        : Set.S with type elt = int
+(** A set with sets of integers for elements. *)
 module Int_set_set    : Set.S with type elt = Int_set.t
+(** A set with strings for elements. *)
 module String_set     : Set.S with type elt = string
+(** A set with sets of strings for elements. *)
 module String_set_set : Set.S with type elt = String_set.t

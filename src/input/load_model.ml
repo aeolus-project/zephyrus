@@ -200,27 +200,27 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
-      Port_id_map.map_of_list (fun (name, arity) -> 
+      Port_id_map.of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_provide_arity arity)
       ) t.Abstract_io.component_type_provide in
 
     (* create the mapping for require *)
     let require : require_arity Port_id_map.t = 
-      Port_id_map.map_of_list (fun (name, arity) -> 
+      Port_id_map.of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_require_arity arity)
       ) t.Abstract_io.component_type_require in
 
     (* create the set for conflict *)
     let conflict : Port_id_set.t = 
-      Port_id_set.set_of_list (fun name -> 
+      Port_id_set.of_list (fun name -> 
         catalog#port#id_of_name (convert_port_name name)
       ) t.Abstract_io.component_type_conflict in 
 
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
-      Resource_id_map.map_of_list (fun (name, arity) -> 
+      Resource_id_map.of_list (fun (name, arity) -> 
         (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
       ) t.Abstract_io.component_type_consume in
 
@@ -243,20 +243,20 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* create the dependency sets *)
     let depend : Package_id_set_set.t = 
-      Package_id_set_set.set_of_list (fun s -> 
-        Package_id_set.set_of_list (fun n -> 
+      Package_id_set_set.of_list (fun s -> 
+        Package_id_set.of_list (fun n -> 
           catalog#package#id_of_name (r_id, convert_package_name r_name n)) s
       ) k.Abstract_io.package_depend in
     
     (* similar *)
     let conflict : Package_id_set.t = 
-      Package_id_set.set_of_list (fun n -> 
+      Package_id_set.of_list (fun n -> 
         catalog#package#id_of_name (r_id, (convert_package_name r_name n))
       ) k.Abstract_io.package_conflict in
     
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
-      Resource_id_map.map_of_list (fun (r_id,n) -> 
+      Resource_id_map.of_list (fun (r_id,n) -> 
         (catalog#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
       ) k.Abstract_io.package_consume in
 
@@ -282,7 +282,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
     (* packages *)
     let packages : Package_id_set.t = 
-      Package_id_set.set_of_list (fun k -> 
+      Package_id_set.of_list (fun k -> 
         convert_package id name k (* this returns the package id, thus the set is built *)
       ) r.Abstract_io.repository_packages in
 
@@ -303,9 +303,9 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
   
   (* may add erroneous packages and component types *)
   let implementation = 
-    Component_type_id_map.map_of_list (fun (t, ks) -> 
+    Component_type_id_map.of_list (fun (t, ks) -> 
       (catalog#component_type#id_of_name (convert_component_type_name t), 
-       Package_id_set.set_of_list (fun (r, k) -> 
+       Package_id_set.of_list (fun (r, k) -> 
          let r_name = convert_repository_name r in 
          catalog#package#id_of_name (catalog#repository#id_of_name r_name, convert_package_name r_name k)
        ) ks)
@@ -355,13 +355,13 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
 
     (* packages installed *)
     let packages_installed : Package_id_set.t = 
-      Package_id_set.set_of_list (fun k -> 
+      Package_id_set.of_list (fun k -> 
         catalog#package#id_of_name (repository, (convert_package_name r_name k))
       ) l.Abstract_io.location_packages_installed in
 
     (* provide_resources *)
     let provide_resources : resource_provide_arity Resource_id_map.t = 
-      Resource_id_map.map_of_list (fun (r, n) -> 
+      Resource_id_map.of_list (fun (r, n) -> 
         (catalog#resource#id_of_name (convert_resource_name r), convert_resource_provide_arity n)
       ) l.Abstract_io.location_provide_resources in (* needs to be completed with non-mentioned resources *)
 
@@ -408,7 +408,7 @@ let convert_configuration (catalog : closed_model_catalog) c : configuration =
   (* configuration *)
   List.iter convert_location  c.Abstract_io.configuration_locations;
   List.iter convert_component c.Abstract_io.configuration_components;
-  let bindings = Binding_set.set_of_list (convert_binding) c.Abstract_io.configuration_bindings in
+  let bindings = Binding_set.of_list (convert_binding) c.Abstract_io.configuration_bindings in
 
   new configuration
     ~locations:  locations#id_to_obj_map

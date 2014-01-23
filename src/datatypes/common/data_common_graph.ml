@@ -374,7 +374,7 @@ module Graph = struct
       let target p = p.p_end
       let mem n p = Vertice_set.mem n p.p_vertices
       let vertices p = p.p_vertices
-      let edges p = Edge_set.set_of_direct_list p.p_path
+      let edges p = Edge_set.of_list_directly p.p_path
       let edges_rev p = p.p_path
       
       let extract v1 v2 p =
@@ -496,7 +496,7 @@ module Graph = struct
           Vertice_set.iter (fun v -> Vertice.loop_tag l v) vs; Edge_set.iter (fun e -> Edge.loop_tag l e) es;
           let e_in  = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.preds_e v) res) vs l.l_edges_in) es in
           let e_out = Edge_set.diff (Vertice_set.fold (fun v res -> Edge_set.union (Vertice.succs_e v) res) vs l.l_edges_out) es in
-          let paths = Path_set.set_of_direct_list (Path.split (Path.origin p) p) in
+          let paths = Path_set.of_list_directly (Path.split (Path.origin p) p) in
           l.l_main_path <- p_res; l.l_paths <- Path_set.union paths l.l_paths; l.l_edges_in  <- e_in; l.l_edges_out <- e_out
         )) else raise Invalid_loop_extension *)
             
@@ -729,7 +729,7 @@ module Graph = struct
         let origin p = p.origin
         let target p = p.target
         let components p = List.fold_left (fun res e -> Component_set.add (Edge.target_abst e) res) (Component_set.singleton (origin p)) p.path
-        let edges p = Component_set.fold (fun c res -> Edge_set.union (Component.edges c) res) (components p) (Edge_set.set_of_direct_list p.path)
+        let edges p = Component_set.fold (fun c res -> Edge_set.union (Component.edges c) res) (components p) (Edge_set.of_list_directly p.path)
         
         let create o = {origin = o; target = o; path = [] }
         let add e p =  if Component.equal (target p) (Edge.origin_abst e) then
@@ -791,7 +791,7 @@ module Graph = struct
           let (ps_loop, ps_unloop) = Abstract_path_set.partition (fun p -> Component.equal c1 (Abstract_path.target p)) ps in
           Printf.printf " partition of the set of path done\n"; flush stdout;
           let path_set_to_component_set ps = Abstract_path_set.fold (fun p res -> Component_set.union (Abstract_path.components p) res) ps Component_set.empty in
-          let cs_in_between = Component_set.set_of_direct_list (Linked_list.to_list (sub c2 c1 o)) in
+          let cs_in_between = Component_set.of_list_directly (Linked_list.to_list (sub c2 c1 o)) in
           Printf.printf " computation of the components in between done\n"; flush stdout;
           let cs_loop = path_set_to_component_set ps_loop in
           Printf.printf " computation of the components in loop done\n"; flush stdout;

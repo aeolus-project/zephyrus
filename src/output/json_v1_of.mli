@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of the Zephyrus model internal representation to JSON syntax version 1. *)
+
 (* Depends on
     - datatypes/Data_model
 *)

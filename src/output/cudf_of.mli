@@ -17,5 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of a Zephyrus model repository to a simple CUDF file. *)
+
 val package : (Data_model.package_id -> string) -> string -> Data_model.package -> string
 val repository : (Data_model.package_id -> string) -> Data_model.universe -> Data_model.repository_id -> string

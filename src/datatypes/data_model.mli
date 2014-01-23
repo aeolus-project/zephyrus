@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Internal representation of the Zephyrus model. *)
+
 (* Depends on 
  - datatypes/Data_common (sets and maps)
 *)

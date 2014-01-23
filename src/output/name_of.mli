@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Retrieving a readeable (string) name corresponding to identifiers from our Zephyrus model internal representation. *)
 
 (* Depends on
     - datatypes/Data_model

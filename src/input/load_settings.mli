@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Read settings. *)
 
 (* Depends on 
  - Sys (from ocaml standard library)

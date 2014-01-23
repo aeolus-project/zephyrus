@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Catalogs for all the id <-> object and id <-> name two-way mappings which can be found in the Zephyrus model. *)
+
 open Data_model
 
 

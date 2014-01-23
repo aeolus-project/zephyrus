@@ -21,7 +21,6 @@
 
 (* Depends on
     -Data_common_int
-    -Data_common_string
     -Data_common_list
     -Data_common_set
     -Data_common_map
@@ -30,13 +29,11 @@
     -Data_common_catalog
 *)
 
-(** {2 Custom and extended versions of standard library modules.} *)
-
 (** Wrapper module for integer values to use with the [Set] and [Map] modules.
     It has the same type as [Set.OrderedType] and [Map.OrderedType]. *)
 include module type of Data_common_int
-(** Custom extension of the [String] module from the standard library. *)
-include module type of Data_common_string
+
+(** {2 Custom and extended versions of standard library modules.} *)
 
 (** Custom extension of the [List] module from the standard library. *)
 include module type of Data_common_list

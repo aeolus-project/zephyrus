@@ -86,7 +86,7 @@ module Mapping =
 
     end
 
-    (* Create a new catalog corresponding to a given id -> object map. *)
+    (* Create a new mapping corresponding to a given key -> value map. *)
     let of_key_to_value_map (key_to_value_map : value Key_map.t) : mapping_iface =
       let mapping = new mapping in
       Key_map.iter mapping#add key_to_value_map;

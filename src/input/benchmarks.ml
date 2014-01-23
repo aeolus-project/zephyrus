@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Create benchmark input data. *)
+
 open Abstract_io
 
 class virtual benchmark = object

@@ -17,12 +17,13 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Helper functions for reading input. *)
+
 (* Depends on
     - Pervasives (standard library: files, opening and closing)
     - Yojson     (for json importing)
     - output/Zephyrus_log (for logging)
 *)
-
 
 val input_open : string -> (string * in_channel) option
 

@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** TODO *)
 
 val fit_categories : ((string * Data_constraint.konstraint) list-> Data_constraint.optimization_function -> 'a option) ->
                        Data_model.model -> Location_categories.t -> Location_categories.t option
