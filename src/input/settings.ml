@@ -256,6 +256,46 @@ let convert_out_files v = List.map (fun e -> let (k,f) = get_pair e in (convert 
 let string_of_out_files v = string_of_list (List.map (fun (k,f) -> string_of_pair (string_of_string (List.assoc k out_files_assoc_revert)) (string_of_string f)) v)
 let out_files_domain_message = string_of_pair "any string" (String.concat " | " out_files_names)
 
+(* 1.8. benchmarks *)
+type benchmark_choice = 
+  | Benchmark_none
+  | Benchmark_master_slave
+  | Benchmark_wordpress
+type benchmark_option  = (string * string) 
+type benchmark_options = benchmark_option list
+type benchmark = (benchmark_choice * benchmark_options)
+let benchmark_choice_assoc = [
+  ("none"        , Benchmark_none);
+  ("master-slave", Benchmark_master_slave);
+  ("wordpress"   , Benchmark_wordpress); ]
+let benchmark_choice_assoc_revert = revert benchmark_choice_assoc
+
+let benchmark_choice_names = (extract_names benchmark_choice_assoc)
+let benchmark_choice_map = Data_common.String_map.of_assoc_list benchmark_choice_assoc
+let convert_benchmark v = 
+  let benchmark_choice_v, bechmark_options_v = get_pair v in
+  let benchmark_choice = get_ident benchmark_choice_v in
+  let benchmark_options = List.map (fun benchmark_option_v -> 
+    let option_key_v, option_value_v = get_pair benchmark_option_v in
+    (get_ident option_key_v, get_ident option_value_v)
+  ) (get_list bechmark_options_v) in
+  (convert benchmark_choice_map benchmark_choice, benchmark_options)
+
+let string_of_benchmark v = 
+  let benchmark_choice, benchmark_options = v in
+  string_of_pair
+    (string_of_string (List.assoc benchmark_choice benchmark_choice_assoc_revert))
+    (string_of_list 
+      (List.map (fun benchmark_option -> 
+        let option_key, option_value = benchmark_option in
+        string_of_pair
+          (string_of_string option_key)
+          (string_of_string option_value)
+      ) benchmark_options))
+
+let benchmark_domain_message = string_of_pair (String.concat " | " benchmark_choice_names) "list of options: key-value pairs"
+
+
 
 (* 1.8. finally filling the setting_kind structure *)
 
@@ -272,6 +312,7 @@ type setting_kind = (* store the conversion and the string_of functions, and the
   | Gen_bindings of (value -> gen_bindings) * (gen_bindings -> string) * string
   | Gen_packages of (value -> gen_packages) * (gen_packages -> string) * string
   | Out_files of (value -> out_files) * (out_files -> string) * string
+  | Benchmark of (value -> benchmark) * (benchmark -> string) * string
 
 let bool_setting = Bool(convert_bool, string_of_bool, bool_domain_message)
 let string_setting = String(convert_string, string_of_string, string_domain_message)
@@ -286,6 +327,7 @@ let solver_bin_packing_setting = Solver_bin_packing(convert_solver_bin_packing, 
 let gen_bindings_setting       = Gen_bindings(convert_gen_bindings, string_of_gen_bindings, gen_bindings_domain_message)
 let gen_packages_setting       = Gen_packages(convert_gen_packages, string_of_gen_packages, gen_packages_domain_message)
 let out_files_setting          = Out_files(convert_out_files, string_of_out_files, out_files_domain_message)
+let benchmark_setting          = Benchmark(convert_benchmark, string_of_benchmark, benchmark_domain_message)
 
 
 (*/************************************************************************\*)
@@ -361,6 +403,9 @@ let verbose_stage = ("verbose-stage", bool_setting)
 let verbose_data = ("verbose-data", bool_setting)
 let verbose_execution = ("verbose-execution", bool_setting)
 
+    (* 9. Benchmark *)
+let benchmark = ("benchmark", benchmark_setting)
+
 
 (* 2.2. list of all settings *)
 let all_settings = [
@@ -408,7 +453,8 @@ let all_settings = [
     verbose_level;                       (* How much information should Zephyrus print: 0,1,2,3 *)
     verbose_stage;                       (* UNUSED *)
     verbose_data;                        (* Should Zephyrus print the input data during execution. *)
-    verbose_execution                    (* UNUSED *)
+    verbose_execution;                   (* UNUSED *)
+    benchmark                            (* Discard the normal input, synthetize a benchmark with given parameters instead. *)
   ]
 
 let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings with
@@ -445,40 +491,44 @@ module Table = AddColumn(struct type t = bool let name = bool_setting let defaul
             AddColumn(struct type t = gen_bindings let name = gen_bindings_setting let default = default_gen_bindings end)(
             AddColumn(struct type t = gen_packages let name = gen_packages_setting let default = default_gen_packages end)(
             AddListColumn(struct type el = out_file let name = out_files_setting end)(
-              Empty(Base)))))))))))))
+            AddColumn(struct type t = benchmark let name = benchmark_setting let default = (Benchmark_none, []) end)(
+              Empty(Base))))))))))))))
 
 type t = Table.t
 let table = Table.create 8
 let add (s,k) b = match k with
-  | Bool(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | String(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Int(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Mode(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Repositories(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Optim(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Constraint_kind(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Solver(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Bool              (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | String            (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Int               (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Mode              (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Repositories      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Optim             (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Constraint_kind   (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Solver            (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
   | Solver_bin_packing(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Gen_bindings(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Gen_packages(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Out_files(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Gen_bindings      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Gen_packages      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Out_files         (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Benchmark         (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
 
 let find (s,k) = Table.find table k s
 let mem (s,k) = Table.mem table s
 
 let to_string () = let inner ((s,k) as key) res = if mem key then ("  " ^ s ^ (match k with
-  | Bool(convert, string_of, error_message) -> string_of (find key)
-  | String(convert, string_of, error_message) -> string_of (find key)
-  | Int(convert, string_of, error_message) -> string_of (find key)
-  | Mode(convert, string_of, error_message) -> string_of (find key)
-  | Repositories(convert, string_of, error_message) -> string_of (find key)
-  | Optim(convert, string_of, error_message) -> string_of (find key)
-  | Constraint_kind(convert, string_of, error_message) -> string_of (find key)
-  | Solver(convert, string_of, error_message) -> string_of (find key)
+  | Bool              (convert, string_of, error_message) -> string_of (find key)
+  | String            (convert, string_of, error_message) -> string_of (find key)
+  | Int               (convert, string_of, error_message) -> string_of (find key)
+  | Mode              (convert, string_of, error_message) -> string_of (find key)
+  | Repositories      (convert, string_of, error_message) -> string_of (find key)
+  | Optim             (convert, string_of, error_message) -> string_of (find key)
+  | Constraint_kind   (convert, string_of, error_message) -> string_of (find key)
+  | Solver            (convert, string_of, error_message) -> string_of (find key)
   | Solver_bin_packing(convert, string_of, error_message) -> string_of (find key)
-  | Gen_bindings(convert, string_of, error_message) -> string_of (find key)
-  | Gen_packages(convert, string_of, error_message) -> string_of (find key)
-  | Out_files(convert, string_of, error_message) -> string_of (find key)))::res else res in
+  | Gen_bindings      (convert, string_of, error_message) -> string_of (find key)
+  | Gen_packages      (convert, string_of, error_message) -> string_of (find key)
+  | Out_files         (convert, string_of, error_message) -> string_of (find key)
+  | Benchmark         (convert, string_of, error_message) -> string_of (find key)
+  ))::res else res in
   String.concat "\n" (List.fold_right inner all_settings [])
 
 

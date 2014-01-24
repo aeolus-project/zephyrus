@@ -61,6 +61,25 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
   | Settings.Out_file_binpacking_problem -> Json_binpacking_problem_of.configuration                u c
 )
 
+
+(* TODO: Move it somewhere... *)
+let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmark) : (unit -> Benchmarks.benchmark) option =
+  let benchmark_choice, benchmark_options = benchmark_setting in
+  let get_option key default = try List.assoc key benchmark_options with Not_found -> default in
+  let option_fail option_name message = 
+    let benchmark_name = List.assoc benchmark_choice Settings.benchmark_choice_assoc_revert in
+    failwith (Printf.sprintf "Benchmark %s option %s problem: %s!" benchmark_name option_name message) in
+  match benchmark_choice with
+  | Settings.Benchmark_none         -> None
+  | Settings.Benchmark_master_slave -> 
+      let master_req = 
+        let master_req' = get_option "master_req" "10" in 
+        try int_of_string master_req' 
+        with _ -> option_fail "master_req" "is not an integer" in
+      Some (fun () -> new Benchmarks.Master_worker.create master_req Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
+  | Settings.Benchmark_wordpress    -> None
+
+
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
   Zephyrus_log.log_settings ()
@@ -70,6 +89,8 @@ let () = Load_settings.load ();
 let () = Load_model.set_initial_model_of_settings ();
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
+
+  let (benchmark : (unit -> Benchmarks.benchmark) option) = create_benchmark_of_benchmark_setting (Settings.find Settings.benchmark) in
 
   (* In every mode we need at least the universe and an initial configuration. *)
   let u = check_option "universe"              !Data_state.universe_full in

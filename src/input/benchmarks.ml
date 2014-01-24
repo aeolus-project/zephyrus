@@ -140,13 +140,11 @@ struct
     }
 
     method specification = 
-      let spec = "#Master > 0"
-      in
+      let spec = "#Master > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
     method optimisation_function = Data_model.Optimization_function_compact
 
   end
-  
   
 end
