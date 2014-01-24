@@ -233,8 +233,9 @@ let () = Load_model.set_initial_model_of_settings ();
 
 
 (*
-(* test the database *)
 (* TODO: Remove this from here! *)
+
+(* test the database *)
 module Database_test = struct
   open Data_common_database.Database
   module DBBase = struct

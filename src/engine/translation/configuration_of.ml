@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Translate a constraint problem solution to a final configuration. *)
+
 open Data_model
 open Data_model_catalog
 open Data_constraint

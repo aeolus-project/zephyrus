@@ -17,38 +17,17 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Handle solving of a (possibly multiobjective) constraint problem. *)
+(** Classify locations present in a configuration into homogenous categories. *)
 
 (* Depends on
+    - datatypes/Data_model
     - datatypes/Data_constraint
 *)
 
-(* the prints should be handled by Zephyrus log directly. Moreover maybe we should use the Lazy library, in case the string will never be printed *)
-type solver_settings = {
-  bounds                : Data_constraint.variable_bounds;
-  input_file            : string;
-  output_file           : string;
-  keep_input_file       : bool;
-  keep_output_file      : bool;  
-}
+include module type of Data_model.Location_id_set_set
 
-type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
-type t_full = solver_settings -> t
-
-type settings_kind = Preprocess | Main
-val settings_of_settings : settings_kind -> solver_settings
-
-val full_of_settings     : settings_kind -> t_full
-val of_settings          : settings_kind -> t
-
-
-
-module type SOLVER = sig
-  val solve : t_full (* It returns the solution and its cost. *)
-end
-
-module G12    : SOLVER
-module GeCode : SOLVER
-val make_custom_solver_module : Engine_helper.program -> (module SOLVER)
-
-
+val domain : t -> Data_model.Location_id_set.t
+val resource_categories : Data_model.universe -> Data_model.configuration -> Data_model.Location_id_set_set.t
+val full_categories : Data_model.universe -> Data_model.configuration -> t
+val generate_categories : unit -> unit
+val generate_constraint : unit -> Data_constraint.konstraint

@@ -17,9 +17,11 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Component matching algorythm for creating bindings. *)
 
+(** All that is extremely generic. Sorry... *)
 
-(* Ordered types for require_arity and provide_arity. *)
+(** {2 Ordered types for [require_arity] and [provide_arity].} *)
 
 type comparison = Lt | Eq | Gt
 
@@ -84,7 +86,7 @@ module DecrementableIntegerWithInfinity (* : ORDERED_DECREMENTABLE_TYPE *) =
   end
 
 
-(* Generic requirer and provider types. *)
+(** {2 Generic requirer and provider types.} *)
 
 module type REQUIRER_PROVIDER_TYPES =
   sig
@@ -132,7 +134,7 @@ module type REQUIRER_PROVIDER_TYPE_PARAMETER =
 
 
 
-(* Simple implementation of requirer and provider modules based on lists. *)
+(** {2 Simple implementation of requirer and provider modules based on association lists.} *)
 
 module List_requirer_provider_types =
   functor (Requirer_provider_type_parameter : REQUIRER_PROVIDER_TYPE_PARAMETER) ->
@@ -218,7 +220,7 @@ end
 
 
 
-(* Generic matching algorithm implementation. *)
+(** {2 Generic matching algorithm implementation.} *)
 
 module type MATCH_REQUIRERS_WITH_PROVIDERS =
   functor (Requirer_provider_types : REQUIRER_PROVIDER_TYPES) ->
@@ -314,9 +316,9 @@ module Match_requirers_with_providers : MATCH_REQUIRERS_WITH_PROVIDERS =
 
 
 
-(* Putting it all together into usable modules. *)
+(** {2 Putting it all together into usable modules.} *)
 
-(* For string keys. *)
+(** {3 For [string] keys.} *)
 
 module Requirer_provider_type_param_string =
   struct 
@@ -332,7 +334,7 @@ module String_list_match_requirers_with_providers =
   Match_requirers_with_providers(String_list_requirer_provider_types)
 
 
-(* For int keys. *)
+(** {3 For [int] keys.} *)
 
 module Requirer_provider_type_param_int =
   struct 

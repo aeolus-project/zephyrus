@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Produce MiniZinc files. *)
+
 (* Depends on
     - datatypes/Data_common
     - datatypes/Data_constraint
