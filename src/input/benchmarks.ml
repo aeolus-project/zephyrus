@@ -22,19 +22,14 @@
 open Abstract_io
 
 class virtual benchmark = object
-  method virtual universe              : universe
-  method virtual initial_configuration : configuration
+  method virtual universe              : Abstract_io.universe
+  method virtual initial_configuration : Abstract_io.configuration
   method virtual specification         : Abstract_io.specification
   method virtual optimisation_function : Data_model.optimization_function
 end
 
-module Master_worker = 
+module Simple_machine_park =
 struct
-
-  type machine_park_choice =
-    | Machine_park_100s
-    | Machine_park_50s_50m
-    | Machine_park_33s_33m_33l
 
   type machine_choice =
     | Small
@@ -73,7 +68,7 @@ struct
     new_location 
       ~packages_installed: []
       ~resources_provided: [("ram", ram)]
-      ~repository:         "repository-1"
+      ~repository:         "repository"
       ~cost:               cost
       ~name:               name
 
@@ -82,12 +77,23 @@ struct
     then (make_machine n) :: (make_machines make_machine (n - 1))
     else []
 
+  type machine_park_choice =
+    | Machine_park_100s
+    | Machine_park_50s_50m
+    | Machine_park_33s_33m_33l
+
   let initial_configuration_of_machine_park machine_park_choice : location list =
     match machine_park_choice with
     | Machine_park_100s        -> (make_machines (new_machine Small) 100)
     | Machine_park_50s_50m     -> (make_machines (new_machine Small) 50) @ (make_machines (new_machine Medium) 50)
     | Machine_park_33s_33m_33l -> (make_machines (new_machine Small) 33) @ (make_machines (new_machine Medium) 33) @ (make_machines (new_machine Large) 33)
 
+end
+
+module Master_worker = 
+struct
+
+  open Simple_machine_park
 
   type complexity =
     | One_worker_type
@@ -115,12 +121,12 @@ struct
         }
       ];
       universe_implementation = [
-        ("Master", [ ("repository-1", "common_package") ]);
-        ("Worker", [ ("repository-1", "common_package") ])
+        ("Master", [ ("repository", "common_package") ]);
+        ("Worker", [ ("repository", "common_package") ])
       ];
       universe_repositories = [
         {
-          repository_name = "repository-1";
+          repository_name = "repository";
           repository_packages = [
             {
               package_name     = "common_package";
@@ -141,6 +147,76 @@ struct
 
     method specification = 
       let spec = "#Master > 0" in
+      Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
+
+    method optimisation_function = Data_model.Optimization_function_compact
+
+  end
+  
+end
+
+
+module Wordpress = 
+struct
+
+  open Simple_machine_park
+  
+  class create (machine_park_choice : machine_park_choice) (wordpress_req : int) (mysql_req : int) (webservers : int option) = 
+  object
+    inherit benchmark
+
+    method universe = {
+      universe_component_types = [
+        {
+          component_type_name     = "Load-Balancer";
+          component_type_provide  = [];
+          component_type_require  = [("@wordpress", wordpress_req)];
+          component_type_conflict = [];
+          component_type_consume  = []
+        };
+        {
+          component_type_name     = "Wordpress";
+          component_type_provide  = [("@wordpress", (FiniteProvide 1))];
+          component_type_require  = [("@mysql", mysql_req)];
+          component_type_conflict = [];
+          component_type_consume  = []
+        };
+        {
+          component_type_name     = "MySQL";
+          component_type_provide  = [("@mysql", (FiniteProvide 3))];
+          component_type_require  = [];
+          component_type_conflict = [];
+          component_type_consume  = []
+        }
+      ];
+      universe_implementation = [
+        ("Load-Balancer", [ ("repository", "common_package") ]);
+        ("Wordpress",     [ ("repository", "common_package") ]);
+        ("MySQL",         [ ("repository", "common_package") ])
+      ];
+      universe_repositories = [
+        {
+          repository_name = "repository";
+          repository_packages = [
+            {
+              package_name     = "common_package";
+              package_depend   = [];
+              package_conflict = [];
+              package_consume  = []
+            }
+          ]
+        }
+      ]
+    };
+
+    method initial_configuration = {
+      configuration_locations  = initial_configuration_of_machine_park machine_park_choice;
+      configuration_components = [];
+      configuration_bindings   = []
+    }
+
+    method specification = 
+      let spec = "#Load-Balancer > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
     method optimisation_function = Data_model.Optimization_function_compact

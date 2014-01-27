@@ -1,5 +1,4 @@
-
-# 01. Input Files
+# Input
 
 input-file-universe         = "tests/u-1.json"
 input-file-configuration    = "tests/ic-single-location.json"
@@ -8,11 +7,21 @@ input-file-repositories     = []
 input-optimization-function = compact
 
 #solver = custom
-#custom-solver-command       = "flatzinc -o <OUT> <IN>"
+#custom-solver-command = "flatzinc -o <OUT> <IN>"
 
-# 07. Output Configuration
 
-results                     = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot"); ("binpacking-problem", "tests/binpacking.json")]
+# Output
+
+results = [("json", "tests/output.json"); ("graph-deployment", "tests/output.dot"); ("binpacking-problem", "tests/binpacking.json")]
+
+
+# Printing
 
 verbose-level = 2
 verbose-data = y
+
+
+# Benchmark tests
+
+#benchmark = ("master-slave", [("master_req", "10")])
+#benchmark = ("wordpress", [("wordpress_req", "10"); ("mysql_req", "10")])

@@ -65,19 +65,26 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
 (* TODO: Move it somewhere... *)
 let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmark) : (unit -> Benchmarks.benchmark) option =
   let benchmark_choice, benchmark_options = benchmark_setting in
-  let get_option key default = try List.assoc key benchmark_options with Not_found -> default in
+  (* [option_fail option_name message] raises an exception about a problem [message] with benchmark's option [option_name]. *)
   let option_fail option_name message = 
     let benchmark_name = List.assoc benchmark_choice Settings.benchmark_choice_assoc_revert in
     failwith (Printf.sprintf "Benchmark %s option %s problem: %s!" benchmark_name option_name message) in
+  (* [get_option key default] returns the value of the benchmark option [key] or the [default] value if this option was not defined. *)
+  let get_option key default = 
+    try List.assoc key benchmark_options with Not_found -> default in
+  (* [get_int_option key default] tries to return the value of the benchmark option [key] (or the [default] value if this option was not defined) converted to an integer. *)
+  let get_int_option key default = 
+    let option_value = get_option key default in 
+    try int_of_string option_value with _ -> option_fail key "is not an integer" in
   match benchmark_choice with
-  | Settings.Benchmark_none         -> None
+  | Settings.Benchmark_none -> None
   | Settings.Benchmark_master_slave -> 
-      let master_req = 
-        let master_req' = get_option "master_req" "10" in 
-        try int_of_string master_req' 
-        with _ -> option_fail "master_req" "is not an integer" in
-      Some (fun () -> new Benchmarks.Master_worker.create master_req Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
-  | Settings.Benchmark_wordpress    -> None
+      let master_req = get_int_option "master_req" "10" in
+      Some (fun () -> new Benchmarks.Master_worker.create master_req Benchmarks.Simple_machine_park.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
+  | Settings.Benchmark_wordpress -> 
+      let wordpress_req = get_int_option "wordpress_req" "3" in
+      let mysql_req     = get_int_option "mysql_req"     "3" in 
+      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_100s wordpress_req mysql_req None)
 
 
 (* === Handling the arguments === *)
@@ -86,11 +93,17 @@ let () = Load_settings.load ();
 
 
 (* === load everything  === *)
-let () = Load_model.set_initial_model_of_settings ();
+let () = 
+
+  (* Handle benchmarks *)
+  let (benchmark : (unit -> Benchmarks.benchmark) option) = create_benchmark_of_benchmark_setting (Settings.find Settings.benchmark) in
+
+  (match benchmark with
+  | None           -> Load_model.set_initial_model_of_settings ()
+  | Some benchmark -> Load_model.set_initial_model_of_benchmark (benchmark ()));
+
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
-
-  let (benchmark : (unit -> Benchmarks.benchmark) option) = create_benchmark_of_benchmark_setting (Settings.find Settings.benchmark) in
 
   (* In every mode we need at least the universe and an initial configuration. *)
   let u = check_option "universe"              !Data_state.universe_full in

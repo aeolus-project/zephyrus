@@ -616,6 +616,7 @@ let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   let c : Data_model.configuration = load_configuration catalog c in
   let s : Data_model.specification = load_specification catalog s in
 
+  Data_state.catalog_full               := Some(catalog);
   Data_state.universe_full              := Some(u);
   Data_state.initial_configuration_full := Some(c);
   Data_state.specification_full         := Some(s);
