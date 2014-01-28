@@ -99,7 +99,7 @@ struct
     | One_worker_type
     | Two_worker_types_with_conflicting_packages
   
-  class create (master_req : int) (machine_park_choice : machine_park_choice) (complexity : complexity) = 
+  class create (master_require : int) (machine_park_choice : machine_park_choice) (complexity : complexity) = 
   object
     inherit benchmark
 
@@ -108,7 +108,7 @@ struct
         {
           component_type_name     = "Master";
           component_type_provide  = [];
-          component_type_require  = [("@work", master_req)];
+          component_type_require  = [("@work", master_require)];
           component_type_conflict = [];
           component_type_consume  = [("ram", 1024)]
         };
@@ -160,24 +160,44 @@ module Wordpress =
 struct
 
   open Simple_machine_park
-  
-  class create (machine_park_choice : machine_park_choice) (wordpress_req : int) (mysql_req : int) (webservers : int option) = 
+
+  let make_webserver number =
+    let name =
+      let prefix = "Webserver" in
+      Printf.sprintf "%s-%d" prefix number in
+    {
+      component_type_name     = name;
+      component_type_provide  = [("@webserver", (FiniteProvide 1))];
+      component_type_require  = [];
+      component_type_conflict = [];
+      component_type_consume  = [];
+    }
+
+  let rec make_webservers n : component_type list =
+    if n > 0 
+    then (make_webserver n) :: (make_webservers (n - 1))
+    else []
+
+  class create (machine_park_choice : machine_park_choice) (wordpress_require : int) (mysql_require : int) (number_of_webservers : int) = 
+
+  let webservers = make_webservers number_of_webservers in
+
   object
     inherit benchmark
 
-    method universe = {
-      universe_component_types = [
+    method universe = 
+      let universe_component_types = [
         {
           component_type_name     = "Load-Balancer";
           component_type_provide  = [];
-          component_type_require  = [("@wordpress", wordpress_req)];
+          component_type_require  = [("@wordpress", wordpress_require)];
           component_type_conflict = [];
           component_type_consume  = []
         };
         {
           component_type_name     = "Wordpress";
           component_type_provide  = [("@wordpress", (FiniteProvide 1))];
-          component_type_require  = [("@mysql", mysql_req)];
+          component_type_require  = [("@mysql", mysql_require)] @ (if number_of_webservers = 0 then [] else [("@webserver", 1)]);
           component_type_conflict = [];
           component_type_consume  = []
         };
@@ -188,13 +208,14 @@ struct
           component_type_conflict = [];
           component_type_consume  = []
         }
-      ];
-      universe_implementation = [
+      ] @ webservers
+      in
+      let universe_implementation = [
         ("Load-Balancer", [ ("repository", "common_package") ]);
         ("Wordpress",     [ ("repository", "common_package") ]);
         ("MySQL",         [ ("repository", "common_package") ])
-      ];
-      universe_repositories = [
+      ] @ (List.map (fun webserver -> (webserver.component_type_name, [ ("repository", "common_package") ])) webservers) in
+      let universe_repositories = [
         {
           repository_name = "repository";
           repository_packages = [
@@ -206,8 +227,13 @@ struct
             }
           ]
         }
-      ]
-    };
+      ] in
+
+      {
+        universe_component_types = universe_component_types;
+        universe_implementation  = universe_implementation;
+        universe_repositories    = universe_repositories;
+      };
 
     method initial_configuration = {
       configuration_locations  = initial_configuration_of_machine_park machine_park_choice;

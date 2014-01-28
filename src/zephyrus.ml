@@ -79,12 +79,13 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
   match benchmark_choice with
   | Settings.Benchmark_none -> None
   | Settings.Benchmark_master_slave -> 
-      let master_req = get_int_option "master_req" "10" in
-      Some (fun () -> new Benchmarks.Master_worker.create master_req Benchmarks.Simple_machine_park.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
+      let master_require = get_int_option "master_require" "10" in
+      Some (fun () -> new Benchmarks.Master_worker.create master_require Benchmarks.Simple_machine_park.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
   | Settings.Benchmark_wordpress -> 
-      let wordpress_req = get_int_option "wordpress_req" "3" in
-      let mysql_req     = get_int_option "mysql_req"     "3" in 
-      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_100s wordpress_req mysql_req None)
+      let wordpress_require = get_int_option "wordpress_require" "3" in
+      let mysql_require     = get_int_option "mysql_require"     "3" in 
+      let webservers        = get_int_option "webservers"        "0" in 
+      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_100s wordpress_require mysql_require webservers)
 
 
 (* === Handling the arguments === *)

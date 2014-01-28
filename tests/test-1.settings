@@ -23,5 +23,5 @@ verbose-data = y
 
 # Benchmark tests
 
-#benchmark = ("master-slave", [("master_req", "10")])
-#benchmark = ("wordpress", [("wordpress_req", "10"); ("mysql_req", "10")])
+#benchmark = ("master-slave", [("master_require", "10")])
+#benchmark = ("wordpress", [("wordpress_require", "10"); ("mysql_require", "10"); ("webservers", "10")])
