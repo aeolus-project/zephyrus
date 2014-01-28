@@ -355,6 +355,8 @@ let import_optimization_function = ("import-optimization-function", bool_setting
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
 let eliminate_packages = ("eliminate-packages", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
+let flatten = ("flatten-the-model", bool_setting)
+
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
 let check_repositories = ("check-repositories", bool_setting)
@@ -454,7 +456,8 @@ let all_settings = [
     verbose_stage;                       (* UNUSED *)
     verbose_data;                        (* Should Zephyrus print the input data during execution. *)
     verbose_execution;                   (* UNUSED *)
-    benchmark                            (* Discard the normal input, synthetize a benchmark with given parameters instead. *)
+    benchmark;                           (* Discard the normal input, synthetize a benchmark with given parameters instead. *)
+    flatten                              (* Flatten the model (ignore the locations, packages and resources in the input) and use the Aeolus flat model approach to find the final configuration. *)
   ]
 
 let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings with
@@ -540,6 +543,13 @@ let to_string () = let inner ((s,k) as key) res = if mem key then ("  " ^ s ^ (m
 
 let add_string s v = add s (IdentValue v)
 let add_double_lists s l1 l2  = add s (ListValue (List.map2 (fun n1 n2 -> PairValue(IdentValue(n1), IdentValue(n2))) l1 l2))
+let add_benchmark b =
+  let (benchmark_name, benchmark_options) = b in
+  add benchmark (PairValue 
+    (IdentValue (List.assoc benchmark_name benchmark_choice_assoc_revert), 
+     ListValue (List.map (fun (option_key, option_value) -> 
+       PairValue(IdentValue(option_key), IdentValue(option_value))
+     ) benchmark_options)))
 
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
 let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
