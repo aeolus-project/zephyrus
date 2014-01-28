@@ -56,7 +56,7 @@ let eU l = Variable(Location_used_variable(l))
 
 (* flat model *)
 let require u_dp ur up get_component_type = 
-  Zephyrus_log.log_constraint_execution "Compute requires\n";
+  Zephyrus_log.log_constraint_execution "Compute binding requires\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res -> (
         ((get_require_arity (get_component_type tr) p) *~ (eNt tr))
@@ -64,8 +64,8 @@ let require u_dp ur up get_component_type =
     ) (ur p) res
   ) u_dp []
 
-let provide_fixed_infinity u_dp up ur get_component_type = 
-  Zephyrus_log.log_constraint_execution "Compute provides\n";
+let provide_with_fixed_infinity u_dp up ur get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute binding provides (with naive encoding of infinity as a fixed value)\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tp res -> (
           ((get_provide_arity (get_component_type tp) p) *~ (eNt tp))
@@ -73,8 +73,8 @@ let provide_fixed_infinity u_dp up ur get_component_type =
     ) (up p) res
   ) u_dp []
 
-let provide_advanced_infinity u_dp up ur get_component_type = 
-  Zephyrus_log.log_constraint_execution "Compute provides\n";
+let provide_with_advanced_infinity u_dp up ur get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute binding provides (with advanced encoding of infinity)\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tp res ->
       match (get_component_type tp)#provide p with
@@ -100,7 +100,7 @@ let provide_advanced_infinity u_dp up ur get_component_type =
   ) u_dp []
 
 let binding u_dp ur up = 
-  Zephyrus_log.log_constraint_execution "Compute unicitiy\n\n";
+  Zephyrus_log.log_constraint_execution "Compute binding unicitiy\n\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res ->
       Data_model.Component_type_id_set.fold (fun tp res ->
@@ -111,7 +111,7 @@ let binding u_dp ur up =
 
 
 let conflict_naive u_dp uc get_component_type =
-  Zephyrus_log.log_constraint_execution "Compute conflicts\n\n";
+  Zephyrus_log.log_constraint_execution "Compute binding conflicts (naive encoding)\n\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun t res ->
       (((eNt t) >=~ (constant 1)) =>~~ ((eNp p) =~ (get_provide_arity_safe (get_component_type t) p)))::res
@@ -119,7 +119,7 @@ let conflict_naive u_dp uc get_component_type =
   ) u_dp []
 
 let conflict_advanced u_dp uc up get_component_type =
-  Zephyrus_log.log_constraint_execution "Compute conflicts\n\n";
+  Zephyrus_log.log_constraint_execution "Compute binding conflicts (advanced encoding)\n\n";
   Data_model.Port_id_set.fold (fun p res ->
     let conflicters = uc p in
     let providers   = up p in
@@ -283,7 +283,7 @@ let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
 
 let universe location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict , conflict_naive universe#get_port_ids universe#uc universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ;
     (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
@@ -302,7 +302,7 @@ let universe location_ids universe = [ (* TODO: replace the references with desc
 (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
 let universe_incompatibilities location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict , conflict_naive universe#get_port_ids universe#uc universe#get_component_type) ;
 (*  (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ; *)
     (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
@@ -324,7 +324,7 @@ let universe_incompatibilities location_ids universe = [ (* TODO: replace the re
 let universe_full () =
   let f (universe: Data_model.universe) configuration =
     Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
     Data_state.constraint_universe_component_type_conflict       := conflict_naive universe#get_port_ids universe#uc universe#get_component_type;
     Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation;
     Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
@@ -349,7 +349,7 @@ let universe_full () =
 let universe_full_incompatibilities () =
   let f (universe: Data_model.universe) configuration =
     Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
     Data_state.constraint_universe_component_type_conflict       := conflict_naive universe#get_port_ids universe#uc universe#get_component_type;
 (*  Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation; *)
     Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
