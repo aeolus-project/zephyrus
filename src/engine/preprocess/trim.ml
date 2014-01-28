@@ -191,14 +191,14 @@ let trim_repositories universe configuration specification =
 
     Package_id_set_set.fold Package_id_set.union set_of_sets_of_implementing_packages Package_id_set.empty
   in
-  Printf.printf "\nimplementing_package_ids: %s\n%!" (String_of.package_id_set implementing_package_ids);
+  Zephyrus_log.log_execution (Printf.sprintf "\nimplementing_package_ids: %s\n%!" (String_of.package_id_set implementing_package_ids));
 
 
   (* 2. The transitive closure of dependencies. *)
   let packages_in_the_dependency_closure (universe : universe) : Package_id_set.t = 
     let packages_in_the_dependency_closure : Package_id_set.t = 
       dependency_transitive_closure implementing_package_ids universe#get_package in
-    Printf.printf "\npackages_in_the_dependency_closure: %s\n%!" (String_of.package_id_set packages_in_the_dependency_closure);
+    Zephyrus_log.log_execution (Printf.sprintf "\npackages_in_the_dependency_closure: %s\n%!" (String_of.package_id_set packages_in_the_dependency_closure));
     packages_in_the_dependency_closure in
 
 
@@ -208,7 +208,7 @@ let trim_repositories universe configuration specification =
       remove_always_installable_packages universe#get_package_ids universe#get_package in
     let core_and_not_always_installable_packages : Package_id_set.t =
       Package_id_set.union implementing_package_ids not_always_installable_packages in
-    Printf.printf "\ncore_and_not_always_installable_packages: %s\n%!" (String_of.package_id_set core_and_not_always_installable_packages);
+    Zephyrus_log.log_execution (Printf.sprintf "\ncore_and_not_always_installable_packages: %s\n%!" (String_of.package_id_set core_and_not_always_installable_packages));
     core_and_not_always_installable_packages in
 
   (* We prepare the trimming package set generators: *)
@@ -217,18 +217,18 @@ let trim_repositories universe configuration specification =
     ("always installable", core_and_not_always_installable_packages); (* 2. We keep only core packages and these packages wich are not always installable. *)
   ] in
 
-  Printf.printf "\nBeginning universe trimming...%!";
+  Zephyrus_log.log_execution (Printf.sprintf "\nBeginning universe trimming...%!");
 
   (* We trim the repositories: *)
   let trimmed_universe : universe =
     List.fold_left (fun universe (description, package_ids_to_keep) ->
-        Printf.printf "\n+ trimming: %s...%!" description;
+        Zephyrus_log.log_execution (Printf.sprintf "\n+ trimming: %s...%!" description);
         let universe' = universe#trim_packages_by_ids (package_ids_to_keep universe) in
-        Printf.printf "+ trimming %s done!%!" description;
+        Zephyrus_log.log_execution (Printf.sprintf "+ trimming %s done!%!" description);
         universe'
       ) universe trimmers in
 
-  Printf.printf "\nUniverse trimming done!%!";
+  Zephyrus_log.log_execution (Printf.sprintf "\nUniverse trimming done!%!");
 
   trimmed_universe
 

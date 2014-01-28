@@ -31,6 +31,7 @@ open Data_common_set
 open Data_common_map
 open Data_common_unique_id
 
+let debug_print s = Zephyrus_log.log_execution s; flush stdout
 
 module Graph = struct
   module type Vertice_data = sig type t end
@@ -663,19 +664,20 @@ module Graph = struct
         
         
        (********************* for debug *)
-       let print_c c = Printf.printf "%i " (Vertice_set.choose (vertices c)).v_id
+       let sprint_c c = Printf.sprintf "%i " (Vertice_set.choose (vertices c)).v_id
        (********************* for debug *)
 
         
         let paths_towards c1 c2 =
-          Printf.printf "stating with the component "; print_c c1; Printf.printf "\n";
-          let rec step accu = Printf.printf "sub\n";
+          debug_print (Printf.sprintf "stating with the component %s\n" (sprint_c c1));
+          let rec step accu = debug_print (Printf.sprintf "sub\n");
             let succs_e = Edge_set.filter (fun e -> ((compare (Edge.target_abst e) c2) <= 0) && ((compare c1 (Edge.target_abst e)) < 0)) (succs_e (Abstract_path.target accu)) in
-            if Edge_set.is_empty succs_e then (Printf.printf "that path is finished\n"; Abstract_path_set.singleton accu)
-            else Edge_set.fold (fun e res -> Printf.printf "going further -> "; print_c (Edge.target_abst e); Printf.printf "\n"; Abstract_path_set.union (step (Abstract_path.add e accu)) res) succs_e Abstract_path_set.empty in
+            if Edge_set.is_empty succs_e 
+            then (debug_print (Printf.sprintf "that path is finished\n"); Abstract_path_set.singleton accu)
+            else Edge_set.fold (fun e res -> debug_print (Printf.sprintf "going further -> %s\n" (sprint_c (Edge.target_abst e))); Abstract_path_set.union (step (Abstract_path.add e accu)) res) succs_e Abstract_path_set.empty in
           step (Abstract_path.create c1)
 
-        let update_vertices c = Vertice_set.iter (fun v -> Printf.printf "updating data for vertice %i\n" (v.v_id);Vertice.mod_abst c v) (vertices c)
+        let update_vertices c = Vertice_set.iter (fun v -> debug_print (Printf.sprintf "updating data for vertice %i\n" (v.v_id)); Vertice.mod_abst c v) (vertices c)
 
         let merge ps e = (* function called when the addition of the edge e from c2 to c1 created a loop between c1 and c2, involving the paths ps from c1 to c2  *)
           (* simply create a new component with all the edges of c1, c2,  ps and e inside *)
@@ -776,34 +778,35 @@ module Graph = struct
       
       let add_vertice v o = let c = Vertice.get_abst v in let id = try (Component.position (Linked_list.last o)) + 1 with | Not_found -> 0 in
         c.to_position <- id; Linked_list.add_last c o;
-        Printf.printf "new vertice added. Now the order is : %s\n" (string_of_o o); flush stdout
+        debug_print (Printf.sprintf "new vertice added. Now the order is : %s\n" (string_of_o o))
       
       let add_edge e o = let c1 = Edge.origin_abst e in let c2 = Edge.target_abst e in let value = Component.compare c1 c2 in
-        Printf.printf "Adding a new edge %s -> %s to the graph\n" (string_of_c c1) (string_of_c c2);
+        debug_print (Printf.sprintf "Adding a new edge %s -> %s to the graph\n" (string_of_c c1) (string_of_c c2));
           Component.isnt_anymore to_status_leaf c1;
           Component.isnt_anymore to_status_root c2;
-        if value < 0 then (Printf.printf "The edge is ok for the order. Nothing to do, yeah\n"; o)
+        if value < 0 
+        then (debug_print (Printf.sprintf "The edge is ok for the order. Nothing to do, yeah\n"); o)
         
         else if value > 0 then ( (* c2 is before c1, which is against the edge. We thus need to update the order *)
-          Printf.printf "The edge is inverted for the order. Computing the paths from c2 toward c1...";
+          debug_print (Printf.sprintf "The edge is inverted for the order. Computing the paths from c2 toward c1...");
           let ps = Component.paths_towards c2 c1 in
-          Printf.printf " ok\n"; flush stdout;
+          debug_print (Printf.sprintf " ok\n");
           let (ps_loop, ps_unloop) = Abstract_path_set.partition (fun p -> Component.equal c1 (Abstract_path.target p)) ps in
-          Printf.printf " partition of the set of path done\n"; flush stdout;
+          debug_print (Printf.sprintf " partition of the set of path done\n");
           let path_set_to_component_set ps = Abstract_path_set.fold (fun p res -> Component_set.union (Abstract_path.components p) res) ps Component_set.empty in
           let cs_in_between = Component_set.of_list_directly (Linked_list.to_list (sub c2 c1 o)) in
-          Printf.printf " computation of the components in between done\n"; flush stdout;
+          debug_print (Printf.sprintf " computation of the components in between done\n");
           let cs_loop = path_set_to_component_set ps_loop in
-          Printf.printf " computation of the components in loop done\n"; flush stdout;
+          debug_print (Printf.sprintf " computation of the components in loop done\n");
           let cs_unloop = path_set_to_component_set ps_unloop in
-          Printf.printf " computation of the components in unloop done\n"; flush stdout;
+          debug_print (Printf.sprintf " computation of the components in unloop done\n");
           let cs_move = Component_set.diff cs_in_between cs_loop in
-          Printf.printf " computation of the components to move done\n"; flush stdout;
+          debug_print (Printf.sprintf " computation of the components to move done\n");
           let (cs_forward, cs_backward) = Component_set.partition (fun c -> Component_set.mem c cs_unloop) cs_move in
-          Printf.printf " partition of the set of components done\n"; flush stdout;
-          Printf.printf "  we need to merge the components : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_loop [])); flush stdout;
-          Printf.printf "  we need to move backward the components  : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_backward [])); flush stdout;
-          Printf.printf "  we need to move forward the components   : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_forward [])); flush stdout;
+          debug_print (Printf.sprintf " partition of the set of components done\n");
+          debug_print (Printf.sprintf "  we need to merge the components          : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_loop     [])));
+          debug_print (Printf.sprintf "  we need to move backward the components  : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_backward [])));
+          debug_print (Printf.sprintf "  we need to move forward the components   : { %s }\n" (String.concat " " (Component_set.fold (fun c res -> (string_of_c c)::res) cs_forward  [])));
           (* until here, seems ok *)
           
           (* create the new order *)
@@ -814,20 +817,20 @@ module Graph = struct
              else Linked_list.add (Component.merge ps_loop e) o'); o' in
           let suffix1 = Linked_list.filter (fun c -> Component_set.mem c cs_forward) o in
           let suffix2 = suffix c1 o in
-          Printf.printf "The prefix1 is : %s\n" (string_of_o prefix1); flush stdout;
-          Printf.printf "The prefix2 is : %s\n" (string_of_o prefix2); flush stdout;
-          Printf.printf "The center is : %s\n" (string_of_o center); flush stdout;
-          Printf.printf "The suffix1 is : %s\n" (string_of_o suffix1); flush stdout;
-          Printf.printf "The suffix2 is : %s\n" (string_of_o suffix2); flush stdout;
+          debug_print (Printf.sprintf "The prefix1 is : %s\n" (string_of_o prefix1));
+          debug_print (Printf.sprintf "The prefix2 is : %s\n" (string_of_o prefix2));
+          debug_print (Printf.sprintf "The center is  : %s\n" (string_of_o center ));
+          debug_print (Printf.sprintf "The suffix1 is : %s\n" (string_of_o suffix1));
+          debug_print (Printf.sprintf "The suffix2 is : %s\n" (string_of_o suffix2));
             
           let new_o = Linked_list.concat [prefix1; prefix2; center; suffix1; suffix2] in
           
           reset_order new_o;
-          Printf.printf "Order modification performed. Now the order is : %s\n" (string_of_o new_o); flush stdout;
+          debug_print (Printf.sprintf "Order modification performed. Now the order is : %s\n" (string_of_o new_o));
           new_o
 
         ) else (  (* the edge is either an auto-reference, or connects two vertices inside a loop *)
-          Printf.printf "The edge is inside a component. Simply adding it to the component\n";
+          debug_print (Printf.sprintf "The edge is inside a component. Simply adding it to the component\n");
           Component.add_edge e c1; o
         )
         

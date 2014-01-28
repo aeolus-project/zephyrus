@@ -264,7 +264,7 @@ let () =
     List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results)
   );
 
-  print_string "\n\n\n <==========> THE END <==========>  \n\n"
+  Zephyrus_log.log_execution "\n\n\n <==========> THE END <==========>  \n\n"
 
 
 (*
