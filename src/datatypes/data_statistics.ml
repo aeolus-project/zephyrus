@@ -27,5 +27,4 @@ let add key value =
   statistics := (key, value)::!statistics
 
 let to_string () =
-  let lines = List.map (fun (key, value) -> Printf.sprintf "%s:%s" key value) (List.rev !statistics) in
-  String.concat "\n" lines
+  String.concat "" (List.map (fun (key, value) -> Printf.sprintf "%s:%s\n" key value) (List.rev !statistics))
