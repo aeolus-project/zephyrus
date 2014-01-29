@@ -218,6 +218,99 @@ module List_requirer_provider_types =
 end
 
 
+(** {2 Better implementation of requirer and provider modules based on sets.} *)
+
+module Set_map_requirer_provider_types =
+  functor (Requirer_provider_type_parameter : REQUIRER_PROVIDER_TYPE_PARAMETER) ->
+  functor (Require_arity : ORDERED_DECREMENTABLE_TYPE) ->
+  functor (Provide_arity : ORDERED_DECREMENTABLE_TYPE) ->
+  struct
+
+    module Type_Parameter = Requirer_provider_type_parameter
+    module Require_arity = Require_arity
+    module Provide_arity = Provide_arity
+
+    type requirer_key_t = Type_Parameter.requirer_key_t    
+    type require_arity  = Require_arity.t
+    type provider_key_t = Type_Parameter.provider_key_t
+    type provide_arity  = Provide_arity.t
+
+    type result_t = {
+      requires : requirer_key_t;
+      provides : provider_key_t;
+    }
+
+    module Requirers =
+      struct
+
+        type t = (requirer_key_t * require_arity) list
+
+        let iter = List.iter
+
+      end
+    
+    module Providers =
+      struct
+    
+        open Data_common
+
+        module Provider_key_map = Map.Make(struct type t = provider_key_t let compare = compare end)
+
+        module Provider_key_provider_arity_set = Set.Make(struct 
+          type t = (provider_key_t * provide_arity) 
+          let compare (x_key, x_arity) (y_key, y_arity) = 
+            match Provide_arity.compare x_arity y_arity with
+            | Lt -> -1 
+            | Eq -> compare x_key y_key
+            | Gt ->  1
+        end)
+
+        type t = {
+          map : provide_arity Provider_key_map.t;
+          set : Provider_key_provider_arity_set.t;
+        }
+        
+        let is_empty t = 
+          ( Provider_key_provider_arity_set.is_empty t.set )
+        
+        let max_value t =
+          Provider_key_provider_arity_set.max_elt t.set
+    
+        let remove key t =
+          let arity = Provider_key_map.find key t.map in
+          {
+            map = Provider_key_map.remove key t.map;
+            set = Provider_key_provider_arity_set.remove (key, arity) t.set;
+          }
+    
+        let decrement key t =
+          let arity = Provider_key_map.find key t.map in
+          let decremented_arity = Provide_arity.decrement arity in
+          {
+            map = Provider_key_map.add key decremented_arity t.map;
+            set = Provider_key_provider_arity_set.add (key, decremented_arity) (Provider_key_provider_arity_set.remove (key, arity) t.set);
+          }
+    
+      end
+    
+    module Results =
+      struct
+    
+        type t = result_t list
+    
+        let empty = []
+    
+        let add requires provides l =
+          let result = {
+            requires = requires;
+            provides = provides;
+          }
+          in 
+          (result :: l)
+    
+      end
+
+end
 
 
 (** {2 Generic matching algorithm implementation.} *)
@@ -348,3 +441,10 @@ module Int_list_requirer_provider_types =
 
 module Int_list_match_requirers_with_providers =
   Match_requirers_with_providers(Int_list_requirer_provider_types)
+
+
+module Int_set_map_requirer_provider_types =
+  Set_map_requirer_provider_types(Requirer_provider_type_param_int)(DecrementableNatural)(DecrementableIntegerWithInfinity)  
+
+module Int_set_map_match_requirers_with_providers =
+  Match_requirers_with_providers(Int_set_map_requirer_provider_types)

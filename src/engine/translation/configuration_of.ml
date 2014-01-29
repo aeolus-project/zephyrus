@@ -215,8 +215,14 @@ let generate_components
 (* Set up for the matching algorithm. *)
 module My_matching_algorithm = Candy_algorithm
 
+(* TMP
 open My_matching_algorithm.Int_list_match_requirers_with_providers
 open My_matching_algorithm.Int_list_requirer_provider_types
+*)
+
+open My_matching_algorithm.Int_set_map_match_requirers_with_providers
+open My_matching_algorithm.Int_set_map_requirer_provider_types
+
 
 (* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
 let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
@@ -263,6 +269,12 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
   
       in
   
+      (* TMP *)
+      let providers = {
+        Providers.set = Providers.Provider_key_provider_arity_set.of_list_directly providers;
+        Providers.map = Providers.Provider_key_map.of_assoc_list                   providers;
+      } in
+
       (* Launch the matching alogrithm with the prepared inputs! *)
       match matching_algorithm requirers providers with
 
