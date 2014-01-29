@@ -283,8 +283,8 @@ let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
 
 let universe location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_conflict , conflict_naive universe#get_port_ids universe#uc universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ;
     (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
     (Data_state.constraint_universe_location_component_type , location_component_type universe#get_component_type_ids location_ids) ;
@@ -302,8 +302,8 @@ let universe location_ids universe = [ (* TODO: replace the references with desc
 (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
 let universe_incompatibilities location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_conflict , conflict_naive universe#get_port_ids universe#uc universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
 (*  (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ; *)
     (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
     (Data_state.constraint_universe_location_component_type , location_component_type universe#get_component_type_ids location_ids) ;
@@ -324,8 +324,8 @@ let universe_incompatibilities location_ids universe = [ (* TODO: replace the re
 let universe_full () =
   let f (universe: Data_model.universe) configuration =
     Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       := conflict_naive universe#get_port_ids universe#uc universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
     Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation;
     Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
     Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
@@ -349,8 +349,8 @@ let universe_full () =
 let universe_full_incompatibilities () =
   let f (universe: Data_model.universe) configuration =
     Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_with_fixed_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       := conflict_naive universe#get_port_ids universe#uc universe#get_component_type;
+    Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+    Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
 (*  Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation; *)
     Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
     Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
@@ -360,7 +360,7 @@ let universe_full_incompatibilities () =
     Data_state.constraint_universe_repository_unicity            := repository_unique configuration#get_location_ids universe#get_repository_ids;
 (*  Data_state.constraint_universe_repository_package            := repository_package configuration#get_location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids); *)
 (*  Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package; *)
-(*  Data_state.constraint_universe_package_conflict              := package_conflict_naive configuration#get_location_ids universe#get_package_ids universe#get_package; *)
+(*  Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package; *)
     Data_state.constraint_universe_resource_consumption          :=
       resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages ~and_packages:false configuration#get_location_ids;
