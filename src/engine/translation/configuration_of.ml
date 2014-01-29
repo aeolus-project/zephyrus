@@ -102,6 +102,20 @@ let get_root_packages (universe : universe) : Package_id_set.t =
 module Used_names = Used_tokens_string
 type used_names = Used_names.t
 
+(* Begin: a hack to optimize the component naming process. *)
+let last_used_i : int Component_type_name_map.t ref = ref Component_type_name_map.empty
+
+let update_last_used_i component_type_name i : unit =
+  last_used_i := Component_type_name_map.add component_type_name i !last_used_i
+
+let get_last_used_i component_type_name : int =
+  try
+    Component_type_name_map.find component_type_name !last_used_i
+  with Not_found ->
+    let i = 1 in
+    update_last_used_i component_type_name i; i
+(* End: a hack to optimize the component naming process. *)
+
 let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names) : component_name =
 
   let build_component_name = 
@@ -111,12 +125,13 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   in
 
-  let i = ref 1 in
+  let i = ref (get_last_used_i component_type_name) in (* a hack to optimize the component naming process *)
   let component_name = ref (build_component_name !i) in
   while Used_names.mem !component_name used_names do
     i := !i + 1;
     component_name := build_component_name !i;
   done;
+  update_last_used_i component_type_name !i; (* a hack to optimize the component naming process *)
 
   Used_names.add !component_name used_names;
   !component_name
