@@ -59,6 +59,7 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
   | Settings.Out_file_graph_components   -> Dot_of.configuration Dot_of.Components_graph            u c
   | Settings.Out_file_graph_packages     -> Dot_of.configuration Dot_of.Packages_graph              u c
   | Settings.Out_file_binpacking_problem -> Json_binpacking_problem_of.configuration                u c
+  | Settings.Out_file_statistics         -> Data_statistics.to_string ()
 )
 
 
@@ -147,8 +148,8 @@ let () =
   let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in
   let main_solver = Solvers.of_settings Solvers.Main in
   Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration u c));
-  Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
-  Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> " (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
+  Zephyrus_log.log_data "\nSPECIFICATION ==> "          (lazy (String_of.specification s));
+  Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> "  (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
   Zephyrus_log.log_stage_end ();
 
 
@@ -261,6 +262,11 @@ let () =
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
     
+    (* Final configuration statistics *)
+    Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
+    Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
+
+    (* Output the outputs *)
     List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results)
   );
 
