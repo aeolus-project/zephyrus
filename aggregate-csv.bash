@@ -1,40 +1,70 @@
 #!/bin/bash
 
-file=$1
+number_of_id_fields=$1
 
-descr_line=`head -n 1 ${file}`
+# Read from file
+#file=$1
+#descr_line=`head -n 1 ${file}`
+#data_lines=`tail -n +2 ${file}`
+
+# First line is the data description line
+read -e descr_line
+
+# Other lines are the data
+declare -a data_lines_array
+while read -e data_line; do
+  data_lines_array+="$data_line "
+done
+data_lines=`echo ${data_lines_array[*]} | tr " " "\n"`
+
+#echo "Description:"; echo "${descr_line}"
+#echo "Data:"; echo "${data_lines}"
+
+# Find the number of fields
 fields_number=`echo "${descr_line}" | tr "," " " | wc -w`
-echo "Number of fields: ${fields_number}" 
+#echo "Number of fields: ${fields_number}"
 
-data_lines=`tail -n +2 ${file}`
-echo "${data_lines}"
+# Find the first not-id field number
+first_not_prefix_field=`echo "$(($number_of_id_fields + 1))"`
+#echo "First not prefix field number: ${first_not_prefix_field}"
 
-output=""
+# Prepare the not-id fields
+prefix_fields=`echo "${descr_line}" | cut -d "," -f -${number_of_id_fields}`
+#echo "Prefix fields: ${prefix_fields}"
+not_prefix_fields=`echo "${descr_line}" | cut -d "," -f ${first_not_prefix_field}-`
+#echo "Not prefix fields: ${not_prefix_fields}"
 
-for field_i in `seq ${fields_number}`; do
-	
-	field_name=`echo "${descr_line}" | cut -d "," -f ${field_i}`
-	echo -e "\nField ${field_i}: ${field_name}" 
+# Find the unique prefixes
+unique_id_prefixes=`echo "${data_lines}" | cut -d "," -f -${number_of_id_fields} | sort -u`
+#echo "Unique id prefixes:"; echo "${unique_id_prefixes}"
 
-	values=`echo "${data_lines}" | cut -d "," -f ${field_i}`
-	spaced_values=`echo "${values}" | tr '\n' ' '`
-    echo "Values: ${spaced_values}"
+output_data_desctiption_line=""
+declare -a output_data_lines_array
 
-    aggregated=`echo "$spaced_values" | awk '{ sum=0; sumsq=0; min=$1; max=$1;
-       for(i=1; i<=NF;i++) {sum+=$i; sumsq+=$i*$i; if($i < min) min=$i; if($i > max) max=$i }
-       printf("sumsq=%f sum=%f mean=%f stddev=%f min=%f max=%f\n", sumsq, sum, sum/NF, sqrt((sumsq-(NF*((sum/NF))*(sum/NF)))/NF), min, max) }'`
-    echo "Aggregated: ${aggregated}"
-
-    #sumsq=`echo "$aggregated" | cut -d " " -f 1 | cut -d "=" -f 2`
-    #  sum=`echo "$aggregated" | cut -d " " -f 2 | cut -d "=" -f 2`
-      mean=`echo "$aggregated" | cut -d " " -f 3 | cut -d "=" -f 2`
-    stddev=`echo "$aggregated" | cut -d " " -f 4 | cut -d "=" -f 2`
-    #  min=`echo "$aggregated" | cut -d " " -f 5 | cut -d "=" -f 2`
-    #  max=`echo "$aggregated" | cut -d " " -f 6 | cut -d "=" -f 2`
-
-    new_field_names="mean(${field_name}),stddev(${field_name})"
-    new_values="${mean},${stddev}"
-
+# For each unique prefix
+for unique_prefix in ${unique_id_prefixes}; do
+	#echo "Unique prefix: ${unique_prefix}"
+	#echo "Prefixed lines:"; echo "${data_lines}" | grep ${unique_prefix}
     
+    cut_data_lines=`echo "${data_lines}" | grep ${unique_prefix} | cut -d "," -f ${first_not_prefix_field}-`
+    #echo "Cut lines with this prefix:"; echo "${cut_data_lines}"
 
+    cut_csv=`echo -e "${not_prefix_fields}\n${cut_data_lines}"`
+	#echo -e "Cut CSV:\n---->"; echo "${cut_csv}"; echo "---->"
+
+	aggregated_csv=`echo "${cut_csv}" | ./aggregate-csv-all.bash`
+	#echo -e "Aggregated CSV:\n---->"; echo "${aggregated_csv}"; echo "---->"
+    
+    aggregated_csv_data_description=`echo -e "${aggregated_csv}" | head -n 1`
+    aggregated_csv_data=`echo -e "${aggregated_csv}" | tail -n 1`
+
+    output_data_desctiption_line=`echo ${prefix_fields},${aggregated_csv_data_description}`
+    output_data_lines_array+=`echo "${unique_prefix},${aggregated_csv_data} "`
+
+done
+
+#echo "OUTPUT:"
+echo "${output_data_desctiption_line}"
+for line in ${output_data_lines_array}; do
+	echo $line
 done
