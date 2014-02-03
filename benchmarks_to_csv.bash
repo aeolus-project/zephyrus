@@ -1,9 +1,13 @@
 #!/bin/bash
 
-first_file=$1
-# Data description line
-cat ${first_file} | cut -d ':' -f 1 | tr "\n" "," | sed 's/\,$//'
-echo ""
+if `test $1 != "-append"`; then
+  first_file=$1
+  # Data description line
+  cat ${first_file} | cut -d ':' -f 1 | tr "\n" "," | sed 's/\,$//'
+  echo ""
+else
+  shift
+fi
 
 # Data lines
 for file in $@; do
