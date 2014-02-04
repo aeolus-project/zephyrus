@@ -1,5 +1,7 @@
 #!/bin/bash
 
+timeout_in_seconds="120"
+
 # Prepare a directory for this series of benchmarks
 benchmarks_dir_name="benchmark_results/benchmarks_`date +'%F_%H:%M:%S'`"
 mkdir ${benchmarks_dir_name}
@@ -28,13 +30,20 @@ tmp_statistics_file=`mktemp zephyrus_benchmark_stats_XXXXX`
 
 echo -e "> Benchmark:\n${exec_stats}"
 echo -e "> Running... (started on `date +'%F %H:%M:%S'`)"
-${time_cmd} ./zephyrus.native -benchmark ${benchmark_choice} -benchmark-option wordpress_require ${option_wordpress_require} -benchmark-option mysql_require ${option_mysql_require} -benchmark-option webservers ${option_webservers} -out statistics "${tmp_statistics_file}" > /dev/null 2> /dev/null
+${time_cmd} timeout ${timeout_in_seconds}s ./zephyrus.native -benchmark ${benchmark_choice} -benchmark-option wordpress_require ${option_wordpress_require} -benchmark-option mysql_require ${option_mysql_require} -benchmark-option webservers ${option_webservers} -out statistics "${tmp_statistics_file}" > /dev/null 2> /dev/null
 echo -e "< Done!"
 
-# Collect statistics from temporart files, delete the temporary files
-time_stats=`cat ${tmp_time_file}`
-zephyrus_stats="`cat ${tmp_statistics_file}`\n"
-rm ${tmp_time_file} ${tmp_statistics_file}
+# Collect statistics from temporary files, delete the temporary files
+if test "`head -n 1 ${tmp_time_file}`" = "Command exited with non-zero status 124"; then 
+	time_stats="TIMEOUT"
+	zephyrus_stats=""
+else 
+    time_stats=`cat ${tmp_time_file}`
+    zephyrus_stats="`cat ${tmp_statistics_file}`\n"
+fi
+
+rm ${tmp_time_file}
+rm ${tmp_statistics_file}
 
 echo -e "\nStats:\n${exec_stats}${zephyrus_stats}${time_stats}\n"
 

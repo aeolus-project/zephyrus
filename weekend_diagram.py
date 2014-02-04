@@ -1,8 +1,10 @@
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
 
+optionwebservers = 4
+
 my_data = matplotlib.mlab.csv2rec("weekend_test_aggregated.csv")
-my_data_filtered = my_data[my_data['optionwebservers']==4]
+my_data_filtered = my_data[my_data['optionwebservers'] == optionwebservers]
 my_data_filtered_cut = my_data_filtered[['optionwordpressrequire','optionmysqlrequire','meanusertime']]
 my_data_filtered_cut.sort(order=['optionmysqlrequire','optionwordpressrequire'])
 
@@ -15,5 +17,5 @@ Z = zs.reshape(X.shape)
 
 fig=figure()
 ax = Axes3D(fig)
-ax.plot_surface(X, Y, Z, rstride=1, cstride=1, cmap='hot')
+ax.plot_surface(X, Y, Z, rstride=2, cstride=2, cmap='coolwarm')
 show()
