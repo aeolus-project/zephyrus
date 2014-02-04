@@ -159,23 +159,23 @@ let constraint_kind_domain_message = String.concat " | " constraint_kind_names
 
 type solver =
   | Solver_none
-  | Solver_gcode
+  | Solver_gecode
   | Solver_g12
 (*  | Solver_facile *)
   | Solver_custom
 let solver_assoc = [
 (*  ("facile", Solver_facile); *)
-  ("none"  , Solver_none);
-  ("g12"   , Solver_g12);
-  ("gcode" , Solver_gcode);
-  ("custom", Solver_custom) ]
+  ("none"   , Solver_none);
+  ("g12"    , Solver_g12);
+  ("gecode" , Solver_gecode);
+  ("custom" , Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
 let solver_map = Data_common.String_map.of_assoc_list solver_assoc
 let convert_solver v = convert solver_map (get_ident v)
 let string_of_solver v = string_of_string (List.assoc v solver_assoc_revert)
-let default_solver = Solver_gcode
+let default_solver = Solver_gecode
 let solver_domain_message = String.concat " | " solver_names
 
 type solver_bin_packing = (* not used yet, lacking a bin packing solver ... *)
@@ -302,34 +302,34 @@ let benchmark_domain_message = string_of_pair (String.concat " | " benchmark_cho
 (* 1.8. finally filling the setting_kind structure *)
 
 type setting_kind = (* store the conversion and the string_of functions, and the error message *)
-  | Bool of (value -> bool) * (bool -> string) * string
-  | String of (value -> string) * (string -> string) * string
-  | Int of (value -> int) * (int -> string) * string
-  | Mode of (value -> mode) * (mode -> string) * string
-  | Repositories of (value -> repositories) * (repositories -> string) * string
-  | Optim of (value -> optim) * (optim -> string) * string
-  | Constraint_kind of (value -> constraint_kind) * (constraint_kind -> string) * string
-  | Solver of (value -> solver) * (solver -> string) * string
+  | Bool               of (value -> bool)               * (bool               -> string) * string
+  | String             of (value -> string)             * (string             -> string) * string
+  | Int                of (value -> int)                * (int                -> string) * string
+  | Mode               of (value -> mode)               * (mode               -> string) * string
+  | Repositories       of (value -> repositories)       * (repositories       -> string) * string
+  | Optim              of (value -> optim)              * (optim              -> string) * string
+  | Constraint_kind    of (value -> constraint_kind)    * (constraint_kind    -> string) * string
+  | Solver             of (value -> solver)             * (solver             -> string) * string
   | Solver_bin_packing of (value -> solver_bin_packing) * (solver_bin_packing -> string) * string
-  | Gen_bindings of (value -> gen_bindings) * (gen_bindings -> string) * string
-  | Gen_packages of (value -> gen_packages) * (gen_packages -> string) * string
-  | Out_files of (value -> out_files) * (out_files -> string) * string
-  | Benchmark of (value -> benchmark) * (benchmark -> string) * string
+  | Gen_bindings       of (value -> gen_bindings)       * (gen_bindings       -> string) * string
+  | Gen_packages       of (value -> gen_packages)       * (gen_packages       -> string) * string
+  | Out_files          of (value -> out_files)          * (out_files          -> string) * string
+  | Benchmark          of (value -> benchmark)          * (benchmark          -> string) * string
 
-let bool_setting = Bool(convert_bool, string_of_bool, bool_domain_message)
-let string_setting = String(convert_string, string_of_string, string_domain_message)
-let int_setting = Int(convert_int, string_of_int, int_domain_message)
-let mode_setting = Mode(convert_mode, string_of_mode, mode_domain_message)
+let bool_setting   = Bool   (convert_bool,   string_of_bool,   bool_domain_message)
+let string_setting = String (convert_string, string_of_string, string_domain_message)
+let int_setting    = Int    (convert_int,    string_of_int,    int_domain_message)
+let mode_setting   = Mode   (convert_mode,   string_of_mode,   mode_domain_message)
 
-let repositories_setting       = Repositories(convert_repositories, string_of_repositories, repositories_domain_message)
-let optim_setting              = Optim(convert_optim, string_of_optim, optim_domain_message)
-let constraint_kind_setting    = Constraint_kind(convert_constraint_kind, string_of_constraint_kind, constraint_kind_domain_message)
-let solver_setting             = Solver(convert_solver, string_of_solver, solver_domain_message)
-let solver_bin_packing_setting = Solver_bin_packing(convert_solver_bin_packing, string_of_solver_bin_packing, solver_bin_packing_domain_message)
-let gen_bindings_setting       = Gen_bindings(convert_gen_bindings, string_of_gen_bindings, gen_bindings_domain_message)
-let gen_packages_setting       = Gen_packages(convert_gen_packages, string_of_gen_packages, gen_packages_domain_message)
-let out_files_setting          = Out_files(convert_out_files, string_of_out_files, out_files_domain_message)
-let benchmark_setting          = Benchmark(convert_benchmark, string_of_benchmark, benchmark_domain_message)
+let repositories_setting       = Repositories       (convert_repositories,       string_of_repositories,       repositories_domain_message)
+let optim_setting              = Optim              (convert_optim,              string_of_optim,              optim_domain_message)
+let constraint_kind_setting    = Constraint_kind    (convert_constraint_kind,    string_of_constraint_kind,    constraint_kind_domain_message)
+let solver_setting             = Solver             (convert_solver,             string_of_solver,             solver_domain_message)
+let solver_bin_packing_setting = Solver_bin_packing (convert_solver_bin_packing, string_of_solver_bin_packing, solver_bin_packing_domain_message)
+let gen_bindings_setting       = Gen_bindings       (convert_gen_bindings,       string_of_gen_bindings,       gen_bindings_domain_message)
+let gen_packages_setting       = Gen_packages       (convert_gen_packages,       string_of_gen_packages,       gen_packages_domain_message)
+let out_files_setting          = Out_files          (convert_out_files,          string_of_out_files,          out_files_domain_message)
+let benchmark_setting          = Benchmark          (convert_benchmark,          string_of_benchmark,          benchmark_domain_message)
 
 
 (*/************************************************************************\*)
@@ -358,6 +358,7 @@ let append_repository_to_package_name = ("append-repository-to-package-name", bo
 let eliminate_packages = ("eliminate-packages", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
 let flatten = ("flatten-the-model", bool_setting)
+let stop_after_solving = ("stop-after-solving", bool_setting)
 
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
@@ -439,7 +440,7 @@ let all_settings = [
     package_trim;                        (* UNUSED *)
     constraint_kind;                     (* UNUSED *)
     preprocess_solver;                   (* DUNNO *) (* TODO: I think that for now we always use the main solver? Check it! *) (* Choose the solver used for preprocessing. *)
-    solver;                              (* Choose the main constraint solver: {none|g12|gcode|custom} *)
+    solver;                              (* Choose the main constraint solver: {none|g12|gecode|custom} *)
     solver_bin_packing;                  (* UNUSED *)
     custom_solver_command;               (* Defined a custom command used to launch the external FlatZinc solver. *)
     custom_mzn2fzn_command;              (* Defined a custom command used to launch the MiniZinc-to-FlatZinc converter. *)
@@ -459,7 +460,8 @@ let all_settings = [
     verbose_data;                        (* Should Zephyrus print the input data during execution. *)
     verbose_execution;                   (* UNUSED *)
     benchmark;                           (* Discard the normal input, synthetize a benchmark with given parameters instead. *)
-    flatten                              (* Flatten the model (ignore the locations, packages and resources in the input) and use the Aeolus flat model approach to find the final configuration. *)
+    flatten;                             (* Flatten the model (ignore the locations, packages and resources in the input) and use the Aeolus flat model approach to find the final configuration. *)
+    stop_after_solving                   (* Do not generate the final configuration, exit directly after the solving phase is over. *)
   ]
 
 let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings with
@@ -555,26 +557,27 @@ let add_benchmark b =
 
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
 let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
+let enable_stop_after_solving     () = add stop_after_solving                (BoolValue true)
 
-let get_input_file_universe () = if (find import_universe = true) & (mem input_file_universe) then Some(find input_file_universe) else None
-let get_input_file_repositories () = if (find import_repositories = true) & (mem input_file_repositories) then Some(find input_file_repositories) else None
-let get_input_file_initial_configuration () = if (find import_initial_configuration = true) & (mem input_file_configuration) then Some(find input_file_configuration) else None
-let get_input_file_specification () = if (find import_specification = true) & (mem input_file_specification) then Some(find input_file_specification) else None
-let get_input_optimization_function () = if (find import_optimization_function = true) & (mem input_optimization_function) then Some(find input_optimization_function) else None
+let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None
+let get_input_file_repositories          () = if (find import_repositories          = true) & (mem input_file_repositories)     then Some(find input_file_repositories)     else None
+let get_input_file_initial_configuration () = if (find import_initial_configuration = true) & (mem input_file_configuration)    then Some(find input_file_configuration)    else None
+let get_input_file_specification         () = if (find import_specification         = true) & (mem input_file_specification)    then Some(find input_file_specification)    else None
+let get_input_optimization_function      () = if (find import_optimization_function = true) & (mem input_optimization_function) then Some(find input_optimization_function) else None
 
 
 
 let get_main_solver_file_extension () = ".mzn"
-let get_main_input_file ()       = let res = find solver_constraint_file in if res = "" then "zephyrus-" ^ (get_main_solver_file_extension ()) else res
-let get_main_output_file ()      = let res = find solver_solution_file in if res = "" then "zephyrus-.sol" else res
+let get_main_input_file  ()      = let res = find solver_constraint_file in if res = "" then "zephyrus-" ^ (get_main_solver_file_extension ()) else res
+let get_main_output_file ()      = let res = find solver_solution_file   in if res = "" then "zephyrus-.sol"                                   else res
 let get_main_file_informations () = ((get_main_input_file (), find solver_keep_constraint_file), (get_main_output_file (), find solver_keep_constraint_file))
 
 
 let get_preprocess_solver_file_extension () = ".mzn"
-let get_preprocess_input_file ()       = let res = find preprocess_constraint_file in if res = "" then "zephyrus-" ^ (get_preprocess_solver_file_extension ()) else res
-let get_preprocess_output_file ()      = let res = find preprocess_solution_file in if res = "" then "zephyrus-.sol" else res
+let get_preprocess_input_file  () = let res = find preprocess_constraint_file in if res = "" then "zephyrus-" ^ (get_preprocess_solver_file_extension ()) else res
+let get_preprocess_output_file () = let res = find preprocess_solution_file   in if res = "" then "zephyrus-.sol"                                         else res
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
 
-let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None
-let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command) then Some(find custom_mzn2fzn_command) else None
+let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command)  else None
+let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command)                                then Some(find custom_mzn2fzn_command) else None

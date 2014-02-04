@@ -32,6 +32,7 @@ module Simple_machine_park =
 struct
 
   type machine_choice =
+    | Stub
     | Small
     | Medium
     | Large
@@ -48,6 +49,7 @@ struct
     let name =
       let prefix = 
         match machine_choice with
+        | Stub   -> "stub-location"
         | Small  -> "small-location"
         | Medium -> "medium-location"
         | Large  -> "large-location" in
@@ -55,12 +57,14 @@ struct
 
     let ram = 
       match machine_choice with
+      | Stub   -> 0
       | Small  -> 2048
       | Medium -> 8192
       | Large  -> 32768 in
 
     let cost = 
       match machine_choice with
+      | Stub   -> 1
       | Small  -> 1
       | Medium -> 3
       | Large  -> 11 in
@@ -78,12 +82,14 @@ struct
     else []
 
   type machine_park_choice =
+    | Machine_park_single_stub
     | Machine_park_100s
     | Machine_park_50s_50m
     | Machine_park_33s_33m_33l
 
   let initial_configuration_of_machine_park machine_park_choice : location list =
     match machine_park_choice with
+    | Machine_park_single_stub -> (make_machines (new_machine Stub ) 1)
     | Machine_park_100s        -> (make_machines (new_machine Small) 100)
     | Machine_park_50s_50m     -> (make_machines (new_machine Small) 50) @ (make_machines (new_machine Medium) 50)
     | Machine_park_33s_33m_33l -> (make_machines (new_machine Small) 33) @ (make_machines (new_machine Medium) 33) @ (make_machines (new_machine Large) 33)
@@ -178,7 +184,7 @@ struct
     then (make_webserver n) :: (make_webservers (n - 1))
     else []
 
-  class create (machine_park_choice : machine_park_choice) (wordpress_require : int) (mysql_require : int) (number_of_webservers : int) = 
+  class create (machine_park_choice : machine_park_choice) (wordpress_require : int) (mysql_require : int) (mysql_provide : int) (number_of_webservers : int) = 
 
   let webservers = make_webservers number_of_webservers in
 
@@ -203,7 +209,7 @@ struct
         };
         {
           component_type_name     = "MySQL";
-          component_type_provide  = [("@mysql", (FiniteProvide 3))];
+          component_type_provide  = [("@mysql", (FiniteProvide mysql_provide))];
           component_type_require  = [];
           component_type_conflict = [];
           component_type_consume  = []
@@ -245,7 +251,7 @@ struct
       let spec = "#Load-Balancer > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
-    method optimisation_function = Data_model.Optimization_function_compact
+    method optimisation_function = Data_model.Optimization_function_simple
 
   end
   

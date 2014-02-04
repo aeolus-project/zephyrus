@@ -92,7 +92,8 @@ let speclist =
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
 
     (* Other *)
-    ("-print-path", Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
+    ("-print-path",         Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
+    ("-stop-after-solving", Arg.Unit (Settings.enable_stop_after_solving),           " Do not generate the final configuration, exit directly after the solving phase is over (useful for benchmarking).");
   ]
 
 open Settings

@@ -85,8 +85,9 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
   | Settings.Benchmark_wordpress -> 
       let wordpress_require = get_int_option "wordpress_require" "3" in
       let mysql_require     = get_int_option "mysql_require"     "3" in 
+      let mysql_provide     = get_int_option "mysql_provide"     "3" in 
       let webservers        = get_int_option "webservers"        "0" in 
-      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_100s wordpress_require mysql_require webservers)
+      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_single_stub wordpress_require mysql_require mysql_provide webservers)
 
 
 (* === Handling the arguments === *)
@@ -256,6 +257,11 @@ let () =
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
+
+    if (Settings.find Settings.stop_after_solving)
+    then
+      Zephyrus_log.log_execution "Exiting after the solving phase, because the stop-after-solving option was specified!"
+    else
 
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
 (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
