@@ -1,6 +1,6 @@
 #!/bin/bash
 
-timeout_in_seconds="120"
+timeout_in_seconds="1200"
 
 # Prepare a directory for this series of benchmarks
 benchmarks_dir_name="benchmark_results/benchmarks_`date +'%F_%H:%M:%S'`"
