@@ -6,26 +6,28 @@ timeout_in_seconds="1200"
 benchmarks_dir_name="benchmark_results/benchmarks_`date +'%F_%H:%M:%S'`"
 mkdir ${benchmarks_dir_name}
 
-format_description_1="SolvingSystemTime:%S\nSolvingUserTime:%U"
-format_description_2="SystemTime:%S\nUserTime:%U\nAverageTotalMemoryUse:%K\nMaximumResidentSetSize:%M\nAverageResidentSetSize:%t\nAverageUnsharedStackSize:%p"
+format_description_1="SolvingSystemTime:%S\nSolvingUserTime:%U\nSolvingWallClockTime:%E"
+format_description_2="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotalMemoryUse:%K\nMaximumResidentSetSize:%M\nAverageResidentSetSize:%t\nAverageUnsharedStackSize:%p"
 
 benchmark_choice="wordpress"
 
-options_wordpress_require=`cat option_wordpress_require`
-options_mysql_require=`cat option_mysql_require`
-options_mysql_provide=`cat option_mysql_provide`
-options_webservers=`cat option_webservers`
-options_solver=`cat option_solver`
+cases=`./cartesian.bash option_wordpress_require option_mysql_require option_mysql_provide option_webservers option_solver | shuf`
 
-for option_wordpress_require in ${options_wordpress_require}; do
-for option_mysql_require     in ${options_mysql_require}    ; do
-for option_mysql_provide     in ${options_mysql_provide}    ; do
-for option_webservers        in ${options_webservers}       ; do
-for option_solver            in ${options_solver}           ; do
+for case in ${cases}; do
 
-#option_wordpress_require="200"
-#option_mysql_require="200"
-#option_webservers="3"
+option_wordpress_require=`echo "$case" | cut -d ',' -f 1`
+    option_mysql_require=`echo "$case" | cut -d ',' -f 2`
+    option_mysql_provide=`echo "$case" | cut -d ',' -f 3`
+       option_webservers=`echo "$case" | cut -d ',' -f 4`
+           option_solver=`echo "$case" | cut -d ',' -f 5`
+
+#echo "CASE:"
+#echo "option_wordpress_require = ${option_wordpress_require}"
+#echo "option_mysql_require     = ${option_mysql_require}"
+#echo "option_mysql_provide     = ${option_mysql_provide}"
+#echo "option_webservers        = ${option_webservers}"
+#echo "option_solver            = ${option_solver}"
+#echo ""
 
 tmp_time_file_1=`mktemp zephyrus_benchmark_time_XXXXX`
 tmp_time_file_2=`mktemp zephyrus_benchmark_time_XXXXX`
@@ -69,8 +71,4 @@ benchmark_results_file=`mktemp --tmpdir=${benchmarks_dir_name} benchmark_XXXXXX`
 #echo "benchmark_results_file : ${benchmark_results_file}"
 echo -en "${exec_stats}${zephyrus_stats}${time_stats_1}\n${time_stats_2}" > ${benchmark_results_file}
 
-done
-done
-done
-done
 done
