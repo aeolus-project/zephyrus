@@ -11,9 +11,12 @@ format_description_2="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotal
 
 benchmark_choice="wordpress"
 
-cases=`./cartesian.bash option_wordpress_require option_mysql_require option_mysql_provide option_webservers option_solver | shuf`
+declare -a cases=(`./cartesian-files.bash option_wordpress_require option_mysql_require option_mysql_provide option_webservers option_solver | shuf`)
 
-for case in ${cases}; do
+for cases_i in `seq ${#cases[*]}`; do
+
+#echo "case $cases_i : ${cases[$cases_i]}"
+case="${cases[$cases_i]}"
 
 option_wordpress_require=`echo "$case" | cut -d ',' -f 1`
     option_mysql_require=`echo "$case" | cut -d ',' -f 2`

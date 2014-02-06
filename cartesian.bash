@@ -1,36 +1,9 @@
 #!/bin/bash
 
-declare -a result
-result+="X"
+input="$@"
+#echo "Input: \"${input}\""
 
-while (( "$#" )); do
+space_replacement="%SPACE%"
 
-	#echo "RESULT:"
-	#for i in ${result}; do echo "$i"; done
-
-	current_file=$1
-	#echo "current file: ${current_file}"
-	
-	declare -a new_result
-	new_result=()
-
-	for prefix in ${result}; do
-	  #echo "prefix  = ${prefix}"
-	  for line in `cat ${current_file}`; do
-        #echo "line = ${line}"
-
-        new_line="${prefix},${line}"
-        #echo "newline = ${new_line}"
-
-        new_result+="${new_line} "
-	  done
-	done
-	
-	result="${new_result}"
-	
-	shift
-
-done
-
-# echo "RESULT:"
-for i in ${result}; do echo "$i" | cut -c 3-; done
+input_no_spaces=`echo "$input" | sed "s/ /${space_replacement}/g"`
+eval echo $input_no_spaces | sed "s/ /\n/g" | sed "s/${space_replacement}/ /g"
