@@ -13,6 +13,10 @@ PREPARE OPTIONS IN FILES: option_solver option_wordpress_require option_mysql_re
 RUN ./benchmark_script_old.bash (WITHOUT ARHUMENTS)
 
 
+EITHER WAY YOU SHOULD LAUNCH THE SAME COMMAND MULTIPLE TIMES IF YOU WANT TO HAVE MORE DATA POINTS FOR ECHA BENCHMARK CASE.
+
+
+
 2. TRANSFORM SOME BENCHMARK RESULTS TO A CSV FILE
 
 ./benchmarks_to_csv.bash benchmark_results/benchmarks_2014-02-01_20:22:14/* benchmark_results/benchmarks_2014-02-01_20:22:41/* benchmark_results/benchmarks_2014-02-01_20:22:55/* benchmark_results/benchmarks_2014-02-01_20:23:11/* | tee weekend_test.csv
@@ -30,6 +34,8 @@ WITH THE OPTION -append YOU CAN ADD MORE BENCHMARK RESULTS TO AN EXISTING CSV FI
 cat tuesday_evening.csv | ./aggregate-csv.bash 6 | tee tuesday_evening_aggregated.csv
 
 THE PARAMETER (HERE: "6") IS THE NUMBER OF NON-DATA FIELDS ON THE BEGINNING (I.E. FIELDS WHICH SHOULD NOT BE AGGREGATED, LIKE "BenchmarkChoice" OR "Solver")
+
+OF COURSE THIS IS USEFUL ONLY IF YOU HAVE MULTIPLE INSTANCES OF RESULTS OF THE SAME TEST CASES.
 
 
 
