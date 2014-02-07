@@ -1,5 +1,10 @@
 #!/bin/bash
 
+echoerr() { echo "$@" >&2; }
+
+input="$@"
+#echo "Input: \"${input}\""
+
 timeout_in_seconds="1200"
 
 # Prepare a directory for this series of benchmarks
@@ -11,45 +16,51 @@ format_description_2="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotal
 
 benchmark_choice="wordpress"
 
-declare -a cases=(`./cartesian-files.bash option_wordpress_require option_mysql_require option_mysql_provide option_webservers option_solver | shuf`)
+echoerr "Preparing parameter sets for benchmark cases... (it may take some time)"
+declare -a cases=()
+IFS=$'\n'
+cases=( `./smart_parameters.bash \"${input}\" | shuf` )
+unset IFS
+echoerr "Parameter sets ready!"
 
-for cases_i in `seq ${#cases[*]}`; do
+for cases_i in `seq 0 $((${#cases[*]} - 1))`; do
 
 #echo "case $cases_i : ${cases[$cases_i]}"
 case="${cases[$cases_i]}"
 
-option_wordpress_require=`echo "$case" | cut -d ',' -f 1`
-    option_mysql_require=`echo "$case" | cut -d ',' -f 2`
-    option_mysql_provide=`echo "$case" | cut -d ',' -f 3`
-       option_webservers=`echo "$case" | cut -d ',' -f 4`
-           option_solver=`echo "$case" | cut -d ',' -f 5`
+preamble="`echo "$case" | cut -d ';' -f 1 | sed "s/,/\n/g"`\n"
+#echo "preamble = $preamble"
+exec_stats="$preamble"
 
-#echo "CASE:"
-#echo "option_wordpress_require = ${option_wordpress_require}"
-#echo "option_mysql_require     = ${option_mysql_require}"
-#echo "option_mysql_provide     = ${option_mysql_provide}"
-#echo "option_webservers        = ${option_webservers}"
-#echo "option_solver            = ${option_solver}"
-#echo ""
+zephyrus_command="`echo "$case" | cut -d ';' -f 2`"
+zephyrus_command=${zephyrus_command#\"}
+zephyrus_command=${zephyrus_command%\"}
+#echo "zephyrus_command = $zephyrus_command"
+
+
+# FIRST RUN (without generating the final configuration)
 
 tmp_time_file_1=`mktemp zephyrus_benchmark_time_XXXXX`
-tmp_time_file_2=`mktemp zephyrus_benchmark_time_XXXXX`
-#echo "tmp file ${tmp_time_file}"
-
 time_cmd_1="/usr/bin/time -o ${tmp_time_file_1} --format=${format_description_1}"
-time_cmd_2="/usr/bin/time -o ${tmp_time_file_2} --format=${format_description_2}"
-
-exec_stats="Solver:${option_solver}\nBenchmarkChoice:${benchmark_choice}\nOptionWordpressRequire:${option_wordpress_require}\nOptionMysqlRequire:${option_mysql_require}\nOptionMysqlProvide:${option_mysql_provide}\nOptionWebservers:${option_webservers}\n"
-
-tmp_statistics_file=`mktemp zephyrus_benchmark_stats_XXXXX`
-#echo "tmp file ${tmp_statistics_file}"
 
 echo -e "> Benchmark:\n${exec_stats}"
 echo -e "> Running (without generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
-${time_cmd_1} timeout ${timeout_in_seconds}s ./zephyrus.native -solver ${option_solver} -benchmark ${benchmark_choice} -benchmark-option wordpress_require ${option_wordpress_require} -benchmark-option mysql_require ${option_mysql_require} -benchmark-option mysql_provide ${option_mysql_provide} -benchmark-option webservers ${option_webservers} -stop-after-solving                      > /dev/null 2> /dev/null
+cmd="${time_cmd_1} timeout ${timeout_in_seconds}s ${zephyrus_command} -stop-after-solving"
+#echo "$cmd"
+$cmd > /dev/null 2> /dev/null
 echo -e "< Done!"
+
+
+# SECOND RUN (with generating the final configuration)
+
+tmp_time_file_2=`mktemp zephyrus_benchmark_time_XXXXX`
+time_cmd_2="/usr/bin/time -o ${tmp_time_file_2} --format=${format_description_2}"
+tmp_statistics_file=`mktemp zephyrus_benchmark_stats_XXXXX`
+
 echo -e "> Running (with generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
-${time_cmd_2} timeout ${timeout_in_seconds}s ./zephyrus.native -solver ${option_solver} -benchmark ${benchmark_choice} -benchmark-option wordpress_require ${option_wordpress_require} -benchmark-option mysql_require ${option_mysql_require} -benchmark-option mysql_provide ${option_mysql_provide} -benchmark-option webservers ${option_webservers} -out statistics "${tmp_statistics_file}" > /dev/null 2> /dev/null
+cmd="${time_cmd_2} timeout ${timeout_in_seconds}s ${zephyrus_command} -out statistics ${tmp_statistics_file}"
+#echo "$cmd"
+$cmd > /dev/null 2> /dev/null
 echo -e "< Done!"
 
 # Collect statistics from temporary files, delete the temporary files

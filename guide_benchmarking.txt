@@ -1,0 +1,41 @@
+ROUGH GUIDE:
+
+
+1. RUN A SERIES OF BENCHMARKS
+
+./benchmark_script.bash "./zephyrus.native -solver [Solver:{g12,gecode}] -benchmark [BenchmarkChoice:{wordpress}] -benchmark-option wordpress_require [OptionWordpressRequire:{0,1,20,40,60,80,100,120,140,160,180,200,220,240,260,280,300}] -benchmark-option mysql_require [OptionMysqlRequire:{0,1,20,40,60,80,100,120,140,160,180,200,220,240,260,280,300}] -benchmark-option mysql_provide [OptionMysqlProvide:{3}] -benchmark-option webservers [OptionWebservers:{0}]"
+
+GENERATES BENCHMARK RESULTS IN A SUBDIRECTORY (NAMED WITH THE CURRENT TIME) OF benchmark_results/
+
+
+OTHER WAY (OLD SCRIPT):
+PREPARE OPTIONS IN FILES: option_solver option_wordpress_require option_mysql_require option_mysql_provide option_webservers
+RUN ./benchmark_script_old.bash (WITHOUT ARHUMENTS)
+
+
+2. TRANSFORM SOME BENCHMARK RESULTS TO A CSV FILE
+
+./benchmarks_to_csv.bash benchmark_results/benchmarks_2014-02-01_20:22:14/* benchmark_results/benchmarks_2014-02-01_20:22:41/* benchmark_results/benchmarks_2014-02-01_20:22:55/* benchmark_results/benchmarks_2014-02-01_20:23:11/* | tee weekend_test.csv
+
+./benchmarks_to_csv.bash benchmark_results/tuesday_evening/benchmark_* | tee tuesday_evening.csv
+
+WITH THE OPTION -append YOU CAN ADD MORE BENCHMARK RESULTS TO AN EXISTING CSV FILE (ONLY IF THEY HAVE THE SAME FIELDS)
+
+./benchmarks_to_csv.bash -append benchmark_results/benchmarks_2014-02-02_12:26:37/* benchmark_results/benchmarks_2014-02-02_12:26:41/* benchmark_results/benchmarks_2014-02-02_12:26:45/* benchmark_results/benchmarks_2014-02-02_12:26:49/* | tee -a weekend_test.csv
+
+
+
+3. AGGREGATE DATA IN THE CSV FILE (MIN, MAX, MEAN, STDDEV OF EVERY FIELD)
+
+cat tuesday_evening.csv | ./aggregate-csv.bash 6 | tee tuesday_evening_aggregated.csv
+
+THE PARAMETER (HERE: "6") IS THE NUMBER OF NON-DATA FIELDS ON THE BEGINNING (I.E. FIELDS WHICH SHOULD NOT BE AGGREGATED, LIKE "BenchmarkChoice" OR "Solver")
+
+
+
+4. GENERATE GRAPHS
+
+RUN ipython -pylab
+
+COPY THE CONTENTS OF (FOR EXAMPLE) tuesday_evening.py
+PASTE INTO ipython USING THE COMMAND "%paste" (SIMPLE Shift-Ctrl-v WILL NOT WORK WELL)
