@@ -188,21 +188,30 @@ struct
 
   let webservers = make_webservers number_of_webservers in
 
+  let dns_require_multiplier x = (2 * x) + 1 in
+
   object
     inherit benchmark
 
     method universe = 
       let universe_component_types = [
         {
-          component_type_name     = "Load-Balancer";
-          component_type_provide  = [];
-          component_type_require  = [("@wordpress", wordpress_require)];
+          component_type_name     = "DNS-Load-Balancer";
+          component_type_provide  = [("@wordpress-frontend", InfiniteProvide); ("@dns", InfiniteProvide)];
+          component_type_require  = [("@wordpress-backend", dns_require_multiplier wordpress_require)];
+          component_type_conflict = ["@dns"];
+          component_type_consume  = []
+        };
+        {
+          component_type_name     = "HTTP-Load-Balancer";
+          component_type_provide  = [("@wordpress-frontend", InfiniteProvide)];
+          component_type_require  = [("@wordpress-backend", wordpress_require)];
           component_type_conflict = [];
           component_type_consume  = []
         };
         {
           component_type_name     = "Wordpress";
-          component_type_provide  = [("@wordpress", (FiniteProvide 1))];
+          component_type_provide  = [("@wordpress-backend", (FiniteProvide 1))];
           component_type_require  = [("@mysql", mysql_require)] @ (if number_of_webservers = 0 then [] else [("@webserver", 1)]);
           component_type_conflict = [];
           component_type_consume  = []
@@ -217,9 +226,10 @@ struct
       ] @ webservers
       in
       let universe_implementation = [
-        ("Load-Balancer", [ ("repository", "common_package") ]);
-        ("Wordpress",     [ ("repository", "common_package") ]);
-        ("MySQL",         [ ("repository", "common_package") ])
+        ("DNS-Load-Balancer",  [ ("repository", "common_package") ]);
+        ("HTTP-Load-Balancer", [ ("repository", "common_package") ]);
+        ("Wordpress",          [ ("repository", "common_package") ]);
+        ("MySQL",              [ ("repository", "common_package") ])
       ] @ (List.map (fun webserver -> (webserver.component_type_name, [ ("repository", "common_package") ])) webservers) in
       let universe_repositories = [
         {
@@ -248,7 +258,7 @@ struct
     }
 
     method specification = 
-      let spec = "#Load-Balancer > 0" in
+      let spec = "#@wordpress-frontend > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
     method optimisation_function = Data_model.Optimization_function_simple
