@@ -1,1 +1,0 @@
-#(_){redhat or ubuntu : #Apache >= 1} = 1

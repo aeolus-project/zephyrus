@@ -19,7 +19,7 @@ benchmark_choice="wordpress"
 echoerr "Preparing parameter sets for benchmark cases... (it may take some time)"
 declare -a cases=()
 IFS=$'\n'
-cases=( `./smart_parameters.bash \"${input}\" | shuf` )
+cases=( `./smart-parameters.bash \"${input}\" | shuf` )
 unset IFS
 echoerr "Parameter sets ready!"
 
