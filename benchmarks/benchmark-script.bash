@@ -1,5 +1,7 @@
 #!/bin/bash
 
+script_dir="`dirname $0`"
+
 echoerr() { echo "$@" >&2; }
 
 input="$@"
@@ -8,7 +10,7 @@ input="$@"
 timeout_in_seconds="1200"
 
 # Prepare a directory for this series of benchmarks
-benchmarks_dir_name="benchmark_results/benchmarks_`date +'%F_%H:%M:%S'`"
+benchmarks_dir_name="${script_dir}/results/benchmarks_`date +'%F_%H:%M:%S'`"
 mkdir ${benchmarks_dir_name}
 
 format_description_1="SolvingSystemTime:%S\nSolvingUserTime:%U\nSolvingWallClockTime:%E"
@@ -19,7 +21,7 @@ benchmark_choice="wordpress"
 echoerr "Preparing parameter sets for benchmark cases... (it may take some time)"
 declare -a cases=()
 IFS=$'\n'
-cases=( `./smart-parameters.bash \"${input}\" | shuf` )
+cases=( `${script_dir}/smart-parameters.bash \"${input}\" | shuf` )
 unset IFS
 echoerr "Parameter sets ready!"
 

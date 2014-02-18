@@ -1,5 +1,7 @@
 #!/bin/bash
 
+script_dir="`dirname $0`"
+
 declare -a parts=()
 
 part_number=0
@@ -31,4 +33,4 @@ IFS=',' parts_together="${parts[*]}"
 #IFS=$SAVE_IFS
 #echo "PARTS: $parts_together"
 
-./cartesian.bash "$parts_together"
+${script_dir}/cartesian.bash "$parts_together"

@@ -1,5 +1,7 @@
 #!/bin/bash
 
+script_dir="`dirname $0`"
+
 input="$@"
 #echo "Input: \"${input}\""
 
@@ -49,7 +51,7 @@ input_with_replacers="${input_with_replacers_array[@]}"
 
 options_for_cartesian=`echo "${options[@]}" | tr " " ","`
 
-declare -a cases=(`./cartesian.bash "${options_for_cartesian}"`)
+declare -a cases=(`${script_dir}/cartesian.bash "${options_for_cartesian}"`)
 
 for cases_i in `seq 0 $((${#cases[*]} - 1))`; do
 	

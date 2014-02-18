@@ -1,7 +1,7 @@
 from pylab import *
 from mpl_toolkits.mplot3d import Axes3D
 
-my_data = matplotlib.mlab.csv2rec("monday_afternoon_aggregated.csv")
+my_data = matplotlib.mlab.csv2rec("monday_afternoon_aggregated.csv.gz")
 
 subplot_params = matplotlib.figure.SubplotParams(left=0.01, bottom=0.01, right=0.99, top=0.97, wspace=0.03, hspace=0.03)
 

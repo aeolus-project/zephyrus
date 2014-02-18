@@ -1,5 +1,7 @@
 #!/bin/bash
 
+script_dir="`dirname $0`"
+
 echoerr() { echo "$@" >&2; }
 
 echoerr "Aggregate CSV script running..."
@@ -62,7 +64,7 @@ for unique_prefix in ${unique_id_prefixes}; do
     cut_csv=`echo -e "${not_prefix_fields}\n${cut_data_lines}"`
 	#echo -e "Cut CSV:\n---->"; echo "${cut_csv}"; echo "---->"
 
-	aggregated_csv=`echo "${cut_csv}" | ./aggregate-csv-all.bash`
+	aggregated_csv=`echo "${cut_csv}" | ${script_dir}/aggregate-csv-all.bash`
 	#echo -e "Aggregated CSV:\n---->"; echo "${aggregated_csv}"; echo "---->"
     
     aggregated_csv_data_description=`echo -e "${aggregated_csv}" | head -n 1`
