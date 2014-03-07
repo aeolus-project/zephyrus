@@ -267,6 +267,7 @@ let () =
   match main_solver solver_input_k solver_input_f with
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
+    Zephyrus_log.log_stage_end ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
 
     if (Settings.find Settings.stop_after_solving)
