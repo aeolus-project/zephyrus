@@ -263,13 +263,15 @@ type benchmark_choice =
   | Benchmark_none
   | Benchmark_master_slave
   | Benchmark_wordpress
+  | Benchmark_wordpress_distributed
 type benchmark_option  = (string * string) 
 type benchmark_options = benchmark_option list
 type benchmark = (benchmark_choice * benchmark_options)
 let benchmark_choice_assoc = [
-  ("none"        , Benchmark_none);
-  ("master-slave", Benchmark_master_slave);
-  ("wordpress"   , Benchmark_wordpress); ]
+  ("none"                  , Benchmark_none);
+  ("master-slave"          , Benchmark_master_slave);
+  ("wordpress"             , Benchmark_wordpress);
+  ("wordpress-distributed" , Benchmark_wordpress_distributed) ]
 let benchmark_choice_assoc_revert = revert benchmark_choice_assoc
 
 let benchmark_choice_names = (extract_names benchmark_choice_assoc)

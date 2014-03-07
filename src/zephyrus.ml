@@ -88,6 +88,17 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
       let mysql_provide     = get_int_option "mysql_provide"     "3" in 
       let webservers        = get_int_option "webservers"        "0" in 
       Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_single_stub wordpress_require mysql_require mysql_provide webservers)
+  | Settings.Benchmark_wordpress_distributed -> 
+      let wordpress_require = get_int_option "wordpress_require"    "3" in
+      let mysql_require     = get_int_option "mysql_require"        "3" in 
+      let mysql_provide     = get_int_option "mysql_provide"        "3" in 
+      let dns_consume       = get_int_option "dns_consume"        "512" in 
+      let wordpress_consume = get_int_option "wordpress_consume" "2048" in 
+      let mysql_consume     = get_int_option "mysql_consume"     "2048" in 
+      Some (fun () -> new Benchmarks.Wordpress_distributed.create 
+                            (Benchmarks.Amazon_machine_park.Machine_park_old, 40)
+                            wordpress_require mysql_require mysql_provide
+                            dns_consume wordpress_consume mysql_consume)
 
 
 (* === Handling the arguments === *)
@@ -263,11 +274,14 @@ let () =
       Zephyrus_log.log_execution "Exiting after the solving phase, because the stop-after-solving option was specified!"
     else
 
+    Zephyrus_log.log_stage_new "GENERATING FINAL CONFIGURATION SECTION";
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
 (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
-    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
+    Zephyrus_log.log_stage_end ();
     
+    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
+
     (* Final configuration statistics *)
     Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
     Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
