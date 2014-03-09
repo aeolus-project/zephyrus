@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Helper functions for our basic data types. *)
+
 (* Depends on
     - datatypes/Data_model
     - datatypes/Data_constraint

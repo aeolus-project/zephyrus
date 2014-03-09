@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Settings management. *)
+
 (* Depends on
     - datatypes/Data_common
 *)
@@ -157,23 +159,23 @@ let constraint_kind_domain_message = String.concat " | " constraint_kind_names
 
 type solver =
   | Solver_none
-  | Solver_gcode
+  | Solver_gecode
   | Solver_g12
 (*  | Solver_facile *)
   | Solver_custom
 let solver_assoc = [
 (*  ("facile", Solver_facile); *)
-  ("none"  , Solver_none);
-  ("g12"   , Solver_g12);
-  ("gcode" , Solver_gcode);
-  ("custom", Solver_custom) ]
+  ("none"   , Solver_none);
+  ("g12"    , Solver_g12);
+  ("gecode" , Solver_gecode);
+  ("custom" , Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
 let solver_map = Data_common.String_map.of_assoc_list solver_assoc
 let convert_solver v = convert solver_map (get_ident v)
 let string_of_solver v = string_of_string (List.assoc v solver_assoc_revert)
-let default_solver = Solver_gcode
+let default_solver = Solver_gecode
 let solver_domain_message = String.concat " | " solver_names
 
 type solver_bin_packing = (* not used yet, lacking a bin packing solver ... *)
@@ -234,6 +236,7 @@ type out_file_inner =
   | Out_file_graph_components
   | Out_file_graph_packages
   | Out_file_binpacking_problem
+  | Out_file_statistics
 type out_file = (out_file_inner * string) 
 type out_files = out_file list
 let out_files_assoc = [
@@ -245,7 +248,8 @@ let out_files_assoc = [
   ("components-graph"           , Out_file_graph_components);
   ("packages-graph"             , Out_file_graph_packages);
   ("graph-deployment"           , Out_file_graph_deployment);
-  ("binpacking-problem"         , Out_file_binpacking_problem); ]
+  ("binpacking-problem"         , Out_file_binpacking_problem);
+  ("statistics"                 , Out_file_statistics); ]
 let out_files_assoc_revert = revert out_files_assoc
 
 let out_files_names = (extract_names out_files_assoc)
@@ -254,36 +258,80 @@ let convert_out_files v = List.map (fun e -> let (k,f) = get_pair e in (convert 
 let string_of_out_files v = string_of_list (List.map (fun (k,f) -> string_of_pair (string_of_string (List.assoc k out_files_assoc_revert)) (string_of_string f)) v)
 let out_files_domain_message = string_of_pair "any string" (String.concat " | " out_files_names)
 
+(* 1.8. benchmarks *)
+type benchmark_choice = 
+  | Benchmark_none
+  | Benchmark_master_slave
+  | Benchmark_wordpress
+  | Benchmark_wordpress_distributed
+type benchmark_option  = (string * string) 
+type benchmark_options = benchmark_option list
+type benchmark = (benchmark_choice * benchmark_options)
+let benchmark_choice_assoc = [
+  ("none"                  , Benchmark_none);
+  ("master-slave"          , Benchmark_master_slave);
+  ("wordpress"             , Benchmark_wordpress);
+  ("wordpress-distributed" , Benchmark_wordpress_distributed) ]
+let benchmark_choice_assoc_revert = revert benchmark_choice_assoc
+
+let benchmark_choice_names = (extract_names benchmark_choice_assoc)
+let benchmark_choice_map = Data_common.String_map.of_assoc_list benchmark_choice_assoc
+let convert_benchmark v = 
+  let benchmark_choice_v, bechmark_options_v = get_pair v in
+  let benchmark_choice = get_ident benchmark_choice_v in
+  let benchmark_options = List.map (fun benchmark_option_v -> 
+    let option_key_v, option_value_v = get_pair benchmark_option_v in
+    (get_ident option_key_v, get_ident option_value_v)
+  ) (get_list bechmark_options_v) in
+  (convert benchmark_choice_map benchmark_choice, benchmark_options)
+
+let string_of_benchmark v = 
+  let benchmark_choice, benchmark_options = v in
+  string_of_pair
+    (string_of_string (List.assoc benchmark_choice benchmark_choice_assoc_revert))
+    (string_of_list 
+      (List.map (fun benchmark_option -> 
+        let option_key, option_value = benchmark_option in
+        string_of_pair
+          (string_of_string option_key)
+          (string_of_string option_value)
+      ) benchmark_options))
+
+let benchmark_domain_message = string_of_pair (String.concat " | " benchmark_choice_names) "list of options: key-value pairs"
+
+
 
 (* 1.8. finally filling the setting_kind structure *)
 
 type setting_kind = (* store the conversion and the string_of functions, and the error message *)
-  | Bool of (value -> bool) * (bool -> string) * string
-  | String of (value -> string) * (string -> string) * string
-  | Int of (value -> int) * (int -> string) * string
-  | Mode of (value -> mode) * (mode -> string) * string
-  | Repositories of (value -> repositories) * (repositories -> string) * string
-  | Optim of (value -> optim) * (optim -> string) * string
-  | Constraint_kind of (value -> constraint_kind) * (constraint_kind -> string) * string
-  | Solver of (value -> solver) * (solver -> string) * string
+  | Bool               of (value -> bool)               * (bool               -> string) * string
+  | String             of (value -> string)             * (string             -> string) * string
+  | Int                of (value -> int)                * (int                -> string) * string
+  | Mode               of (value -> mode)               * (mode               -> string) * string
+  | Repositories       of (value -> repositories)       * (repositories       -> string) * string
+  | Optim              of (value -> optim)              * (optim              -> string) * string
+  | Constraint_kind    of (value -> constraint_kind)    * (constraint_kind    -> string) * string
+  | Solver             of (value -> solver)             * (solver             -> string) * string
   | Solver_bin_packing of (value -> solver_bin_packing) * (solver_bin_packing -> string) * string
-  | Gen_bindings of (value -> gen_bindings) * (gen_bindings -> string) * string
-  | Gen_packages of (value -> gen_packages) * (gen_packages -> string) * string
-  | Out_files of (value -> out_files) * (out_files -> string) * string
+  | Gen_bindings       of (value -> gen_bindings)       * (gen_bindings       -> string) * string
+  | Gen_packages       of (value -> gen_packages)       * (gen_packages       -> string) * string
+  | Out_files          of (value -> out_files)          * (out_files          -> string) * string
+  | Benchmark          of (value -> benchmark)          * (benchmark          -> string) * string
 
-let bool_setting = Bool(convert_bool, string_of_bool, bool_domain_message)
-let string_setting = String(convert_string, string_of_string, string_domain_message)
-let int_setting = Int(convert_int, string_of_int, int_domain_message)
-let mode_setting = Mode(convert_mode, string_of_mode, mode_domain_message)
+let bool_setting   = Bool   (convert_bool,   string_of_bool,   bool_domain_message)
+let string_setting = String (convert_string, string_of_string, string_domain_message)
+let int_setting    = Int    (convert_int,    string_of_int,    int_domain_message)
+let mode_setting   = Mode   (convert_mode,   string_of_mode,   mode_domain_message)
 
-let repositories_setting       = Repositories(convert_repositories, string_of_repositories, repositories_domain_message)
-let optim_setting              = Optim(convert_optim, string_of_optim, optim_domain_message)
-let constraint_kind_setting    = Constraint_kind(convert_constraint_kind, string_of_constraint_kind, constraint_kind_domain_message)
-let solver_setting             = Solver(convert_solver, string_of_solver, solver_domain_message)
-let solver_bin_packing_setting = Solver_bin_packing(convert_solver_bin_packing, string_of_solver_bin_packing, solver_bin_packing_domain_message)
-let gen_bindings_setting       = Gen_bindings(convert_gen_bindings, string_of_gen_bindings, gen_bindings_domain_message)
-let gen_packages_setting       = Gen_packages(convert_gen_packages, string_of_gen_packages, gen_packages_domain_message)
-let out_files_setting          = Out_files(convert_out_files, string_of_out_files, out_files_domain_message)
+let repositories_setting       = Repositories       (convert_repositories,       string_of_repositories,       repositories_domain_message)
+let optim_setting              = Optim              (convert_optim,              string_of_optim,              optim_domain_message)
+let constraint_kind_setting    = Constraint_kind    (convert_constraint_kind,    string_of_constraint_kind,    constraint_kind_domain_message)
+let solver_setting             = Solver             (convert_solver,             string_of_solver,             solver_domain_message)
+let solver_bin_packing_setting = Solver_bin_packing (convert_solver_bin_packing, string_of_solver_bin_packing, solver_bin_packing_domain_message)
+let gen_bindings_setting       = Gen_bindings       (convert_gen_bindings,       string_of_gen_bindings,       gen_bindings_domain_message)
+let gen_packages_setting       = Gen_packages       (convert_gen_packages,       string_of_gen_packages,       gen_packages_domain_message)
+let out_files_setting          = Out_files          (convert_out_files,          string_of_out_files,          out_files_domain_message)
+let benchmark_setting          = Benchmark          (convert_benchmark,          string_of_benchmark,          benchmark_domain_message)
 
 
 (*/************************************************************************\*)
@@ -311,6 +359,9 @@ let import_optimization_function = ("import-optimization-function", bool_setting
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
 let eliminate_packages = ("eliminate-packages", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
+let flatten = ("flatten-the-model", bool_setting)
+let stop_after_solving = ("stop-after-solving", bool_setting)
+
     (* 2. Checking the input *)
 let check_universe = ("check-universe", bool_setting)
 let check_repositories = ("check-repositories", bool_setting)
@@ -359,6 +410,9 @@ let verbose_stage = ("verbose-stage", bool_setting)
 let verbose_data = ("verbose-data", bool_setting)
 let verbose_execution = ("verbose-execution", bool_setting)
 
+    (* 9. Benchmark *)
+let benchmark = ("benchmark", benchmark_setting)
+
 
 (* 2.2. list of all settings *)
 let all_settings = [
@@ -388,7 +442,7 @@ let all_settings = [
     package_trim;                        (* UNUSED *)
     constraint_kind;                     (* UNUSED *)
     preprocess_solver;                   (* DUNNO *) (* TODO: I think that for now we always use the main solver? Check it! *) (* Choose the solver used for preprocessing. *)
-    solver;                              (* Choose the main constraint solver: {none|g12|gcode|custom} *)
+    solver;                              (* Choose the main constraint solver: {none|g12|gecode|custom} *)
     solver_bin_packing;                  (* UNUSED *)
     custom_solver_command;               (* Defined a custom command used to launch the external FlatZinc solver. *)
     custom_mzn2fzn_command;              (* Defined a custom command used to launch the MiniZinc-to-FlatZinc converter. *)
@@ -406,7 +460,10 @@ let all_settings = [
     verbose_level;                       (* How much information should Zephyrus print: 0,1,2,3 *)
     verbose_stage;                       (* UNUSED *)
     verbose_data;                        (* Should Zephyrus print the input data during execution. *)
-    verbose_execution                    (* UNUSED *)
+    verbose_execution;                   (* UNUSED *)
+    benchmark;                           (* Discard the normal input, synthetize a benchmark with given parameters instead. *)
+    flatten;                             (* Flatten the model (ignore the locations, packages and resources in the input) and use the Aeolus flat model approach to find the final configuration. *)
+    stop_after_solving                   (* Do not generate the final configuration, exit directly after the solving phase is over. *)
   ]
 
 let setting_of_string s = match List.filter (fun (n,_) -> n = s) all_settings with
@@ -443,40 +500,44 @@ module Table = AddColumn(struct type t = bool let name = bool_setting let defaul
             AddColumn(struct type t = gen_bindings let name = gen_bindings_setting let default = default_gen_bindings end)(
             AddColumn(struct type t = gen_packages let name = gen_packages_setting let default = default_gen_packages end)(
             AddListColumn(struct type el = out_file let name = out_files_setting end)(
-              Empty(Base)))))))))))))
+            AddColumn(struct type t = benchmark let name = benchmark_setting let default = (Benchmark_none, []) end)(
+              Empty(Base))))))))))))))
 
 type t = Table.t
 let table = Table.create 8
 let add (s,k) b = match k with
-  | Bool(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | String(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Int(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Mode(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Repositories(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Optim(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Constraint_kind(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Solver(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Bool              (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | String            (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Int               (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Mode              (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Repositories      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Optim             (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Constraint_kind   (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Solver            (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
   | Solver_bin_packing(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Gen_bindings(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Gen_packages(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
-  | Out_files(convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Gen_bindings      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Gen_packages      (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Out_files         (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
+  | Benchmark         (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
 
 let find (s,k) = Table.find table k s
 let mem (s,k) = Table.mem table s
 
 let to_string () = let inner ((s,k) as key) res = if mem key then ("  " ^ s ^ (match k with
-  | Bool(convert, string_of, error_message) -> string_of (find key)
-  | String(convert, string_of, error_message) -> string_of (find key)
-  | Int(convert, string_of, error_message) -> string_of (find key)
-  | Mode(convert, string_of, error_message) -> string_of (find key)
-  | Repositories(convert, string_of, error_message) -> string_of (find key)
-  | Optim(convert, string_of, error_message) -> string_of (find key)
-  | Constraint_kind(convert, string_of, error_message) -> string_of (find key)
-  | Solver(convert, string_of, error_message) -> string_of (find key)
+  | Bool              (convert, string_of, error_message) -> string_of (find key)
+  | String            (convert, string_of, error_message) -> string_of (find key)
+  | Int               (convert, string_of, error_message) -> string_of (find key)
+  | Mode              (convert, string_of, error_message) -> string_of (find key)
+  | Repositories      (convert, string_of, error_message) -> string_of (find key)
+  | Optim             (convert, string_of, error_message) -> string_of (find key)
+  | Constraint_kind   (convert, string_of, error_message) -> string_of (find key)
+  | Solver            (convert, string_of, error_message) -> string_of (find key)
   | Solver_bin_packing(convert, string_of, error_message) -> string_of (find key)
-  | Gen_bindings(convert, string_of, error_message) -> string_of (find key)
-  | Gen_packages(convert, string_of, error_message) -> string_of (find key)
-  | Out_files(convert, string_of, error_message) -> string_of (find key)))::res else res in
+  | Gen_bindings      (convert, string_of, error_message) -> string_of (find key)
+  | Gen_packages      (convert, string_of, error_message) -> string_of (find key)
+  | Out_files         (convert, string_of, error_message) -> string_of (find key)
+  | Benchmark         (convert, string_of, error_message) -> string_of (find key)
+  ))::res else res in
   String.concat "\n" (List.fold_right inner all_settings [])
 
 
@@ -488,29 +549,37 @@ let to_string () = let inner ((s,k) as key) res = if mem key then ("  " ^ s ^ (m
 
 let add_string s v = add s (IdentValue v)
 let add_double_lists s l1 l2  = add s (ListValue (List.map2 (fun n1 n2 -> PairValue(IdentValue(n1), IdentValue(n2))) l1 l2))
+let add_benchmark b =
+  let (benchmark_name, benchmark_options) = b in
+  add benchmark (PairValue 
+    (IdentValue (List.assoc benchmark_name benchmark_choice_assoc_revert), 
+     ListValue (List.map (fun (option_key, option_value) -> 
+       PairValue(IdentValue(option_key), IdentValue(option_value))
+     ) benchmark_options)))
 
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
 let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
+let enable_stop_after_solving     () = add stop_after_solving                (BoolValue true)
 
-let get_input_file_universe () = if (find import_universe = true) & (mem input_file_universe) then Some(find input_file_universe) else None
-let get_input_file_repositories () = if (find import_repositories = true) & (mem input_file_repositories) then Some(find input_file_repositories) else None
-let get_input_file_initial_configuration () = if (find import_initial_configuration = true) & (mem input_file_configuration) then Some(find input_file_configuration) else None
-let get_input_file_specification () = if (find import_specification = true) & (mem input_file_specification) then Some(find input_file_specification) else None
-let get_input_optimization_function () = if (find import_optimization_function = true) & (mem input_optimization_function) then Some(find input_optimization_function) else None
+let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None
+let get_input_file_repositories          () = if (find import_repositories          = true) & (mem input_file_repositories)     then Some(find input_file_repositories)     else None
+let get_input_file_initial_configuration () = if (find import_initial_configuration = true) & (mem input_file_configuration)    then Some(find input_file_configuration)    else None
+let get_input_file_specification         () = if (find import_specification         = true) & (mem input_file_specification)    then Some(find input_file_specification)    else None
+let get_input_optimization_function      () = if (find import_optimization_function = true) & (mem input_optimization_function) then Some(find input_optimization_function) else None
 
 
 
 let get_main_solver_file_extension () = ".mzn"
-let get_main_input_file ()       = let res = find solver_constraint_file in if res = "" then "zephyrus-" ^ (get_main_solver_file_extension ()) else res
-let get_main_output_file ()      = let res = find solver_solution_file in if res = "" then "zephyrus-.sol" else res
+let get_main_input_file  ()      = let res = find solver_constraint_file in if res = "" then "zephyrus-" ^ (get_main_solver_file_extension ()) else res
+let get_main_output_file ()      = let res = find solver_solution_file   in if res = "" then "zephyrus-.sol"                                   else res
 let get_main_file_informations () = ((get_main_input_file (), find solver_keep_constraint_file), (get_main_output_file (), find solver_keep_constraint_file))
 
 
 let get_preprocess_solver_file_extension () = ".mzn"
-let get_preprocess_input_file ()       = let res = find preprocess_constraint_file in if res = "" then "zephyrus-" ^ (get_preprocess_solver_file_extension ()) else res
-let get_preprocess_output_file ()      = let res = find preprocess_solution_file in if res = "" then "zephyrus-.sol" else res
+let get_preprocess_input_file  () = let res = find preprocess_constraint_file in if res = "" then "zephyrus-" ^ (get_preprocess_solver_file_extension ()) else res
+let get_preprocess_output_file () = let res = find preprocess_solution_file   in if res = "" then "zephyrus-.sol"                                         else res
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
 
-let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command) else None
-let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command) then Some(find custom_mzn2fzn_command) else None
+let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command)  else None
+let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command)                                then Some(find custom_mzn2fzn_command) else None

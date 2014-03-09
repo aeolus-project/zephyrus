@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Translate a constraint problem solution to a final configuration. *)
+
 open Data_model
 open Data_model_catalog
 open Data_constraint
@@ -100,6 +102,20 @@ let get_root_packages (universe : universe) : Package_id_set.t =
 module Used_names = Used_tokens_string
 type used_names = Used_names.t
 
+(* Begin: a hack to optimize the component naming process. *)
+let last_used_i : int Component_type_name_map.t ref = ref Component_type_name_map.empty
+
+let update_last_used_i component_type_name i : unit =
+  last_used_i := Component_type_name_map.add component_type_name i !last_used_i
+
+let get_last_used_i component_type_name : int =
+  try
+    Component_type_name_map.find component_type_name !last_used_i
+  with Not_found ->
+    let i = 1 in
+    update_last_used_i component_type_name i; i
+(* End: a hack to optimize the component naming process. *)
+
 let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names) : component_name =
 
   let build_component_name = 
@@ -109,12 +125,13 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
 
   in
 
-  let i = ref 1 in
+  let i = ref (get_last_used_i component_type_name) in (* a hack to optimize the component naming process *)
   let component_name = ref (build_component_name !i) in
   while Used_names.mem !component_name used_names do
     i := !i + 1;
     component_name := build_component_name !i;
   done;
+  update_last_used_i component_type_name !i; (* a hack to optimize the component naming process *)
 
   Used_names.add !component_name used_names;
   !component_name
@@ -203,7 +220,7 @@ let generate_components
   (* Now we proceed to name the new components and make them "done" (in opposition to "almost-done"). 
      We pass the "used_names" around in order to do that: it is a reference and it will not only serve
      to generate a fresh name for each new component, but it also collects the new names as we go. *)
-  Component_set.set_of_direct_list (List.map (fun almost_done_component ->
+  Component_set.of_list_directly (List.map (fun almost_done_component ->
     match almost_done_component with
     | ReusedComponent (component_id, component) -> component
     | NewComponent     component_f              -> component_f used_names
@@ -213,8 +230,14 @@ let generate_components
 (* Set up for the matching algorithm. *)
 module My_matching_algorithm = Candy_algorithm
 
+(* TMP
 open My_matching_algorithm.Int_list_match_requirers_with_providers
 open My_matching_algorithm.Int_list_requirer_provider_types
+*)
+
+open My_matching_algorithm.Int_set_map_match_requirers_with_providers
+open My_matching_algorithm.Int_set_map_requirer_provider_types
+
 
 (* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
 let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
@@ -261,6 +284,12 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
   
       in
   
+      (* TMP *)
+      let providers = {
+        Providers.set = Providers.Provider_key_provider_arity_set.of_list_directly providers;
+        Providers.map = Providers.Provider_key_map.of_assoc_list                   providers;
+      } in
+
       (* Launch the matching alogrithm with the prepared inputs! *)
       match matching_algorithm requirers providers with
 

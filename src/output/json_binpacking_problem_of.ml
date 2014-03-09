@@ -129,7 +129,7 @@ let convert_configuration (u : universe) (c : configuration) =
 
   let incompatibilities = 
     let universe_incompatibilities : Component_type_id_set_set.t Repository_id_map.t = Incompatibilities_of.universe u in
-    Repository_id_map.map_to_list (fun (repository_id, repository_incompatibilities) ->
+    Repository_id_map.to_list (fun (repository_id, repository_incompatibilities) ->
       let repository_name   : Json_binpacking_t.repository_name = Name_of.repository_id repository_id in
       let incompatibilities : Json_binpacking_t.item_name list list = 
         Component_type_id_set_set.map_to_list (Component_type_id_set.map_to_list item_name_of_component_type_id) repository_incompatibilities in

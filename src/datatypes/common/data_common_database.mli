@@ -17,16 +17,18 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Type safe modules and functors for a database. *)
+
 (* Depends on
     - Hashtbl
 *)
 
-(* type safe modules and functors for a data base. Support for SQL is not planned *)
+(* type safe modules and functors for a database. Support for SQL is not planned *)
 module Database : sig 
-  exception Table_not_found  (* raised when trying to access a table not present in the data base *)
+  exception Table_not_found  (* raised when trying to access a table not present in the database *)
   exception Column_not_found (* raised with trying to access a column that is not present in a table *)
 
-  (* type safe modules and functors for the definition of a data base table *)
+  (* type safe modules and functors for the definition of a database table *)
   module Table : sig
     (* type of a table module *)
     module type S = sig

@@ -33,19 +33,72 @@ let log_warning str = Output_helper.print out_channel ("Zephyrus warning: " ^ st
 let log_normal str = Output_helper.print out_channel str
 
 (* stage logging *)
-let current_stages : (string list) ref = ref []
+module Stage =
+struct
+
+  type stage_description = {
+    stage_name       : string;       (**  *)
+    stage_start_time : float option; (**  *)
+    stage_end_time   : float option;
+  }
+
+  type stage_stack = (stage_description list) ref
+  
+  let empty_stage_stack () : stage_stack = ref []
+
+  let make_new_stage (name : string) : stage_description = {
+    stage_name       = name;
+    stage_start_time = None;
+    stage_end_time   = None;
+  }
+
+  let stage_name (stage : stage_description) : string = stage.stage_name
+
+  let stage_duration (stage : stage_description) : float = 
+    match stage.stage_start_time, stage.stage_end_time with
+    | Some start_time, Some end_time -> end_time -. start_time
+    | _                              -> 0.0
+
+  let start_stage (stage_stack : stage_stack) (stage : stage_description) : unit =
+    let start_time = Sys.time () in
+    let started_stage = {
+      stage_name       = stage.stage_name;
+      stage_start_time = Some start_time;
+      stage_end_time   = None;
+    } in
+    stage_stack := started_stage::(!stage_stack)
+
+  let end_stage (stage_stack : stage_stack) : stage_description =
+    let end_time = Sys.time () in
+    let stage = List.hd (!stage_stack) in 
+    stage_stack := List.tl (!stage_stack);
+    let ended_stage = {
+      stage_name       = stage.stage_name;
+      stage_start_time = stage.stage_start_time;
+      stage_end_time   = Some end_time;
+    } in
+    ended_stage
+
+end
+
+let current_stages : Stage.stage_stack = Stage.empty_stage_stack ()
 let stage_condition () = (Settings.find Settings.verbose_level) > 1
-let log_stage_new str = if stage_condition () then
-    let str' = "| New Stage: \"" ^ str ^ "\" |" in
+let log_stage_new stage_name = 
+  if stage_condition () then
+    let stage = Stage.make_new_stage stage_name in
+    Stage.start_stage current_stages stage;
+    let str' = Printf.sprintf "| New Stage: \"%s\" |" stage_name in
     let n = (String.length str') - 2 in
     let line = "+" ^ (String.make n '-') ^ "+\n" in
     Output_helper.println out_channel (line ^ str' ^ "\n" ^ line);
-    current_stages := str::(!current_stages);
     Output_helper.new_stage ()
 
-let log_stage_end () =  if stage_condition () then
-    let str = List.hd (!current_stages) in current_stages := List.tl (!current_stages);
-    let str' = "| End Stage: \"" ^ str ^ "\" |" in
+let log_stage_end () = 
+  if stage_condition () then
+    let stage = Stage.end_stage current_stages in
+    let stage_name     = Stage.stage_name     stage in
+    let stage_duration = Stage.stage_duration stage in
+    let str' = Printf.sprintf "| End Stage: \"%s\" [duration : %8.3f s] |" stage_name stage_duration in
     let n = (String.length str') - 2 in
     let line = "+" ^ (String.make n '-') ^ "+\n" in
     Output_helper.end_stage ();

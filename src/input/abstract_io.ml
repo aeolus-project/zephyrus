@@ -17,10 +17,13 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Abstract syntax used as a common intermediate form of the model. *)
+(** Abstract syntax used as a common intermediate form of the Zephyrus model. *)
 
+(** This intermediate form makes it easier to convert between our internal
+    representation of the Zephyrus model and various forms in which its
+    different parts are read at input / written at output. *)
 
-(** -- General type definitions for naming. -- *)
+(** {2 General type definitions for naming.} *)
 
 type resource_name       = string
 type port_name           = string
@@ -31,7 +34,7 @@ type location_name       = string
 type component_name      = string
 
 
-(** -- Type definitions for the universe. -- *)
+(** {2 Type definitions for the universe.} *)
 
 (** Type definitions for provides / requires. *)
 type provide_arity = FiniteProvide of int | InfiniteProvide
@@ -72,7 +75,7 @@ type universe = {
 }
 
 
-(** -- Type definitions for the configuration. -- *)
+(** {2 Type definitions for the configuration.} *)
 
 (** Type definitions for locations. *)
 type location_cost = int
@@ -107,7 +110,7 @@ type configuration = {
 }
 
 
-(** -- Type definitions for the specification. -- *)
+(** {2 Type definitions for the specification.} *)
 
 type spec_variable_name = string
 

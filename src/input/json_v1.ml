@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of the Zephyrus model JSON syntax version 1 to and from the abstract IO representation. *)
+
 module J = Json_v1_j
 module T = Json_v1_t
 

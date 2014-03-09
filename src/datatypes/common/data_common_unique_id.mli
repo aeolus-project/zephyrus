@@ -17,14 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Module introducing some stuff used to manage and create unique identifiers. *)
+(** Manage unique identifiers. *)
 
 (* Depends on nothing.
 *)
 
 (** Module for used tokens (names, ids, etc.) management. 
     Basically it works like a simplified mutable set with only two operations available: 
-    check if a given element is already inside and insert a new element. *)
+    you can check if a given element is already inside and you can insert a new element. *)
 module type Used_tokens_type = sig
   type t
   type token
@@ -44,7 +44,6 @@ module Used_tokens_string : Used_tokens_type with type token = string
 
 (** Module for managing integer tokens. *)
 module Used_tokens_int    : Used_tokens_type with type token = int
-
 
 
 

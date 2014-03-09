@@ -23,6 +23,8 @@
 }
 
 rule token = parse
+
+  (* No solution *)
   | "=====UNSATISFIABLE====="             { UNSATISFIABLE }
 
   (* Blanks *)
@@ -39,9 +41,10 @@ rule token = parse
   | '='                                   { EQ }
   | ';'                                   { SEMICOLON }
 
-  (* Before the end *)
-  | '=' ['=']+                            { token lexbuf }
-  | '-' ['-']+                            { token lexbuf }
+  (* Horizontal lines *)
+  (* They are usually separating solutions and may appear after the last solution. *)
+  | '=' ['=']+                            { HLINE }
+  | '-' ['-']+                            { HLINE }
 
   (* End of file *)                       
   | eof                                   { EOF }

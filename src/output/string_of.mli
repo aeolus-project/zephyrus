@@ -17,6 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of various elements of Zephyrus model to strings. *)
 
 (* Depends on
     - datatypes/Data_model

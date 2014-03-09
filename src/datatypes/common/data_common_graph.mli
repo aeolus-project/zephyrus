@@ -17,7 +17,7 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Generic Graph. *)
+(** Generic graph operations. *)
 
 (* Depends on
     - Data_common_set

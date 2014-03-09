@@ -41,7 +41,8 @@ let program_is_available program = List.fold_left (fun res cmd -> (program_did_e
 let programs_are_available l = List.fold_left (fun res p -> (program_is_available p) && res) true l
 
 let program_sync_exec  p l = 
-(* DEBUG **************************) print_string ("executing \"" ^ (p.exe l) ^"\"\n"); flush stdout;
+(* DEBUG **************************) 
+Zephyrus_log.log_execution (Printf.sprintf "executing \"%s\"\n" (p.exe l)); flush stdout;
 Unix.system (p.exe l)
 
 let program_async_exec p l = let id = Unix.fork () in if id <> 0 then id else Unix.execv "/bin/sh" [|"-c"; ("\"" ^ (p.exe l) ^ "\"") |]

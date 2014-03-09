@@ -162,7 +162,7 @@ let settings_of_settings kind =
 
 let full_of_settings kind = match (match kind with Preprocess -> Settings.find Settings.preprocess_solver | Main -> Settings.find Settings.solver) with
   | Settings.Solver_none   -> GeCode.solve (* default *)
-  | Settings.Solver_gcode  -> GeCode.solve
+  | Settings.Solver_gecode -> GeCode.solve
   | Settings.Solver_g12    -> G12.solve
   | Settings.Solver_custom -> (
       match Settings.get_custom_solver_command () with

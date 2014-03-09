@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Translation of the Zephyrus model into a constraint problem. *)
+
 (* Depends on
     - datatypes/Data_constraint
     - datatypes/Data_model

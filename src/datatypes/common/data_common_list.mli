@@ -17,19 +17,26 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Custom extension of the [List] module from the standard library. *)
+
 (* Depends on
     - List
 *)
-
-(* Comment: Extend the List module with mapi function is not necessary after OCaml 4.00.0 *)
 
 module List_from_stdlib : module type of List
 
 module List : sig 
   include module type of List_from_stdlib
+  (** [filter_map f l] builds a new list, applying the function [f] to each element from the set. If for a given element [el] function [f el] returns [Some x], then the value [x] is included in the returned list. If [f el] returns [None], then the element is discarded. *)
   val filter_map : ('a -> 'b option) -> ('a list) -> ('b list)
+  (** Same as [List.map], but the function is applied to the index of the element as first argument (counting from 0), and the element itself as second argument. *)
   val mapi : (int -> 'a -> 'b) -> 'a list -> 'b list
+  (** [is_empty l] returns [true] if the list [l] is empty and [false] if it has at least one element. *)
   val is_empty : 'a list -> bool
+  (** TODO *)
   val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b
+  (** [cartesian_product ll] returns cartesian product of lists [ll] as a list of lists. (If [ll] is a list of lists [[l1, l2, ... , ln]], then [cartesian_product ll] returns a list of lists representing the cartesian product [l1 x l2 x ... ln].) *)
   val cartesian_product : (('a list) list) -> (('a list) list)
 end
+
+(** Comment: Extending the [List] module with [mapi] function is not necessary after OCaml 4.00.0 *)

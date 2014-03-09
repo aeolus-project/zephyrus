@@ -17,6 +17,10 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Static global variables stocking the Zephyrus model. *)
+
+(** Note: Need significant refactoring. Storing these data in a bunch of global variables is horribly awful from the software engineering point of view. *)
+
 (* Depends on
     - datatypes/Data_model (all universe, configuration, specification)
     - datatypes/Data_constraints (constraint and solution)
@@ -24,11 +28,6 @@
 *)
 
 open Data_model
-
-(*
-open Constraints
-open Bin_packing
-*)
 
 (* 1. the different variant of inputs *)
 let universe_full              : universe option ref = ref None

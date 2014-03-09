@@ -25,6 +25,7 @@ endif
 
 OCAMLBEST=native
 #OCAMLBEST=d.byte
+#OCAMLBEST=p.native
 OCAMLBUILD=ocamlbuild #-ocamlc ocamlc.opt -ocamlopt ocamlopt.opt -ocamldep ocamldep.opt
 INSTALLOPTS=-s
 

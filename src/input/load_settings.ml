@@ -50,6 +50,10 @@ let repository_files = ref []
 let out_kinds = ref []
 let out_files = ref []
 
+(* Benchmarks *)
+let benchmark_choice = ref None
+let benchmark_option_keys   = ref []
+let benchmark_option_values = ref []
 
 let speclist = 
   Arg.align [
@@ -63,6 +67,14 @@ let speclist =
                       Arg.String (fun repository_file -> repository_files := repository_file::!repository_files) ]
                     ), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories).");
 
+    (* Benchmarks *)
+    ("-benchmark", Arg.Symbol ( Settings.benchmark_choice_names, (fun benchmark_choice_name -> benchmark_choice := Some (List.assoc benchmark_choice_name Settings.benchmark_choice_assoc))), " The benchmark choice.");
+    ("-benchmark-option", Arg.Tuple (
+                     [Arg.String (fun benchmark_option_key   -> benchmark_option_keys   := benchmark_option_key::!benchmark_option_keys);
+                      Arg.String (fun benchmark_option_value -> benchmark_option_values := benchmark_option_value::!benchmark_option_values) ]
+                    ), " Specify a benchmark option: (key, value).");
+
+    (* Solving options *)
     ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
     ("-no-packages",  Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
     ("-mode",         Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
@@ -80,7 +92,8 @@ let speclist =
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
 
     (* Other *)
-    ("-print-path", Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
+    ("-print-path",         Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
+    ("-stop-after-solving", Arg.Unit (Settings.enable_stop_after_solving),           " Do not generate the final configuration, exit directly after the solving phase is over (useful for benchmarking).");
   ]
 
 open Settings
@@ -93,23 +106,40 @@ let load () =
     then load_file default_settings_file_path
   end;
 
+
   (* 2. Handle directly command line settings. *)
   Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x))) usage;
 
+
   (* 3. Post-treatment of settings. *)
-  Settings.add_double_lists Settings.input_file_repositories !repository_names !repository_files; (* Additional repositories. *)
-  Settings.add_double_lists Settings.results                 !out_kinds        !out_files;        (* Outputs. *)
+
+  (* 3.1. Additional repositories. *)
+  Settings.add_double_lists Settings.input_file_repositories !repository_names !repository_files;
+
+  (* 3.2. Outputs. *)
+  Settings.add_double_lists Settings.results !out_kinds !out_files;
+
+  (* 3.3. Benchmarks. *)
+  (match !benchmark_choice with
+  | Some benchmark_choice -> 
+      let benchmark : Settings.benchmark = 
+        (benchmark_choice, 
+         List.combine !benchmark_option_keys !benchmark_option_values) in
+      Settings.add_benchmark benchmark
+  | None -> ());
 
   Zephyrus_log.log_settings (); (* Print settings as they are now. *)
 
-  (* add missing import settings *)
+
+  (* 4. Add missing import settings. *)
   (if not (Settings.mem Settings.import_universe)              then Settings.add Settings.import_universe              (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_repositories)          then Settings.add Settings.import_repositories          (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_initial_configuration) then Settings.add Settings.import_initial_configuration (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_specification)         then Settings.add Settings.import_specification         (Settings.BoolValue true));
   (if not (Settings.mem Settings.import_optimization_function) then Settings.add Settings.import_optimization_function (Settings.BoolValue true));
 
-  (* easy fix for when we don't input a configuration *)
+
+  (* 5. Easy fix for when we don't input a configuration. *)
   (if 
     (not (Settings.find Settings.import_initial_configuration)) || 
     (not (Settings.mem Settings.input_file_configuration)) 

@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Compute better variable bounds for the Zephyrus model. *)
+
 (* Depends on
     - datatypes/Data_constraint
     - datatypes/Data_model

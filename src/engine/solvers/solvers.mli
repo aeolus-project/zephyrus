@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Handle solving of a (possibly multiobjective) constraint problem. *)
+
 (* Depends on
     - datatypes/Data_constraint
 *)

@@ -6,6 +6,9 @@ input-file-specification    = "tests/spec-1.spec"
 input-file-repositories     = []
 input-optimization-function = compact
 
+#solver = custom
+#custom-solver-command = "flatzinc -o <OUT> <IN>"
+
 
 # Output
 
@@ -16,3 +19,9 @@ results = [("json-v1", "tests/output.json"); ("graph-deployment", "tests/output.
 
 verbose-level = 2
 verbose-data = y
+
+
+# Benchmark tests
+
+#benchmark = ("master-slave", [("master_require", "10")])
+#benchmark = ("wordpress", [("wordpress_require", "10"); ("mysql_require", "10"); ("webservers", "10")])

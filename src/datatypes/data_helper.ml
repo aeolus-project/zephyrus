@@ -26,7 +26,7 @@
 
 (*  Constraints *)
 
-let my_max_int = 10000
+let my_max_int = 100000
 let int_of_value v = match v with | Data_constraint.Finite_value(i) -> i | Data_constraint.Infinite_value -> my_max_int
 
 let rec parse_nary_op op_none op_el op_combine l = 

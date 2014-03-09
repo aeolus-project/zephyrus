@@ -17,33 +17,41 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Trimming operations concerning different parts of the Zephyrus model. *)
 
 open Data_model
 
-(** Trim the universe: simplify the universe by stripping it the universe of all
-    the information which is not necessary in context of the given configuration
-    and specification. This is done in order to reduce the size and complexity 
-    of constraints generated from this universe. 
+(** {2 Trim the universe.} 
 
-	Trimming involves three steps:
+Simplify the universe by stripping it of all
+the information which is not necessary in context of the given configuration
+and specification. This is done in order to reduce the size and complexity 
+of constraints generated from this universe. 
+*)
 
-	1. Trimming component types: we need only a transitive closure of the component
-	   types mentioned in the configuration and specification.
+(** {e Trimming component types}: we need only a transitive closure of the component types mentioned in the configuration and specification. *)
+val trim_component_types : universe -> configuration -> specification -> universe
 
-	2. Trimming the component implementation information: we only need the information
+(** Trimming repositories consists of two steps: {ol
+	{- {e Trimming the component implementation information}: 
+
+	   we only need the information
 	   about implementation of these component types which are still available after
-	   the component type trimming.
+	   the component type trimming.}
+	{- {e Trimming the package repositories}: 
 
-	2. Trimming the package repositories: as package information is important only if
+	   as package information is important only if
 	   package conflicts can potentially cause conflicts between components, we can
 	   remove all these packages which cannot cause conflicts in the context of our
-	   available (i.e. available after trimming) component types.
+	   available (i.e. available after trimming) component types.} }
 *)
-val trim_component_types : universe -> configuration -> specification -> universe
 val trim_repositories    : universe -> configuration -> specification -> universe
- 
+
+(** {2 Trim the configuration.} *)
 
 val transitive_closure_domain : configuration -> Location_id_set.t -> Location_id_set.t
 val configuration : configuration -> Location_id_set.t -> configuration * configuration
-val empty : configuration -> configuration (* returns the same configuration, without packages or components *)
+
+(** [empty c] returns the configuration [c], but without any packages or components. *)
+val empty : configuration -> configuration 
 

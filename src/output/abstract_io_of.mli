@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Conversion of the Zephyrus model internal representation to the abstract IO representation. *)
+
 (* Depends on
     - datatypes/Data_model
     - datatypes/Abstract_io

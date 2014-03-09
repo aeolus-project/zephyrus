@@ -17,9 +17,10 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Some common data structures and operations on them. *)
+
 (* Depends on
     -Data_common_int
-    -Data_common_string
     -Data_common_list
     -Data_common_set
     -Data_common_map
@@ -28,21 +29,22 @@
     -Data_common_catalog
 *)
 
-(** 1. Custom and extended versions of standard library modules. *)
-
-(** Custom Int and String modules. *)
+(** Wrapper module for integer values to use with the [Set] and [Map] modules.
+    It has the same type as [Set.OrderedType] and [Map.OrderedType]. *)
 include module type of Data_common_int
-include module type of Data_common_string
 
-(** Custom List module. *)
+(** {2 Custom and extended versions of standard library modules.} *)
+
+(** Custom extension of the [List] module from the standard library. *)
 include module type of Data_common_list
 
-(** Custom sets and maps. *)
-include module type of Data_common_set (** Extension of the Set module from the standard library with construction and conversion. **)
-include module type of Data_common_map (** Extension of the Map module from the standard library with construction, conversion and extraction. **)
+(** Custom extension of the [Set] module from the standard library with construction and conversion. *)
+include module type of Data_common_set 
+(** Custom extension of the [Map] module from the standard library with construction, conversion and extraction. *)
+include module type of Data_common_map 
 
 
-(** 2. Some basic tools used mostly for managing ids and mappings between them. *)
+(** {2 Some basic tools used mostly for managing identifiers and mappings between them.} *)
 
 (** Unique identifier management *)
 include module type of Data_common_unique_id

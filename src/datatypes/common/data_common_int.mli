@@ -17,7 +17,15 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Wrapper module for integer values to use with the [Set] and [Map] modules. *)
+
 (* Depends on nothing.
 *)
 
 module Int : sig type t = int val compare : t -> t -> int end
+
+(** Use: 
+    {ul 
+    {li [Set.Make(Int)] to have a set with integer elements,}
+    {li [Map.Make(Int)] to have a map with integer keys.}
+    } *)

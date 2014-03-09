@@ -17,12 +17,15 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(* 
-  "Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
-   full of the captured winds so he could sail easily home to Ithaca on
-   the gentle west wind."
+(** Zephyrus main module. *)
 
-   Zephyrus : one of the Anemoi and the Greek god of the west wind.
+(** {i
+    Aeolus, the Keeper of the Winds, gives Odysseus a tightly closed bag
+    full of the captured winds so he could sail easily home to Ithaca on
+    the gentle west wind.
+    }
+
+    Zephyrus in the Greek mythology is one of the Anemoi and the god of the west wind.
 *)
 
 (* for now, I just trigger the compilation of all files with the opening of the different key modules *)
@@ -56,7 +59,47 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
   | Settings.Out_file_graph_components   -> Dot_of.configuration Dot_of.Components_graph            u c
   | Settings.Out_file_graph_packages     -> Dot_of.configuration Dot_of.Packages_graph              u c
   | Settings.Out_file_binpacking_problem -> Json_binpacking_problem_of.configuration                u c
+  | Settings.Out_file_statistics         -> Data_statistics.to_string ()
 )
+
+
+(* TODO: Move it somewhere... *)
+let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmark) : (unit -> Benchmarks.benchmark) option =
+  let benchmark_choice, benchmark_options = benchmark_setting in
+  (* [option_fail option_name message] raises an exception about a problem [message] with benchmark's option [option_name]. *)
+  let option_fail option_name message = 
+    let benchmark_name = List.assoc benchmark_choice Settings.benchmark_choice_assoc_revert in
+    failwith (Printf.sprintf "Benchmark %s option %s problem: %s!" benchmark_name option_name message) in
+  (* [get_option key default] returns the value of the benchmark option [key] or the [default] value if this option was not defined. *)
+  let get_option key default = 
+    try List.assoc key benchmark_options with Not_found -> default in
+  (* [get_int_option key default] tries to return the value of the benchmark option [key] (or the [default] value if this option was not defined) converted to an integer. *)
+  let get_int_option key default = 
+    let option_value = get_option key default in 
+    try int_of_string option_value with _ -> option_fail key "is not an integer" in
+  match benchmark_choice with
+  | Settings.Benchmark_none -> None
+  | Settings.Benchmark_master_slave -> 
+      let master_require = get_int_option "master_require" "10" in
+      Some (fun () -> new Benchmarks.Master_worker.create master_require Benchmarks.Simple_machine_park.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
+  | Settings.Benchmark_wordpress -> 
+      let wordpress_require = get_int_option "wordpress_require" "3" in
+      let mysql_require     = get_int_option "mysql_require"     "3" in 
+      let mysql_provide     = get_int_option "mysql_provide"     "3" in 
+      let webservers        = get_int_option "webservers"        "0" in 
+      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_single_stub wordpress_require mysql_require mysql_provide webservers)
+  | Settings.Benchmark_wordpress_distributed -> 
+      let wordpress_require = get_int_option "wordpress_require"    "3" in
+      let mysql_require     = get_int_option "mysql_require"        "3" in 
+      let mysql_provide     = get_int_option "mysql_provide"        "3" in 
+      let dns_consume       = get_int_option "dns_consume"        "512" in 
+      let wordpress_consume = get_int_option "wordpress_consume" "2048" in 
+      let mysql_consume     = get_int_option "mysql_consume"     "2048" in 
+      Some (fun () -> new Benchmarks.Wordpress_distributed.create 
+                            (Benchmarks.Amazon_machine_park.Machine_park_old, 40)
+                            wordpress_require mysql_require mysql_provide
+                            dns_consume wordpress_consume mysql_consume)
+
 
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
@@ -64,7 +107,15 @@ let () = Load_settings.load ();
 
 
 (* === load everything  === *)
-let () = Load_model.set_initial_model_of_settings ();
+let () = 
+
+  (* Handle benchmarks *)
+  let (benchmark : (unit -> Benchmarks.benchmark) option) = create_benchmark_of_benchmark_setting (Settings.find Settings.benchmark) in
+
+  (match benchmark with
+  | None           -> Load_model.set_initial_model_of_settings ()
+  | Some benchmark -> Load_model.set_initial_model_of_benchmark (benchmark ()));
+
   (* Load_model.set_initial_model_of_benchmark (new Benchmarks.Master_worker.create 10 Benchmarks.Master_worker.Machine_park_100s Benchmarks.Master_worker.One_worker_type); *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
 
@@ -109,8 +160,8 @@ let () = Load_model.set_initial_model_of_settings ();
   let preprocess_solver = Solvers.of_settings Solvers.Main (* Solvers.Preprocess *) in
   let main_solver = Solvers.of_settings Solvers.Main in
   Zephyrus_log.log_data "\nINITIAL CONFIGURATION ==>\n" (lazy (Json_of.configuration u c));
-  Zephyrus_log.log_data "\nSPECIFICATION ==> " (lazy (String_of.specification s));
-  Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> " (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
+  Zephyrus_log.log_data "\nSPECIFICATION ==> "          (lazy (String_of.specification s));
+  Zephyrus_log.log_data "\nOPTIMIZATION FUNCTION ==> "  (lazy ((String_of.model_optimization_function f) ^ "\n\n\n"));
   Zephyrus_log.log_stage_end ();
 
 
@@ -216,22 +267,37 @@ let () = Load_model.set_initial_model_of_settings ();
   match main_solver solver_input_k solver_input_f with
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
+    Zephyrus_log.log_stage_end ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
 
+    if (Settings.find Settings.stop_after_solving)
+    then
+      Zephyrus_log.log_execution "Exiting after the solving phase, because the stop-after-solving option was specified!"
+    else
+
+    Zephyrus_log.log_stage_new "GENERATING FINAL CONFIGURATION SECTION";
     let partial_final_configuration = Configuration_of.solution u core_conf (fst solution) in
 (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
-    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
+    Zephyrus_log.log_stage_end ();
     
+    Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
+
+    (* Final configuration statistics *)
+    Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
+    Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
+
+    (* Output the outputs *)
     List.iter (fun (kind, filename) -> print_to_file kind filename u final_configuration) (Settings.find Settings.results)
   );
 
-  print_string "\n\n\n <==========> THE END <==========>  \n\n"
+  Zephyrus_log.log_execution "\n\n\n <==========> THE END <==========>  \n\n"
 
 
 (*
-(* test the database *)
 (* TODO: Remove this from here! *)
+
+(* test the database *)
 module Database_test = struct
   open Data_common_database.Database
   module DBBase = struct

@@ -1,9 +1,0 @@
-{
-	"locations" : [
-		{
-			"name" : "location",
-			"repository" : "repository",
-			"provide_resources" : [["resource", 100]]
-		}
-	]
-}

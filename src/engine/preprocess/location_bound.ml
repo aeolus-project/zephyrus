@@ -44,10 +44,19 @@ let step solve model lb =
   let (c, b) = Queue.take lb.q in let n = (b.min + b.max) / 2 in
   let c' = Data_model.Location_id_set.keep_elements n c in
   let ls = Data_model.Location_id_set.union c' (get_domain lb) in
-  let k = constraint_of model ls in print_string ("solving with n = " ^ (string_of_int n) ^ "\n"); flush stdout;
+  let k = constraint_of model ls in 
+  Zephyrus_log.log_execution (Printf.sprintf "solving with n = %d\n" n); flush stdout;
   match solve [("constraint", k)] (Data_constraint.Lexicographic []) with
-    | None   -> print_string "no solution\n"; if n = b.max then lb.continue <- false else Queue.add (c, { min = n + 1; max = b.max}) lb.q
-    | Some _ -> print_string "solution\n";if n = b.max then lb.s <- Location_categories.add c' lb.s else  Queue.add (c', { min = b.min; max = n}) lb.q
+    | None   -> 
+        Zephyrus_log.log_execution "no solution\n"; 
+        if n = b.max 
+        then lb.continue <- false 
+        else Queue.add (c, { min = n + 1; max = b.max}) lb.q
+    | Some _ -> 
+        Zephyrus_log.log_execution "solution\n";
+        if n = b.max
+        then lb.s <- Location_categories.add c' lb.s
+        else Queue.add (c', { min = b.min; max = n}) lb.q
 let rec all_steps solve model lb =
   if lb.continue && (not (Queue.is_empty lb.q)) then (step solve model lb; all_steps solve model lb)
 

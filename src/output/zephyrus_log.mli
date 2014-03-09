@@ -17,6 +17,8 @@
 (*                                                                          *)
 (****************************************************************************)
 
+(** Execution logs. *)
+
 (* Depends on
     - input/Settings (to know what to log)
     - Printf (standard library, for logging of course)

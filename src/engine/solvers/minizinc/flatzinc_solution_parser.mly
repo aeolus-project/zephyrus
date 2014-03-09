@@ -28,15 +28,22 @@
 %token EQ SEMICOLON
 %token EOF
 %token UNSATISFIABLE
+%token HLINE
 %start main                  /* the entry point */
 %type <int Minizinc.Name_map.t option> main
 %%
 main:
-  | UNSATISFIABLE         { None }
-  | variable_bindings EOF { Some($1) }
+  | UNSATISFIABLE { None }
+  | variable_bindings hlines EOF  { Some($1) }
+  | variable_bindings        EOF  { Some($1) }
+  | variable_bindings hlines main {      $3  }
 ;
 
-minizinc_variable :
+hlines:
+  | HLINE hlines {}
+  | HLINE        {}
+
+minizinc_variable:
   | NAME { $1 }
 
 value :
