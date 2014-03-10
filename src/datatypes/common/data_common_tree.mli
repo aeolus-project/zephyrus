@@ -17,46 +17,21 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Some common data structures and operations on them. *)
+(** Operations on polymorphic trees. *)
 
-(* Depends on
-    -Data_common_int
-    -Data_common_list
-    -Data_common_set
-    -Data_common_map
-    -Data_common_unique_id
-    -Data_common_mapping
-    -Data_common_catalog
+(* Depends on nothing.
 *)
 
-(** Wrapper module for integer values to use with the [Set] and [Map] modules.
-    It has the same type as [Set.OrderedType] and [Map.OrderedType]. *)
-include module type of Data_common_int
+(** A polymorphic tree with data in nodes and leafs. *)
+type ('node_data, 'leaf_data) tree =
+  | Node of 'node_data * ('node_data, 'leaf_data) tree list
+  | Leaf of 'leaf_data
 
-(** {2 Custom and extended versions of standard library modules.} *)
+(** Abstract representation of tree traversal. *)
+type ('node_data, 'leaf_data) tree_walk_step =
+  | Entered_node of 'node_data
+  | Exitted_node of 'node_data
+  | Reached_leaf of 'leaf_data
 
-(** Custom extension of the [List] module from the standard library. *)
-include module type of Data_common_list
-
-(** Custom extension of the [Set] module from the standard library with construction and conversion. *)
-include module type of Data_common_set 
-(** Custom extension of the [Map] module from the standard library with construction, conversion and extraction. *)
-include module type of Data_common_map 
-
-
-(** {2 Some basic tools used mostly for managing identifiers and mappings between them.} *)
-
-(** Unique identifier management *)
-include module type of Data_common_unique_id
-
-(** One-way mappings. *)
-include module type of Data_common_mapping
-
-(** Catalogs: two-way mappings. *)
-include module type of Data_common_catalog
-
-
-(** {3 Other.} *)
-
-(** Generic trees. *)
-include module type of Data_common_tree
+(** [walk t] traverses the polymorphic tree [t] depth-first recording every step and returns the list of traversal steps. *)
+val walk : ('node_data, 'leaf_data) tree -> ('node_data, 'leaf_data) tree_walk_step list
