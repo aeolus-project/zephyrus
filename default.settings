@@ -8,3 +8,10 @@
 # Uncomment these lines to always use a custom solver:
 #solver = custom
 #custom-solver-command = "flatzinc -o <OUT> <IN>"
+
+# Uncomment these lines to get maximum debug printing:
+#verbose-level = 2
+#verbose-data = y
+
+# Uncomment these lines to output simple results (final configuration in form of a JSON file and a deployment graph):
+#results = [("json-v1", "output.json"); ("graph-deployment", "output.dot")]
