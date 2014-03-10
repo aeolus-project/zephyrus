@@ -201,6 +201,7 @@ struct
     | Machine_park_old
     | Machine_park_new
     | Machine_park_old_and_new
+    | Machine_park_single_type of machine_choice
 
   let initial_configuration_of_machine_park machine_park_choice machine_park_size : location list =
     match machine_park_choice with
@@ -225,6 +226,9 @@ struct
         (make_machines (new_machine New_large  ) (machine_park_size / 8)) @ 
         (make_machines (new_machine New_xlarge ) (machine_park_size / 8)) @
         (make_machines (new_machine New_2xlarge) (machine_park_size / 8))
+
+    | Machine_park_single_type (machine_choice) ->
+        (make_machines (new_machine machine_choice) (machine_park_size))
 
 end
 
