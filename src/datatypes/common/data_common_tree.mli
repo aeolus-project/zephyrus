@@ -27,6 +27,12 @@ type ('node_data, 'leaf_data) tree =
   | Node of 'node_data * ('node_data, 'leaf_data) tree list
   | Leaf of 'leaf_data
 
+val fold_tree : ('leaf_data -> 'a) -> ('node_data -> 'a list -> 'a) -> ('node_data, 'leaf_data) tree -> 'a
+
+val foldi_tree : (int list -> 'leaf_data -> 'a) -> (int list -> 'node_data -> 'a list -> 'a) -> ('node_data, 'leaf_data) tree -> 'a
+
+val map_tree : ('leaf_data -> 'a) -> ('node_data -> 'b) -> ('node_data, 'leaf_data) tree -> ('b, 'a) tree
+
 (** Abstract representation of tree traversal. *)
 type ('node_data, 'leaf_data) tree_walk_step =
   | Entered_node of 'node_data
@@ -34,4 +40,6 @@ type ('node_data, 'leaf_data) tree_walk_step =
   | Reached_leaf of 'leaf_data
 
 (** [walk t] traverses the polymorphic tree [t] depth-first recording every step and returns the list of traversal steps. *)
-val walk : ('node_data, 'leaf_data) tree -> ('node_data, 'leaf_data) tree_walk_step list
+val walk  : ('node_data, 'leaf_data) tree -> ('node_data, 'leaf_data) tree_walk_step list
+
+val walki : ('node_data, 'leaf_data) tree -> (int list * ('node_data, 'leaf_data) tree_walk_step) list
