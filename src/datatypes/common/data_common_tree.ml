@@ -20,14 +20,18 @@
 (* Depends on nothing.
 *)
 
-type ('node_data, 'leaf_data) tree =
-  | Node of 'node_data * ('node_data, 'leaf_data) tree list
+type ('leaf_data, 'node_data) tree =
+  | Node of 'node_data * ('leaf_data, 'node_data) tree list
   | Leaf of 'leaf_data
 
 let rec fold_tree f_leaf f_node tree =
   match tree with
   | Leaf (leaf_data)           -> f_leaf leaf_data
   | Node (node_data, children) -> f_node node_data (List.map (fold_tree f_leaf f_node) children)
+
+type tree_index = int list
+
+let tree_level_of_tree_index = List.length
 
 let foldi_tree f_leaf f_node tree =
   let rec foldi_tree' tree index =
@@ -44,10 +48,12 @@ let map_tree f_leaf f_node =
     (fun leaf_data          -> Leaf (f_leaf leaf_data))
     (fun node_data children -> Node (f_node node_data, children) )
 
-type ('node_data, 'leaf_data) tree_walk_step =
+type ('leaf_data, 'node_data) tree_walk_step =
   | Entered_node of 'node_data
   | Exitted_node of 'node_data
   | Reached_leaf of 'leaf_data
+
+type ('leaf_data, 'node_data) indexed_tree_walk_step = (tree_index * ('leaf_data, 'node_data) tree_walk_step)
 
 let walk tree =
   fold_tree

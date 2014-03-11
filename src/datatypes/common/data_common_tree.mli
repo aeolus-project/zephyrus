@@ -23,23 +23,46 @@
 *)
 
 (** A polymorphic tree with data in nodes and leafs. *)
-type ('node_data, 'leaf_data) tree =
-  | Node of 'node_data * ('node_data, 'leaf_data) tree list
+type ('leaf_data, 'node_data) tree =
+  | Node of 'node_data * ('leaf_data, 'node_data) tree list
   | Leaf of 'leaf_data
 
-val fold_tree : ('leaf_data -> 'a) -> ('node_data -> 'a list -> 'a) -> ('node_data, 'leaf_data) tree -> 'a
 
-val foldi_tree : (int list -> 'leaf_data -> 'a) -> (int list -> 'node_data -> 'a list -> 'a) -> ('node_data, 'leaf_data) tree -> 'a
+(** Fold *)
 
-val map_tree : ('leaf_data -> 'a) -> ('node_data -> 'b) -> ('node_data, 'leaf_data) tree -> ('b, 'a) tree
+(** [fold_tree leaf_f node_f t] folds the polymorphic tree [t] using the functions [leaf_f leaf_data] and [node_f node_data children]. *)
+val fold_tree : ('leaf_data -> 'a) -> ('node_data -> 'a list -> 'a) -> ('leaf_data, 'node_data) tree -> 'a
 
-(** Abstract representation of tree traversal. *)
-type ('node_data, 'leaf_data) tree_walk_step =
+(** An index describing the position of a given node or leaf in the tree. *)
+type tree_index = int list
+
+(** [tree_level_of_tree_index index] returns a level of profondity in the tree of the node or leaf with the given tree index [index]. *)
+val tree_level_of_tree_index : tree_index -> int
+
+(** [foldi_tree leaf_f node_f t] folds the polymorphic tree [t] using the functions [leaf_f index leaf_data] and [node_f index node_data children]. *)
+val foldi_tree : (tree_index -> 'leaf_data -> 'a) -> (tree_index -> 'node_data -> 'a list -> 'a) -> ('leaf_data, 'node_data) tree -> 'a
+
+
+(** Map *)
+
+(** [map_tree leaf_f node_f t] folds the polymorphic tree [t] using the functions [leaf_f leaf_data] and [node_f node_data]. *)
+val map_tree : ('leaf_data -> 'a) -> ('node_data -> 'b) -> ('leaf_data, 'node_data) tree -> ('a, 'b) tree
+
+
+(** Walk *)
+
+(** Abstract representation of tree traversal step. *)
+type ('leaf_data, 'node_data) tree_walk_step =
   | Entered_node of 'node_data
   | Exitted_node of 'node_data
   | Reached_leaf of 'leaf_data
 
-(** [walk t] traverses the polymorphic tree [t] depth-first recording every step and returns the list of traversal steps. *)
-val walk  : ('node_data, 'leaf_data) tree -> ('node_data, 'leaf_data) tree_walk_step list
+(** Abstract representation of tree traversal step which includes the tree index of the node or leaf mentioned in the step. *)
+type ('leaf_data, 'node_data) indexed_tree_walk_step = (tree_index * ('leaf_data, 'node_data) tree_walk_step)
 
-val walki : ('node_data, 'leaf_data) tree -> (int list * ('node_data, 'leaf_data) tree_walk_step) list
+
+(** [walk t] traverses the polymorphic tree [t] depth-first recording every step and returns the list of traversal steps. *)
+val walk  : ('leaf_data, 'node_data) tree -> ('leaf_data, 'node_data) tree_walk_step list
+
+(** [walki t] traverses the polymorphic tree [t] depth-first recording every step and returns the list of indexed traversal steps. *)
+val walki : ('leaf_data, 'node_data) tree -> ('leaf_data, 'node_data) indexed_tree_walk_step list
