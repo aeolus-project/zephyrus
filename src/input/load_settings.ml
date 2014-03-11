@@ -50,8 +50,6 @@ let repository_files = ref []
 let out_kinds = ref []
 let out_files = ref []
 
-let use_all_locations = ref false
-
 (* Benchmarks *)
 let benchmark_choice = ref None
 let benchmark_option_keys   = ref []
@@ -77,9 +75,10 @@ let speclist =
                     ), " Specify a benchmark option: (key, value).");
 
     (* Solving options *)
-    ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
-    ("-no-packages",  Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
-    ("-mode",         Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
+    ("-prefix-repos",      Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
+    ("-no-packages",       Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
+    ("-use-all-locations", Arg.Unit (Settings.enable_no_location_trimming),   " Do not try to reduce the number of locations during the preprocessing.");
+    ("-mode",              Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
 
     (* Optimization function argument, solver choice *)
     ("-opt",    Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function.");
@@ -89,7 +88,6 @@ let speclist =
 
     (* Preprocessor options *)
 
-    ("-use-all-locations",  Arg.Set use_all_locations,     " Do not try to reduce the number of locations before optimising.");
 
 
     (* Output arguments *)

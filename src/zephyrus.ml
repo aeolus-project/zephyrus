@@ -229,7 +229,7 @@ let () =
       | Some(cat') -> cat' in
   Zephyrus_log.log_data "CATEGORIES FULLY TRIMMED ==> " (lazy ((String_of.location_categories cat') ^ "\n\n"));
   Zephyrus_log.log_execution "\nTrimming configuration...";
-  let domain_init = Location_categories.domain (if !Load_settings.use_all_locations then cat else cat'') in
+  let domain_init = Location_categories.domain (if Settings.find Settings.no_location_trimming then cat else cat'') in
   let domain = if keep_initial_configuration then Trim.transitive_closure_domain c domain_init else domain_init in
   let (core_conf, annex_conf_init) = Trim.configuration c domain in
   let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
