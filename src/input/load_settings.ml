@@ -50,6 +50,8 @@ let repository_files = ref []
 let out_kinds = ref []
 let out_files = ref []
 
+let use_all_locations = ref false
+
 (* Benchmarks *)
 let benchmark_choice = ref None
 let benchmark_option_keys   = ref []
@@ -84,6 +86,11 @@ let speclist =
     ("-solver", Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver),                      " The solver choice."); 
     ("-custom-solver-command",  Arg.String (fun custom_solver_command  -> Settings.add_string Settings.custom_solver_command custom_solver_command),   " The custom solver command" (* ^ "(example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
     ("-custom-fzn2mzn-command", Arg.String (fun custom_mzn2fzn_command -> Settings.add_string Settings.custom_mzn2fzn_command custom_mzn2fzn_command), " The custom mzn2fzn converter command" (* ^ "(example: \"mzn2fzn -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
+
+    (* Preprocessor options *)
+
+    ("-use-all-locations",  Arg.Set use_all_locations,     " Do not try to reduce the number of locations before optimising.");
+
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (

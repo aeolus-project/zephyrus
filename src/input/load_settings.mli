@@ -26,4 +26,6 @@
  - input/Setgings_lexer
 *)
 
+val use_all_locations : bool ref
+
 val load : unit -> unit
