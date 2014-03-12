@@ -25,7 +25,9 @@ cases=( `${script_dir}/smart-parameters.bash \"${input}\" | shuf` )
 unset IFS
 echoerr "Parameter sets ready!"
 
-for cases_i in `seq 0 $((${#cases[*]} - 1))`; do
+last_case_i="$((${#cases[*]} - 1))"
+
+for cases_i in `seq 0 ${last_case_i}`; do
 
 #echo "case $cases_i : ${cases[$cases_i]}"
 case="${cases[$cases_i]}"
@@ -45,7 +47,7 @@ zephyrus_command=${zephyrus_command%\"}
 tmp_time_file_1=`mktemp zephyrus_benchmark_time_XXXXX`
 time_cmd_1="/usr/bin/time -o ${tmp_time_file_1} --format=${format_description_1}"
 
-echo -e "> Benchmark:\n${exec_stats}"
+echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}"
 echo -e "> Running (without generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
 cmd="${time_cmd_1} timeout ${timeout_in_seconds}s ${zephyrus_command} -stop-after-solving"
 #echo "$cmd"
