@@ -95,8 +95,9 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
       let dns_consume       = get_int_option "dns_consume"        "512" in 
       let wordpress_consume = get_int_option "wordpress_consume" "2048" in 
       let mysql_consume     = get_int_option "mysql_consume"     "2048" in 
+      let machine_park_size = get_int_option "park_size"           "40" in 
       Some (fun () -> new Benchmarks.Wordpress_distributed.create 
-                            (Benchmarks.Amazon_machine_park.Machine_park_old, 40)
+                            (Benchmarks.Amazon_machine_park.Machine_park_old, machine_park_size)
                             (* (Benchmarks.Amazon_machine_park.Machine_park_single_type (Benchmarks.Amazon_machine_park.Old_medium), 10) *)
                             wordpress_require mysql_require mysql_provide
                             dns_consume wordpress_consume mysql_consume)
@@ -229,7 +230,7 @@ let () =
       | Some(cat') -> cat' in
   Zephyrus_log.log_data "CATEGORIES FULLY TRIMMED ==> " (lazy ((String_of.location_categories cat') ^ "\n\n"));
   Zephyrus_log.log_execution "\nTrimming configuration...";
-  let domain_init = Location_categories.domain cat'' in
+  let domain_init = Location_categories.domain (if Settings.find Settings.no_location_trimming then cat else cat'') in
   let domain = if keep_initial_configuration then Trim.transitive_closure_domain c domain_init else domain_init in
   let (core_conf, annex_conf_init) = Trim.configuration c domain in
   let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
@@ -256,7 +257,7 @@ let () =
   Constraint_of.configuration_full ();
   Constraint_of.optimization_function_full ();
   Location_categories.generate_categories ();
-  let cat_constraint = Location_categories.generate_constraint () in
+  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) () in
   let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full ()) in
   Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_k) ^ "\n\n"));
   let solver_input_f = Data_state.get_constraint_optimization_function () in

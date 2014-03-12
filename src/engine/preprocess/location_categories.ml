@@ -66,14 +66,19 @@ let full_categories u c =  Location_categories.compute (compare_full u c) c#get_
 (*|   the number of elements installed on the location $i$ is greater or equal to the number of elements installed on location $i+1$ *)
 
 
-let elements_of_location u l = sum ((List.map (fun t -> Variable(Local_variable(l, Component_type(t)))) (Component_type_id_set.elements u#get_component_type_ids))
-                                  @ (List.map (fun k -> Variable(Local_variable(l, Package(k)))) (Package_id_set.elements u#get_package_ids)))
-let constraint_of_category u s =
+let elements_of_location (no_packages : bool) u l = 
+  let components = (List.map (fun t -> Variable(Local_variable(l, Component_type(t)))) (Component_type_id_set.elements u#get_component_type_ids)) in
+  let packages   = (List.map (fun k -> Variable(Local_variable(l, Package(k)))       ) (Package_id_set.elements        u#get_package_ids)) in
+  if no_packages 
+  then sum  components
+  else sum (components @ packages)
+
+let constraint_of_category (no_packages : bool) u s =
   let rec f ls =  match ls with
   | [] -> [] | [l] -> []
-  | l1::l2::ls' -> ( (elements_of_location u l1) <=~ (elements_of_location u l2) ) ::(f (l2::ls')) in f (Location_id_set.elements s)
+  | l1::l2::ls' -> ( (elements_of_location no_packages u l1) <=~ (elements_of_location no_packages u l2) ) ::(f (l2::ls')) in f (Location_id_set.elements s)
 
-let constraint_of u ss = conj (Location_id_set_set.fold (fun s res -> res @ (constraint_of_category u s)) ss [])
+let constraint_of (no_packages : bool) u ss = conj (Location_id_set_set.fold (fun s res -> res @ (constraint_of_category no_packages u s)) ss [])
 
 
 (*/************************************)
@@ -87,8 +92,8 @@ let generate_categories () = match (!Data_state.universe_full, !Data_state.initi
     | _ -> categories := resource_categories u c)
   | _ -> ()
 
-let generate_constraint () = match !Data_state.universe_full with
-  | Some(u) -> constraint_of u !categories
+let generate_constraint (no_packages : bool) () = match !Data_state.universe_full with
+  | Some(u) -> constraint_of no_packages u !categories
   | _ -> True
 
 

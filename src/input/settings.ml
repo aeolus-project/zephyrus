@@ -358,6 +358,7 @@ let import_optimization_function = ("import-optimization-function", bool_setting
 
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
 let eliminate_packages = ("eliminate-packages", bool_setting)
+let no_location_trimming = ("use-all-locations", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
 let flatten = ("flatten-the-model", bool_setting)
 let stop_after_solving = ("stop-after-solving", bool_setting)
@@ -429,6 +430,7 @@ let all_settings = [
     import_optimization_function;        (* IMPLEMENTED BUT USELESS *) (* Should Zephyrus use the provided optimization function parameter? *)
     append_repository_to_package_name;   (* Prefix every package name with its repository name in the output. *)
     eliminate_packages;                  (* Eliminate the packages from solving, use component incompatibilities instead. *)
+    no_location_trimming;                (* Do not try to reduce the number of locations during the preprocessing. *)
     check_universe;                      (* UNUSED *)
     check_repositories;                  (* UNUSED *)
     check_initial_configuration;         (* UNUSED *)
@@ -559,6 +561,7 @@ let add_benchmark b =
 
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
 let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
+let enable_no_location_trimming   () = add no_location_trimming              (BoolValue true)
 let enable_stop_after_solving     () = add stop_after_solving                (BoolValue true)
 
 let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None

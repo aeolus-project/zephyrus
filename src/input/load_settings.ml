@@ -75,15 +75,20 @@ let speclist =
                     ), " Specify a benchmark option: (key, value).");
 
     (* Solving options *)
-    ("-prefix-repos", Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
-    ("-no-packages",  Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
-    ("-mode",         Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
+    ("-prefix-repos",      Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
+    ("-no-packages",       Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
+    ("-use-all-locations", Arg.Unit (Settings.enable_no_location_trimming),   " Do not try to reduce the number of locations during the preprocessing.");
+    ("-mode",              Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
 
     (* Optimization function argument, solver choice *)
     ("-opt",    Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function.");
     ("-solver", Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver),                      " The solver choice."); 
     ("-custom-solver-command",  Arg.String (fun custom_solver_command  -> Settings.add_string Settings.custom_solver_command custom_solver_command),   " The custom solver command" (* ^ "(example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
     ("-custom-fzn2mzn-command", Arg.String (fun custom_mzn2fzn_command -> Settings.add_string Settings.custom_mzn2fzn_command custom_mzn2fzn_command), " The custom mzn2fzn converter command" (* ^ "(example: \"mzn2fzn -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
+
+    (* Preprocessor options *)
+
+
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (

@@ -54,3 +54,9 @@ include module type of Data_common_mapping
 
 (** Catalogs: two-way mappings. *)
 include module type of Data_common_catalog
+
+
+(** {3 Other.} *)
+
+(** Generic trees. *)
+include module type of Data_common_tree

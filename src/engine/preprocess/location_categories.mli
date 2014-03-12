@@ -30,4 +30,4 @@ val domain : t -> Data_model.Location_id_set.t
 val resource_categories : Data_model.universe -> Data_model.configuration -> Data_model.Location_id_set_set.t
 val full_categories : Data_model.universe -> Data_model.configuration -> t
 val generate_categories : unit -> unit
-val generate_constraint : unit -> Data_constraint.konstraint
+val generate_constraint : bool -> unit -> Data_constraint.konstraint
