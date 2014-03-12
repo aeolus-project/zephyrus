@@ -33,10 +33,13 @@ include Location_id_set_set
 let domain ss = fold (fun s res -> Location_id_set.union s res) ss Location_id_set.empty
 
 (*/************************************)
-(*| category computation part *)
+(*| category computation part                                                                                                                         *)
+(*|  this part computes the set L/R where L is the set of location and R is an equivalence relation based on the characteristics of the locations.    *)
+(*|  currently, we have two relation R:                                                                                                               *)
+(*|   - when locations are characterized only with the amount of provided resources (function resource_categories)                                    *)
+(*|   - when, in addition of the amount of provided resources, also the installed repository, packages and component count (function full_categories) *)
 
-
-
+(* bunch of functions to compare two locations, with a specific criteria *)
 let compare_components (u: universe) (c: configuration) l1 l2 =
   Component_type_id_set.fold (fun t b -> b &&
      ((Component_id_set.cardinal (c#get_local_component l1 t)) = ((Component_id_set.cardinal(c#get_local_component l2 t)))) ) u#get_component_type_ids true
@@ -58,7 +61,10 @@ let resource_categories u c = Location_categories.compute (fun l1 l2 -> compare_
 let full_categories u c =  Location_categories.compute (compare_full u c) c#get_location_ids
 
 (*/************************************)
-(*| constraint computation part *)
+(*| constraint computation part                                                                                                      *)
+(*| this part computes a constraint that break symmetry of locations for the solver:                                                 *)
+(*|   the number of elements installed on the location $i$ is greater or equal to the number of elements installed on location $i+1$ *)
+
 
 let elements_of_location u l = sum ((List.map (fun t -> Variable(Local_variable(l, Component_type(t)))) (Component_type_id_set.elements u#get_component_type_ids))
                                   @ (List.map (fun k -> Variable(Local_variable(l, Package(k)))) (Package_id_set.elements u#get_package_ids)))

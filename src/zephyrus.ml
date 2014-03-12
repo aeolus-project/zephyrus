@@ -221,7 +221,7 @@ let () =
   Zephyrus_log.log_stage_new "TRIMMING LOCATIONS";
   Zephyrus_log.log_data "INITIAL CATEGORIES ==> " (lazy ((String_of.location_categories cat) ^ "\n"));
   
-  let cat' = Variable_bounds.trim_categories cat fu in
+  let cat' = Variable_bounds.trim_categories cat fu in (* for each location category, only keep MIN(nb_location_in_cat, nb_max_component) *)
   Zephyrus_log.log_data "CATEGORIES FIRST TRIM ==> " (lazy ((String_of.location_categories cat') ^ "\n"));
    
   let cat'' = match Location_bound.fit_categories preprocess_solver (u,c,s) cat' with

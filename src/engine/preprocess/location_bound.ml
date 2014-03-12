@@ -18,6 +18,9 @@
 (****************************************************************************)
 
 
+(* this file contains the algorithm that compute the minimal number of required locations per category to host the configuration specified by the user *)
+
+(* this function simply computes the constraint corresponding to the input universe, configuration and specification *)
 let constraint_of (universe, config, spec) ls_ids = (* TODO: put in constraint_of with model_with_domain *)
   let (_, k_universe) = List.split (Constraint_of.universe ls_ids universe) in
   let (_, k_config)   = List.split (Constraint_of.locations universe#get_resource_ids ls_ids config#get_location) in
@@ -25,22 +28,22 @@ let constraint_of (universe, config, spec) ls_ids = (* TODO: put in constraint_o
   Data_constraint.NaryKonstraint((Data_constraint.And), ((List.flatten k_universe) @ (List.flatten k_config) @ k_spec))
 
 
-type bounds = { min : int; max : int }
-type el = Data_model.Location_id_set.t * bounds
-type t = { q : el Queue.t; mutable s : Location_categories.t; mutable continue : bool }
+type bounds = { min : int; max : int }                                                  (* used for dychotomic search *)
+type el = Data_model.Location_id_set.t * bounds                                         (* subset of a category, with its bound *)
+type t = { q : el Queue.t; mutable s : Location_categories.t; mutable continue : bool } (* q: the categories to process, s: the result of the computation, continue: true if we didn't find a fix point *)
 
+(* create categories create the t structure corresponding to categories that serves as input to the fix point algorigthm *)
 let bounds_create s = { min = 0; max = Data_model.Location_id_set.cardinal s }
-
 let create categories = 
   let q = Queue.create () in
   Location_categories.iter (fun s -> Queue.add (s, bounds_create s) q) categories;
   { q = q; s = Location_categories.empty; continue = true }
 
-
+(* return the set of locations contained in the queue of a t structure *)
 let get_domain lb = Queue.fold (fun res (c, _) -> Data_model.Location_id_set.union res c)
   (Location_categories.fold (fun c res -> Data_model.Location_id_set.union res c)  lb.s Data_model.Location_id_set.empty) lb.q
 
-let step solve model lb =
+let step solve model lb = (* dycothomic function, *)
   let (c, b) = Queue.take lb.q in let n = (b.min + b.max) / 2 in
   let c' = Data_model.Location_id_set.keep_elements n c in
   let ls = Data_model.Location_id_set.union c' (get_domain lb) in

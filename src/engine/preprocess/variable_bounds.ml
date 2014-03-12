@@ -144,6 +144,25 @@ type flat_universe = {
 }
 
 
+(** Principle of the algorithm
+ - first, we construct the dependency graph of for the component types of the universe
+ - in parallel, we compute the bounds of the component types in the specification
+   - currently, the specification language does not help: it is very difficult (impossible?) to simply extract bounds from it
+   - I thus use the solver only on the specification, without dependencies, to get the bounds on the variables in the spec
+   - minimilizing the values for the variables to get the lower bound
+   - maximizing the values for the variables to get the upper bound (by construction, we abstract 10000 to be infty)
+ - Second, we set these bounds in the dependency graph
+ - Third, we propagate these bounds to the other component types, using the dependency graph
+   - the lower bound is propagated following the dependency relation
+   - the upper bound for some component types is set using the conflict relation
+   - the upper bound is propagated following the provide relation
+
+ - Fourth, perform a propagation that is sound only when we want to minimize the number of components in the resulting sytem:
+   - we set the upper bound of the roots of the graph to the lower bound
+   - and we propagate following the dependency relation
+*)
+
+
 (*/************************************************************************\*)
 (*| 2. Utility Functions                                                   |*)
 (*\************************************************************************/*)
