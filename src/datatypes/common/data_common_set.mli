@@ -47,8 +47,10 @@ module Set : sig
     (** [filter_map_to_list f s] converts the set [s] to a list, applying the function [f] to each element from the set. If for a given element [el] function [f el] returns [Some x], then the value [x] is included in the returned list. If [f el] returns [None], then the element is discarded. *)
     val filter_map_to_list: (elt -> 'a option) -> t -> 'a list
     
-    (** TODO: What is this function doing? *)
+    (** [keep_elements n s] extract one subset [s'] of [s] such that that the cardinality of [s'] is equal to [\min(n,card(s))] *)
     val keep_elements : int -> t -> t
+    (** [keep_best_elements n c s] extract one subset [s'] of [s] such that that the cardinality of [s'] is equal to [min(n,card(s))] and that for all elements [e\in s'] and [e'\in s\setiminus s'] we have [e'\leq e] w.r.t. the comparison function [c]*)
+    val keep_best_elements : int -> (elt -> elt -> int) -> t -> t
 
   end
   
