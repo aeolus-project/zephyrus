@@ -256,7 +256,7 @@ let () =
   Constraint_of.configuration_full ();
   Constraint_of.optimization_function_full ();
   Location_categories.generate_categories ();
-  let cat_constraint = Location_categories.generate_constraint () in
+  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) () in
   let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full ()) in
   Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_k) ^ "\n\n"));
   let solver_input_f = Data_state.get_constraint_optimization_function () in
