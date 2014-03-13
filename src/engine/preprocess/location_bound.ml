@@ -34,41 +34,46 @@ type t = { q : el Queue.t; mutable s : Location_categories.t; mutable continue :
 
 (* create categories create the t structure corresponding to categories that serves as input to the fix point algorigthm *)
 let bounds_create s = { min = 0; max = Data_model.Location_id_set.cardinal s }
-let create categories = 
-  let q = Queue.create () in
+let create categories = Location_categories.map_to_list (fun c -> (c,bounds_create c)) categories
+(*  let q = Queue.create () in
   Location_categories.iter (fun s -> Queue.add (s, bounds_create s) q) categories;
-  { q = q; s = Location_categories.empty; continue = true }
+  { q = q; s = Location_categories.empty; continue = true }*)
 
 (* return the set of locations contained in the queue of a t structure *)
 let get_domain lb = Queue.fold (fun res (c, _) -> Data_model.Location_id_set.union res c)
   (Location_categories.fold (fun c res -> Data_model.Location_id_set.union res c)  lb.s Data_model.Location_id_set.empty) lb.q
 
-let step solve model lb = (* dycothomic function, *)
-  let (c, b) = Queue.take lb.q in let n = (b.min + b.max) / 2 in
-  let c' = Data_model.Location_id_set.keep_elements n c in
-  let ls = Data_model.Location_id_set.union c' (get_domain lb) in
-  let k = constraint_of model ls in 
+
+
+let step solve ((u,conf,s) as model) (c,b) = (* dycothomic function, *)
+  let compare l1 l2 = (conf#get_location l2)#cost - (conf#get_location l1)#cost in
+  let n = (b.min + b.max) / 2 in
+  let c' = Data_model.Location_id_set.keep_best_elements n compare c in
+  let k = constraint_of model c' in 
   Zephyrus_log.log_execution (Printf.sprintf "solving with n = %d\n" n); flush stdout;
   match solve [("constraint", k)] (Data_constraint.Lexicographic []) with
-    | None   -> 
-        Zephyrus_log.log_execution "no solution\n"; 
-        if n = b.max 
+    | None   -> Zephyrus_log.log_execution "no solution\n"; (c, { min = n + 1; max = b.max})
+(*        if n = b.max 
         then lb.continue <- false 
-        else Queue.add (c, { min = n + 1; max = b.max}) lb.q
-    | Some _ -> 
-        Zephyrus_log.log_execution "solution\n";
-        if n = b.max
+        else Queue.add (c, { min = n + 1; max = b.max}) lb.q *)
+    | Some _ -> Zephyrus_log.log_execution "solution\n"; (c', { min = b.min; max = n})
+(*        if n = b.max
         then lb.s <- Location_categories.add c' lb.s
-        else Queue.add (c', { min = b.min; max = n}) lb.q
-let rec all_steps solve model lb =
-  if lb.continue && (not (Queue.is_empty lb.q)) then (step solve model lb; all_steps solve model lb)
+        else Queue.add (c', { min = b.min; max = n}) lb.q*)
+
+let rec all_steps_category solve model (c,b) =
+  let (c',b') = step solve model (c,b) in
+  if (b'.max < b'.min) or (b.max = b'.max) then c'
+  else all_steps_category solve model (c',b')
+
+let rec all_steps solve model lb = match lb with
+ | [] -> Location_categories.empty
+ | el::lb' -> let cs = all_steps solve model lb' in Location_categories.add (all_steps_category solve model el) cs
+(*  if lb.continue && (not (Queue.is_empty lb.q)) then (step solve model lb; all_steps solve model lb)*)
 
 
 let fit_categories solve model categories =
-  let lb = create categories in
-  all_steps solve model lb;
-  if lb.continue then Some(lb.s)
-  else None
+  let lb = create categories in Some(all_steps solve model lb)
 
 
 
