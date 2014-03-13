@@ -230,12 +230,17 @@ let package_conflict c_l u_dk get_package =
 
 
   (* Resource consumptions *)
-let resource_consumption c_l resource_ids u_dt u_dk get_component_type get_package =
+let resource_consumption c_l resource_ids u_dt u_dk get_component_type get_package get_location =
   Zephyrus_log.log_constraint_execution "Compute resource consumption\n";
   Data_model.Location_id_set.fold (fun l res ->
+    let location = get_location l in
     Data_model.Resource_id_set.fold (fun o res ->
-      ((sum (Data_model.Package_id_set.fold (fun k res -> ((get_consume (get_package k) o) *~ (eNlk l k))::res) u_dk
-              (Data_model.Component_type_id_set.fold (fun t res -> ((get_consume (get_component_type t) o) *~ (eNlt l t))::res) u_dt []))) <=~ (eO l o))::res
+      let resources_provided = ( (eO l o) =~ (constant (location#provide_resources o)) ) in
+      let resources_consumed =
+        ((sum (Data_model.Package_id_set       .fold (fun k res -> ((get_consume (get_package        k) o) *~ (eNlk l k))::res) u_dk
+              (Data_model.Component_type_id_set.fold (fun t res -> ((get_consume (get_component_type t) o) *~ (eNlt l t))::res) u_dt 
+          []))) <=~ (eO l o)) in
+      resources_provided::resources_consumed::res
     ) resource_ids res
   ) c_l []
 
@@ -281,7 +286,7 @@ let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
   ("location packages"       , Data_constraint.conj (location_package u_dk c_l));
   ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) ]
 
-let universe location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
+let universe location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
@@ -295,12 +300,12 @@ let universe location_ids universe = [ (* TODO: replace the references with desc
     (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ;
     (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#get_package_ids universe#get_package) ;
     (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#get_package_ids universe#get_package) ;
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package) ;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location) ;
     (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages location_ids);
     (Data_state.constraint_universe_used_locations          , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) ]
 
 (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-let universe_incompatibilities location_ids universe = [ (* TODO: replace the references with description, and let Data_state do the settings *)
+let universe_incompatibilities location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
@@ -314,7 +319,7 @@ let universe_incompatibilities location_ids universe = [ (* TODO: replace the re
 (*  (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ; *)
 (*  (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#get_package_ids universe#get_package) ; *)
 (*  (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#get_package_ids universe#get_package) ; *)
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package) ;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location) ;
     (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages ~and_packages:false location_ids);
     (Data_state.constraint_universe_used_locations          , used_locations universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty location_ids) ;
     (Data_state.constraint_universe_incompatibilities       , incompatibilities (Incompatibilities_of.universe universe) location_ids) ]
@@ -337,7 +342,7 @@ let universe_full () =
     Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package;
     Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package;
     Data_state.constraint_universe_resource_consumption          :=
-      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package;
+      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#get_location_ids;
     Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids universe#get_package_ids configuration#get_location_ids;
   in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
@@ -362,7 +367,7 @@ let universe_full_incompatibilities () =
 (*  Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package; *)
 (*  Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package; *)
     Data_state.constraint_universe_resource_consumption          :=
-      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package;
+      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location;
     Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages ~and_packages:false configuration#get_location_ids;
     Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty configuration#get_location_ids;
     Data_state.constraint_universe_incompatibilities             := incompatibilities (Incompatibilities_of.universe universe) configuration#get_location_ids

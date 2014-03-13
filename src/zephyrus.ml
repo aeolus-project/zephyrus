@@ -92,9 +92,9 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
       let wordpress_require = get_int_option "wordpress_require"    "3" in
       let mysql_require     = get_int_option "mysql_require"        "3" in 
       let mysql_provide     = get_int_option "mysql_provide"        "3" in 
-      let dns_consume       = get_int_option "dns_consume"        "512" in 
-      let wordpress_consume = get_int_option "wordpress_consume" "2048" in 
-      let mysql_consume     = get_int_option "mysql_consume"     "2048" in 
+      let dns_consume       = get_int_option "dns_consume"         "64" in 
+      let wordpress_consume = get_int_option "wordpress_consume"  "512" in 
+      let mysql_consume     = get_int_option "mysql_consume"      "512" in 
       let machine_park_size = get_int_option "park_size"           "40" in 
       Some (fun () -> new Benchmarks.Wordpress_distributed.create 
                             (Benchmarks.Amazon_machine_park.Machine_park_old, machine_park_size)
