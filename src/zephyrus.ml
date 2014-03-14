@@ -222,15 +222,20 @@ let () =
   Zephyrus_log.log_stage_new "TRIMMING LOCATIONS";
   Zephyrus_log.log_data "INITIAL CATEGORIES ==> " (lazy ((String_of.location_categories cat) ^ "\n"));
   
-  let cat' = Variable_bounds.trim_categories cat fu in (* for each location category, only keep MIN(nb_location_in_cat, nb_max_component) *)
-  Zephyrus_log.log_data "CATEGORIES FIRST TRIM ==> " (lazy ((String_of.location_categories cat') ^ "\n"));
-   
-  let cat'' = match Location_bound.fit_categories preprocess_solver (u,c,s) cat' with
-      | None -> Location_categories.empty
-      | Some(cat') -> cat' in
-  Zephyrus_log.log_data "CATEGORIES FULLY TRIMMED ==> " (lazy ((String_of.location_categories cat') ^ "\n\n"));
+  let trim_cat cat =
+    
+    let cat' = Variable_bounds.trim_categories cat fu in (* for each location category, only keep MIN(nb_location_in_cat, nb_max_component) *)
+    Zephyrus_log.log_data "CATEGORIES FIRST TRIM ==> " (lazy ((String_of.location_categories cat') ^ "\n"));
+     
+    let cat'' = match Location_bound.fit_categories preprocess_solver (u,c,s) cat' with
+        | None -> Location_categories.empty
+        | Some(cat') -> cat' in
+    Zephyrus_log.log_data "CATEGORIES FULLY TRIMMED ==> " (lazy ((String_of.location_categories cat') ^ "\n\n"));
+
+    cat'' in
+
   Zephyrus_log.log_execution "\nTrimming configuration...";
-  let domain_init = Location_categories.domain (if Settings.find Settings.no_location_trimming then cat else cat'') in
+  let domain_init = Location_categories.domain (if Settings.find Settings.no_location_trimming then cat else trim_cat cat) in
   let domain = if keep_initial_configuration then Trim.transitive_closure_domain c domain_init else domain_init in
   let (core_conf, annex_conf_init) = Trim.configuration c domain in
   let annex_conf = if keep_initial_configuration then annex_conf_init else Trim.empty annex_conf_init in
