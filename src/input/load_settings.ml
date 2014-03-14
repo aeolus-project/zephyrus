@@ -78,6 +78,7 @@ let speclist =
     ("-prefix-repos",      Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
     ("-no-packages",       Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
     ("-use-all-locations", Arg.Unit (Settings.enable_no_location_trimming),   " Do not try to reduce the number of locations during the preprocessing.");
+    ("-trim-locations",    Arg.Unit (Settings.disable_no_location_trimming),  " Try to reduce the number of locations during the preprocessing (default).");
     ("-mode",              Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
 
     (* Optimization function argument, solver choice *)

@@ -562,6 +562,7 @@ let add_benchmark b =
 let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
 let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
 let enable_no_location_trimming   () = add no_location_trimming              (BoolValue true)
+let disable_no_location_trimming  () = add no_location_trimming              (BoolValue false)
 let enable_stop_after_solving     () = add stop_after_solving                (BoolValue true)
 
 let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None
