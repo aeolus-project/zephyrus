@@ -32,6 +32,11 @@ type bounds = { min : int; max : int }                                          
 type el = Data_model.Location_id_set.t * bounds                                         (* subset of a category, with its bound *)
 type t = { q : el Queue.t; mutable s : Location_categories.t; mutable continue : bool } (* q: the categories to process, s: the result of the computation, continue: true if we didn't find a fix point *)
 
+let string_of_el_list el_list =
+  let string_of_el el =
+    let category, bounds = el in Printf.sprintf "(%d,%d)" bounds.min bounds.max in
+  Printf.sprintf "el_list: %s" (String.concat "," (List.map string_of_el el_list))
+
 (* create categories create the t structure corresponding to categories that serves as input to the fix point algorigthm *)
 let bounds_create s = { min = 0; max = Data_model.Location_id_set.cardinal s }
 let create categories = Location_categories.map_to_list (fun c -> (c,bounds_create c)) categories
@@ -46,11 +51,12 @@ let get_domain lb = Queue.fold (fun res (c, _) -> Data_model.Location_id_set.uni
 
 
 let step solve ((u,conf,s) as model) (c,b) = (* dycothomic function, *)
-  let compare l1 l2 = (conf#get_location l2)#cost - (conf#get_location l1)#cost in
+(*let compare l1 l2 = (conf#get_location l2)#cost - (conf#get_location l1)#cost in *) (* this line deleted by Kuba *)
   let n = (b.min + b.max) / 2 in
-  let c' = Data_model.Location_id_set.keep_best_elements n compare c in
+(*let c' = Data_model.Location_id_set.keep_best_elements n compare c in *) (* this line deleted by Kuba *)
+  let c' = Data_model.Location_id_set.keep_elements n c in (* this line added by Kuba *)
   let k = constraint_of model c' in 
-  Zephyrus_log.log_execution (Printf.sprintf "solving with n = %d\n" n); flush stdout;
+  Zephyrus_log.log_execution (Printf.sprintf "fit_categories step: bounds = [%d;%d], solving with n = %d\n" b.min b.max n); flush stdout;
   match solve [("constraint", k)] (Data_constraint.Lexicographic []) with
     | None   -> Zephyrus_log.log_execution "no solution\n"; (c, { min = n + 1; max = b.max})
 (*        if n = b.max 
@@ -63,17 +69,21 @@ let step solve ((u,conf,s) as model) (c,b) = (* dycothomic function, *)
 
 let rec all_steps_category solve model (c,b) =
   let (c',b') = step solve model (c,b) in
-  if (b'.max < b'.min) or (b.max = b'.max) then c'
+  (* if (b'.max < b'.min) or (b.max = b'.max) then c' *) (* this line deleted by Kuba *)
+  if (b'.max <= b'.min) then c' (* this line added by Kuba *)
   else all_steps_category solve model (c',b')
 
 let rec all_steps solve model lb = match lb with
- | [] -> Location_categories.empty
- | el::lb' -> let cs = all_steps solve model lb' in Location_categories.add (all_steps_category solve model el) cs
+ | []      -> Location_categories.empty
+ | el::lb' -> let cs = all_steps solve model lb' in 
+              Location_categories.add (all_steps_category solve model el) cs
 (*  if lb.continue && (not (Queue.is_empty lb.q)) then (step solve model lb; all_steps solve model lb)*)
 
 
 let fit_categories solve model categories =
-  let lb = create categories in Some(all_steps solve model lb)
+  let lb = create categories in
+  Zephyrus_log.log_execution (Printf.sprintf "%s\n" (string_of_el_list lb));
+  Some(all_steps solve model lb)
 
 
 

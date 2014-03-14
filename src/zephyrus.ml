@@ -98,7 +98,7 @@ let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmar
       let machine_park_size = get_int_option "park_size"           "40" in 
       Some (fun () -> new Benchmarks.Wordpress_distributed.create 
                             (Benchmarks.Amazon_machine_park.Machine_park_old, machine_park_size)
-                            (* (Benchmarks.Amazon_machine_park.Machine_park_single_type (Benchmarks.Amazon_machine_park.Old_medium), 10) *)
+                            (* (Benchmarks.Amazon_machine_park.Machine_park_single_type (Benchmarks.Amazon_machine_park.Old_medium), machine_park_size) *)
                             wordpress_require mysql_require mysql_provide
                             dns_consume wordpress_consume mysql_consume)
 
