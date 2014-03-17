@@ -27,6 +27,9 @@ rule token = parse
   (* No solution *)
   | "=====UNSATISFIABLE====="             { UNSATISFIABLE }
 
+  (* Comments *)
+  | '%'                                   { token_comment lexbuf   }  (* enter comment mode *)
+
   (* Blanks *)
   | [' ' '\t']                            { token lexbuf }     (* skip blanks *)
   | ['\n']                                { token lexbuf }     (* skip newlines *)
@@ -48,3 +51,9 @@ rule token = parse
 
   (* End of file *)                       
   | eof                                   { EOF }
+
+
+and token_comment = parse
+  | eof                                   { EOF }
+  | '\n'                                  { token lexbuf         }
+  | _                                     { token_comment lexbuf } 
