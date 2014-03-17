@@ -85,6 +85,11 @@ let bool_names            = ["false"; "n"; "true"; "y"]
 let convert_bool          = get_bool
 let bool_domain_message   = String.concat " | " bool_names
 
+let bool_value_of_string s = match s with
+  | "true"  | "y" -> (BoolValue true)
+  | "false" | "n" -> (BoolValue false)
+  | _ -> failwith (Printf.sprintf "Cannot convert string \"%s\" to a boolean value!" s)
+
 let convert_string        = get_ident
 let string_domain_message = "any string"
 
@@ -359,6 +364,7 @@ let import_optimization_function = ("import-optimization-function", bool_setting
 let append_repository_to_package_name = ("append-repository-to-package-name", bool_setting)
 let eliminate_packages = ("eliminate-packages", bool_setting)
 let no_location_trimming = ("use-all-locations", bool_setting)
+let ralfs_redundant_constraints = ("ralfs-redundant-constraints", bool_setting)
 let modifiable_configuration = ("modifiable-configuration", bool_setting)
 let flatten = ("flatten-the-model", bool_setting)
 let stop_after_solving = ("stop-after-solving", bool_setting)
@@ -431,6 +437,7 @@ let all_settings = [
     append_repository_to_package_name;   (* Prefix every package name with its repository name in the output. *)
     eliminate_packages;                  (* Eliminate the packages from solving, use component incompatibilities instead. *)
     no_location_trimming;                (* Do not try to reduce the number of locations during the preprocessing. *)
+    ralfs_redundant_constraints;         (* Add Ralf's redundant constraints for the *)
     check_universe;                      (* UNUSED *)
     check_repositories;                  (* UNUSED *)
     check_initial_configuration;         (* UNUSED *)
@@ -559,11 +566,19 @@ let add_benchmark b =
        PairValue(IdentValue(option_key), IdentValue(option_value))
      ) benchmark_options)))
 
-let enable_package_name_extension () = add append_repository_to_package_name (BoolValue true)
-let enable_eliminate_packages     () = add eliminate_packages                (BoolValue true)
-let enable_no_location_trimming   () = add no_location_trimming              (BoolValue true)
-let disable_no_location_trimming  () = add no_location_trimming              (BoolValue false)
-let enable_stop_after_solving     () = add stop_after_solving                (BoolValue true)
+let switch_bool_setting setting (s : string) = add setting (bool_value_of_string s)
+
+let enable_package_name_extension        () = add append_repository_to_package_name (BoolValue true)
+
+let enable_eliminate_packages            () = add eliminate_packages                (BoolValue true)
+
+let enable_no_location_trimming          () = add no_location_trimming              (BoolValue true)
+let disable_no_location_trimming         () = add no_location_trimming              (BoolValue false)
+
+let enable_ralfs_redundant_constraints   () = add ralfs_redundant_constraints       (BoolValue true)
+let disable_ralfs_redundant_constraints  () = add ralfs_redundant_constraints       (BoolValue false)
+
+let enable_stop_after_solving            () = add stop_after_solving                (BoolValue true)
 
 let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None
 let get_input_file_repositories          () = if (find import_repositories          = true) & (mem input_file_repositories)     then Some(find input_file_repositories)     else None

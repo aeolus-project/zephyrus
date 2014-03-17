@@ -55,7 +55,18 @@ let eU l = Variable(Location_used_variable(l))
 (*******************************************)
 
 (* flat model *)
-let require u_dp ur up get_component_type = 
+let ralfs_redundant_require u_dp ur up get_component_type = 
+  Zephyrus_log.log_constraint_execution "Compute Ralf's redundant require constraints\n";
+  Data_model.Port_id_set.fold (fun p res ->
+    Data_model.Component_type_id_set.fold (fun tr res -> (
+      let tr_arity_equal_zero = ( (eNt tr) =~ (constant 0) ) in
+      let tr_require_arity = get_require_arity (get_component_type tr) p in
+      let sum_of_tp_global_arities = sum (Data_model.Component_type_id_set.map_to_list (fun tp -> eNt tp) (up p) ) in
+      tr_arity_equal_zero ||~~ (tr_require_arity <=~ sum_of_tp_global_arities)
+    )::res) (ur p) res
+  ) u_dp []
+
+let flat_require u_dp ur up get_component_type = 
   Zephyrus_log.log_constraint_execution "Compute binding requires\n";
   Data_model.Port_id_set.fold (fun p res ->
     Data_model.Component_type_id_set.fold (fun tr res -> (
@@ -63,6 +74,11 @@ let require u_dp ur up get_component_type =
           <=~ (sum (Data_model.Component_type_id_set.fold (fun tp res -> (eB p tp tr)::res) (up p) [])))::res
     ) (ur p) res
   ) u_dp []
+
+let require u_dp ur up get_component_type = 
+  let flat_require            = flat_require            u_dp ur up get_component_type in
+  let ralfs_redundant_require = ralfs_redundant_require u_dp ur up get_component_type in
+  flat_require @ (if Settings.find Settings.ralfs_redundant_constraints then ralfs_redundant_require else [])
 
 let provide_with_fixed_infinity u_dp up ur get_component_type = 
   Zephyrus_log.log_constraint_execution "Compute binding provides (with naive encoding of infinity as a fixed value)\n";
