@@ -55,6 +55,27 @@ let benchmark_choice = ref None
 let benchmark_option_keys   = ref []
 let benchmark_option_values = ref []
 
+
+(* Mechanism simplifying on/off switch options. *)
+
+(* Available switch option strings. *)
+let on_off_switch_symbols = ["on"; "off"]
+
+(* Convert a on/off switch option string (i.e. "on" or "off") to a boolean value. *)
+let bool_of_on_off_switch_symbol s = match s with
+  | "on"  -> true
+  | "off" -> false
+  | _     -> failwith (Printf.sprintf "Unrecognised on/off switch option value \"%s\"!" s)
+
+(* Set a given setting to true or false using the given on/off switch option string. *)
+let switch_on_off_setting setting (s : string) =
+  Settings.add setting (Settings.bool_value_of_bool (bool_of_on_off_switch_symbol s))
+
+(* Create an Arg.Symbol on/off switch for a given setting. *)
+let arg_on_off_switch setting =
+  Arg.Symbol (on_off_switch_symbols, (switch_on_off_setting setting))
+
+
 let speclist = 
   Arg.align [
     (* Input arguments *)
@@ -76,21 +97,18 @@ let speclist =
 
     (* Solving options *)
     ("-prefix-repos",      Arg.Unit (Settings.enable_package_name_extension), " Prefix all package names in imported repositories by the repository name.");
-    ("-no-packages",       Arg.Unit (Settings.enable_eliminate_packages),     " Eliminate the packages from solving, use component incompatibilities instead.");
-    ("-use-all-locations", Arg.Unit (Settings.enable_no_location_trimming),   " Do not try to reduce the number of locations during the preprocessing.");
-    ("-trim-locations",    Arg.Unit (Settings.disable_no_location_trimming),  " Try to reduce the number of locations during the preprocessing (default).");
-    ("-use-ralfs-redundant-constraints", Arg.Symbol (Settings.bool_names, (Settings.switch_bool_setting Settings.ralfs_redundant_constraints)), " Switch on/off generation of Ralf's redundant constraints (default is \"false\")." );
     ("-mode",              Arg.Symbol ( Settings.mode_names, Settings.add_string Settings.mode), " The functioning mode" (* ^ ": \n\"classic\" generates the final configuration normally, \n\"validate\" validates the initial one, \n\"no-solving\" uses the initial configuration directly as the final one" *) ^ ".");
+    
+    (* Preprocessing options *)
+    ("-no-packages",                     arg_on_off_switch Settings.eliminate_packages,          " Eliminate the packages from solving, use component incompatibilities instead (default: off).");
+    ("-use-all-locations",               arg_on_off_switch Settings.no_location_trimming,        " Do not try to reduce the number of locations during the preprocessing (default: off).");
+    ("-use-ralfs-redundant-constraints", arg_on_off_switch Settings.ralfs_redundant_constraints, " Generate Ralf's redundant constraints (default: off)." );
 
     (* Optimization function argument, solver choice *)
     ("-opt",    Arg.Symbol ( Settings.optim_names,  Settings.add_string Settings.input_optimization_function), " The optimization function.");
     ("-solver", Arg.Symbol ( Settings.solver_names, Settings.add_string Settings.solver),                      " The solver choice."); 
     ("-custom-solver-command",  Arg.String (fun custom_solver_command  -> Settings.add_string Settings.custom_solver_command custom_solver_command),   " The custom solver command" (* ^ "(example: \"flatzinc -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
     ("-custom-fzn2mzn-command", Arg.String (fun custom_mzn2fzn_command -> Settings.add_string Settings.custom_mzn2fzn_command custom_mzn2fzn_command), " The custom mzn2fzn converter command" (* ^ "(example: \"mzn2fzn -o <OUT> <IN>\", where <IN>/<OUT> will be replaced by the input/output file path before execution), used only if the custom solver option is chosen" *) ^ ".");
-
-    (* Preprocessor options *)
-
-
 
     (* Output arguments *)
     ("-out",        Arg.Tuple (
@@ -99,8 +117,8 @@ let speclist =
                     ), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
 
     (* Other *)
-    ("-print-path",         Arg.Unit ( fun () -> Unix.system "echo $PATH"; exit 0 ), " Print the $PATH variable and exit.");
-    ("-stop-after-solving", Arg.Unit (Settings.enable_stop_after_solving),           " Do not generate the final configuration, exit directly after the solving phase is over (useful for benchmarking).");
+    ("-print-path",         Arg.Unit ( fun () -> Unix.system "echo $PATH"; ignore (exit 0) ), " Print the $PATH variable and exit.");
+    ("-stop-after-solving", Arg.Unit (Settings.enable_stop_after_solving),                    " Do not generate the final configuration, exit directly after the solving phase is over (useful for benchmarking).");
   ]
 
 open Settings

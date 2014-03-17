@@ -85,10 +85,7 @@ let bool_names            = ["false"; "n"; "true"; "y"]
 let convert_bool          = get_bool
 let bool_domain_message   = String.concat " | " bool_names
 
-let bool_value_of_string s = match s with
-  | "true"  | "y" -> (BoolValue true)
-  | "false" | "n" -> (BoolValue false)
-  | _ -> failwith (Printf.sprintf "Cannot convert string \"%s\" to a boolean value!" s)
+let bool_value_of_bool b = BoolValue b
 
 let convert_string        = get_ident
 let string_domain_message = "any string"
@@ -566,7 +563,7 @@ let add_benchmark b =
        PairValue(IdentValue(option_key), IdentValue(option_value))
      ) benchmark_options)))
 
-let switch_bool_setting setting (s : string) = add setting (bool_value_of_string s)
+let switch_bool_setting setting b = add setting (bool_value_of_bool b)
 
 let enable_package_name_extension        () = add append_repository_to_package_name (BoolValue true)
 
