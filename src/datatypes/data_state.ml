@@ -91,7 +91,7 @@ let constraint_configuration_full : (konstraint list) ref = ref []
 
 let constraint_optimization_function : optimization_function option ref = ref None
 
-let get_constraint_optimization_function () = match !constraint_optimization_function with None -> Data_constraint.Lexicographic [] | Some(f) -> f
+let get_constraint_optimization_function () = match !constraint_optimization_function with None -> Data_constraint.Multi_objective.Satisfy | Some(f) -> f
 
 let get_constraint_flat_universe () = [
     ("  Bindings require:  " , (Data_constraint.conj(!constraint_universe_component_type_require)));

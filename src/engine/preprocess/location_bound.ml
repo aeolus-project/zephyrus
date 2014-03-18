@@ -57,7 +57,7 @@ let step solve ((u,conf,s) as model) (c,b) = (* dycothomic function, *)
   let c' = Data_model.Location_id_set.keep_elements n c in (* this line added by Kuba *)
   let k = constraint_of model c' in 
   Zephyrus_log.log_execution (Printf.sprintf "fit_categories step: bounds = [%d;%d], solving with n = %d\n" b.min b.max n); flush stdout;
-  match solve [("constraint", k)] (Data_constraint.Lexicographic []) with
+  match solve [("constraint", k)] (Data_constraint.Multi_objective.Satisfy) with
     | None   -> Zephyrus_log.log_execution "no solution\n"; (c, { min = n + 1; max = b.max})
 (*        if n = b.max 
         then lb.continue <- false 

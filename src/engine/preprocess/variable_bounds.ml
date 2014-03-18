@@ -323,7 +323,7 @@ let get_initial_mins solver universe spec domain =
   let annex_k = Constraint_of.location_all_variables spv stv skv domain universe#up universe#get_component_type in
   let full_k = annex_k @ (List.map (fun (_,k) -> ("",k)) main_k) in
   let vs = variables_of_konstraint (Data_constraint.conj (List.map snd main_k)) in
-  let f = Data_constraint.Minimize (Data_constraint.sum (List.map Data_constraint.var2expr (Data_constraint.Variable_set.elements vs))) in
+  let f = Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (Data_constraint.sum (List.map Data_constraint.var2expr (Data_constraint.Variable_set.elements vs))))) in
   match solver full_k f with
   | None -> None
   | Some(sol,_) -> Some(sol)

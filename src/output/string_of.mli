@@ -104,13 +104,18 @@ module type S = sig
   val element       : Data_constraint.element -> string
   val local_element : Data_model.location_id -> Data_constraint.element -> string
 
-  val variable   : Data_constraint.variable -> string
-  val value      : Data_constraint.value -> string
+  val variable   : Data_constraint.variable   -> string
+  val value      : Data_constraint.value      -> string
   val expression : Data_constraint.expression -> string
   val konstraint : Data_constraint.konstraint -> string
 
-  val described_konstraint : string * Data_constraint.konstraint -> string
+  val described_konstraint      :  string * Data_constraint.konstraint       -> string
   val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
+
+  val constraint_single_optimization : Data_constraint.Single_objective.optimization -> string
+  val constraint_single_solve_goal   : Data_constraint.Single_objective.solve_goal   -> string
+  val constraint_multi_optimization  : Data_constraint.Multi_objective.optimization  -> string
+  val constraint_multi_solve_goal    : Data_constraint.Multi_objective.solve_goal    -> string
 
   val constraint_optimization_function : Data_constraint.optimization_function -> string
 

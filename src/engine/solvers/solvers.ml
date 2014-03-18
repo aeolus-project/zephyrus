@@ -42,19 +42,44 @@ end
 
 
 (* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
-exception No_solution (* to break the normal controlflow of solution computation in case there are none. Too painful to deal with options *)
+exception No_solution (* to break the normal control flow of solution computation in case there are none. Too painful to deal with options *)
 
-let solve_lexicographic settings preprocess solve_step postprocess c f = 
-  let initial_data = preprocess settings c f in
-  let rec iterative_solve data f = match f with
-    | Data_constraint.Lexicographic(f1::l1) -> 
-      let (data , solution , costs ) = iterative_solve data f1 in
-      let (data', solution', costs') = iterative_solve data (Data_constraint.Lexicographic(l1)) in 
-      (data', solution', costs @ costs')
-    | _ -> match solve_step settings data f with
-      | None -> raise No_solution
-      | Some(solution, cost) -> (postprocess data f cost, solution, [cost]) in
-    try (let (_, solution, costs) = iterative_solve initial_data f in Some(solution, costs)) with | No_solution -> None
+let solve_multi_objective settings preprocess solve_step postprocess c (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
+
+  let rec iterative_solve data (multi_objective_optimization : Data_constraint.Multi_objective.optimization) = 
+    match multi_objective_optimization with
+
+    (* If there are multiple optimizations to perform lexicographically, we perform the first one as a single optimization and then recursively the remaining ones. *)
+    | Data_constraint.Multi_objective.Lexicographic(single_objective_optimization, remaining_optimization) -> 
+      let (data' , solution  , costs  ) = iterative_solve data  (Data_constraint.Multi_objective.Single single_objective_optimization) in
+      let (data'', solution'', costs'') = iterative_solve data' remaining_optimization in 
+      (data'', solution'', costs @ costs'')
+
+    (* If there is only a single objective, we can pass it to the single objective solving function. *)
+    | Data_constraint.Multi_objective.Single single_objective_optimization -> 
+      let single_objective_solve_goal = Data_constraint.Single_objective.Optimize single_objective_optimization in
+      let solve_step_solution = solve_step settings data single_objective_solve_goal in
+      match solve_step_solution with
+      | None                 -> raise No_solution
+      | Some(solution, cost) -> (postprocess data single_objective_solve_goal cost, solution, [cost]) in
+
+  let initial_data = preprocess settings c multi_objective_solve_goal in
+  
+  try 
+    match multi_objective_solve_goal with
+
+    | Data_constraint.Multi_objective.Optimize multi_objective_optimization ->
+      let (_, solution, costs) = iterative_solve initial_data multi_objective_optimization in 
+      Some(solution, costs)
+
+    | Data_constraint.Multi_objective.Satisfy -> 
+      let solve_step_solution = solve_step settings initial_data Data_constraint.Single_objective.Satisfy in
+      match solve_step_solution with
+      | None              -> None
+      | Some(solution, _) -> Some (solution, [])
+      
+  with 
+    No_solution -> None
 
 
 (* 2. generic minizinc handling *)
@@ -65,83 +90,108 @@ module MiniZinc_generic = struct
   open Minizinc
 
   let solver : Engine_helper.program ref = ref Engine_helper.gecode_minizinc_solver
-  let input  : Engine_helper.file ref = ref Engine_helper.file_default
-  let output : Engine_helper.file ref = ref Engine_helper.file_default
+  let input  : Engine_helper.file    ref = ref Engine_helper.file_default
+  let output : Engine_helper.file    ref = ref Engine_helper.file_default
 
-  let preprocess settings c f =
+  let preprocess settings c (solve_goal : Data_constraint.Multi_objective.solve_goal) =
     Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
-    if Engine_helper.program_is_available !solver then (
-      Zephyrus_log.log_solver_execution "yes\n";
-      Zephyrus_log.log_solver_execution ("Preparing file names for minizinc and solution storage...\n");
-      input  := Engine_helper.file_process_name settings.input_file;
-      output := Engine_helper.file_process_name settings.output_file;
-      Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...");
-      let vs = List.fold_left (fun res (_, k) -> Variable_set.union (variables_of_konstraint k) res) (variables_of_optimization_function f) c in
-      Zephyrus_log.log_solver_execution ("  we have " ^ (string_of_int (Variable_set.cardinal vs)) ^ " variables\n");
-      let v_map = get_named_variables vs in
-(*      Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
-      Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
-      let res = core_translation v_map settings.bounds c in
-      Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy (res.mzn_main_constraint ^ "\n% end constraint\n")); res
-    ) else (
-      Zephyrus_log.log_solver_execution (" no\n");
-      Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n")
+    if Engine_helper.program_is_available !solver
+    then 
+      begin
+        Zephyrus_log.log_solver_execution "yes\n";
 
-  let solve_step settings data f =
-    let mzn_constraint = add_optimization_goal data f in
+        Zephyrus_log.log_solver_execution ("Preparing file names for minizinc and solution storage...\n");
+        input  := Engine_helper.file_process_name settings.input_file;
+        output := Engine_helper.file_process_name settings.output_file;
+
+        Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...");
+        let vs = List.fold_left (fun res (_, k) -> Variable_set.union (variables_of_konstraint k) res) (Data_constraint.Multi_objective.variables_of_solve_goal solve_goal) c in
+        Zephyrus_log.log_solver_execution ("  we have " ^ (string_of_int (Variable_set.cardinal vs)) ^ " variables\n");
+        let v_map = get_named_variables vs in
+    (*  Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
+
+        Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
+        let res = core_translation v_map settings.bounds c in
+        Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy (res.mzn_main_constraint ^ "\n% end constraint\n"));
+        res
+      end
+    else 
+      begin
+        Zephyrus_log.log_solver_execution (" no\n");
+        Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n"
+      end
+
+  let solve_step settings data (solve_goal : Data_constraint.Single_objective.solve_goal) =
+    let mzn_constraint = add_optimization_goal data solve_goal in
+
     Zephyrus_log.log_solver_execution "Printing the MiniZinc constraints to the file...\n";
     let filename_input = Engine_helper.file_print settings.keep_input_file !input mzn_constraint in
+
     Zephyrus_log.log_solver_execution "Creating the file for the solution...\n";
     let filename_output = Engine_helper.file_create settings.keep_output_file !output in
+
     Zephyrus_log.log_solver_execution "Solving the constraints...\n";
     let status = Engine_helper.program_sync_exec !solver [filename_input; filename_output] in
+
     if not (Engine_helper.program_did_exit_ok status) then
       Zephyrus_log.log_panic "Error during the solving of the constraint. Aborting execution\n"
-    else (
+    else
       Zephyrus_log.log_solver_execution "Getting the solution found by the flatzinc solver...\n";
       match Flatzinc_solution_parser.main Flatzinc_solution_lexer.token (Lexing.from_channel (open_in filename_output)) with
       | None -> None
       | Some solution_tmp -> (
-(*      Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map string_of_int solution_tmp)); *)
-        let cost = Name_map.find cost_variable_name solution_tmp in
-        let minizinc_solution = Variable_set.fold (fun v res -> Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res)
-            data.mzn_variables#variables Variable_map.empty in
-        let solution =
-        let domain = data.mzn_variables#variables 
-        and variable_values = (fun v -> try Data_constraint.Variable_map.find v minizinc_solution with Not_found -> -1)
-        in {
-          Data_constraint.domain          = domain;
-          Data_constraint.variable_values = variable_values;
-        } in Some(solution, cost))
-    )
+     (* Zephyrus_log.log_solver_data "The solution:" (lazy (String_of.string_map string_of_int solution_tmp)); *)
 
-  let postprocess data f cost = match f with
-    | Data_constraint.Minimize(e) -> add_extra_constraint data e cost
-    | Data_constraint.Maximize(e) -> add_extra_constraint data e cost
-    | Data_constraint.Lexicographic([]) -> data
-    | _ -> raise Wrong_optimization_function
-(*    | _ -> data
-    (* Kuba: Ad-hoc bug correction, I don't know if it's what should be done, but it works... *)
-    (* | _ -> raise Wrong_optimization_function *) *)
+        (* Note: the cost variable is always declared, so it will always have a value (even if the value is not optimised, thus has no sense). *)
+        let cost = Name_map.find cost_variable_name solution_tmp in
+
+        let solution =
+          let domain = data.mzn_variables#variables in
+         
+          let minizinc_solution = 
+            Variable_set.fold (fun v res -> 
+              Variable_map.add v (Name_map.find (data.mzn_variables#get_name v) solution_tmp) res
+            ) data.mzn_variables#variables Variable_map.empty in
+         
+          let variable_values = (fun v -> 
+            try Data_constraint.Variable_map.find v minizinc_solution 
+            with Not_found -> -1
+          ) in
+
+          {
+            Data_constraint.domain          = domain;
+            Data_constraint.variable_values = variable_values;
+          } in 
+
+        Some(solution, cost))
+
+  let postprocess data (solve_goal : Data_constraint.Single_objective.solve_goal) cost = 
+    match solve_goal with
+    | Data_constraint.Single_objective.Optimize(Minimize(e)) -> add_extra_constraint data e cost
+    | Data_constraint.Single_objective.Optimize(Maximize(e)) -> add_extra_constraint data e cost
+    | Data_constraint.Single_objective.Satisfy               -> data
+    
 end
 
 (* 3. Main Modules *)
 
 module G12 : SOLVER = struct
-  let solve settings cs f = MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
-    solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+  let solve settings cs f = 
+    MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
+    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
 module GeCode : SOLVER = struct
-  let solve settings cs f = MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
-    solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+  let solve settings cs f = 
+    MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
+    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
 let make_custom_solver_module (solver_program : Engine_helper.program) =
   let module Solver = struct
     let solve settings cs f = 
       MiniZinc_generic.solver := solver_program;
-      solve_lexicographic settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f
+      solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f
     end
   in
   (module Solver : SOLVER)
@@ -160,7 +210,12 @@ let settings_of_settings kind =
   keep_output_file  = out_keep
 }
 
-let full_of_settings kind = match (match kind with Preprocess -> Settings.find Settings.preprocess_solver | Main -> Settings.find Settings.solver) with
+let full_of_settings kind = 
+  let solver = 
+    match kind with 
+    | Preprocess -> Settings.find Settings.preprocess_solver
+    | Main -> Settings.find Settings.solver in
+  match solver with
   | Settings.Solver_none   -> GeCode.solve (* default *)
   | Settings.Solver_gecode -> GeCode.solve
   | Settings.Solver_g12    -> G12.solve

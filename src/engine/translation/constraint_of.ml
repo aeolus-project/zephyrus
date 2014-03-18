@@ -303,22 +303,22 @@ let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
   ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) ]
 
 let universe location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
-    (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_component_type_implementation , component_type_implementation location_ids universe#get_component_type_ids universe#get_implementation) ;
-    (Data_state.constraint_universe_binding_unicity         , binding universe#get_port_ids universe#ur universe#up) ;
-    (Data_state.constraint_universe_location_component_type , location_component_type universe#get_component_type_ids location_ids) ;
-    (Data_state.constraint_universe_location_package        , location_package universe#get_package_ids location_ids) ;
-    (Data_state.constraint_universe_location_port           , location_port universe#get_port_ids location_ids) ;
-    (Data_state.constraint_universe_definition_port         , location_port_equation universe#get_port_ids location_ids universe#up universe#get_component_type) ;
-    (Data_state.constraint_universe_repository_unicity      , repository_unique location_ids universe#get_repository_ids) ;
-    (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ;
-    (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#get_package_ids universe#get_package) ;
-    (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#get_package_ids universe#get_package) ;
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location) ;
-    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages location_ids);
-    (Data_state.constraint_universe_used_locations          , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) ]
+    (Data_state.constraint_universe_component_type_require        , require                        universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_provide        , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_conflict       , conflict_advanced              universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_component_type_implementation , component_type_implementation  location_ids universe#get_component_type_ids universe#get_implementation) ;
+    (Data_state.constraint_universe_binding_unicity               , binding                        universe#get_port_ids universe#ur universe#up) ;
+    (Data_state.constraint_universe_location_component_type       , location_component_type        universe#get_component_type_ids location_ids) ;
+    (Data_state.constraint_universe_location_package              , location_package               universe#get_package_ids        location_ids) ;
+    (Data_state.constraint_universe_location_port                 , location_port                  universe#get_port_ids           location_ids) ;
+    (Data_state.constraint_universe_definition_port               , location_port_equation         universe#get_port_ids           location_ids universe#up universe#get_component_type) ;
+    (Data_state.constraint_universe_repository_unicity            , repository_unique    location_ids universe#get_repository_ids) ;
+    (Data_state.constraint_universe_repository_package            , repository_package   location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ;
+    (Data_state.constraint_universe_package_dependency            , package_dependency   location_ids universe#get_package_ids    universe#get_package) ;
+    (Data_state.constraint_universe_package_conflict              , package_conflict     location_ids universe#get_package_ids    universe#get_package) ;
+    (Data_state.constraint_universe_resource_consumption          , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location) ;
+    (Data_state.constraint_universe_deprecated_element            , deprecated_component_types_and_packages location_ids);
+    (Data_state.constraint_universe_used_locations                , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) ]
 
 (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
 let universe_incompatibilities location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
@@ -534,27 +534,33 @@ let cost_locations c_l (get_location_cost : Data_model.location_id -> Data_model
 
 (* translation functions *)
 let compact_slow c_l u_dt u_dk get_location_cost =
-  Lexicographic ([
-    Minimize (sum (cost_locations c_l get_location_cost));       (* First minimize the number of used locations *)
-    Minimize (sum (cost_all_components u_dt)); (* then minimize the number of components *)
-    Minimize (sum (cost_all_packages u_dk)) ]) (* finally minimize the number of packages. (so we do not have useless packages) *)
+  Multi_objective.solve_goal_of_list_of_single_optimizations [
+    Single_objective.Minimize (sum (cost_locations c_l get_location_cost)); (* First minimize the number of used locations, *)
+    Single_objective.Minimize (sum (cost_all_components u_dt));             (* then minimize the number of components, *)
+    Single_objective.Minimize (sum (cost_all_packages u_dk)) ]              (* finally minimize the number of packages. (so we do not have useless packages) *)
+
 let compact_fast c_l u_dt u_dk get_location_cost = 
-  Minimize (sum (List.rev_append (List.rev_append 
-    (cost_all_components u_dt) 
-    (cost_locations c_l get_location_cost))
-    (cost_all_packages u_dk)))
+  Multi_objective.Optimize( Multi_objective.Single( Single_objective.Minimize (
+    sum (List.rev_append (List.rev_append 
+      (cost_all_components u_dt) 
+      (cost_locations c_l get_location_cost))
+      (cost_all_packages u_dk)))))
+
 let spread_slow c_l u_dt u_dk =
-  Lexicographic ([
-    Minimize (sum (cost_all_components u_dt));               (* First minimize the number of components *)
-    Maximize (sum (cost_used_locations c_l u_dt u_dk true)); (* then maximize the number of used locations, (counting only locations with at least one component) *)
-    Minimize (sum (cost_all_packages u_dk)) ])               (* finally minimize the number of packages. *)
-let spread_fast c_l u_dt u_dk = Maximize ((sum (cost_used_locations c_l u_dt u_dk true)) -~ (sum (cost_all_components u_dt)))
+  Multi_objective.solve_goal_of_list_of_single_optimizations [
+    Single_objective.Minimize (sum (cost_all_components u_dt));               (* First minimize the number of components, *)
+    Single_objective.Maximize (sum (cost_used_locations c_l u_dt u_dk true)); (* then maximize the number of used locations (counting only locations with at least one component), *)
+    Single_objective.Minimize (sum (cost_all_packages u_dk)) ]                (* finally minimize the number of packages. *)
+
+let spread_fast c_l u_dt u_dk = 
+  Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Maximize (
+    (sum (cost_used_locations c_l u_dt u_dk true)) -~ (sum (cost_all_components u_dt)))))
 
 let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
-  Lexicographic ([
-    Minimize (sum (cost_difference_components c_l u_dt get_local_component)); (* First minimize the number of changed components *)
-    Minimize (sum (cost_used_locations c_l u_dt u_dk false));                 (* then minimize the number of used locations *)
-    Minimize (sum (cost_difference_packages c_l u_dk get_local_package)) ])   (* finally minimize the number of changed packages *)
+  Multi_objective.solve_goal_of_list_of_single_optimizations [
+    Single_objective.Minimize (sum (cost_difference_components c_l u_dt get_local_component)); (* First minimize the number of changed components, *)
+    Single_objective.Minimize (sum (cost_used_locations        c_l u_dt u_dk false));          (* then minimize the number of used locations, *)
+    Single_objective.Minimize (sum (cost_difference_packages   c_l u_dk get_local_package)) ]  (* finally minimize the number of changed packages. *)
 
 (* set the optimization function in Data_state *)
 
@@ -562,11 +568,11 @@ let optimization_function u c f =
   let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) =
     (c#get_location_ids, u#get_component_type_ids, u#get_package_ids, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
   match f with
-  | Data_model.Optimization_function_simple       -> Minimize (sum (cost_all_components u_dt))
+  | Data_model.Optimization_function_simple       -> Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (sum (cost_all_components u_dt))))
   | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk get_location_cost
   | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
   | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
-  | Data_model.Optimization_function_none         -> Lexicographic([])
+  | Data_model.Optimization_function_none         -> Multi_objective.Satisfy
 
 
 let optimization_function_full () = match !Data_state.optimization_function with
