@@ -246,36 +246,46 @@ let package_conflict c_l u_dk get_package =
 
 
   (* Resource consumptions *)
-let resource_consumption c_l resource_ids u_dt u_dk get_component_type get_package get_location =
+let resource_consumption ?(with_packages = true) c_l resource_ids u_dt u_dk get_component_type get_package get_location =
   Zephyrus_log.log_constraint_execution "Compute resource consumption\n";
   Data_model.Location_id_set.fold (fun l res ->
     let location = get_location l in
     Data_model.Resource_id_set.fold (fun o res ->
-      let resources_provided = ( (eO l o) =~ (constant (location#provide_resources o)) ) in
-      let resources_consumed =
-        ((sum (Data_model.Package_id_set       .fold (fun k res -> ((get_consume (get_package        k) o) *~ (eNlk l k))::res) u_dk
-              (Data_model.Component_type_id_set.fold (fun t res -> ((get_consume (get_component_type t) o) *~ (eNlt l t))::res) u_dt 
-          []))) <=~ (eO l o)) in
-      resources_provided::resources_consumed::res
+      let resources_provided_constraint = ( (eO l o) =~ (constant (location#provide_resources o)) ) in
+      let resources_consumed_constraint =
+        let resources_consumed_packages   = sum (Data_model.Package_id_set       .map_to_list (fun k -> ((get_consume (get_package        k) o) *~ (eNlk l k)) ) u_dk) in
+        let resources_consumed_components = sum (Data_model.Component_type_id_set.map_to_list (fun t -> ((get_consume (get_component_type t) o) *~ (eNlt l t)) ) u_dt) in
+        let resources_consumed_total =
+          if with_packages
+          then resources_consumed_components +~ resources_consumed_packages
+          else resources_consumed_components in
+        resources_consumed_total <=~ (eO l o) in
+      resources_provided_constraint::resources_consumed_constraint::res
     ) resource_ids res
   ) c_l []
 
   (* Deprecated packages and component types *)
-let deprecated_component_types_and_packages ?(and_packages = true) c_l =
+let deprecated_component_types_with_packages ?(with_packages = true) c_l =
   Data_model.Location_id_set.fold (fun l res ->
   Zephyrus_log.log_constraint_execution "Compute elements to delete\n";
     let deprecated_component_constraint = (eNlt l Data_model.deprecated_component_type_id) =~ (constant 0) in
     let deprecated_package_constraint   = (eNlk l Data_model.deprecated_package_id)        =~ (constant 0) in
-    deprecated_component_constraint::(if and_packages then deprecated_package_constraint::res else res)
+    if with_packages
+    then deprecated_component_constraint::deprecated_package_constraint::res
+    else deprecated_component_constraint::res
   ) c_l []
 
   (* Used locations *)
-let used_locations u_dt u_dk c_l =
+let used_locations ?(with_packages = true) u_dt u_dk c_l =
   Zephyrus_log.log_constraint_execution "Compute used locations\n";
   let local_component_exprs l : expression list = Data_model.Component_type_id_set.fold (fun t res -> (eNlt l t)::res) u_dt [] in
   let local_package_exprs   l : expression list = Data_model.Package_id_set.fold        (fun k res -> (eNlk l k)::res) u_dk [] in
+  let local_objects_exprs   l : expression list = 
+    if with_packages
+    then local_component_exprs l @ local_package_exprs l
+    else local_component_exprs l in
   Data_model.Location_id_set.fold (fun l res -> 
-     let konstraint = ( eU l =~ reify ((sum (local_component_exprs l @ local_package_exprs l)) >~ (constant 0)) ) in
+     let konstraint = ( eU l =~ reify ((sum (local_objects_exprs l)) >~ (constant 0)) ) in
      konstraint :: res
   ) c_l []
 
@@ -296,13 +306,19 @@ let incompatibilities (universe_incompatibilities : Data_model.Component_type_id
     ) universe_incompatibilities []
   ) c_l []
 
-let location_all_variables u_dp u_dt u_dk c_l up get_component_type = [
-  ("location ports"          , Data_constraint.conj (location_port u_dp c_l));
-  ("location component types", Data_constraint.conj (location_component_type u_dt c_l));
-  ("location packages"       , Data_constraint.conj (location_package u_dk c_l));
-  ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) ]
+let location_all_variables ?(with_packages = true) u_dp u_dt u_dk c_l up get_component_type = 
+  let location_ports           = ("location ports"          , Data_constraint.conj (location_port u_dp c_l)) in
+  let location_component_types = ("location component types", Data_constraint.conj (location_component_type u_dt c_l)) in
+  let location_packages        = ("location packages"       , Data_constraint.conj (location_package u_dk c_l)) in
+  let definition_ports         = ("definition ports"        , Data_constraint.conj (location_port_equation u_dp c_l up get_component_type)) in
+  if with_packages
+  then [location_ports; location_component_types; location_packages; definition_ports]
+  else [location_ports; location_component_types;                    definition_ports]
 
-let universe location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
+
+let universe ?(with_packages = true) location_ids universe configuration = (* TODO: replace the references with description, and let Data_state do the settings *)
+  if with_packages
+  then [
     (Data_state.constraint_universe_component_type_require        , require                        universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide        , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict       , conflict_advanced              universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
@@ -317,11 +333,10 @@ let universe location_ids universe configuration = [ (* TODO: replace the refere
     (Data_state.constraint_universe_package_dependency            , package_dependency   location_ids universe#get_package_ids    universe#get_package) ;
     (Data_state.constraint_universe_package_conflict              , package_conflict     location_ids universe#get_package_ids    universe#get_package) ;
     (Data_state.constraint_universe_resource_consumption          , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location) ;
-    (Data_state.constraint_universe_deprecated_element            , deprecated_component_types_and_packages location_ids);
-    (Data_state.constraint_universe_used_locations                , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) ]
-
-(* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-let universe_incompatibilities location_ids universe configuration = [ (* TODO: replace the references with description, and let Data_state do the settings *)
+    (Data_state.constraint_universe_deprecated_element            , deprecated_component_types_with_packages location_ids);
+    (Data_state.constraint_universe_used_locations                , used_locations universe#get_component_type_ids universe#get_package_ids location_ids) 
+  ] else [
+    (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
     (Data_state.constraint_universe_component_type_require  , require universe#get_port_ids universe#ur universe#up universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_provide  , provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type) ;
     (Data_state.constraint_universe_component_type_conflict , conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type) ;
@@ -335,61 +350,61 @@ let universe_incompatibilities location_ids universe configuration = [ (* TODO: 
 (*  (Data_state.constraint_universe_repository_package      , repository_package location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids)) ; *)
 (*  (Data_state.constraint_universe_package_dependency      , package_dependency location_ids universe#get_package_ids universe#get_package) ; *)
 (*  (Data_state.constraint_universe_package_conflict        , package_conflict location_ids universe#get_package_ids universe#get_package) ; *)
-    (Data_state.constraint_universe_resource_consumption    , resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location) ;
-    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_and_packages ~and_packages:false location_ids);
-    (Data_state.constraint_universe_used_locations          , used_locations universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty location_ids) ;
+    (Data_state.constraint_universe_resource_consumption    , resource_consumption ~with_packages:false location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location) ;
+    (Data_state.constraint_universe_deprecated_element      , deprecated_component_types_with_packages ~with_packages:false location_ids);
+    (Data_state.constraint_universe_used_locations          , used_locations ~with_packages:false universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty location_ids) ;
     (Data_state.constraint_universe_incompatibilities       , incompatibilities (Incompatibilities_of.universe universe) location_ids) ]
 
  
 
-let universe_full () =
-  let f (universe: Data_model.universe) configuration =
-    Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation;
-    Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
-    Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
-    Data_state.constraint_universe_location_package              := location_package universe#get_package_ids configuration#get_location_ids;
-    Data_state.constraint_universe_location_port                 := location_port universe#get_port_ids configuration#get_location_ids;
-    Data_state.constraint_universe_definition_port               := location_port_equation universe#get_port_ids configuration#get_location_ids universe#up universe#get_component_type;
-    Data_state.constraint_universe_repository_unicity            := repository_unique configuration#get_location_ids universe#get_repository_ids;
-    Data_state.constraint_universe_repository_package            := repository_package configuration#get_location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids);
-    Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package;
-    Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package;
-    Data_state.constraint_universe_resource_consumption          :=
-      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location;
-    Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages configuration#get_location_ids;
-    Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids universe#get_package_ids configuration#get_location_ids;
-  in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
-    | (Some(u), Some(c)) -> f u c
-    | _ -> ()
-
-
-(* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-let universe_full_incompatibilities () =
-  let f (universe: Data_model.universe) configuration =
-    Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
-(*  Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation; *)
-    Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
-    Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
-(*  Data_state.constraint_universe_location_package              := location_package universe#get_package_ids configuration#get_location_ids; *)
-    Data_state.constraint_universe_location_port                 := location_port universe#get_port_ids configuration#get_location_ids;
-    Data_state.constraint_universe_definition_port               := location_port_equation universe#get_port_ids configuration#get_location_ids universe#up universe#get_component_type;
-    Data_state.constraint_universe_repository_unicity            := repository_unique configuration#get_location_ids universe#get_repository_ids;
-(*  Data_state.constraint_universe_repository_package            := repository_package configuration#get_location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids); *)
-(*  Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package; *)
-(*  Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package; *)
-    Data_state.constraint_universe_resource_consumption          :=
-      resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location;
-    Data_state.constraint_universe_deprecated_element            := deprecated_component_types_and_packages ~and_packages:false configuration#get_location_ids;
-    Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty configuration#get_location_ids;
-    Data_state.constraint_universe_incompatibilities             := incompatibilities (Incompatibilities_of.universe universe) configuration#get_location_ids
-  in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
-    | (Some(u), Some(c)) -> f u c
-    | _ -> ()
+let universe_full ?(with_packages = true) () =
+  if with_packages
+  then
+    let f (universe: Data_model.universe) configuration =
+      Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
+      Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+      Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
+      Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation;
+      Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
+      Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
+      Data_state.constraint_universe_location_package              := location_package universe#get_package_ids configuration#get_location_ids;
+      Data_state.constraint_universe_location_port                 := location_port universe#get_port_ids configuration#get_location_ids;
+      Data_state.constraint_universe_definition_port               := location_port_equation universe#get_port_ids configuration#get_location_ids universe#up universe#get_component_type;
+      Data_state.constraint_universe_repository_unicity            := repository_unique configuration#get_location_ids universe#get_repository_ids;
+      Data_state.constraint_universe_repository_package            := repository_package configuration#get_location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids);
+      Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package;
+      Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package;
+      Data_state.constraint_universe_resource_consumption          :=
+        resource_consumption configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location;
+      Data_state.constraint_universe_deprecated_element            := deprecated_component_types_with_packages configuration#get_location_ids;
+      Data_state.constraint_universe_used_locations                := used_locations universe#get_component_type_ids universe#get_package_ids configuration#get_location_ids;
+    in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+      | (Some(u), Some(c)) -> f u c
+      | _ -> ()
+  else
+    (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
+    let f (universe: Data_model.universe) configuration =
+      Data_state.constraint_universe_component_type_require        := require universe#get_port_ids universe#ur universe#up universe#get_component_type;
+      Data_state.constraint_universe_component_type_provide        := provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
+      Data_state.constraint_universe_component_type_conflict       := conflict_advanced universe#get_port_ids universe#uc universe#up universe#get_component_type;
+  (*  Data_state.constraint_universe_component_type_implementation := component_type_implementation configuration#get_location_ids universe#get_component_type_ids universe#get_implementation; *)
+      Data_state.constraint_universe_binding_unicity               := binding universe#get_port_ids universe#ur universe#up;
+      Data_state.constraint_universe_location_component_type       := location_component_type universe#get_component_type_ids configuration#get_location_ids;
+  (*  Data_state.constraint_universe_location_package              := location_package universe#get_package_ids configuration#get_location_ids; *)
+      Data_state.constraint_universe_location_port                 := location_port universe#get_port_ids configuration#get_location_ids;
+      Data_state.constraint_universe_definition_port               := location_port_equation universe#get_port_ids configuration#get_location_ids universe#up universe#get_component_type;
+      Data_state.constraint_universe_repository_unicity            := repository_unique configuration#get_location_ids universe#get_repository_ids;
+  (*  Data_state.constraint_universe_repository_package            := repository_package configuration#get_location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids); *)
+  (*  Data_state.constraint_universe_package_dependency            := package_dependency configuration#get_location_ids universe#get_package_ids universe#get_package; *)
+  (*  Data_state.constraint_universe_package_conflict              := package_conflict configuration#get_location_ids universe#get_package_ids universe#get_package; *)
+      Data_state.constraint_universe_resource_consumption          :=
+        resource_consumption ~with_packages:false configuration#get_location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location;
+      Data_state.constraint_universe_deprecated_element            := deprecated_component_types_with_packages ~with_packages:false configuration#get_location_ids;
+      Data_state.constraint_universe_used_locations                := used_locations ~with_packages:false universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty configuration#get_location_ids;
+      Data_state.constraint_universe_incompatibilities             := incompatibilities (Incompatibilities_of.universe universe) configuration#get_location_ids
+    in match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+      | (Some(u), Some(c)) -> f u c
+      | _ -> ()
 
 (*******************************************)
 (** 3. Specification Translation           *) (* using naming conventions from the paper *)
@@ -457,10 +472,10 @@ let rec specification_simple location_ids s = match s with
   | Data_model.Spec_everywhere          (ls) -> conj (List.map (fun l -> local_specification l ls) (Data_model.Location_id_set.elements location_ids))
   | Data_model.Spec_at (at_location_ids, ls) -> conj (List.map (fun l -> local_specification l ls) at_location_ids)
 
-let specification locations s = Zephyrus_log.log_constraint_execution "Compute Specification\n"; 
+let specification ?(with_packages = true) locations s = Zephyrus_log.log_constraint_execution "Compute Specification\n"; 
   [(Data_state.constraint_specification_full, specification_simple locations s) ]
 
-let specification_full () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with
+let specification_full ?(with_packages = true) () = match (!Data_state.specification_full, !Data_state.initial_configuration_full) with
   | (Some(s), Some(c)) -> Data_state.constraint_specification_full := Some(specification_simple c#get_location_ids s)
   | _  -> ()
 
@@ -469,7 +484,7 @@ let specification_full () = match (!Data_state.specification_full, !Data_state.i
 (** 4. Configuration Translation           *) (* using naming conventions from the paper *)
 (*******************************************)
 
-let locations resource_ids location_ids get_location = Zephyrus_log.log_constraint_execution "Compute Resources Provided by Locations\n";
+let locations ?(with_packages = true) resource_ids location_ids get_location = Zephyrus_log.log_constraint_execution "Compute Resources Provided by Locations\n";
   if Settings.find Settings.modifiable_configuration then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
   else
     [ Data_state.constraint_configuration_full ,
@@ -480,7 +495,7 @@ let locations resource_ids location_ids get_location = Zephyrus_log.log_constrai
       ) resource_ids res
     ) location_ids [] ]
 
-let configuration resource_ids c_l get_location = 
+let configuration ?(with_packages = true) resource_ids c_l get_location = 
   if Settings.find Settings.modifiable_configuration then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
   else
   Data_model.Location_id_set.fold (fun l res ->
@@ -489,7 +504,7 @@ let configuration resource_ids c_l get_location =
     ) resource_ids res
   ) c_l []
 
-let configuration_full () = match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+let configuration_full ?(with_packages = true) () = match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
     | (Some(u), Some(c)) -> Data_state.constraint_configuration_full := configuration u#get_resource_ids c#get_location_ids c#get_location
     | _ -> ()
 
@@ -515,67 +530,91 @@ let cost_locations switch c_l u_dt u_dk count_components_only =
 let cost_used_locations = cost_locations Used_locations
 let cost_free_locations = cost_locations Free_locations
 
-let cost_difference_components c_l u_dt get_local_component = 
+let cost_difference_components c_l u_dt get_local_component : expression list = 
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Component_type_id_set.fold (fun t res ->
       (abs((eNlt l t) -~ (constant (Data_model.Component_id_set.cardinal (get_local_component l t))) ))::res
     ) u_dt res) c_l []
 
-let cost_difference_packages c_l u_dk get_local_package = 
+let cost_difference_packages c_l u_dk get_local_package : expression list = 
   Data_model.Location_id_set.fold (fun l res ->
     Data_model.Package_id_set.fold (fun k res ->
       (if get_local_package l k then abs((eNlk l k) -~ (constant 1)) else (eNlk l k))::res
     ) u_dk res) c_l []
 
-let cost_locations c_l (get_location_cost : Data_model.location_id -> Data_model.location_cost) =
+let cost_locations c_l (get_location_cost : Data_model.location_id -> Data_model.location_cost) : expression list =
   Data_model.Location_id_set.fold (fun l res ->
     ( (eU l) *~ constant (get_location_cost l) ) :: res
   ) c_l []
 
 (* translation functions *)
-let compact_slow c_l u_dt u_dk get_location_cost =
-  Multi_objective.solve_goal_of_list_of_single_optimizations [
-    Single_objective.Minimize (sum (cost_locations c_l get_location_cost)); (* First minimize the number of used locations, *)
-    Single_objective.Minimize (sum (cost_all_components u_dt));             (* then minimize the number of components, *)
-    Single_objective.Minimize (sum (cost_all_packages u_dk)) ]              (* finally minimize the number of packages. (so we do not have useless packages) *)
+let simple ?(with_packages = true) u_dt =
+  Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (sum (cost_all_components u_dt)) ))
 
-let compact_fast c_l u_dt u_dk get_location_cost = 
-  Multi_objective.Optimize( Multi_objective.Single( Single_objective.Minimize (
-    sum (List.rev_append (List.rev_append 
-      (cost_all_components u_dt) 
-      (cost_locations c_l get_location_cost))
-      (cost_all_packages u_dk)))))
+let compact_slow ?(with_packages = true) c_l u_dt u_dk get_location_cost =
+  let minimize_used_location_cost = Single_objective.Minimize (sum (cost_locations c_l get_location_cost)) in (* First minimize the number of used locations, *) 
+  let minimize_component_count    = Single_objective.Minimize (sum (cost_all_components u_dt))             in (* then minimize the number of components, *)
+  let minimize_package_count      = Single_objective.Minimize (sum (cost_all_packages u_dk))               in (* finally minimize the number of packages (so we do not have useless packages). *)
+  let single_optimizations =
+    if with_packages
+    then [minimize_used_location_cost; minimize_component_count; minimize_package_count]
+    else [minimize_used_location_cost; minimize_component_count] in
+  Multi_objective.solve_goal_of_list_of_single_optimizations single_optimizations
 
-let spread_slow c_l u_dt u_dk =
-  Multi_objective.solve_goal_of_list_of_single_optimizations [
-    Single_objective.Minimize (sum (cost_all_components u_dt));               (* First minimize the number of components, *)
-    Single_objective.Maximize (sum (cost_used_locations c_l u_dt u_dk true)); (* then maximize the number of used locations (counting only locations with at least one component), *)
-    Single_objective.Minimize (sum (cost_all_packages u_dk)) ]                (* finally minimize the number of packages. *)
+let compact_fast ?(with_packages = true) c_l u_dt u_dk get_location_cost = 
+  let used_location_cost = sum (cost_all_components u_dt)             in
+  let component_count    = sum (cost_locations c_l get_location_cost) in
+  let package_count      = sum (cost_all_packages u_dk)               in
+  let total_cost = 
+    if with_packages
+    then sum [used_location_cost; component_count; package_count]
+    else sum [used_location_cost; component_count] in
+  Multi_objective.Optimize( Multi_objective.Single( Single_objective.Minimize total_cost))
 
-let spread_fast c_l u_dt u_dk = 
+let spread_slow ?(with_packages = true) c_l u_dt u_dk =
+  let minimize_component_count = Single_objective.Minimize (sum (cost_all_components u_dt)) in               (* First minimize the number of components, *)
+  let maximize_location_cost   = Single_objective.Maximize (sum (cost_used_locations c_l u_dt u_dk true)) in (* then maximize the number of used locations (counting only locations with at least one component), *)
+  let minimize_package_count   = Single_objective.Minimize (sum (cost_all_packages u_dk)) in                 (* finally minimize the number of packages. *)
+  let single_optimizations =
+    if with_packages
+    then [minimize_component_count; maximize_location_cost; minimize_package_count]
+    else [minimize_component_count; maximize_location_cost] in
+  Multi_objective.solve_goal_of_list_of_single_optimizations single_optimizations
+
+let spread_fast ?(with_packages = true) c_l u_dt u_dk = 
   Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Maximize (
     (sum (cost_used_locations c_l u_dt u_dk true)) -~ (sum (cost_all_components u_dt)))))
 
-let conservative_slow c_l u_dt u_dk get_local_component get_local_package =
-  Multi_objective.solve_goal_of_list_of_single_optimizations [
-    Single_objective.Minimize (sum (cost_difference_components c_l u_dt get_local_component)); (* First minimize the number of changed components, *)
-    Single_objective.Minimize (sum (cost_used_locations        c_l u_dt u_dk false));          (* then minimize the number of used locations, *)
-    Single_objective.Minimize (sum (cost_difference_packages   c_l u_dk get_local_package)) ]  (* finally minimize the number of changed packages. *)
+let conservative_slow ?(with_packages = true) c_l u_dt u_dk get_local_component get_local_package =
+  let minimize_component_difference = Single_objective.Minimize (sum (cost_difference_components c_l u_dt get_local_component)) in (* First minimize the number of changed components, *)
+  let minimize_location_cost        = Single_objective.Minimize (sum (cost_used_locations        c_l u_dt u_dk false))          in (* then minimize the number of used locations, *)
+  let minimize_package_count        = Single_objective.Minimize (sum (cost_difference_packages   c_l u_dk get_local_package))   in (* finally minimize the number of changed packages. *)
+  let single_optimizations =
+    if with_packages
+    then [minimize_component_difference; minimize_location_cost; minimize_package_count]
+    else [minimize_component_difference; minimize_location_cost] in
+  Multi_objective.solve_goal_of_list_of_single_optimizations single_optimizations
+    
+    
+    
 
 (* set the optimization function in Data_state *)
 
-let optimization_function u c f =
+let optimization_function ?(with_packages = true) u c f =
   let (c_l, u_dt, u_dk, get_local_component, get_local_package, get_location_cost) =
     (c#get_location_ids, u#get_component_type_ids, u#get_package_ids, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
   match f with
-  | Data_model.Optimization_function_simple       -> Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (sum (cost_all_components u_dt))))
-  | Data_model.Optimization_function_compact      -> compact_slow c_l u_dt u_dk get_location_cost
-  | Data_model.Optimization_function_conservative -> conservative_slow c_l u_dt u_dk get_local_component get_local_package
-  | Data_model.Optimization_function_spread       -> spread_slow c_l u_dt u_dk
+  | Data_model.Optimization_function_simple       -> simple            ~with_packages u_dt
+  | Data_model.Optimization_function_compact      -> compact_slow      ~with_packages c_l u_dt u_dk get_location_cost
+  | Data_model.Optimization_function_conservative -> conservative_slow ~with_packages c_l u_dt u_dk get_local_component get_local_package
+  | Data_model.Optimization_function_spread       -> spread_slow       ~with_packages c_l u_dt u_dk
   | Data_model.Optimization_function_none         -> Multi_objective.Satisfy
 
 
-let optimization_function_full () = match !Data_state.optimization_function with
-  | None -> () | Some(f) -> match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
-    | (Some(u), Some(c)) -> Data_state.constraint_optimization_function := Some(optimization_function u c f)
+let optimization_function_full ?(with_packages = true) () = 
+  match !Data_state.optimization_function with
+  | None -> ()
+  | Some(f) -> 
+    match (!Data_state.universe_full, !Data_state.initial_configuration_full) with
+    | (Some(u), Some(c)) -> Data_state.constraint_optimization_function := Some(optimization_function ~with_packages u c f)
     | _ -> ()

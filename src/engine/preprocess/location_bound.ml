@@ -22,9 +22,10 @@
 
 (* this function simply computes the constraint corresponding to the input universe, configuration and specification *)
 let constraint_of (universe, config, spec) ls_ids = (* TODO: put in constraint_of with model_with_domain *)
-  let (_, k_universe) = List.split (Constraint_of.universe ls_ids universe config) in
-  let (_, k_config)   = List.split (Constraint_of.locations universe#get_resource_ids ls_ids config#get_location) in
-  let (_, k_spec)     = List.split (Constraint_of.specification ls_ids spec) in
+  let with_packages = if Settings.find Settings.eliminate_packages then false else true in
+  let (_, k_universe) = List.split (Constraint_of.universe      ~with_packages ls_ids universe config) in
+  let (_, k_config)   = List.split (Constraint_of.locations     ~with_packages universe#get_resource_ids ls_ids config#get_location) in
+  let (_, k_spec)     = List.split (Constraint_of.specification ~with_packages ls_ids spec) in
   Data_constraint.NaryKonstraint((Data_constraint.And), ((List.flatten k_universe) @ (List.flatten k_config) @ k_spec))
 
 

@@ -255,12 +255,16 @@ let () =
 (* === Generate and solve the main constraint === *)
   Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
 
-  if Settings.find Settings.eliminate_packages
-  then Constraint_of.universe_full_incompatibilities ()
-  else Constraint_of.universe_full ();
-  Constraint_of.specification_full ();
-  Constraint_of.configuration_full ();
-  Constraint_of.optimization_function_full ();
+  let with_packages =
+    if Settings.find Settings.eliminate_packages
+    then false
+    else true in
+
+  Constraint_of.universe_full              ~with_packages ();
+  Constraint_of.specification_full         ~with_packages ();
+  Constraint_of.configuration_full         ~with_packages ();
+  Constraint_of.optimization_function_full ~with_packages ();
+
   Location_categories.generate_categories ();
   let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) () in
   let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full ()) in

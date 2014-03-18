@@ -319,8 +319,11 @@ let minimize_upper_bound fu =
 (* solve the specification `alone', to see if we have some lower bounds *)
 let get_initial_mins solver universe spec domain =
   let (spv, stv, skv) = Data_model.uv_of_specification spec in (* get the port, component type and package variables in the specification *)
-  let main_k = Constraint_of.specification domain spec in      (* generate the constraint corresponding to the specification *)
-  let annex_k = Constraint_of.location_all_variables spv stv skv domain universe#up universe#get_component_type in
+
+  let with_packages = if Settings.find Settings.eliminate_packages then false else true in
+  let main_k  = Constraint_of.specification          ~with_packages domain spec in      (* generate the constraint corresponding to the specification *)
+  let annex_k = Constraint_of.location_all_variables ~with_packages spv stv skv domain universe#up universe#get_component_type in
+  
   let full_k = annex_k @ (List.map (fun (_,k) -> ("",k)) main_k) in
   let vs = variables_of_konstraint (Data_constraint.conj (List.map snd main_k)) in
   let f = Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (Data_constraint.sum (List.map Data_constraint.var2expr (Data_constraint.Variable_set.elements vs))))) in
