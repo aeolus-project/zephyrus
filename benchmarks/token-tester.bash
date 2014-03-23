@@ -3,6 +3,13 @@
 token_name="test"
 token_manager="./token-manager.bash"
 
+tokens="4"
+
+if ! $token_manager $token_name is-running
+then
+  $token_manager $token_name start $tokens
+fi
+
 take_token () { $token_manager $token_name take; }
 
 yield_token () { $token_manager $token_name yield; }

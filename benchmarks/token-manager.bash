@@ -42,6 +42,19 @@ then
   exit 0
 fi
 
+# Test if the manager is running.
+if [[ "$cmd" = "is-running" ]]
+then
+  if test -e $distribution_pipe
+  then
+    if test -e $reclaim_pipe
+    then 
+      exit 0
+    fi
+  fi
+  exit 1
+fi
+
 # Run a new token manager.
 if [[ "$cmd" = "start" ]]
 then
