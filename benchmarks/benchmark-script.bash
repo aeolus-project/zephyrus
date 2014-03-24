@@ -7,7 +7,7 @@ echoerr() { echo "$@" >&2; }
 input="$@"
 #echo "Input: \"${input}\""
 
-timeout_in_seconds="1200"
+timeout_in_seconds="36000"
 
 # Prepare a directory for this series of benchmarks
 benchmarks_dir_name="${script_dir}/results/benchmarks_`date +'%F_%H:%M:%S'`"
@@ -15,8 +15,6 @@ mkdir ${benchmarks_dir_name}
 
 format_description_1="SolvingSystemTime:%S\nSolvingUserTime:%U\nSolvingWallClockTime:%E"
 format_description_2="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotalMemoryUse:%K\nMaximumResidentSetSize:%M\nAverageResidentSetSize:%t\nAverageUnsharedStackSize:%p"
-
-benchmark_choice="wordpress"
 
 echoerr "Preparing parameter sets for benchmark cases... (it may take some time)"
 declare -a cases=()

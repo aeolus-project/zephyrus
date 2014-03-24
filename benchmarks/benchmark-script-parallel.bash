@@ -2,20 +2,63 @@
 
 script_dir="`dirname $0`"
 
-echoerr() { echo "$@" >&2; }
+# Debug printing
+echoerr() { echo "$@" >&2 ; }
+
+
+### === CPU token manager === ###
+
+token_manager="${script_dir}/token-manager.bash"
+token_name="cpu"
+
+tokens="8" # Number of cpu cores
+
+# Check if the cpu token manager is running. If not, launch it.
+if ! $token_manager $token_name is-running
+then
+  $token_manager $token_name start $tokens
+fi
+
+# Take token / yield token functions
+take_token  () { $token_manager $token_name take;  }
+yield_token () { $token_manager $token_name yield; }
+
+### === CPU token manager === ###
+
+
+### === Time command === ###
+
+# Output format
+time_format_description="SolvingSystemTime:%S\nSolvingUserTime:%U\nSolvingWallClockTime:%E"
+#time_format_description_full="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotalMemoryUse:%K\nMaximumResidentSetSize:%M\nAverageResidentSetSize:%t\nAverageUnsharedStackSize:%p"
+
+make_time_command () {
+  output=$1
+  format=$2
+  echo "/usr/bin/time -o ${output} --format=${format}"
+}
+
+### === Time command === ###
+
+
+### === Date command === ###
+
+formatted_date () {
+  echo `date +'%F %H:%M:%S'`
+}
+
+### === Date command === ###
+
 
 input="$@"
 #echo "Input: \"${input}\""
 
-timeout_in_seconds="1200"
+timeout_in_seconds="36000"
 
 # Prepare a directory for this series of benchmarks
 benchmarks_dir_name="${script_dir}/results/benchmarks_`date +'%F_%H:%M:%S'`"
 mkdir ${benchmarks_dir_name}
 
-# Time formats
-format_description_1="SolvingSystemTime:%S\nSolvingUserTime:%U\nSolvingWallClockTime:%E"
-format_description_2="SystemTime:%S\nUserTime:%U\nWallClockTime:%E\nAverageTotalMemoryUse:%K\nMaximumResidentSetSize:%M\nAverageResidentSetSize:%t\nAverageUnsharedStackSize:%p"
 
 # Treat parameter sets
 echoerr "Preparing parameter sets for benchmark cases... (it may take some time)"
@@ -27,108 +70,92 @@ echoerr "Parameter sets ready!"
 
 last_case_i="$((${#cases[*]} - 1))"
 
-# Prepare the children pipe
-pipe=`mktemp --tmpdir zephyrus_fifo_XXXXX`
-rm -f $pipe
-mkfifo $pipe
-
-children="0"
-max_children="2"
-
-add_child () { children="$(( $children + 1 ))"; }
-sub_child () { children="$(( $children - 1 ))"; }
-wait_children () {
-	while [[ $children -ge $max_children ]]; do
-		while read line < $pipe
-		do
-			if [[ "$line"  == "end" ]]; then
-				sub_child
-				break
-			fi
-		done
-	done
-}
 
 
 # Launch a benchmark for each case
 for cases_i in `seq 0 ${last_case_i}`; do
 
-	#echo "case $cases_i : ${cases[$cases_i]}"
-	case="${cases[$cases_i]}"
+  #echo "case $cases_i : ${cases[$cases_i]}"
+  case="${cases[$cases_i]}"
 
-	worker () {
+  worker () {
 
-		preamble="`echo "$case" | cut -d ';' -f 1 | sed "s/,/\n/g"`\n"
-		#echo "preamble = $preamble"
-		exec_stats="$preamble"
+    trap "{ yield_token; echo 'Worker exitting...' >&2 ; exit 0; }" EXIT SIGINT SIGTERM
 
-		zephyrus_command="`echo "$case" | cut -d ';' -f 2`"
-		zephyrus_command=${zephyrus_command#\"}
-		zephyrus_command=${zephyrus_command%\"}
-		#echo "zephyrus_command = $zephyrus_command"
+    preamble="`echo "$case" | cut -d ';' -f 1 | sed "s/,/\n/g"`"
+    #echo "preamble = $preamble"
+    exec_stats="$preamble"
 
-
-		# FIRST RUN (without generating the final configuration)
-
-		tmp_time_file_1=`mktemp zephyrus_benchmark_time_XXXXX`
-		time_cmd_1="/usr/bin/time -o ${tmp_time_file_1} --format=${format_description_1}"
-
-		echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}"
-		echo -e "> Running (without generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
-		cmd="${time_cmd_1} timeout ${timeout_in_seconds}s ${zephyrus_command} -stop-after-solving"
-		#echo "$cmd"
-		$cmd > /dev/null 2> /dev/null
-
-		echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}"
-		echo -e "< Done first run!"
+    case_command="`echo "$case" | cut -d ';' -f 2`"
+    case_command=${case_command#\"} # strip leading  double quote
+    case_command=${case_command%\"} # strip trailing double quote
+    #echo "case_command = $case_command"
 
 
-		# SECOND RUN (with generating the final configuration)
+#  DEPRECATED
+#
+#    # FIRST RUN (without generating the final configuration)
+#
+#    tmp_time_file_1=`mktemp zephyrus_benchmark_time_XXXXX`
+#    time_cmd_1=`make_time_command ${tmp_time_file_1} ${time_format_description}`
+#
+#    echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}\n"
+#    echo -e "> Running (without generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
+#    #cmd="${time_cmd_1} timeout ${timeout_in_seconds}s ${case_command} -stop-after-solving"
+#    cmd="${time_cmd_1} ${case_command} -stop-after-solving"
+#    #echo "$cmd"
+#    $cmd > /dev/null 2> /dev/null
+#
+#    echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}\n"
+#    echo -e "< Done first run!"
 
-		tmp_time_file_2=`mktemp zephyrus_benchmark_time_XXXXX`
-		time_cmd_2="/usr/bin/time -o ${tmp_time_file_2} --format=${format_description_2}"
-		tmp_statistics_file=`mktemp zephyrus_benchmark_stats_XXXXX`
 
-		echo -e "> Running (with generating the final configuration)... (started on `date +'%F %H:%M:%S'`)"
-		cmd="${time_cmd_2} timeout ${timeout_in_seconds}s ${zephyrus_command} -out statistics ${tmp_statistics_file}"
-		#echo "$cmd"
-		$cmd > /dev/null 2> /dev/null
-		echo -e "> Benchmark (${cases_i}/${last_case_i}):\n${exec_stats}"
-		echo -e "< Done second run!"
+    # SECOND RUN (with generating the final configuration)
 
-		# Collect statistics from temporary files, delete the temporary files
-		if test "`head -n 1 ${tmp_time_file_2}`" = "Command exited with non-zero status 124"; then 
-			time_stats_1="TIMEOUT"
-			time_stats_2="TIMEOUT"
-			zephyrus_stats=""
-		else 
-		    time_stats_1=`cat ${tmp_time_file_1}`
-		    time_stats_2=`cat ${tmp_time_file_2}`
-		    zephyrus_stats="`cat ${tmp_statistics_file}`\n"
-		fi
+    tmp_time_file=`mktemp zephyrus_benchmark_time_XXXXX`
+    time_cmd=`make_time_command ${tmp_time_file} ${time_format_description}`
+    tmp_statistics_file=`mktemp zephyrus_benchmark_stats_XXXXX`
 
-		rm ${tmp_time_file_1}
-		rm ${tmp_time_file_2}
-		rm ${tmp_statistics_file}
+    echo -e "> Running (with generating the final configuration)... (started on `formatted_date`)"
+    #cmd="${time_cmd} timeout ${timeout_in_seconds}s ${case_command} -out statistics ${tmp_statistics_file}"
+    zephyrus_cmd="${case_command} -out statistics ${tmp_statistics_file}"
+    cmd="${time_cmd} ${zephyrus_cmd}"
+    cmd_printable=`echo $(printf '%q' "$cmd") | sed -e 's/\\\\ / /g'`
+    echo "COMMAND EXECUTED: ${cmd_printable}"
+    $cmd > /dev/null 2> /dev/null
+    echo -e "> Benchmark (${cases_i}/${last_case_i}):\nCOMMAND EXECUTED: ${cmd_printable}\n${exec_stats}\n"
+    echo -e "< All done!"
 
-		echo -e "\nStats:\n${exec_stats}${zephyrus_stats}${time_stats_1}\n${time_stats_2}\n"
+    # Collect statistics from temporary files
+    if test "`head -n 1 ${tmp_time_file}`" = "Command exited with non-zero status 124"; then 
+      time_stats="TIMEOUT"
+      zephyrus_stats=""
+    else 
+        time_stats="`cat ${tmp_time_file}`"
+        zephyrus_stats="`cat ${tmp_statistics_file}`"
+    fi
 
-		# Print statistics to a file.
-		benchmark_results_file=`mktemp --tmpdir=${benchmarks_dir_name} benchmark_XXXXXX`
-		#echo "benchmark_results_file : ${benchmark_results_file}"
-		echo -en "${exec_stats}${zephyrus_stats}${time_stats_1}\n${time_stats_2}" > ${benchmark_results_file}
-	
-		echo "end" > $pipe
-	}
+    # Delete the temporary files
+    #rm ${tmp_time_file_1}
+    rm ${tmp_time_file}
+    rm ${tmp_statistics_file}
 
-	worker &
 
-	add_child
-	wait_children
+    echo -e "\nStats:\n${exec_stats}\n${zephyrus_stats}\n${time_stats}\n"
+
+    # Print statistics to a benchmark results file
+    benchmark_results_file=`mktemp --tmpdir=${benchmarks_dir_name} benchmark_XXXXXX`
+    echo "Benchmark results file : ${benchmark_results_file}"
+    echo -en "${exec_stats}\n${zephyrus_stats}\n${time_stats}" > ${benchmark_results_file}
+
+    exit 0
+  }
+
+  take_token
+  worker &
 
 done
 
-max_children=1
-wait_children
+wait
 
-rm -f $pipe
+echo "Benchmark script done!"

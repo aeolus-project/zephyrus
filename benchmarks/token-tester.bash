@@ -19,23 +19,23 @@ echo "Master $count running."
 
 for x in `seq $1`; do
 
-	y="[$x]"
+  y="[$x]"
 
-	take_token
-	echo "Taken cpu token!"
+  take_token
+  echo "Taken cpu token!"
 
-	worker () {
-	  echo "Worker $y running!"
-	  local cpu_token="$1"
-	  echo "$y running..."
-	  sleep $x
-	  echo "$y finished!"
-	  yield_token
-	}
+  worker () {
+    trap "{ yield_token; echo 'Worker $y exitting...'; exit 0; }" EXIT SIGINT SIGTERM
+    echo "Worker $y running!"
+    echo "$y running..."
+    sleep $x
+    echo "$y finished!"
+    exit 0
+  }
 
-	echo "Launching $x"
+  echo "Launching $x"
 
-	worker $cpu_token &
+  worker &
 
 done
 
