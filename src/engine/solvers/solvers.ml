@@ -181,6 +181,12 @@ module G12 : SOLVER = struct
     solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
+module G12_cpx : SOLVER = struct
+  let solve settings cs f = 
+    MiniZinc_generic.solver := Engine_helper.g12_cpx_minizinc_solver;
+    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+end
+
 module GeCode : SOLVER = struct
   let solve settings cs f = 
     MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
@@ -216,10 +222,11 @@ let full_of_settings kind =
     | Preprocess -> Settings.find Settings.preprocess_solver
     | Main -> Settings.find Settings.solver in
   match solver with
-  | Settings.Solver_none   -> GeCode.solve (* default *)
-  | Settings.Solver_gecode -> GeCode.solve
-  | Settings.Solver_g12    -> G12.solve
-  | Settings.Solver_custom -> (
+  | Settings.Solver_none    -> GeCode.solve (* default *)
+  | Settings.Solver_gecode  -> GeCode.solve
+  | Settings.Solver_g12     -> G12.solve
+  | Settings.Solver_g12_cpx -> G12_cpx.solve
+  | Settings.Solver_custom  -> (
       match Settings.get_custom_solver_command () with
       | None -> failwith "Cannot use a custom solver as the custom solver command is not specified!"
       | Some command ->

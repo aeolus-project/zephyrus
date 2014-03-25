@@ -53,11 +53,12 @@ val program_did_exit_ok : Unix.process_status -> bool
 
 (** Some useful programs (usually, there [exe] only takes two arguments *)
 
-val mzn2fzn                : program
-val g12_flatzinc_solver    : program
-val gecode_flatzinc_solver : program
-val g12_minizinc_solver    : program
-val gecode_minizinc_solver : program
+val mzn2fzn                 : program
+val g12_flatzinc_solver     : program
+val gecode_flatzinc_solver  : program
+val g12_minizinc_solver     : program
+val g12_cpx_minizinc_solver : program
+val gecode_minizinc_solver  : program
 
 
 (** 2. Custom solver handling *)

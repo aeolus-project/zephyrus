@@ -163,14 +163,16 @@ type solver =
   | Solver_none
   | Solver_gecode
   | Solver_g12
+  | Solver_g12_cpx
 (*  | Solver_facile *)
   | Solver_custom
 let solver_assoc = [
 (*  ("facile", Solver_facile); *)
-  ("none"   , Solver_none);
-  ("g12"    , Solver_g12);
-  ("gecode" , Solver_gecode);
-  ("custom" , Solver_custom) ]
+  ("none"    , Solver_none);
+  ("g12"     , Solver_g12);
+  ("g12_cpx" , Solver_g12_cpx);
+  ("gecode"  , Solver_gecode);
+  ("custom"  , Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc

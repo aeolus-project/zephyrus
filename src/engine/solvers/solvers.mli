@@ -47,8 +47,9 @@ module type SOLVER = sig
   val solve : t_full (* It returns the solution and its cost. *)
 end
 
-module G12    : SOLVER
-module GeCode : SOLVER
+module G12     : SOLVER
+module G12_cpx : SOLVER
+module GeCode  : SOLVER
 val make_custom_solver_module : Engine_helper.program -> (module SOLVER)
 
 

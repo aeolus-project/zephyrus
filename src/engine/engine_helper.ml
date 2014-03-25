@@ -75,7 +75,14 @@ let g12_minizinc_solver = {
   name     = "G12";
   commands = ["mzn2fzn"; "flatzinc"];
   exe      = (fun l -> match l with [input; output] -> let flatzinc = Filename.temp_file "zephyrus_" ".fzn" in
-    "mzn2fzn --no-output-ozn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "flatzinc -o " ^ (String.escaped output) ^ " " ^ flatzinc
+    "mzn2fzn -o  " ^ flatzinc ^ " " ^ (String.escaped input) ^ " && " ^ "flatzinc -o " ^ (String.escaped output) ^ " " ^ flatzinc
+                       | _ -> raise Wrong_argument_number)
+}
+
+let g12_cpx_minizinc_solver = {
+  name     = "G12-cpx";
+  commands = ["mzn-g12cpx"];
+  exe      = (fun l -> match l with [input; output] -> "mzn-g12cpx --no-output-ozn -o " ^ (String.escaped output) ^ " " ^ (String.escaped input)
                        | _ -> raise Wrong_argument_number)
 }
 
