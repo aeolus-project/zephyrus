@@ -273,10 +273,17 @@ let rec minizinc_search_annotation_of_search_strategy v_map search_strategy =
       Printf.sprintf "%s(\n%s\n)" search_constructor seq_search_strategies_string
 
 let minizinc_goal_of_solve_goal v_map ?(solve_strategy=None) solve_goal =
+  let search_strategy_annotation =
+    match solve_strategy with
+    | None -> ""
+    | Some solve_strategy -> 
+      let annotation = minizinc_search_annotation_of_search_strategy v_map solve_strategy in
+      Printf.sprintf ":: %s\n" annotation in
+
   match solve_goal with
-  | Single_objective.Optimize(Maximize(e)) -> (Some(e), "solve maximize (" ^ cost_variable_name ^ ");")
-  | Single_objective.Optimize(Minimize(e)) -> (Some(e), "solve minimize (" ^ cost_variable_name ^ ");")
-  | Single_objective.Satisfy               -> (None,    "solve satisfy;")
+  | Single_objective.Optimize(Maximize(e)) -> (Some(e), Printf.sprintf "solve %smaximize (%s);" search_strategy_annotation cost_variable_name)
+  | Single_objective.Optimize(Minimize(e)) -> (Some(e), Printf.sprintf "solve %sminimize (%s);" search_strategy_annotation cost_variable_name)
+  | Single_objective.Satisfy               -> (None,    Printf.sprintf "solve %ssatisfy;"       search_strategy_annotation                   )
 
 let add_optimization_goal smzn solve_goal = 
   let (eo,s) = minizinc_goal_of_solve_goal smzn.mzn_variables solve_goal in
