@@ -50,6 +50,7 @@ type variable_assignment_strategy =
 type strategy =
   | Complete (** Exhaustive search. *)
 
+(** The parameters of single search strategy. *)
 type search_parameters = {
   vars       : Data_constraint.variable list; (** List of variables to be assigned. *)
   var_choice : variable_choice_strategy;      (** Specifies how the next variable to be assigned is chosen at each choice point. *)
@@ -57,6 +58,7 @@ type search_parameters = {
   strategy   : strategy;                      (** Specifies the search strategy. *)
 }
 
+(** A complete search strategy. *)
 type search_strategy =
   | Int_search of search_parameters
-  | Seq_search of search_strategy
+  | Seq_search of search_strategy list

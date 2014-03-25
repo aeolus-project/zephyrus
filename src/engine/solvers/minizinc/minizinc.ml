@@ -205,11 +205,78 @@ let add_extra_constraint smzn e i = {
 
 (* 6. finish *)
 
-let minizinc_goal_of_solve_goal v_map solve_goal = 
+let rec minizinc_search_annotation_of_search_strategy v_map search_strategy =
+
+  let open Data_strategy in
+
+  let minizinc_of_variable_choice_strategy variable_choice_strategy =
+    match variable_choice_strategy with
+    | Input_order      -> "input_order"
+    | First_fail       -> "first_fail"
+    | Anti_first_fail  -> "anti_first_fail"
+    | Smallest         -> "smallest"
+    | Largest          -> "largest"
+    | Occurrence       -> "occurrence"
+    | Most_constrained -> "most_constrained"
+    | Max_regret       -> "max_regret" in
+
+  let minizinc_of_variable_assignment_strategy variable_assignment_strategy =
+    match variable_assignment_strategy with
+    | Indomain_min           -> "indomain_min"
+    | Indomain_max           -> "indomain_max"
+    | Indomain_middle        -> "indomain_middle"
+    | Indomain_median        -> "indomain_median"
+    | Indomain               -> "indomain"
+    | Indomain_random        -> "indomain_random"
+    | Indomain_split         -> "indomain_split"
+    | Indomain_reverse_split -> "indomain_reverse_split"
+    | Indomain_interval      -> "indomain_interval" in
+
+  let minizinc_of_strategy strategy =
+    match strategy with
+    | Complete -> "complete" in
+
+  let minizinc_search_constructor_of_search_strategy search_strategy =
+    match search_strategy with
+    | Int_search _ -> "int_search" 
+    | Seq_search _ -> "seq_search" in
+
+  match search_strategy with
+  | Int_search search_parameters ->
+      (* Prepare the search strategy constructor. *)
+      let search_constructor = minizinc_search_constructor_of_search_strategy search_strategy in
+
+      (* Convert all the search parameters to strings. *)
+      let variables_string = 
+        let variables = search_parameters.vars in
+        let variables_strings = List.map v_map#get_name variables in
+        Printf.sprintf "[\n%s\n]" (String.concat ",\n" variables_strings) in
+
+      let variable_choice_strategy_string     = minizinc_of_variable_choice_strategy     search_parameters.var_choice in
+      let variable_assignment_strategy_string = minizinc_of_variable_assignment_strategy search_parameters.assignment in
+      let strategy_string                     = minizinc_of_strategy                     search_parameters.strategy in
+
+      (* Glue it all together to create a complete MiniZinc int search strategy annotation. *)
+      Printf.sprintf "%s(\n%s,\n%s,\n%s,\n%s\n)" search_constructor variables_string variable_choice_strategy_string variable_assignment_strategy_string strategy_string
+
+  | Seq_search seq_search_strategies ->
+      (* Prepare the search strategy constructor. *)
+      let search_constructor = minizinc_search_constructor_of_search_strategy search_strategy in
+
+      (* Convert the whole sequence of search strategies to a MiniZinc annotation string. *)
+      let seq_search_strategies_string =
+        let seq_search_strategies_strings = 
+          List.map (minizinc_search_annotation_of_search_strategy v_map) seq_search_strategies in
+        Printf.sprintf "[\n%s\n]" (String.concat ",\n" seq_search_strategies_strings) in
+
+      (* Glue it all together to create a complete MiniZinc sequential search strategy annotation. *)
+      Printf.sprintf "%s(\n%s\n)" search_constructor seq_search_strategies_string
+
+let minizinc_goal_of_solve_goal v_map ?(solve_strategy=None) solve_goal =
   match solve_goal with
   | Single_objective.Optimize(Maximize(e)) -> (Some(e), "solve maximize (" ^ cost_variable_name ^ ");")
   | Single_objective.Optimize(Minimize(e)) -> (Some(e), "solve minimize (" ^ cost_variable_name ^ ");")
-  | Single_objective.Satisfy               -> (None, "solve satisfy;")
+  | Single_objective.Satisfy               -> (None,    "solve satisfy;")
 
 let add_optimization_goal smzn solve_goal = 
   let (eo,s) = minizinc_goal_of_solve_goal smzn.mzn_variables solve_goal in
