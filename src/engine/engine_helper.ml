@@ -81,9 +81,14 @@ let g12_minizinc_solver = {
 
 let g12_cpx_minizinc_solver = {
   name     = "G12-cpx";
-  commands = ["mzn-g12cpx"];
-  exe      = (fun l -> match l with [input; output] -> "mzn-g12cpx --no-output-ozn -o " ^ (String.escaped output) ^ " " ^ (String.escaped input)
-                       | _ -> raise Wrong_argument_number)
+  commands = ["mzn2fzn"; "mzn-g12cpx"];
+  exe      = (fun l -> 
+              match l with 
+              | [input; output] ->
+                let (mzn_file, sol_file) = (String.escaped input, String.escaped output) in
+                let fzn_file = Filename.temp_file "zephyrus_" ".fzn" in
+                Printf.sprintf "mzn2fzn --no-output-ozn -G g12_cpx -o %s %s && fzn_cpx -s %s > %s" fzn_file mzn_file fzn_file sol_file
+              | _ -> raise Wrong_argument_number)
 }
 
 let gecode_minizinc_solver = {
