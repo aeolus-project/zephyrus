@@ -145,12 +145,16 @@ let () =
   (* If ==> VALIDATION MODE <== was chosen: *)
   if Settings.find Settings.mode = Settings.Mode_validate_initial_config 
   then
-    let initial_configuration_validation_errors = Validate.filter_initial_configuration_validation_errors validation_results in
-    if initial_configuration_validation_errors = []
-    then Printf.printf "\nInitial configuration has passed all checks and is completely valid!\n"
-    else 
+    if Validate.validation_passed validation_results (* Were all validation tests passed successfuly? *)
+    then ( (* There were no errors, all the tests were passed. Return success. *)
+      Printf.printf "\nInitial configuration has passed all checks and is completely valid!\n";
+      ignore (exit 0) )
+    else ( (* There were some errors. Print them and return failure. *)
+      (* Extrect errors from the validation results. *)
+      let initial_configuration_validation_errors = Validate.validation_results_filter_errors validation_results in
       Printf.printf "\nInitial configuration validation errors:\n";
-      List.iter (fun validation_result -> Printf.printf "%s\n%!" (Validate.String_of.validation_result validation_result)) initial_configuration_validation_errors
+      List.iter (fun validation_result -> Printf.printf "%s\n%!" (Validate.String_of.validation_result validation_result)) initial_configuration_validation_errors;
+      ignore (exit 1) )
   else
   
   (* In the classic mode we also need an optimization function. *)
@@ -276,7 +280,7 @@ let () =
   Zephyrus_log.log_stage_new "SOLVING SECTION";
 
   match main_solver solver_input_k solver_input_f with
-  | None -> Zephyrus_log.log_panic "no solution for the given input"
+  | None -> Zephyrus_log.log_panic "no solution for the given input"; ignore (exit 1)
   | Some(solution) -> (
     Zephyrus_log.log_stage_end ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
@@ -293,6 +297,21 @@ let () =
     Zephyrus_log.log_stage_end ();
     
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration u final_configuration) ^ "\n"));
+
+    (* Validation *)
+    Zephyrus_log.log_stage_new "FINAL CONFIGURATION VALIDATION";
+    (* NOTE: We never expect the packages in the final configuration to pass the validation tests as some
+             of them are often not generated (we usually assume that it is not useful to generate them all). *)
+    let validation_results = Validate.standard_model_check ~with_packages:false u final_configuration s in
+    if Validate.validation_passed validation_results
+    then Zephyrus_log.log_execution "\nFinal configuration has passed all checks and is completely valid!\n"
+    else begin
+      let final_configuration_validation_errors = Validate.validation_results_filter_errors validation_results in
+      Zephyrus_log.log_execution "\nFinal configuration validation errors:\n";
+      List.iter (fun validation_result -> Zephyrus_log.log_execution (Printf.sprintf "%s\n%!" (Validate.String_of.validation_result validation_result))) final_configuration_validation_errors;
+      ignore (exit 13)
+    end;
+    Zephyrus_log.log_stage_end ();
 
     (* Final configuration statistics *)
     Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
