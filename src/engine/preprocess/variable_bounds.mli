@@ -82,8 +82,15 @@ val edges    : flat_universe -> Graph.Edge_set.t
 val to_string : flat_universe -> string
 val to_string_full : flat_universe -> string
 
-val get_initial_mins : Solvers.t -> Data_model.universe -> Data_model.specification
-  -> Data_model.Location_id_set.t -> Data_constraint.solution option (* Solves the specification alone to get minimal bounds on required components and ports *)
+(* Solves the specification alone to get minimal bounds on required components and ports *)
+val get_initial_mins : 
+  Solvers.t -> 
+  Data_constraint.variable_bounds ->
+  Data_model.universe -> 
+  Data_model.specification -> 
+  Data_model.Location_id_set.t -> 
+  Data_constraint.solution option 
+
 val core_solution : Data_constraint.solution -> (int Data_model.Port_id_map.t) * (int Data_model.Component_type_id_map.t)
 
 (*/************************************************************************\*)

@@ -25,14 +25,13 @@
 (* TODO: replace the log_panic with option types, or exceptions *)
 
 type solver_settings = {
-  bounds                : Data_constraint.variable_bounds;
   input_file            : string;
   output_file           : string;
   keep_input_file       : bool;
   keep_output_file      : bool;  
 }
 
-type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t = Data_constraint.variable_bounds -> (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
 type t_full = solver_settings -> t
       
 
@@ -44,7 +43,7 @@ end
 (* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
 exception No_solution (* to break the normal control flow of solution computation in case there are none. Too painful to deal with options *)
 
-let solve_multi_objective settings preprocess solve_step postprocess c (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
+let solve_multi_objective settings bounds preprocess solve_step postprocess c (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
 
   let rec iterative_solve data (multi_objective_optimization : Data_constraint.Multi_objective.optimization) = 
     match multi_objective_optimization with
@@ -63,7 +62,7 @@ let solve_multi_objective settings preprocess solve_step postprocess c (multi_ob
       | None                 -> raise No_solution
       | Some(solution, cost) -> (postprocess data single_objective_solve_goal cost, solution, [cost]) in
 
-  let initial_data = preprocess settings c multi_objective_solve_goal in
+  let initial_data = preprocess settings bounds c multi_objective_solve_goal in
   
   try 
     match multi_objective_solve_goal with
@@ -93,7 +92,7 @@ module MiniZinc_generic = struct
   let input  : Engine_helper.file    ref = ref Engine_helper.file_default
   let output : Engine_helper.file    ref = ref Engine_helper.file_default
 
-  let preprocess settings c (solve_goal : Data_constraint.Multi_objective.solve_goal) =
+  let preprocess settings bounds c (solve_goal : Data_constraint.Multi_objective.solve_goal) =
     Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
     if Engine_helper.program_is_available !solver
     then 
@@ -111,7 +110,7 @@ module MiniZinc_generic = struct
     (*  Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
 
         Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
-        let res = core_translation v_map settings.bounds c in
+        let res = core_translation v_map bounds c in
         Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy (res.mzn_main_constraint ^ "\n% end constraint\n"));
         res
       end
@@ -176,28 +175,28 @@ end
 (* 3. Main Modules *)
 
 module G12 : SOLVER = struct
-  let solve settings cs f = 
+  let solve settings bounds cs f = 
     MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
-    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
 module G12_cpx : SOLVER = struct
-  let solve settings cs f = 
+  let solve settings bounds cs f = 
     MiniZinc_generic.solver := Engine_helper.g12_cpx_minizinc_solver;
-    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
 module GeCode : SOLVER = struct
-  let solve settings cs f = 
+  let solve settings bounds cs f = 
     MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
-    solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
 end
 
 let make_custom_solver_module (solver_program : Engine_helper.program) =
   let module Solver = struct
-    let solve settings cs f = 
+    let solve settings bounds cs f = 
       MiniZinc_generic.solver := solver_program;
-      solve_multi_objective settings MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f
+      solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f
     end
   in
   (module Solver : SOLVER)
@@ -206,21 +205,22 @@ let make_custom_solver_module (solver_program : Engine_helper.program) =
 type settings_kind = Preprocess | Main
 
 let settings_of_settings kind =
-  let ((in_file, in_keep), (out_file, out_keep)) = match kind with
+  let ((in_file, in_keep), (out_file, out_keep)) = 
+    match kind with
     | Preprocess -> Settings.get_preprocess_file_informations ()
-    | Main -> Settings.get_main_file_informations () in {
-  bounds            = Data_state.get_variable_bounds ();
-  input_file        = in_file;
-  output_file       = out_file;
-  keep_input_file   = in_keep;
-  keep_output_file  = out_keep
-}
+    | Main       -> Settings.get_main_file_informations () in 
+  {
+    input_file        = in_file;
+    output_file       = out_file;
+    keep_input_file   = in_keep;
+    keep_output_file  = out_keep
+  }
 
 let full_of_settings kind = 
   let solver = 
     match kind with 
     | Preprocess -> Settings.find Settings.preprocess_solver
-    | Main -> Settings.find Settings.solver in
+    | Main       -> Settings.find Settings.solver in
   match solver with
   | Settings.Solver_none    -> GeCode.solve (* default *)
   | Settings.Solver_gecode  -> GeCode.solve

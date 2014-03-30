@@ -75,7 +75,8 @@ let elements_of_location (no_packages : bool) u l =
 
 let constraint_of_category (no_packages : bool) u s =
   let rec f ls =  match ls with
-  | [] -> [] | [l] -> []
+  | []  -> [] 
+  | [l] -> []
   | l1::l2::ls' -> ( (elements_of_location no_packages u l1) <=~ (elements_of_location no_packages u l2) ) ::(f (l2::ls')) in f (Location_id_set.elements s)
 
 let constraint_of (no_packages : bool) u ss = conj (Location_id_set_set.fold (fun s res -> res @ (constraint_of_category no_packages u s)) ss [])
@@ -86,7 +87,8 @@ let constraint_of (no_packages : bool) u ss = conj (Location_id_set_set.fold (fu
 
 let categories = ref Data_model.Location_id_set_set.empty
 
-let generate_categories () = match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.optimization_function) with
+let generate_categories () = 
+  match (!Data_state.universe_full, !Data_state.initial_configuration_full, !Data_state.optimization_function) with
   | (Some(u), Some(c), Some(f)) -> (match f with
     | Data_model.Optimization_function_conservative -> categories := full_categories u c
     | _ -> categories := resource_categories u c)
@@ -95,5 +97,3 @@ let generate_categories () = match (!Data_state.universe_full, !Data_state.initi
 let generate_constraint (no_packages : bool) () = match !Data_state.universe_full with
   | Some(u) -> constraint_of no_packages u !categories
   | _ -> True
-
-

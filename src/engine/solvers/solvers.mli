@@ -25,14 +25,13 @@
 
 (* the prints should be handled by Zephyrus log directly. Moreover maybe we should use the Lazy library, in case the string will never be printed *)
 type solver_settings = {
-  bounds                : Data_constraint.variable_bounds;
   input_file            : string;
   output_file           : string;
   keep_input_file       : bool;
   keep_output_file      : bool;  
 }
 
-type t = (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t = Data_constraint.variable_bounds -> (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
 type t_full = solver_settings -> t
 
 type settings_kind = Preprocess | Main
