@@ -582,13 +582,15 @@ let configuration_validation_flat (universe : universe) (configuration : configu
 
     (* Conflict_exists *)
     Port_id_set.iter (fun conflict_port_id ->
-        Component_id_set.iter (fun conflict_component_id ->
-          let component_type = universe#get_component_type (configuration#get_component conflict_component_id)#typ in
+      Component_id_set.iter (fun conflict_component_id ->
+        let conflict_component_type = universe#get_component_type (configuration#get_component conflict_component_id)#typ in
 
-          handle_validation
-            ((Port_id_set.mem conflict_port_id component_type#provide_domain)) (* TODO: Check if provide arity > 0 ? *)
-            (Configuration_invalid (Conflict_exists (component_id, conflict_port_id, conflict_component_id)))
-        ) configuration#get_component_ids
+        handle_validation
+          ( (component_id = conflict_component_id) ||
+            (not (Port_id_set.mem conflict_port_id conflict_component_type#provide_domain))
+            (* TODO: Check if provide arity > 0 ? *) )
+          (Configuration_invalid (Conflict_exists (component_id, conflict_port_id, conflict_component_id)))
+      ) configuration#get_component_ids
     ) component_type#conflict;
 
   ) configuration#get_component_ids
