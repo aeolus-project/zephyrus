@@ -490,3 +490,60 @@ struct
   end
   
 end
+
+(** [create_benchmark_of_benchmark_settings benchmark_settings] creates an object of class [benchmark] following the parameters provided by [benchmark_settings]. *)
+let create_benchmark_of_benchmark_settings (benchmark_settings : Settings.benchmark) : benchmark option =
+  let benchmark_choice, benchmark_options = benchmark_settings in
+
+  (* [option_fail option_name message] raises an exception about a problem [message] with benchmark's option [option_name]. *)
+  let option_fail option_name option_value message = 
+    let benchmark_name = List.assoc benchmark_choice Settings.benchmark_choice_assoc_revert in
+    failwith (Printf.sprintf "Benchmark %s option %s problem: '%s' %s!" benchmark_name option_name option_value message) in
+
+  (* [get_option key default] returns the value of the benchmark option [key] or the [default] value if this option was not defined. *)
+  let get_option key (default : string) : string = 
+    try List.assoc key benchmark_options with Not_found -> default in
+
+  (* [get_int_option key default] tries to return the value of the benchmark option [key] (or the [default] value if this option was not defined) converted to an integer. *)
+  let get_int_option key (default : int) : int = 
+    let option_value = get_option key (string_of_int default) in 
+    try int_of_string option_value with _ -> option_fail key option_value "is not an integer" in
+  match benchmark_choice with
+  
+  (* Not a benchmark. *)
+  | Settings.Benchmark_none -> None
+
+  (* "Master-Slave" benchmark. *)
+  | Settings.Benchmark_master_slave -> 
+      let master_require = get_int_option "master_require" 10 in
+      Some (new Master_worker.create master_require Simple_machine_park.Machine_park_100s Master_worker.One_worker_type)
+
+  (* "Wordpress" benchmark. *)
+  | Settings.Benchmark_wordpress -> 
+      let wordpress_require = get_int_option "wordpress_require" 3 in
+      let mysql_require     = get_int_option "mysql_require"     3 in 
+      let mysql_provide     = get_int_option "mysql_provide"     3 in 
+      let webservers        = get_int_option "webservers"        0 in 
+      Some (new Wordpress.create Simple_machine_park.Machine_park_single_stub wordpress_require mysql_require mysql_provide webservers)
+
+  (* "Distributed Wordpress" benchmark. *)
+  | Settings.Benchmark_wordpress_distributed -> 
+      let wordpress_require = get_int_option "wordpress_require"    3 in
+      let mysql_require     = get_int_option "mysql_require"        3 in 
+      let mysql_provide     = get_int_option "mysql_provide"        3 in 
+      let dns_consume       = get_int_option "dns_consume"         64 in 
+      let wordpress_consume = get_int_option "wordpress_consume"  512 in 
+      let mysql_consume     = get_int_option "mysql_consume"      512 in 
+      let machine_park_size = get_int_option "park_size"           40 in 
+
+      let machine_park_type = 
+        match (get_option "park_type" "old") with
+        | "old"     -> Amazon_machine_park.Machine_park_old
+        | "new"     -> Amazon_machine_park.Machine_park_new
+        | "uniform" -> Amazon_machine_park.Machine_park_single_type (Amazon_machine_park.Old_small)
+        | x         -> option_fail "park_type" x "is not an available type of a machine park" in
+
+      Some (new Wordpress_distributed.create 
+              (machine_park_type, machine_park_size)
+              wordpress_require mysql_require mysql_provide
+              dns_consume wordpress_consume mysql_consume)

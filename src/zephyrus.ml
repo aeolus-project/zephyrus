@@ -63,46 +63,6 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
 )
 
 
-(* TODO: Move it somewhere... *)
-let create_benchmark_of_benchmark_setting (benchmark_setting : Settings.benchmark) : (unit -> Benchmarks.benchmark) option =
-  let benchmark_choice, benchmark_options = benchmark_setting in
-  (* [option_fail option_name message] raises an exception about a problem [message] with benchmark's option [option_name]. *)
-  let option_fail option_name message = 
-    let benchmark_name = List.assoc benchmark_choice Settings.benchmark_choice_assoc_revert in
-    failwith (Printf.sprintf "Benchmark %s option %s problem: %s!" benchmark_name option_name message) in
-  (* [get_option key default] returns the value of the benchmark option [key] or the [default] value if this option was not defined. *)
-  let get_option key default = 
-    try List.assoc key benchmark_options with Not_found -> default in
-  (* [get_int_option key default] tries to return the value of the benchmark option [key] (or the [default] value if this option was not defined) converted to an integer. *)
-  let get_int_option key default = 
-    let option_value = get_option key default in 
-    try int_of_string option_value with _ -> option_fail key "is not an integer" in
-  match benchmark_choice with
-  | Settings.Benchmark_none -> None
-  | Settings.Benchmark_master_slave -> 
-      let master_require = get_int_option "master_require" "10" in
-      Some (fun () -> new Benchmarks.Master_worker.create master_require Benchmarks.Simple_machine_park.Machine_park_100s Benchmarks.Master_worker.One_worker_type)
-  | Settings.Benchmark_wordpress -> 
-      let wordpress_require = get_int_option "wordpress_require" "3" in
-      let mysql_require     = get_int_option "mysql_require"     "3" in 
-      let mysql_provide     = get_int_option "mysql_provide"     "3" in 
-      let webservers        = get_int_option "webservers"        "0" in 
-      Some (fun () -> new Benchmarks.Wordpress.create Benchmarks.Simple_machine_park.Machine_park_single_stub wordpress_require mysql_require mysql_provide webservers)
-  | Settings.Benchmark_wordpress_distributed -> 
-      let wordpress_require = get_int_option "wordpress_require"    "3" in
-      let mysql_require     = get_int_option "mysql_require"        "3" in 
-      let mysql_provide     = get_int_option "mysql_provide"        "3" in 
-      let dns_consume       = get_int_option "dns_consume"         "64" in 
-      let wordpress_consume = get_int_option "wordpress_consume"  "512" in 
-      let mysql_consume     = get_int_option "mysql_consume"      "512" in 
-      let machine_park_size = get_int_option "park_size"           "40" in 
-      Some (fun () -> new Benchmarks.Wordpress_distributed.create 
-                            (Benchmarks.Amazon_machine_park.Machine_park_old, machine_park_size)
-                            (* (Benchmarks.Amazon_machine_park.Machine_park_single_type (Benchmarks.Amazon_machine_park.Old_small), machine_park_size) *)
-                            wordpress_require mysql_require mysql_provide
-                            dns_consume wordpress_consume mysql_consume)
-
-
 (* === Handling the arguments === *)
 let () = Load_settings.load ();
   Zephyrus_log.log_settings ()
@@ -112,11 +72,11 @@ let () = Load_settings.load ();
 let () = 
 
   (* Handle benchmarks *)
-  let (benchmark : (unit -> Benchmarks.benchmark) option) = create_benchmark_of_benchmark_setting (Settings.find Settings.benchmark) in
+  let (benchmark : Benchmarks.benchmark option) = Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in
 
   (match benchmark with
   | None           -> Load_model.set_initial_model_of_settings ()
-  | Some benchmark -> Load_model.set_initial_model_of_benchmark (benchmark ()));
+  | Some benchmark -> Load_model.set_initial_model_of_benchmark benchmark);
 
   Zephyrus_log.log_stage_new "LOAD SECTION";
 
