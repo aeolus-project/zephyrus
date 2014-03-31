@@ -36,22 +36,6 @@ let specification_full         : specification option ref = ref None
 let optimization_function      : optimization_function option ref = ref None
 let catalog_full               : Data_model_catalog.closed_model_catalog option ref = ref None
 
-let universe_trim_component    : universe option ref = ref None
-let universe_trim_package      : universe option ref = ref None
-let universe_trim_package_full : universe option ref = ref None
-
-let component_type_name_set_full : Component_type_name_set.t option ref = ref None
-let component_type_set_full      : Component_type_set.t option ref = ref None
-let port_name_set_full           : Component_type_name_set.t option ref = ref None
-
-let specification_local        : specification option ref = ref None
-let specification_global       : specification option ref = ref None
-let specification_constraint   : specification option ref = ref None
-let specification_solution     : specification option ref = ref None
-
-let specification_is_fw        : bool option ref = ref None
-
-
 
 (* 2. constraints *)
 
