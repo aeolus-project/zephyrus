@@ -85,17 +85,17 @@ let constraint_of (no_packages : bool) u ss = conj (Location_id_set_set.fold (fu
 (*/************************************)
 (*| main part *)
 
-let categories = ref Data_model.Location_id_set_set.empty
+(* let categories = ref empty *)
 
 let generate_categories universe initial_configuration optimization_function = 
   match (universe, initial_configuration, optimization_function) with
   | (Some(u), Some(c), Some(f)) -> 
     (match f with
-    | Data_model.Optimization_function_conservative -> categories := full_categories     u c
-    | _                                             -> categories := resource_categories u c)
-  | _ -> ()
+    | Data_model.Optimization_function_conservative -> full_categories     u c
+    | _                                             -> resource_categories u c)
+  | _ -> empty
 
-let generate_constraint (no_packages : bool) universe = 
+let generate_constraint (no_packages : bool) universe categories = 
   match universe with
-  | Some(u) -> constraint_of no_packages u !categories
+  | Some(u) -> constraint_of no_packages u categories
   | _ -> True

@@ -241,8 +241,8 @@ let () =
 
   Zephyrus_log.log_execution " ok\n";  
   Zephyrus_log.log_data "TRIMMED CONFIGURATION ==>\n" (lazy ((Json_of.configuration universe core_conf) ^ "\n\n"));
-(*Printf.printf "initial configuration = %s\n"  (Json_of.configuration u initial_configuration);
-  Printf.printf "core    configuration = %s\n"  (Json_of.configuration u core_conf); *)
+(*  Printf.printf "initial configuration = %s\n"  (Json_of.configuration u initial_configuration); *)
+(*  Printf.printf "core    configuration = %s\n"  (Json_of.configuration u core_conf); *)
   (if not (Settings.find Settings.modifiable_configuration) 
    then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration universe annex_conf) ^ "\n\n")));
   
@@ -264,8 +264,8 @@ let () =
   let constraint_configuration         = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
   let constraint_optimization_function = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
 
-  Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function);
-  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) in
+  let categories     = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
+  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) categories in
   let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration) in
   Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_k) ^ "\n\n"));
   let solver_input_f = Data_state.get_constraint_optimization_function constraint_optimization_function in

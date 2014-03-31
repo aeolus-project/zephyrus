@@ -134,8 +134,7 @@ type constraint_variable_bounds = variable_bounds option
 
 (** this function gives the basic bounds of every variable: [min = 0] and [max = \infty] except for packages and repositories *)
 let basic_bounds_function : variable_bounds = 
-  fun v -> 
-  match v with
+  function
   | Simple_variable           _ -> Bound.big
   | Global_variable           _ -> Bound.big
   | Local_variable       (_, e) -> (match e with | Package(_) -> Bound.small | _ -> Bound.big)
