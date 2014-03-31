@@ -663,6 +663,9 @@ end
 (** Merge two configurations. 
     First configuration locations and components are prioritary: 
     if both c1 and c2 have a location/component with the same id, the c1's version will be used. *)
+(* Note (Michael): When merging annex configuration with partial final configuration we suppose that:
+   - the two configurations are totally disjoints (which is the case when we merge the annex part of the configuration with the partial solution)
+   - except for mappings, where it is tolerated if the two mappings have the same image on the common domain. *)
 let merge_configurations (c1 : configuration) (c2 : configuration) : configuration =
   
   let locations : location Location_id_map.t =

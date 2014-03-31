@@ -251,7 +251,7 @@ let () =
 
 
 
-(* === Generate and solve the main constraint === *)
+  (* === Prepare the constraint problem === *)
   Zephyrus_log.log_stage_new "CONSTRAINT SECTION";
 
   let with_packages =
@@ -264,18 +264,30 @@ let () =
   let constraint_configuration         = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
   let constraint_optimization_function = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
 
-  let categories     = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
-  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) categories in
-  let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration) in
-  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_k) ^ "\n\n"));
-  let solver_input_f = Data_state.get_constraint_optimization_function constraint_optimization_function in
-  Zephyrus_log.log_data "OPTIMIZATION FUNCTION ==>\n" (lazy ((String_of.constraint_optimization_function solver_input_f) ^ "\n\n"));
+  let categories     : Location_categories.t      = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
+  let cat_constraint : Data_constraint.konstraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) categories in
+  
+  let solver_input_described_constraints : Data_state.described_constraint list = 
+    ("  category = ", cat_constraint)::
+    (Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration) in
+
+  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_described_constraints) ^ "\n\n"));
+
+  let solver_input_optimization_function : Data_constraint.optimization_function = 
+    Data_state.get_constraint_optimization_function constraint_optimization_function in
+
+  Zephyrus_log.log_data "OPTIMIZATION FUNCTION ==>\n" (lazy ((String_of.constraint_optimization_function solver_input_optimization_function) ^ "\n\n"));
 
   Zephyrus_log.log_stage_end ();
+
+
+  (* === Solve the constraint problem === *)
   Zephyrus_log.log_stage_new "SOLVING SECTION";
 
-  match main_solver variable_bounds solver_input_k solver_input_f with
-  | None -> Zephyrus_log.log_panic "no solution for the given input"; ignore (exit 1)
+  let solution = main_solver variable_bounds solver_input_described_constraints solver_input_optimization_function in
+
+  match solution with
+  | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
     Zephyrus_log.log_stage_end ();
     Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
@@ -286,12 +298,24 @@ let () =
     else
 
     Zephyrus_log.log_stage_new "GENERATING FINAL CONFIGURATION SECTION";
-    let partial_final_configuration = Configuration_of.solution (Some catalog) universe core_conf (fst solution) in
-(*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
-    let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
+    
+    let final_configuration = 
+      let partial_final_configuration = Configuration_of.solution (Some catalog) universe core_conf (fst solution) in
+  (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
+      if Settings.find Settings.modifiable_configuration
+      then partial_final_configuration
+      else merge_configurations annex_conf partial_final_configuration in
+    
     Zephyrus_log.log_stage_end ();
     
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration universe final_configuration) ^ "\n"));
+
+    (* Final configuration statistics *)
+    Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
+    Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
+
+    (* Output the outputs *)
+    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.results);
 
     (* Validation *)
     Zephyrus_log.log_stage_new "FINAL CONFIGURATION VALIDATION";
@@ -304,16 +328,10 @@ let () =
       let final_configuration_validation_errors = Validate.validation_results_filter_errors validation_results in
       Zephyrus_log.log_execution "\nFinal configuration validation errors:\n";
       List.iter (fun validation_result -> Zephyrus_log.log_execution (Printf.sprintf "%s\n%!" (Validate.String_of.validation_result validation_result))) final_configuration_validation_errors;
-      () (* ignore (exit 13) *)
+      ignore (exit 13)
     end;
-    Zephyrus_log.log_stage_end ();
-
-    (* Final configuration statistics *)
-    Data_statistics.add "FinalConfigurationComponents" (Printf.sprintf "%d" (Component_id_set.cardinal final_configuration#get_component_ids));
-    Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
-
-    (* Output the outputs *)
-    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.results)
+    Zephyrus_log.log_stage_end ()
+    
   );
 
   Zephyrus_log.log_execution "\n\n\n <==========> THE END <==========>  \n\n"

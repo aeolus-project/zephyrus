@@ -410,13 +410,3 @@ let solution (catalog : Data_model_catalog.closed_model_catalog option) (univers
     ~components: component_obj_catalog#id_to_obj_map
     ~bindings:   bindings
     ()
-
-
-(*/************************************************************************\*)
-(*| 4. Merge.                                                              |*)
-(*\************************************************************************/*)
-
-(* we suppose that
-   - the two configurations are totally disjoints (which is the case when we merge the annex part of the configuration with the partial solution)
-   - except for mappings, where it is tolerated if the two mappings have the same image on the common domain *)
-let merge = merge_configurations
