@@ -971,3 +971,42 @@ module Graph = struct
     
   end
 end
+
+
+(*
+(* NOTE: Moved from zephyrus.ml *)
+
+(* test the graph *)
+module Test_graph_data = struct type t = int end
+module Test_graph = Data_common_graph.Graph.Make(Test_graph_data)(Test_graph_data)
+let () =
+  let g = Test_graph.create () in
+(*                               *)
+(*              +----+           *)
+(*              v    |           *)
+(*            +-O-+  |           *)
+(*           5|   |10|           *)
+(*            v   v  |           *)
+(*        1-->2   3  |           *)
+(*          6 |7  |8 |           *)
+(*            +>4<+  |9          *)
+(*              |    |           *)
+(*              +----+           *)
+(*                               *)
+(*                               *)
+  let v1 = (Test_graph.add_vertice 1 g) in (* 1 *)
+  let v2 = (Test_graph.add_vertice 2 g) in (* 2 *)
+  let v0 = (Test_graph.add_vertice 0 g) in (* 3 *)
+  let v3 = (Test_graph.add_vertice 3 g) in (* 4 *)
+  let v4 = (Test_graph.add_vertice 4 g) in (* 5 *)
+  (* order = 1 2 3 4 5 *)
+
+  Pervasives.ignore (Test_graph.add_edge v0  5 v2 g); (* order = 1 3 2 4 5 *)
+  Pervasives.ignore (Test_graph.add_edge v1  6 v2 g); (* order = 1 3 2 4 5 *)
+  Pervasives.ignore (Test_graph.add_edge v2  7 v4 g); (* order = 1 3 2 4 5 *)
+  Pervasives.ignore (Test_graph.add_edge v3  8 v4 g); (* order = 1 3 2 4 5 *)
+  Pervasives.ignore (Test_graph.add_edge v4  9 v0 g); (* merge { 2 3 5 } ; order = 1 (2 3 5) 4 *)
+  Pervasives.ignore (Test_graph.add_edge v0 10 v3 g)  (* merge { 4 (2 3 5) }; order = 1 (2 3 4 5) *)
+
+(* must add a to_string in dot format in the generic graph *)
+*)
