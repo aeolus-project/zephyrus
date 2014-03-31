@@ -192,7 +192,12 @@ let () =
   Zephyrus_log.log_data "FLAT UNIVERSE WITH UPPER BOUNDS MINIMIZED ==>\n"   (lazy ((Variable_bounds.to_string flat_universe) ^ "\n\n"));
 
   let constraint_variable_bounds = Some(Variable_bounds.variable_bounds initial_configuration#get_location flat_universe) in
-  let variable_bounds = Data_state.get_variable_bounds None (* constraint_variable_bounds *) (* WTF? *) in
+  let variable_bounds = Data_state.get_variable_bounds (
+    (* Use the computed variable bounds or not? *)
+    if false
+    then constraint_variable_bounds (* ERRORS! *) 
+    else None 
+  ) in
   Zephyrus_log.log_stage_end ();
 
 
