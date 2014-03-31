@@ -64,7 +64,8 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
 
 
 (* === Handling the arguments === *)
-let () = Load_settings.load ();
+let () = 
+  Load_settings.load ();
   Zephyrus_log.log_settings ()
 
 
@@ -74,15 +75,18 @@ let () =
   (* Handle benchmarks *)
   let (benchmark : Benchmarks.benchmark option) = Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in
 
-  (match benchmark with
-  | None           -> Load_model.set_initial_model_of_settings ()
-  | Some benchmark -> Load_model.set_initial_model_of_benchmark benchmark);
+  let (catalog, initial_model) =
+    (match benchmark with
+    | None           -> Load_model.initial_model_of_settings ()
+    | Some benchmark -> Load_model.initial_model_of_benchmark benchmark) in
+
+  Name_of.set_catalog (Some catalog);
 
   Zephyrus_log.log_stage_new "LOAD SECTION";
 
   (* In every mode we need at least the universe and an initial configuration. *)
-  let universe              = check_option "universe"       !Data_state.universe_full in
-  let initial_configuration = check_option "initial configuration" !Data_state.initial_configuration_full in
+  let universe              = check_option "universe"              initial_model.universe in
+  let initial_configuration = check_option "initial configuration" initial_model.initial_configuration in
   
   (* If ==> NO-SOLVING MODE <== was chosen: *)
   if Settings.find Settings.mode = Settings.Mode_no_solving
@@ -94,7 +98,7 @@ let () =
   else
 
   (* In validation mode we need also to have a specification. *)
-  let specification = check_option "specification" !Data_state.specification_full in
+  let specification = check_option "specification" initial_model.specification in
 
   (* Validation *)
   Zephyrus_log.log_stage_new "MODEL VALIDATION";
@@ -117,7 +121,7 @@ let () =
   else
   
   (* In the classic mode we also need an optimization function. *)
-  let optimization_function = check_option "optimization function" !Data_state.optimization_function in
+  let optimization_function = check_option "optimization function" initial_model.optimization_function in
 
   (* If we've got this far, we are in the ==> CLASSIC MODE <==. *)
 
@@ -155,8 +159,8 @@ let () =
   
   Zephyrus_log.log_data "TRIMMED UNIVERSE ==>\n" (lazy ((Json_of.universe universe_trimmed_packages) ^ "\n"));
 
-  (* TODO: we should never re-assign variables in Data_state *)
-  Data_state.universe_full := Some(universe_trimmed_packages);
+  (* TODO: We should not reassign variables. *)
+  let universe = universe_trimmed_packages in
   
   Zephyrus_log.log_stage_end ();
 
@@ -164,7 +168,6 @@ let () =
   (* ==== Compute bounds ==== *)
   Zephyrus_log.log_stage_new "TRIMMING BOUNDS";
   
-  let universe = universe_trimmed_packages in
   let cat = Location_categories.full_categories universe initial_configuration in (* WaC <- may not work *)
   let sol = 
     let initial_variable_bounds = Data_state.get_variable_bounds None in
@@ -243,8 +246,6 @@ let () =
   (if not (Settings.find Settings.modifiable_configuration) 
    then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration universe annex_conf) ^ "\n\n")));
   
-  (* TODO: we should never re-assign variables in Data_state *)
-  Data_state.initial_configuration_full := Some(core_conf);
   Zephyrus_log.log_stage_end ();
   Zephyrus_log.log_stage_end ();
 
@@ -263,8 +264,8 @@ let () =
   let constraint_configuration         = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
   let constraint_optimization_function = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
 
-  Location_categories.generate_categories ();
-  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) () in
+  Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function);
+  let cat_constraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) in
   let solver_input_k = ("  category = ", cat_constraint)::(Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration) in
   Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_k) ^ "\n\n"));
   let solver_input_f = Data_state.get_constraint_optimization_function constraint_optimization_function in
@@ -285,7 +286,7 @@ let () =
     else
 
     Zephyrus_log.log_stage_new "GENERATING FINAL CONFIGURATION SECTION";
-    let partial_final_configuration = Configuration_of.solution universe core_conf (fst solution) in
+    let partial_final_configuration = Configuration_of.solution (Some catalog) universe core_conf (fst solution) in
 (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
     let final_configuration = if Settings.find Settings.modifiable_configuration then partial_final_configuration else Configuration_of.merge annex_conf partial_final_configuration in
     Zephyrus_log.log_stage_end ();

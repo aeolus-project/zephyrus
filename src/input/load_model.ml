@@ -571,21 +571,34 @@ let load_configuration         = convert_configuration
 let load_specification         = convert_specification
 let load_optimization_function = convert_optimization_function
 
+type initial_model = {
+  universe              : Data_model.universe              option;
+  initial_configuration : Data_model.configuration         option;
+  specification         : Data_model.specification         option;
+  optimization_function : Data_model.optimization_function option;
+}
 
-let model_of_file_options file_u file_rs file_c file_s optim =
+let model_of_file_options file_u file_rs file_c file_s opt_f =
 
   let u   : Abstract_io.universe             option = match file_u  with None -> None | Some(file_u')  -> load_basic_universe      file_u' in
   let rs  : Abstract_io.repository           list   = match file_rs with None -> []   | Some(file_rs') -> load_basic_repositories  file_rs' in
   let c   : Abstract_io.configuration        option = match file_c  with None -> None | Some(file_c')  -> load_basic_configuration file_c' in
   let s   : Abstract_io.specification        option = match file_s  with None -> None | Some(file_s')  -> load_basic_specification file_s' in
-  let opt : Data_model.optimization_function option = match optim   with None -> None | Some(optim')   -> Some(load_optimization_function optim') in
+  let opt : Data_model.optimization_function option = match opt_f   with None -> None | Some(opt_f')   -> Some(load_optimization_function opt_f') in
 
   let catalog = load_catalog u rs c in
   let u : Data_model.universe      option = match u with None -> None | Some(u') -> Some(load_universe      catalog rs u') in
   let c : Data_model.configuration option = match c with None -> None | Some(c') -> Some(load_configuration catalog    c') in
   let s : Data_model.specification option = match s with None -> None | Some(s') -> Some(load_specification catalog    s') in
 
-  (catalog, u, c, s, opt)
+  let initial_model = {
+    universe              = u;
+    initial_configuration = c;
+    specification         = s;
+    optimization_function = opt;
+  } in
+
+  (catalog, initial_model)
 
 let model_of_settings () = 
   model_of_file_options
@@ -595,15 +608,10 @@ let model_of_settings () =
     (Settings.get_input_file_specification         ())
     (Settings.get_input_optimization_function      ())
 
-let set_initial_model_of_settings () = 
-  let (catalog, universe, initial_configuration, specification, optimization_function) = model_of_settings () in
-  Data_state.catalog_full               := Some catalog;
-  Data_state.universe_full              := universe;
-  Data_state.initial_configuration_full := initial_configuration;
-  Data_state.specification_full         := specification;
-  Data_state.optimization_function      := optimization_function
 
-let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
+let initial_model_of_settings () = model_of_settings ()
+
+let initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
   let u   : Abstract_io.universe             = benchmark#universe in
   let rs  : Abstract_io.repository list      = [] in
@@ -616,8 +624,11 @@ let set_initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   let c : Data_model.configuration = load_configuration catalog c in
   let s : Data_model.specification = load_specification catalog s in
 
-  Data_state.catalog_full               := Some(catalog);
-  Data_state.universe_full              := Some(u);
-  Data_state.initial_configuration_full := Some(c);
-  Data_state.specification_full         := Some(s);
-  Data_state.optimization_function      := Some(opt)
+  let initial_model = {
+    universe              = Some(u);
+    initial_configuration = Some(c);
+    specification         = Some(s);
+    optimization_function = Some(opt);
+  } in
+
+  (catalog, initial_model)

@@ -22,7 +22,11 @@
     - datatypes/Data_helper
 *)
 
-let get_catalog () = !Data_state.catalog_full
+(** The global catalog of id <-> name correspondence. *)
+let catalog_full : Data_model_catalog.closed_model_catalog option ref = ref None
+
+let set_catalog catalog = catalog_full := catalog
+let get_catalog ()      = !catalog_full
 
 let resource_f       = (string_of_int, (fun catalog -> catalog#resource#name_of_id)      )
 let component_type_f = (string_of_int, (fun catalog -> catalog#component_type#name_of_id))

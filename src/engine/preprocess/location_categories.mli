@@ -29,5 +29,5 @@ include module type of Data_model.Location_id_set_set
 val domain : t -> Data_model.Location_id_set.t
 val resource_categories : Data_model.universe -> Data_model.configuration -> Data_model.Location_id_set_set.t
 val full_categories : Data_model.universe -> Data_model.configuration -> t
-val generate_categories : unit -> unit
-val generate_constraint : bool -> unit -> Data_constraint.konstraint
+val generate_categories : Data_model.universe option -> Data_model.configuration option -> Data_model.optimization_function option -> unit
+val generate_constraint : bool -> Data_model.universe option -> Data_constraint.konstraint

@@ -29,15 +29,7 @@
 
 open Data_model
 
-(* 1. the different variant of inputs *)
-let universe_full              : universe option ref = ref None
-let initial_configuration_full : configuration option ref = ref None
-let specification_full         : specification option ref = ref None
-let optimization_function      : optimization_function option ref = ref None
-let catalog_full               : Data_model_catalog.closed_model_catalog option ref = ref None
-
-
-(* 2. constraints *)
+(** Constraints *)
 
 open Data_constraint (* warning, type name clash with optimization_function coming from Data_model *)
 
@@ -136,9 +128,7 @@ let get_constraint_full constraint_universe constraint_specification constraint_
 
 
 
-(*******************************************)
-(** 6. Very Simple Bounds Definition       *)
-(*******************************************)
+(** Bounds *)
 
 type constraint_variable_bounds = variable_bounds option
 

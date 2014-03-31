@@ -319,7 +319,7 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
 
 
 
-let solution (universe : universe) (initial_configuration : configuration) (solution_prev : solution) : configuration =
+let solution (catalog : Data_model_catalog.closed_model_catalog option) (universe : universe) (initial_configuration : configuration) (solution_prev : solution) : configuration =
 
   let solution = new extended_solution solution_prev in
 
@@ -365,7 +365,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     Location_obj_catalog.of_id_to_obj_map location_id_to_location_map in
 
   let component_catalog : Component_catalog.catalog = 
-    match !Data_state.catalog_full with
+    match catalog with
     | None         -> new Component_catalog.catalog
     | Some catalog -> Component_catalog.of_id_to_name_map catalog#component#id_to_name_map  in
 
@@ -383,8 +383,8 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
   in
 
   (* Update the main catalog with new components catalog. TODO: This is quite cumbersome... Maybe a copy method? *)
-  Data_state.catalog_full := (
-    match !Data_state.catalog_full with
+  let updated_catalog = (
+    match catalog with
     | None         -> None
     | Some catalog -> Some (new closed_model_catalog 
                               ~component_type_catalog: catalog#component_type
@@ -393,7 +393,9 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
                               ~package_catalog:        catalog#package
                               ~resource_catalog:       catalog#resource
                               ~location_catalog:       catalog#location
-                              ~component_catalog:      (Component_catalog.close_catalog component_catalog)));
+                              ~component_catalog:      (Component_catalog.close_catalog component_catalog))) in
+
+  Name_of.set_catalog updated_catalog;
 
   let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs component_set in
 
@@ -408,6 +410,7 @@ let solution (universe : universe) (initial_configuration : configuration) (solu
     ~components: component_obj_catalog#id_to_obj_map
     ~bindings:   bindings
     ()
+
 
 (*/************************************************************************\*)
 (*| 4. Merge.                                                              |*)
