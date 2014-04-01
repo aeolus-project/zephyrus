@@ -31,7 +31,7 @@ type solver_settings = {
   keep_output_file      : bool;  
 }
 
-type t = Data_constraint.variable_bounds -> (string * Data_constraint.konstraint) list -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
+type t = Data_constraint.variable_bounds -> Data_state.structured_constraints -> Data_constraint.optimization_function -> (Data_constraint.solution * (int list)) option
 type t_full = solver_settings -> t
       
 
@@ -43,7 +43,7 @@ end
 (* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
 exception No_solution (* to break the normal control flow of solution computation in case there are none. Too painful to deal with options *)
 
-let solve_multi_objective settings bounds preprocess solve_step postprocess c (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
+let solve_multi_objective settings bounds preprocess solve_step postprocess structured_constraints (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
 
   let rec iterative_solve data (multi_objective_optimization : Data_constraint.Multi_objective.optimization) = 
     match multi_objective_optimization with
@@ -62,7 +62,7 @@ let solve_multi_objective settings bounds preprocess solve_step postprocess c (m
       | None                 -> raise No_solution
       | Some(solution, cost) -> (postprocess data single_objective_solve_goal cost, solution, [cost]) in
 
-  let initial_data = preprocess settings bounds c multi_objective_solve_goal in
+  let initial_data = preprocess settings bounds structured_constraints multi_objective_solve_goal in
   
   try 
     match multi_objective_solve_goal with
@@ -92,7 +92,7 @@ module MiniZinc_generic = struct
   let input  : Engine_helper.file    ref = ref Engine_helper.file_default
   let output : Engine_helper.file    ref = ref Engine_helper.file_default
 
-  let preprocess settings bounds c (solve_goal : Data_constraint.Multi_objective.solve_goal) =
+  let preprocess settings bounds structured_constraints (solve_goal : Data_constraint.Multi_objective.solve_goal) =
     Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
     if Engine_helper.program_is_available !solver
     then 
@@ -104,13 +104,21 @@ module MiniZinc_generic = struct
         output := Engine_helper.file_process_name settings.output_file;
 
         Zephyrus_log.log_solver_execution ("Preparing variables for MiniZinc translation...");
-        let vs = List.fold_left (fun res (_, k) -> Variable_set.union (variables_of_konstraint k) res) (Data_constraint.Multi_objective.variables_of_solve_goal solve_goal) c in
+
+        let vs : Variable_set.t = 
+          List.fold_left (fun acc (_, ks) -> 
+            List.fold_left (fun acc k -> 
+              Variable_set.union (variables_of_konstraint k) acc
+            ) acc ks
+          ) (Data_constraint.Multi_objective.variables_of_solve_goal solve_goal) structured_constraints in
+
         Zephyrus_log.log_solver_execution ("  we have " ^ (string_of_int (Variable_set.cardinal vs)) ^ " variables\n");
+
         let v_map = get_named_variables vs in
     (*  Zephyrus_log.log_solver_data "Minizinc Variables" (lazy (string_of_named_variables v_map));*)
 
         Zephyrus_log.log_solver_execution ("Translating constraints into MiniZinc...\n");
-        let res = core_translation v_map bounds c in
+        let res = core_translation v_map bounds structured_constraints in
         Zephyrus_log.log_solver_data "Minizinc main constraints" (lazy (res.mzn_main_constraint ^ "\n% end constraint\n"));
         res
       end
@@ -175,28 +183,28 @@ end
 (* 3. Main Modules *)
 
 module G12 : SOLVER = struct
-  let solve settings bounds cs f = 
+  let solve settings bounds structured_constraints optimization_function = 
     MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
-    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 module G12_cpx : SOLVER = struct
-  let solve settings bounds cs f = 
+  let solve settings bounds structured_constraints optimization_function = 
     MiniZinc_generic.solver := Engine_helper.g12_cpx_minizinc_solver;
-    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 module GeCode : SOLVER = struct
-  let solve settings bounds cs f = 
+  let solve settings bounds structured_constraints optimization_function = 
     MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
-    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f    
+    solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 let make_custom_solver_module (solver_program : Engine_helper.program) =
   let module Solver = struct
-    let solve settings bounds cs f = 
+    let solve settings bounds structured_constraints optimization_function = 
       MiniZinc_generic.solver := solver_program;
-      solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess cs f
+      solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function
     end
   in
   (module Solver : SOLVER)

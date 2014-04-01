@@ -54,7 +54,7 @@ exception Wrong_optimization_function
 val cost_variable_name : string
 
 val get_named_variables : Variable_set.t -> named_variables
-val core_translation : named_variables -> variable_bounds -> (string * konstraint) list -> structured_minizinc
+val core_translation : named_variables -> variable_bounds -> Data_state.structured_constraints -> structured_minizinc
 
 val add_optimization_goal : structured_minizinc -> Single_objective.solve_goal -> minizinc
 val add_extra_constraint  : structured_minizinc -> expression -> int -> structured_minizinc

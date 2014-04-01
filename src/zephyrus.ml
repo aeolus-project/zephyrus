@@ -264,14 +264,16 @@ let () =
   let constraint_configuration         = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
   let constraint_optimization_function = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
 
-  let categories     : Location_categories.t      = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
-  let cat_constraint : Data_constraint.konstraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) categories in
+  let categories      : Location_categories.t      = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
+  let cat_constraints : Data_state.structured_constraints = 
+    let cat_constraint : Data_constraint.konstraint = Location_categories.generate_constraint (Settings.find Settings.eliminate_packages) (Some universe) categories in
+    [("  category = ", [cat_constraint])] in
   
-  let solver_input_described_constraints : Data_state.described_constraint list = 
-    ("  category = ", cat_constraint)::
-    (Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration) in
+  let solver_input_structured_constraints : Data_state.structured_constraints = 
+    (Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration)
+    @ cat_constraints in
 
-  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.described_konstraint_list solver_input_described_constraints) ^ "\n\n"));
+  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.structured_constraints solver_input_structured_constraints) ^ "\n\n"));
 
   let solver_input_optimization_function : Data_constraint.optimization_function = 
     Data_state.get_constraint_optimization_function constraint_optimization_function in
@@ -284,7 +286,7 @@ let () =
   (* === Solve the constraint problem === *)
   Zephyrus_log.log_stage_new "SOLVING SECTION";
 
-  let solution = main_solver variable_bounds solver_input_described_constraints solver_input_optimization_function in
+  let solution = main_solver variable_bounds solver_input_structured_constraints solver_input_optimization_function in
 
   match solution with
   | None -> Zephyrus_log.log_panic "no solution for the given input"
@@ -331,7 +333,7 @@ let () =
       ignore (exit 13)
     end;
     Zephyrus_log.log_stage_end ()
-    
+
   );
 
   Zephyrus_log.log_execution "\n\n\n <==========> THE END <==========>  \n\n"

@@ -110,6 +110,7 @@ module type S = sig
 
   val described_konstraint      :  string * Data_constraint.konstraint       -> string
   val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
+  val structured_constraints    : Data_state.structured_constraints          -> string
 
   val constraint_single_optimization   : Data_constraint.Single_objective.optimization -> string
   val constraint_single_solve_goal     : Data_constraint.Single_objective.solve_goal   -> string
@@ -403,6 +404,14 @@ module Make =
     | _                                                       -> c ^ (konstraint k)                                ^ "\n"
   let described_konstraint_list l    = List.fold_left (fun res el -> (described_konstraint el) ^ res) "" l
 
+  let structured_constraints structured_constraints =
+    let lines =
+      List.flatten (
+        List.map (fun (description_string, constraint_list) -> 
+          let constraint_lines = List.map konstraint constraint_list in
+          description_string :: constraint_lines
+        ) structured_constraints ) in
+    String.concat "" (List.map (fun line -> Printf.sprintf "%s\n" line) lines)
 
   let constraint_single_optimization (single_optimization : Data_constraint.Single_objective.optimization) =
     match single_optimization with 

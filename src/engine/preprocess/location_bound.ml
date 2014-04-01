@@ -23,10 +23,10 @@
 (* this function simply computes the constraint corresponding to the input universe, configuration and specification *)
 let constraint_of (universe, config, spec) ls_ids = (* TODO: put in constraint_of with model_with_domain *)
   let with_packages = if Settings.find Settings.eliminate_packages then false else true in
-  let k_universe = Constraint_of.universe      ~with_packages ls_ids universe config in
-  let k_config   = Constraint_of.locations     ~with_packages universe#get_resource_ids ls_ids config#get_location in
-  let k_spec     = Constraint_of.specification ~with_packages ls_ids spec in
-  Data_constraint.NaryKonstraint((Data_constraint.And), ((List.flatten k_universe) @ (List.flatten k_config) @ k_spec))
+  let k_universe : Data_state.structured_constraints = Constraint_of.universe      ~with_packages ls_ids universe config in
+  let k_config   : Data_state.structured_constraints = Constraint_of.locations     ~with_packages universe#get_resource_ids ls_ids config#get_location in
+  let k_spec     : Data_state.structured_constraints = Constraint_of.specification ~with_packages ls_ids spec in
+  k_universe @ k_config @ k_spec
 
 
 type bounds = { min : int; max : int }                                                  (* used for dychotomic search *)
@@ -58,7 +58,7 @@ let step solve ((u,conf,s) as model) (c,b) = (* dycothomic function, *)
   let c' = Data_model.Location_id_set.keep_elements n c in (* this line added by Kuba *)
   let k = constraint_of model c' in 
   Zephyrus_log.log_execution (Printf.sprintf "fit_categories step: bounds = [%d;%d], solving with n = %d\n" b.min b.max n); flush stdout;
-  match solve [("constraint", k)] (Data_constraint.Multi_objective.Satisfy) with
+  match solve k (Data_constraint.Multi_objective.Satisfy) with
     | None   -> Zephyrus_log.log_execution "no solution\n"; (c, { min = n + 1; max = b.max})
 (*        if n = b.max 
         then lb.continue <- false 

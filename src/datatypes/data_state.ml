@@ -33,6 +33,15 @@ open Data_model
 
 open Data_constraint (* warning, type name clash with optimization_function coming from Data_model *)
 
+type structured_constraints = (string * konstraint list) list
+
+let variables_of_structured_constraints structured_constraints =
+  List.fold_left (fun acc (_, ks) -> 
+    List.fold_left (fun acc k -> 
+      Variable_set.union (variables_of_konstraint k) acc
+    ) acc ks
+  ) Variable_set.empty structured_constraints
+
 type constraint_universe = {
   constraint_universe_component_type_require        : konstraint list;
   constraint_universe_component_type_provide        : konstraint list;
@@ -80,49 +89,47 @@ type constraint_optimization_function = optimization_function option
 
 type described_constraint = string * konstraint
 
+
 let get_constraint_optimization_function constraint_optimization_function : optimization_function = 
   match constraint_optimization_function with 
   | Some optimization_function  -> optimization_function
   | None                        -> Data_constraint.Multi_objective.Satisfy
 
-let get_constraint_flat_universe constraint_universe : described_constraint list = [
-  ("  Bindings require:  " , Data_constraint.conj(constraint_universe.constraint_universe_component_type_require));
-  ("  Bindings provide:  " , Data_constraint.conj(constraint_universe.constraint_universe_component_type_provide));
-  ("  Bindings conflict: " , Data_constraint.conj(constraint_universe.constraint_universe_component_type_conflict));
-  ("  Bindings unicity:  " , Data_constraint.conj(constraint_universe.constraint_universe_binding_unicity))]
+let get_constraint_flat_universe constraint_universe : structured_constraints = [
+  ( "  Bindings require:  " , constraint_universe.constraint_universe_component_type_require  );
+  ( "  Bindings provide:  " , constraint_universe.constraint_universe_component_type_provide  );
+  ( "  Bindings conflict: " , constraint_universe.constraint_universe_component_type_conflict );
+  ( "  Bindings unicity:  " , constraint_universe.constraint_universe_binding_unicity         )]
 
-let get_constraint_universe constraint_universe : described_constraint list = 
+let get_constraint_universe constraint_universe : structured_constraints = 
   (get_constraint_flat_universe constraint_universe) @ [
-  ("  Component implementation by packages: "                                  , Data_constraint.conj(constraint_universe.constraint_universe_component_type_implementation));
-  ("  Global component type t arity = sum of local component type t arities: " , Data_constraint.conj(constraint_universe.constraint_universe_location_component_type));
-  ("  Global package k arity = sum of local package k arities: "               , Data_constraint.conj(constraint_universe.constraint_universe_location_package));
-  ("  Global port p arity = sum of local port p arities: "                     , Data_constraint.conj(constraint_universe.constraint_universe_location_port));
-  ("  How much port p arity is provided in total on each location: "           , Data_constraint.conj(constraint_universe.constraint_universe_definition_port));
-  ("  Repository unicity (exactly one repository on each location): "          , Data_constraint.conj(constraint_universe.constraint_universe_repository_unicity));
-  ("  Repository packages: "                                                   , Data_constraint.conj(constraint_universe.constraint_universe_repository_package));
-  ("  Package dependencies: "                                                  , Data_constraint.conj(constraint_universe.constraint_universe_package_dependency));
-  ("  Package conflicts:  "                                                    , Data_constraint.conj(constraint_universe.constraint_universe_package_conflict));
-  ("  Resources: "                                                             , Data_constraint.conj(constraint_universe.constraint_universe_resource_consumption));
-  ("  Remove deprecated components: "                                          , Data_constraint.conj(constraint_universe.constraint_universe_deprecated_element));
-  ("  Number of used locations: "                                              , Data_constraint.conj(constraint_universe.constraint_universe_used_locations));
-  ("  Incompatibilities between components: "                                  , Data_constraint.conj(constraint_universe.constraint_universe_incompatibilities))]
+  ( "  Component implementation by packages: "                                  , constraint_universe.constraint_universe_component_type_implementation );
+  ( "  Global component type t arity = sum of local component type t arities: " , constraint_universe.constraint_universe_location_component_type       );
+  ( "  Global package k arity = sum of local package k arities: "               , constraint_universe.constraint_universe_location_package              );
+  ( "  Global port p arity = sum of local port p arities: "                     , constraint_universe.constraint_universe_location_port                 );
+  ( "  How much port p arity is provided in total on each location: "           , constraint_universe.constraint_universe_definition_port               );
+  ( "  Repository unicity (exactly one repository on each location): "          , constraint_universe.constraint_universe_repository_unicity            );
+  ( "  Repository packages: "                                                   , constraint_universe.constraint_universe_repository_package            );
+  ( "  Package dependencies: "                                                  , constraint_universe.constraint_universe_package_dependency            );
+  ( "  Package conflicts:  "                                                    , constraint_universe.constraint_universe_package_conflict              );
+  ( "  Resources: "                                                             , constraint_universe.constraint_universe_resource_consumption          );
+  ( "  Remove deprecated components: "                                          , constraint_universe.constraint_universe_deprecated_element            );
+  ( "  Number of used locations: "                                              , constraint_universe.constraint_universe_used_locations                );
+  ( "  Incompatibilities between components: "                                  , constraint_universe.constraint_universe_incompatibilities             )]
 
-let get_constraint_specification (constraint_specification : constraint_specification) : described_constraint list =
+let get_constraint_specification (constraint_specification : constraint_specification) : structured_constraints =
   [(
     "  specification constraint" , 
     match constraint_specification with 
-    | Some konstraint -> konstraint
-    | None            -> Data_constraint.true_konstraint
+    | Some konstraint -> [konstraint]
+    | None            -> []
   )]
 
-let get_constraint_configuration (constraint_configuration : constraint_configuration) : described_constraint list =
-  [(
-    "  configuration " , 
-    Data_constraint.conj(constraint_configuration)
-  )]
+let get_constraint_configuration (constraint_configuration : constraint_configuration) : structured_constraints =
+  [("  configuration " , constraint_configuration)]
 
-let get_constraint_full constraint_universe constraint_specification constraint_configuration : described_constraint list = 
-  (get_constraint_universe      constraint_universe) @ 
+let get_constraint_full constraint_universe constraint_specification constraint_configuration : structured_constraints = 
+  (get_constraint_universe      constraint_universe     ) @ 
   (get_constraint_specification constraint_specification) @ 
   (get_constraint_configuration constraint_configuration)
 

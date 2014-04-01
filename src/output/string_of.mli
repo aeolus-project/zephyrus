@@ -111,6 +111,7 @@ module type S = sig
 
   val described_konstraint      :  string * Data_constraint.konstraint       -> string
   val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
+  val structured_constraints    : Data_state.structured_constraints          -> string
 
   val constraint_single_optimization : Data_constraint.Single_objective.optimization -> string
   val constraint_single_solve_goal   : Data_constraint.Single_objective.solve_goal   -> string

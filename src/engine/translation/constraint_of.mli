@@ -35,11 +35,11 @@ val location_all_variables :
   Data_model.Location_id_set.t -> 
   (Data_model.port -> Data_model.Component_type_id_set.t) -> 
   (Data_model.component_type_id -> Data_model.component_type) ->
-  (string * (konstraint)) list
+  (string * (konstraint list)) list
 
-val universe           : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.universe          -> Data_model.configuration                        -> (konstraint list) list
-val specification      : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.specification                                                        ->  konstraint list
-val locations          : ?with_packages : bool -> Data_model.Resource_id_set.t -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> (konstraint list) list
+val universe           : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.universe          -> Data_model.configuration                        -> (string * (konstraint list)) list
+val specification      : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.specification                                                        -> (string * (konstraint list)) list
+val locations          : ?with_packages : bool -> Data_model.Resource_id_set.t -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> (string * (konstraint list)) list
 
 val universe_full      : ?with_packages : bool -> Data_model.universe option      -> Data_model.configuration option -> Data_state.constraint_universe      (* the universe-related      constraints *)
 val specification_full : ?with_packages : bool -> Data_model.specification option -> Data_model.configuration option -> Data_state.constraint_specification (* the specification-related constraints *)

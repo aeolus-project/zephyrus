@@ -162,34 +162,35 @@ and minizinc_of_konstraint v_map c = match c with
                                                     then minizinc_of_unit_of_nary_konstraint_op op
                                                     else String.concat (" " ^ (minizinc_of_nary_konstraint_op op) ^ " ") (List.map (minizinc_of_konstraint v_map) l) )
 
-let minizinc_of_konstraints v_map cs =
-  List.fold_left (fun res (s,c) -> 
-    (* TODO: This is a dirty hack, should just structure constraints better. *)
-    let pre = ("\n%% " ^ s ^ "\n") in
-    let minizinc_of_single_konstraint c = ("constraint " ^ (minizinc_of_konstraint v_map c) ^ ";") in
-    let content = 
-      match c with
-      | Data_constraint.NaryKonstraint(Data_constraint.And, cs) -> String.concat "\n" (List.map minizinc_of_single_konstraint cs)
-      | _                                                       -> minizinc_of_single_konstraint c 
-    in
-    pre ^ content ^ res
-  ) "" cs
+let minizinc_of_konstraints v_map structured_constraints =
+  let minizinc_of_single_konstraint konstraint = ("constraint " ^ (minizinc_of_konstraint v_map konstraint) ^ ";") in
+
+  let lines : string list =
+    List.flatten (
+      List.map (fun (description_string, constraint_list) -> 
+        let description_line = Printf.sprintf "%%%% %s" description_string in
+        let constraint_lines = List.map minizinc_of_single_konstraint constraint_list in
+        description_line :: constraint_lines @ [""]
+      ) structured_constraints) in
+
+  String.concat "\n" lines
+
 
 let output_of_variables v_map = 
   let output_of_variable v = "  \"" ^ v ^ " = \", show(" ^ v ^ "), \";\\n\"" in
   "output [\n" ^ (String.concat ",\n" (List.map output_of_variable (cost_variable_name::(Name_set.elements v_map#names)))) ^ "\n];\n\n"
 
-let core_translation v_map f_bound cs =
+let core_translation v_map f_bound structured_constraints =
   Zephyrus_log.log_solver_execution "Computing the variable declaration part of the file...\n";
   (* let decl = variable_declaration v_map f_bound in *)
   Zephyrus_log.log_solver_execution "Computing main part of the file...\n";
-  let main = minizinc_of_konstraints v_map cs in
+  let main = minizinc_of_konstraints v_map structured_constraints in
   Zephyrus_log.log_solver_execution "Computing the output part of the file...\n";
   let out = output_of_variables v_map in
  {
   mzn_variables        = v_map;
   mzn_declaration      = variable_declaration v_map f_bound; (* can take very very long with a lot of variables *)
-  mzn_main_constraint  = minizinc_of_konstraints v_map cs;
+  mzn_main_constraint  = minizinc_of_konstraints v_map structured_constraints;
   mzn_extra_constraint = "";
   mzn_output           = output_of_variables v_map }
 
