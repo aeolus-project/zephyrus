@@ -85,8 +85,6 @@ let constraint_of (no_packages : bool) u ss = conj (Location_id_set_set.fold (fu
 (*/************************************)
 (*| main part *)
 
-(* let categories = ref empty *)
-
 let generate_categories universe initial_configuration optimization_function = 
   match (universe, initial_configuration, optimization_function) with
   | (Some(u), Some(c), Some(f)) -> 
