@@ -37,14 +37,14 @@ val location_all_variables :
   (Data_model.component_type_id -> Data_model.component_type) ->
   (string * (konstraint list)) list
 
-val universe           : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.universe          -> Data_model.configuration                        -> (string * (konstraint list)) list
+val universe           : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.universe          -> Data_model.configuration                        -> Data_state.constraint_universe
 val specification      : ?with_packages : bool -> Data_model.Location_id_set.t -> Data_model.specification                                                        -> (string * (konstraint list)) list
 val locations          : ?with_packages : bool -> Data_model.Resource_id_set.t -> Data_model.Location_id_set.t -> (Data_model.location_id -> Data_model.location) -> (string * (konstraint list)) list
 
-val universe_full      : ?with_packages : bool -> Data_model.universe option      -> Data_model.configuration option -> Data_state.constraint_universe      (* the universe-related      constraints *)
-val specification_full : ?with_packages : bool -> Data_model.specification option -> Data_model.configuration option -> Data_state.constraint_specification (* the specification-related constraints *)
-val configuration_full : ?with_packages : bool -> Data_model.universe option      -> Data_model.configuration option -> Data_state.constraint_configuration (* the configuration-related constraints *)
+val universe_full      : ?with_packages : bool -> Data_model.universe      option -> Data_model.configuration option -> Data_state.constraint_universe      (* the universe-related      constraints *)
+val specification_full : ?with_packages : bool -> Data_model.specification option -> Data_model.configuration option -> konstraint option                   (* the specification-related constraints *)
+val configuration_full : ?with_packages : bool -> Data_model.universe      option -> Data_model.configuration option -> konstraint list                     (* the configuration-related constraints *)
 
+(* conversion of the optimization function *)
 val optimization_function      : ?with_packages : bool -> Data_model.universe        -> Data_model.configuration        -> Data_model.optimization_function        -> Data_constraint.optimization_function
-val optimization_function_full : ?with_packages : bool -> Data_model.universe option -> Data_model.configuration option -> Data_model.optimization_function option -> Data_state.constraint_optimization_function (* conversion of the optimization function *)
-(* val basic_bounds : unit -> unit          (* set the bounds in Data_state to their most basic values *)*)
+val optimization_function_full : ?with_packages : bool -> Data_model.universe option -> Data_model.configuration option -> Data_model.optimization_function option -> Data_constraint.optimization_function option

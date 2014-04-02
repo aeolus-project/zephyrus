@@ -27,6 +27,7 @@
     - datatypes/Bin_packing (constraint) <- TODO
 *)
 
+open Data_common
 open Data_model
 
 (** Constraints *)
@@ -82,27 +83,19 @@ let empty_constraint_universe = {
   constraint_universe_incompatibilities             = [];
 }
 
-type constraint_specification = konstraint option
-type constraint_configuration = konstraint list
-
-type constraint_optimization_function = optimization_function option 
-
-type described_constraint = string * konstraint
-
-
-let get_constraint_optimization_function constraint_optimization_function : optimization_function = 
+let get_constraint_optimization_function (constraint_optimization_function : optimization_function option) : optimization_function = 
   match constraint_optimization_function with 
   | Some optimization_function  -> optimization_function
   | None                        -> Data_constraint.Multi_objective.Satisfy
 
-let get_constraint_flat_universe constraint_universe : structured_constraints = [
+let structured_constraints_of_flat_universe constraint_universe : structured_constraints = [
   ( "  Bindings require:  " , constraint_universe.constraint_universe_component_type_require  );
   ( "  Bindings provide:  " , constraint_universe.constraint_universe_component_type_provide  );
   ( "  Bindings conflict: " , constraint_universe.constraint_universe_component_type_conflict );
   ( "  Bindings unicity:  " , constraint_universe.constraint_universe_binding_unicity         )]
 
-let get_constraint_universe constraint_universe : structured_constraints = 
-  (get_constraint_flat_universe constraint_universe) @ [
+let structured_constraints_of_constraint_universe constraint_universe : structured_constraints = 
+  (structured_constraints_of_flat_universe constraint_universe) @ [
   ( "  Component implementation by packages: "                                  , constraint_universe.constraint_universe_component_type_implementation );
   ( "  Global component type t arity = sum of local component type t arities: " , constraint_universe.constraint_universe_location_component_type       );
   ( "  Global package k arity = sum of local package k arities: "               , constraint_universe.constraint_universe_location_package              );
@@ -117,21 +110,16 @@ let get_constraint_universe constraint_universe : structured_constraints =
   ( "  Number of used locations: "                                              , constraint_universe.constraint_universe_used_locations                );
   ( "  Incompatibilities between components: "                                  , constraint_universe.constraint_universe_incompatibilities             )]
 
-let get_constraint_specification (constraint_specification : constraint_specification) : structured_constraints =
-  [(
-    "  specification constraint" , 
-    match constraint_specification with 
-    | Some konstraint -> [konstraint]
-    | None            -> []
-  )]
+let structured_constraints_of_constraint_specification (constraint_specification : konstraint option) : structured_constraints =
+  [("  specification constraint" , List.of_option constraint_specification)]
 
-let get_constraint_configuration (constraint_configuration : constraint_configuration) : structured_constraints =
+let structured_constraints_of_constraint_configuration (constraint_configuration : konstraint list) : structured_constraints =
   [("  configuration " , constraint_configuration)]
 
 let get_constraint_full constraint_universe constraint_specification constraint_configuration : structured_constraints = 
-  (get_constraint_universe      constraint_universe     ) @ 
-  (get_constraint_specification constraint_specification) @ 
-  (get_constraint_configuration constraint_configuration)
+  (structured_constraints_of_constraint_universe            constraint_universe     ) @ 
+  (structured_constraints_of_constraint_specification       constraint_specification) @ 
+  (structured_constraints_of_constraint_configuration       constraint_configuration)
 
 
 

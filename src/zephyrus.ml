@@ -259,10 +259,10 @@ let () =
     then false
     else true in
 
-  let constraint_universe              = Constraint_of.universe_full              ~with_packages (Some universe)      (Some core_conf) in
-  let constraint_specification         = Constraint_of.specification_full         ~with_packages (Some specification) (Some core_conf) in
-  let constraint_configuration         = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
-  let constraint_optimization_function = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
+  let constraint_universe              : Data_state.constraint_universe               = Constraint_of.universe_full              ~with_packages (Some universe)      (Some core_conf) in
+  let constraint_specification         : Data_constraint.konstraint option            = Constraint_of.specification_full         ~with_packages (Some specification) (Some core_conf) in
+  let constraint_configuration         : Data_constraint.konstraint list              = Constraint_of.configuration_full         ~with_packages (Some universe)      (Some core_conf) in
+  let constraint_optimization_function : Data_constraint.optimization_function option = Constraint_of.optimization_function_full ~with_packages (Some universe)      (Some core_conf) (Some optimization_function) in
 
   let categories      : Location_categories.t      = Location_categories.generate_categories (Some universe) (Some core_conf) (Some optimization_function) in
   let cat_constraints : Data_state.structured_constraints = 
@@ -273,7 +273,7 @@ let () =
     (Data_state.get_constraint_full constraint_universe constraint_specification constraint_configuration)
     @ cat_constraints in
 
-  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.structured_constraints solver_input_structured_constraints) ^ "\n\n"));
+  Zephyrus_log.log_data "ALL CONSTRAINTS ==>\n" (lazy ((String_of.Name_string_of.structured_constraints solver_input_structured_constraints) ^ "\n\n"));
 
   let solver_input_optimization_function : Data_constraint.optimization_function = 
     Data_state.get_constraint_optimization_function constraint_optimization_function in
@@ -292,7 +292,7 @@ let () =
   | None -> Zephyrus_log.log_panic "no solution for the given input"
   | Some(solution) -> (
     Zephyrus_log.log_stage_end ();
-    Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.solution (fst solution)) ^ "\n"));
+    Zephyrus_log.log_data "SOLUTION ==>\n" (lazy ((String_of.Name_string_of.solution (fst solution)) ^ "\n"));
 
     if (Settings.find Settings.stop_after_solving)
     then
