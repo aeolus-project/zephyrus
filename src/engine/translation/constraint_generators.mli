@@ -41,34 +41,34 @@ val eR   : location_id -> repository_id                      -> expression
 val eO   : location_id -> resource_id                        -> expression
 val eU   : location_id                                       -> expression
 
-val ralfs_redundant_require        : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
-val flat_require                   : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
-val require                        : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
-val provide_with_fixed_infinity    : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
-val provide_with_advanced_infinity : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
+val ralfs_redundant_require        : port_ids:Port_id_set.t -> get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
+val flat_require                   : port_ids:Port_id_set.t -> get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
+val require                        : port_ids:Port_id_set.t -> get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
+val provide_with_fixed_infinity    : port_ids:Port_id_set.t -> get_providers:(port_id -> Component_type_id_set.t) -> get_requirers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
+val provide_with_advanced_infinity : port_ids:Port_id_set.t -> get_providers:(port_id -> Component_type_id_set.t) -> get_requirers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
 
-val binding                        : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> konstraint list
+val binding                        : port_ids:Port_id_set.t -> get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> konstraint list
 
-val conflict_naive                 : Port_id_set.t -> (port_id -> Component_type_id_set.t)                                         -> (component_type_id -> component_type) -> konstraint list
-val conflict_advanced              : Port_id_set.t -> (port_id -> Component_type_id_set.t) -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
+val conflict_naive                 : port_ids:Port_id_set.t -> get_conflicters:(port_id -> Component_type_id_set.t)                                                       -> get_component_type:(component_type_id -> component_type) -> konstraint list
+val conflict_advanced              : port_ids:Port_id_set.t -> get_conflicters:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
 
-val location_component_type : Component_type_id_set.t -> Location_id_set.t -> konstraint list
-val location_package        : Package_id_set.t        -> Location_id_set.t -> konstraint list
-val location_port           : Port_id_set.t           -> Location_id_set.t -> konstraint list
-val location_port_equation  : Port_id_set.t           -> Location_id_set.t -> (port_id -> Component_type_id_set.t) -> (component_type_id -> component_type) -> konstraint list
+val location_component_type : component_type_ids:Component_type_id_set.t -> location_ids:Location_id_set.t -> konstraint list
+val location_package        : package_ids:Package_id_set.t        -> location_ids:Location_id_set.t -> konstraint list
+val location_port           : port_ids:Port_id_set.t           -> location_ids:Location_id_set.t -> konstraint list
+val location_port_equation  : port_ids:Port_id_set.t           -> location_ids:Location_id_set.t -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type:(component_type_id -> component_type) -> konstraint list
 
-val repository_unique  : Location_id_set.t -> Repository_id_set.t -> konstraint list
-val repository_package : Location_id_set.t -> Repository_id_set.t -> Package_id_set.t -> (repository_id -> Package_id_set.t) -> konstraint list
+val repository_unique  : location_ids:Location_id_set.t -> repository_ids:Repository_id_set.t -> konstraint list
+val repository_package : location_ids:Location_id_set.t -> repository_ids:Repository_id_set.t -> package_ids:Package_id_set.t -> get_repository_packages:(repository_id -> Package_id_set.t) -> konstraint list
 
-val component_type_implementation : Location_id_set.t -> Component_type_id_set.t -> (component_type_id -> Package_id_set.t) -> konstraint list
+val component_type_implementation : location_ids:Location_id_set.t -> component_type_ids:Component_type_id_set.t -> get_implementation:(component_type_id -> Package_id_set.t) -> konstraint list
 
-val package_dependency : Location_id_set.t -> Package_id_set.t -> (package_id -> package) -> konstraint list
-val package_conflict   : Location_id_set.t -> Package_id_set.t -> (package_id -> package) -> konstraint list
+val package_dependency : location_ids:Location_id_set.t -> package_ids:Package_id_set.t -> get_package:(package_id -> package) -> konstraint list
+val package_conflict   : location_ids:Location_id_set.t -> package_ids:Package_id_set.t -> get_package:(package_id -> package) -> konstraint list
 
-val resource_consumption : ?with_packages : bool -> Location_id_set.t -> Resource_id_set.t -> Component_type_id_set.t -> Package_id_set.t -> (component_type_id -> component_type) -> (package_id -> package) -> (location_id -> location) -> konstraint list
+val resource_consumption : ?with_packages : bool -> location_ids:Location_id_set.t -> resource_ids:Resource_id_set.t -> component_type_ids:Component_type_id_set.t -> package_ids:Package_id_set.t -> get_component_type:(component_type_id -> component_type) -> get_package:(package_id -> package) -> get_location:(location_id -> location) -> konstraint list
 
-val deprecated_component_types_with_packages : ?with_packages : bool -> Location_id_set.t -> konstraint list
+val deprecated_component_types_with_packages : ?with_packages : bool -> location_ids:Location_id_set.t -> konstraint list
 
-val used_locations : ?with_packages : bool -> Component_type_id_set.t -> Package_id_set.t -> Location_id_set.t -> konstraint list
+val used_locations : ?with_packages : bool -> component_type_ids:Component_type_id_set.t -> package_ids:Package_id_set.t -> location_ids:Location_id_set.t -> konstraint list
 
-val incompatibilities : Data_model.Component_type_id_set_set.t Data_model.Repository_id_map.t -> Location_id_set.t -> konstraint list
+val direct_incompatibilities : incompatibilities:(Data_model.Component_type_id_set_set.t Data_model.Repository_id_map.t) -> location_ids:Location_id_set.t -> konstraint list

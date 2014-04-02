@@ -38,47 +38,66 @@ let location_all_variables ?(with_packages = true) u_dp u_dt u_dk c_l up get_com
 
 
 let universe ?(with_packages = true) location_ids (universe : Data_model.universe) configuration =
+  let port_ids           = universe#get_port_ids in
+  let component_type_ids = universe#get_component_type_ids in
+  let package_ids        = universe#get_package_ids in
+  let repository_ids     = universe#get_repository_ids in
+  let resource_ids       = universe#get_resource_ids in
+  
+  let get_requirers      = universe#get_requirers in
+  let get_providers      = universe#get_providers in
+  let get_conflicters    = universe#get_conflicters in
+  
+  let get_component_type      = universe#get_component_type in
+  let get_package             = universe#get_package in
+  let get_repository_packages = (fun r -> (universe#get_repository r)#package_ids) in
+  let get_implementation      = universe#get_implementation in
+  
+  let get_location = configuration#get_location in
+
+  (* let incompatibilities = Incompatibilities_of.universe universe in *)
+  
   if with_packages
   then 
   {
-    Data_state.constraint_universe_component_type_require        = require                        universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              universe#get_port_ids universe#uc universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_implementation = component_type_implementation  location_ids universe#get_component_type_ids universe#get_implementation;
-    Data_state.constraint_universe_binding_unicity               = binding                        universe#get_port_ids universe#ur universe#up;
-    Data_state.constraint_universe_location_component_type       = location_component_type        universe#get_component_type_ids location_ids;
-    Data_state.constraint_universe_location_package              = location_package               universe#get_package_ids        location_ids;
-    Data_state.constraint_universe_location_port                 = location_port                  universe#get_port_ids           location_ids;
-    Data_state.constraint_universe_definition_port               = location_port_equation         universe#get_port_ids           location_ids universe#up universe#get_component_type;
-    Data_state.constraint_universe_repository_unicity            = repository_unique    location_ids universe#get_repository_ids;
-    Data_state.constraint_universe_repository_package            = repository_package   location_ids universe#get_repository_ids universe#get_package_ids (fun r -> (universe#get_repository r)#package_ids);
-    Data_state.constraint_universe_package_dependency            = package_dependency   location_ids universe#get_package_ids    universe#get_package;
-    Data_state.constraint_universe_package_conflict              = package_conflict     location_ids universe#get_package_ids    universe#get_package;
-    Data_state.constraint_universe_resource_consumption          = resource_consumption location_ids universe#get_resource_ids universe#get_component_type_ids universe#get_package_ids universe#get_component_type universe#get_package configuration#get_location;
-    Data_state.constraint_universe_deprecated_element            = deprecated_component_types_with_packages location_ids;
-    Data_state.constraint_universe_used_locations                = used_locations universe#get_component_type_ids universe#get_package_ids location_ids;
+    Data_state.constraint_universe_component_type_require        = require                        ~port_ids ~get_requirers   ~get_providers ~get_component_type;
+    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity ~port_ids ~get_providers   ~get_requirers ~get_component_type;
+    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              ~port_ids ~get_conflicters ~get_providers ~get_component_type;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
+    Data_state.constraint_universe_location_package              = location_package               ~package_ids        ~location_ids;
+    Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;
+    Data_state.constraint_universe_definition_port               = location_port_equation         ~port_ids           ~location_ids ~get_providers ~get_component_type;
+    Data_state.constraint_universe_component_type_implementation = component_type_implementation  ~location_ids ~component_type_ids ~get_implementation;
+    Data_state.constraint_universe_repository_unicity            = repository_unique              ~location_ids ~repository_ids;
+    Data_state.constraint_universe_repository_package            = repository_package             ~location_ids ~repository_ids ~package_ids ~get_repository_packages;
+    Data_state.constraint_universe_package_dependency            = package_dependency             ~location_ids ~package_ids    ~get_package;
+    Data_state.constraint_universe_package_conflict              = package_conflict               ~location_ids ~package_ids    ~get_package;
+    Data_state.constraint_universe_resource_consumption          = resource_consumption                     ~with_packages ~location_ids ~resource_ids ~component_type_ids ~package_ids ~get_component_type ~get_package ~get_location;
+    Data_state.constraint_universe_deprecated_element            = deprecated_component_types_with_packages ~with_packages ~location_ids;
+    Data_state.constraint_universe_used_locations                = used_locations                           ~with_packages ~component_type_ids ~package_ids ~location_ids;
     Data_state.constraint_universe_incompatibilities             = []; (* TODO: Add or not? *)
   }
   else 
   {
-    (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-    Data_state.constraint_universe_component_type_require        = require                        universe#get_port_ids universe#ur universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity universe#get_port_ids universe#up universe#ur universe#get_component_type;
-    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              universe#get_port_ids universe#uc universe#up universe#get_component_type;
-    Data_state.constraint_universe_component_type_implementation = [];
-    Data_state.constraint_universe_binding_unicity               = binding                        universe#get_port_ids universe#ur universe#up;
-    Data_state.constraint_universe_location_component_type       = location_component_type        universe#get_component_type_ids location_ids;
+    (* Written using a well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
+    Data_state.constraint_universe_component_type_require        = require                        ~port_ids ~get_requirers   ~get_providers ~get_component_type;
+    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity ~port_ids ~get_providers   ~get_requirers ~get_component_type;
+    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              ~port_ids ~get_conflicters ~get_providers ~get_component_type;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
     Data_state.constraint_universe_location_package              = [];
-    Data_state.constraint_universe_location_port                 = location_port                  universe#get_port_ids           location_ids;
-    Data_state.constraint_universe_definition_port               = location_port_equation         universe#get_port_ids           location_ids universe#up universe#get_component_type;
-    Data_state.constraint_universe_repository_unicity            = repository_unique    location_ids universe#get_repository_ids;
+    Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;
+    Data_state.constraint_universe_definition_port               = location_port_equation         ~port_ids           ~location_ids ~get_providers ~get_component_type;
+    Data_state.constraint_universe_component_type_implementation = [];
+    Data_state.constraint_universe_repository_unicity            = repository_unique              ~location_ids ~repository_ids;
     Data_state.constraint_universe_repository_package            = [];
     Data_state.constraint_universe_package_dependency            = [];
     Data_state.constraint_universe_package_conflict              = [];
-    Data_state.constraint_universe_resource_consumption          = resource_consumption ~with_packages:false location_ids universe#get_resource_ids universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty universe#get_component_type universe#get_package configuration#get_location;
-    Data_state.constraint_universe_deprecated_element            = deprecated_component_types_with_packages ~with_packages:false location_ids;
-    Data_state.constraint_universe_used_locations                = used_locations ~with_packages:false universe#get_component_type_ids (* universe#get_package_ids *) Data_model.Package_id_set.empty location_ids;
-    Data_state.constraint_universe_incompatibilities             = incompatibilities (Incompatibilities_of.universe universe) location_ids;
+    Data_state.constraint_universe_resource_consumption          = resource_consumption                     ~with_packages ~location_ids ~resource_ids ~component_type_ids ~package_ids:Data_model.Package_id_set.empty ~get_component_type ~get_package ~get_location;
+    Data_state.constraint_universe_deprecated_element            = deprecated_component_types_with_packages ~with_packages ~location_ids;
+    Data_state.constraint_universe_used_locations                = used_locations                           ~with_packages ~component_type_ids ~package_ids:Data_model.Package_id_set.empty ~location_ids;
+    Data_state.constraint_universe_incompatibilities             = direct_incompatibilities                 ~incompatibilities:(Incompatibilities_of.universe universe) ~location_ids;
   }
  
 

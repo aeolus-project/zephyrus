@@ -322,7 +322,7 @@ let get_initial_mins (solver : Solvers.t) (bounds : Data_constraint.variable_bou
 
   let with_packages = if Settings.find Settings.eliminate_packages then false else true in
   let specification_constraints : Data_state.structured_constraints = Constraint_of.specification          ~with_packages domain specification in      (* generate the constraint corresponding to the specification *)
-  let annex_constraints         : Data_state.structured_constraints = Constraint_of.location_all_variables ~with_packages spv stv skv domain universe#up universe#get_component_type in
+  let annex_constraints         : Data_state.structured_constraints = Constraint_of.location_all_variables ~with_packages spv stv skv domain universe#get_providers universe#get_component_type in
   
   let all_constraints = annex_constraints @ specification_constraints in
   let vs = Data_state.variables_of_structured_constraints specification_constraints in (* Remark (Kuba) : Why we don't take into account the variables from annex_constraints? *)

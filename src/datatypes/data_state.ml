@@ -47,12 +47,12 @@ type constraint_universe = {
   constraint_universe_component_type_require        : konstraint list;
   constraint_universe_component_type_provide        : konstraint list;
   constraint_universe_component_type_conflict       : konstraint list;
-  constraint_universe_component_type_implementation : konstraint list;
   constraint_universe_binding_unicity               : konstraint list;
   constraint_universe_location_component_type       : konstraint list;
   constraint_universe_location_package              : konstraint list;
   constraint_universe_location_port                 : konstraint list;
   constraint_universe_definition_port               : konstraint list;
+  constraint_universe_component_type_implementation : konstraint list;
   constraint_universe_repository_unicity            : konstraint list;
   constraint_universe_repository_package            : konstraint list;
   constraint_universe_package_dependency            : konstraint list;
@@ -67,12 +67,12 @@ let empty_constraint_universe = {
   constraint_universe_component_type_require        = [];
   constraint_universe_component_type_provide        = [];
   constraint_universe_component_type_conflict       = [];
-  constraint_universe_component_type_implementation = [];
   constraint_universe_binding_unicity               = [];
   constraint_universe_location_component_type       = [];
   constraint_universe_location_package              = [];
   constraint_universe_location_port                 = [];
   constraint_universe_definition_port               = [];
+  constraint_universe_component_type_implementation = [];
   constraint_universe_repository_unicity            = [];
   constraint_universe_repository_package            = [];
   constraint_universe_package_dependency            = [];
@@ -96,11 +96,11 @@ let structured_constraints_of_flat_universe constraint_universe : structured_con
 
 let structured_constraints_of_constraint_universe constraint_universe : structured_constraints = 
   (structured_constraints_of_flat_universe constraint_universe) @ [
-  ( "  Component implementation by packages: "                                  , constraint_universe.constraint_universe_component_type_implementation );
   ( "  Global component type t arity = sum of local component type t arities: " , constraint_universe.constraint_universe_location_component_type       );
   ( "  Global package k arity = sum of local package k arities: "               , constraint_universe.constraint_universe_location_package              );
   ( "  Global port p arity = sum of local port p arities: "                     , constraint_universe.constraint_universe_location_port                 );
   ( "  How much port p arity is provided in total on each location: "           , constraint_universe.constraint_universe_definition_port               );
+  ( "  Component implementation by packages: "                                  , constraint_universe.constraint_universe_component_type_implementation );
   ( "  Repository unicity (exactly one repository on each location): "          , constraint_universe.constraint_universe_repository_unicity            );
   ( "  Repository packages: "                                                   , constraint_universe.constraint_universe_repository_package            );
   ( "  Package dependencies: "                                                  , constraint_universe.constraint_universe_package_dependency            );

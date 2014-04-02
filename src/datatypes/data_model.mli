@@ -306,9 +306,9 @@ class universe :
 
   (* Methods coming from the paper. *)
 
-  method ur : port_id -> Component_type_id_set.t
-  method up : port_id -> Component_type_id_set.t
-  method uc : port_id -> Component_type_id_set.t
+  method get_requirers   : port_id -> Component_type_id_set.t
+  method get_providers   : port_id -> Component_type_id_set.t
+  method get_conflicters : port_id -> Component_type_id_set.t
 
   (* This method is almost like a constructor, but based on a existing object:
      it will replace only the given fields of the existing object, leaving the rest as it was. *)
