@@ -37,6 +37,8 @@ module List : sig
   val fold_combine : ('a -> 'b) -> ('b -> 'b -> 'b) -> ('a list) -> 'b -> 'b
   (** [cartesian_product ll] returns cartesian product of lists [ll] as a list of lists. (If [ll] is a list of lists [[l1, l2, ... , ln]], then [cartesian_product ll] returns a list of lists representing the cartesian product [l1 x l2 x ... ln].) *)
   val cartesian_product : (('a list) list) -> (('a list) list)
+  (** [of_option o] converts an option value [o] to a list: if the option value [o] is of form [Some x], then it returns a list with a single element [x], if it is of form [None], then it returns an empty list. *)
+  val of_option : 'a option -> 'a list
 end
 
 (** Comment: Extending the [List] module with [mapi] function is not necessary after OCaml 4.00.0 *)
