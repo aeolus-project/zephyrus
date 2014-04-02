@@ -108,9 +108,7 @@ module type S = sig
   val expression : Data_constraint.expression -> string
   val konstraint : Data_constraint.konstraint -> string
 
-  val described_konstraint      :  string * Data_constraint.konstraint       -> string
-  val described_konstraint_list : (string * Data_constraint.konstraint) list -> string
-  val structured_constraints    : Data_state.structured_constraints          -> string
+  val structured_constraints : Data_state.structured_constraints -> string
 
   val constraint_single_optimization   : Data_constraint.Single_objective.optimization -> string
   val constraint_single_solve_goal     : Data_constraint.Single_objective.solve_goal   -> string
@@ -311,14 +309,14 @@ module Make =
 
 
   let element e = match e with
-    | Data_constraint.Component_type (t) -> "Ntype(" ^ (component_type_id t) ^ ")"
-    | Data_constraint.Port           (p) -> "Nport(" ^ (port_id p) ^ ")"
-    | Data_constraint.Package        (k) -> "Npack(" ^ (package_id k) ^ ")"
+    | Data_constraint.Component_type (t) -> "N(" ^ (component_type_id t) ^ ")"
+    | Data_constraint.Port           (p) -> "N(" ^ (port_id p) ^ ")"
+    | Data_constraint.Package        (k) -> "N(" ^ (package_id k) ^ ")"
 
   let local_element l e = match e with
-    | Data_constraint.Component_type (t) -> "Ntype(" ^ (location_id l) ^ ", " ^ (component_type_id t) ^ ")"
-    | Data_constraint.Port           (p) -> "Nport(" ^ (location_id l) ^ ", " ^ (port_id p) ^ ")"
-    | Data_constraint.Package        (k) -> "Npack(" ^ (location_id l) ^ ", " ^ (package_id k) ^ ")"
+    | Data_constraint.Component_type (t) -> "N(" ^ (location_id l) ^ ", " ^ (component_type_id t) ^ ")"
+    | Data_constraint.Port           (p) -> "N(" ^ (location_id l) ^ ", " ^ (port_id p) ^ ")"
+    | Data_constraint.Package        (k) -> "N(" ^ (location_id l) ^ ", " ^ (package_id k) ^ ")"
 
   let variable v = match v with 
     | Data_constraint.Simple_variable           (v)       -> spec_variable_name v
@@ -395,14 +393,6 @@ module Make =
                                                      (if l = []
                                                       then unit_of_nary_konstraint_op op
                                                       else String.concat (" " ^ (nary_konstraint_op op) ^ " ") (List.map konstraint l) )
-
-
-  let rec described_konstraint     (c,k) = 
-    (* TODO: This is a dirty hack, we should just structure constraints better. *)
-    match k with 
-    | Data_constraint.NaryKonstraint(Data_constraint.And, ks) -> c ^ (String.concat "\n" (List.map konstraint ks)) ^ "\n"
-    | _                                                       -> c ^ (konstraint k)                                ^ "\n"
-  let described_konstraint_list l    = List.fold_left (fun res el -> (described_konstraint el) ^ res) "" l
 
   let structured_constraints structured_constraints =
     let lines =
