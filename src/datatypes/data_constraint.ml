@@ -64,6 +64,7 @@ module Value = struct
   let of_int n = Finite_value n
   let of_provide_arity p = match p with | Finite_provide(n) -> of_int n | Infinite_provide -> infty
   let of_require_arity = of_int
+  let of_resource_consume_arity = of_int
   let of_resource_provide_arity = of_int
 
   let min v1 v2 = match (v1,v2) with
@@ -173,8 +174,10 @@ and konstraint =
   | NaryKonstraint        of nary_konstraint_op   * konstraint list
 
 let constant i = Constant(Value.of_int i)
-let constant_of_provide_arity a = Constant(Value.of_provide_arity a)
-let constant_of_require_arity a = Constant(Value.of_require_arity a)
+let constant_of_provide_arity          a = Constant(Value.of_provide_arity a)
+let constant_of_require_arity          a = Constant(Value.of_require_arity a)
+let constant_of_resource_consume_arity a = Constant(Value.of_resource_consume_arity a)
+let constant_of_resource_provide_arity a = Constant(Value.of_resource_provide_arity a)
 
 let var2expr   v = Variable v
 let const2expr c = Constant c
