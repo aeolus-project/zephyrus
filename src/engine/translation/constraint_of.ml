@@ -135,20 +135,20 @@ let universe_full ?(with_packages = true) (universe' : Data_model.universe optio
 let spec_variable_name v = Variable(Simple_variable(v))
 let spec_const = constant
 
-let spec_local_element l e = match e with
-  | Data_model.Spec_local_element_package        (package_id)        -> eNlk l package_id
-  | Data_model.Spec_local_element_component_type (component_type_id) -> eNlt l component_type_id
-  | Data_model.Spec_local_element_port           (port_id)           -> eNlp l port_id
+let spec_local_element location_id e = match e with
+  | Data_model.Spec_local_element_package        (package_id)        -> eNlk location_id package_id
+  | Data_model.Spec_local_element_component_type (component_type_id) -> eNlt location_id component_type_id
+  | Data_model.Spec_local_element_port           (port_id)           -> eNlp location_id port_id
 
-let rec spec_local_expr l e = match e with
+let rec spec_local_expr location_id e = match e with
   | Data_model.Spec_local_expr_var   (v)      -> spec_variable_name v
   | Data_model.Spec_local_expr_const (c)      -> spec_const c
-  | Data_model.Spec_local_expr_arity (e)      -> spec_local_element l e
-  | Data_model.Spec_local_expr_add   (e1, e2) -> (spec_local_expr l e1) +~ (spec_local_expr l e2)
-  | Data_model.Spec_local_expr_sub   (e1, e2) -> (spec_local_expr l e1) -~ (spec_local_expr l e2)
-  | Data_model.Spec_local_expr_mul   (e1, e2) -> (spec_const e1) *~ (spec_local_expr l e2)
+  | Data_model.Spec_local_expr_arity (e)      -> spec_local_element location_id e
+  | Data_model.Spec_local_expr_add   (e1, e2) -> (spec_local_expr location_id e1) +~ (spec_local_expr location_id e2)
+  | Data_model.Spec_local_expr_sub   (e1, e2) -> (spec_local_expr location_id e1) -~ (spec_local_expr location_id e2)
+  | Data_model.Spec_local_expr_mul   (e1, e2) -> (spec_const e1) *~ (spec_local_expr location_id e2)
 
-let spec_op o = match o with
+let spec_op op = match op with
   | Data_model.Lt  -> ( <~  )
   | Data_model.LEq -> ( <=~ )
   | Data_model.Eq  -> ( =~  )
@@ -156,25 +156,25 @@ let spec_op o = match o with
   | Data_model.Gt  -> ( >~  )
   | Data_model.NEq -> ( <>~ )
 
-let rec local_specification l s = match s with
+let rec local_specification location_id s = match s with
   | Data_model.Spec_local_true              -> True
-  | Data_model.Spec_local_op   (e1, op, e2) -> (spec_op op) (spec_local_expr l e1) (spec_local_expr l e2)
-  | Data_model.Spec_local_and  (s1, s2)     -> (local_specification l s1) &&~~ (local_specification l s2)
-  | Data_model.Spec_local_or   (s1, s2)     -> (local_specification l s1) ||~~ (local_specification l s2)
-  | Data_model.Spec_local_impl (s1, s2)     -> (local_specification l s1) =>~~ (local_specification l s2)
-  | Data_model.Spec_local_not  (s')         -> !~ (local_specification l s')
+  | Data_model.Spec_local_op   (e1, op, e2) -> (spec_op op) (spec_local_expr location_id e1) (spec_local_expr location_id e2)
+  | Data_model.Spec_local_and  (s1, s2)     -> (local_specification location_id s1) &&~~ (local_specification location_id s2)
+  | Data_model.Spec_local_or   (s1, s2)     -> (local_specification location_id s1) ||~~ (local_specification location_id s2)
+  | Data_model.Spec_local_impl (s1, s2)     -> (local_specification location_id s1) =>~~ (local_specification location_id s2)
+  | Data_model.Spec_local_not  (s')         -> !~ (local_specification location_id s')
 
-let spec_resource_constraint l co = List.fold_left (fun res (o, op, i) -> ((spec_op op) (eO l o) (constant i))::res) [] co
-let spec_repository_constraint l cr = match cr with 
+let spec_resource_constraint location_id co = List.fold_left (fun res (resource_id, op, i) -> ((spec_op op) (eO location_id resource_id) (constant i))::res) [] co
+let spec_repository_constraint location_id cr = match cr with 
                                       | [] -> true_konstraint
-                                      | _  -> (sum (List.map (fun r -> eR l r) cr)) =~ (constant 1)
+                                      | _  -> (sum (List.map (fun repository_id -> eR location_id repository_id) cr)) =~ (constant 1)
 
 let spec_element location_ids e = match e with
   | Data_model.Spec_element_package        (package_id)        -> eNk package_id
   | Data_model.Spec_element_component_type (component_type_id) -> eNt component_type_id
   | Data_model.Spec_element_port           (port_id)           -> eNp port_id
   | Data_model.Spec_element_location (co, cr, ls) -> sum (Data_model.Location_id_set.fold
-     (fun l res -> (reify (conj((local_specification l ls)::(spec_repository_constraint l cr)::(spec_resource_constraint l co))))::res ) location_ids [])
+     (fun location_id res -> (reify (conj((local_specification location_id ls)::(spec_repository_constraint location_id cr)::(spec_resource_constraint location_id co))))::res ) location_ids [])
 
 let rec spec_expr location_ids e = match e with
   | Data_model.Spec_expr_var   (v)      -> spec_variable_name v
@@ -191,8 +191,8 @@ let rec specification_simple location_ids s = match s with
   | Data_model.Spec_or   (s1, s2)            -> (specification_simple location_ids s1) ||~~ (specification_simple location_ids s2)
   | Data_model.Spec_impl (s1, s2)            -> (specification_simple location_ids s1) =>~~ (specification_simple location_ids s2)
   | Data_model.Spec_not  (s')                -> !~ (specification_simple location_ids s')
-  | Data_model.Spec_everywhere          (ls) -> conj (List.map (fun l -> local_specification l ls) (Data_model.Location_id_set.elements location_ids))
-  | Data_model.Spec_at (at_location_ids, ls) -> conj (List.map (fun l -> local_specification l ls) at_location_ids)
+  | Data_model.Spec_everywhere          (ls) -> conj (List.map (fun location_id -> local_specification location_id ls) (Data_model.Location_id_set.elements location_ids))
+  | Data_model.Spec_at (at_location_ids, ls) -> conj (List.map (fun location_id -> local_specification location_id ls) at_location_ids)
 
 
 let specification ?(with_packages = true) locations s = 
@@ -217,10 +217,10 @@ let locations ?(with_packages = true) resource_ids location_ids get_location =
   then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
   else
     [ "Data_state.constraint_configuration_full",
-    Data_model.Location_id_set.fold (fun l_id res ->
-      let l = get_location l_id in
+    Data_model.Location_id_set.fold (fun location_id res ->
+      let location = get_location location_id in
       Data_model.Resource_id_set.fold (fun o res ->
-        ((eO l_id o) =~ (constant (l#provide_resources o)))::res
+        ((eO location_id o) =~ (constant (location#provide_resources o)))::res
       ) resource_ids res
     ) location_ids [] ]
 
@@ -229,10 +229,10 @@ let configuration ?(with_packages = true) resource_ids location_ids get_location
   if Settings.find Settings.modifiable_configuration 
   then [] (* if we can modify the resources of a location, we do not enforce its value in the constraint *)
   else
-    Data_model.Location_id_set.fold (fun l_id res ->
-      let l = get_location l_id in
+    Data_model.Location_id_set.fold (fun location_id res ->
+      let location = get_location location_id in
       Data_model.Resource_id_set.fold (fun o res ->
-        ((eO l_id o) =~ (constant (l#provide_resources o)))::res
+        ((eO location_id o) =~ (constant (location#provide_resources o)))::res
       ) resource_ids res
     ) location_ids []
 
@@ -247,44 +247,45 @@ let configuration_full ?(with_packages = true) (universe : Data_model.universe o
 (*******************************************)
 
 (* preliminary definitions for costs *)
-let cost_all_components component_type_ids = (Data_model.Component_type_id_set.fold (fun t res -> (eNt t)::res) component_type_ids [])
-let cost_all_packages   package_ids = (Data_model.Package_id_set.fold (fun k res -> (eNk k)::res) package_ids [])
+let cost_all_components component_type_ids = Data_model.Component_type_id_set.fold (fun t res -> (eNt t)::res) component_type_ids []
+let cost_all_packages   package_ids        = Data_model.Package_id_set.fold        (fun k res -> (eNk k)::res) package_ids        []
 
-let cost_local_components l component_type_ids = (Data_model.Component_type_id_set.fold (fun t res -> (eNlt l t)::res) component_type_ids [])
-let cost_local_packages   l package_ids = (Data_model.Package_id_set.fold (fun k res -> (eNlk l k)::res) package_ids [])
+let cost_local_components location_id component_type_ids = (Data_model.Component_type_id_set.fold (fun t res -> (eNlt location_id t)::res) component_type_ids [])
+let cost_local_packages   location_id package_ids        = (Data_model.Package_id_set.fold        (fun k res -> (eNlk location_id k)::res) package_ids        [])
 
 type used_or_free_location = Used_locations | Free_locations
+
 let cost_locations switch location_ids component_type_ids package_ids count_components_only =
-  Data_model.Location_id_set.fold (fun l res ->
-    (reify ((if switch = Used_locations then (>~) else (=~) ) (sum (if count_components_only then cost_local_components l component_type_ids
-              else List.rev_append (cost_local_components l component_type_ids) (cost_local_packages l package_ids))) (constant 0)))::res
+  Data_model.Location_id_set.fold (fun location_id res ->
+    (reify ((match switch with Used_locations -> (>~) | Free_locations -> (=~) ) (sum (if count_components_only then cost_local_components location_id component_type_ids
+              else List.rev_append (cost_local_components location_id component_type_ids) (cost_local_packages location_id package_ids))) (constant 0)))::res
   ) location_ids []
 
 let cost_used_locations = cost_locations Used_locations
 let cost_free_locations = cost_locations Free_locations
 
 let cost_difference_components location_ids component_type_ids get_local_component : expression list = 
-  Data_model.Location_id_set.fold (fun l res ->
+  Data_model.Location_id_set.fold (fun location_id res ->
     Data_model.Component_type_id_set.fold (fun t res ->
-      (abs((eNlt l t) -~ (constant (Data_model.Component_id_set.cardinal (get_local_component l t))) ))::res
+      (abs((eNlt location_id t) -~ (constant (Data_model.Component_id_set.cardinal (get_local_component location_id t))) ))::res
     ) component_type_ids res) location_ids []
 
 let cost_difference_packages location_ids package_ids get_local_package : expression list = 
-  Data_model.Location_id_set.fold (fun l res ->
+  Data_model.Location_id_set.fold (fun location_id res ->
     Data_model.Package_id_set.fold (fun k res ->
-      (if get_local_package l k then abs((eNlk l k) -~ (constant 1)) else (eNlk l k))::res
+      (if get_local_package location_id k then abs((eNlk location_id k) -~ (constant 1)) else (eNlk location_id k))::res
     ) package_ids res) location_ids []
 
 let cost_locations location_ids (get_location_cost : Data_model.location_id -> Data_model.location_cost) : expression list =
-  Data_model.Location_id_set.fold (fun l res ->
-    ( (eU l) *~ constant (get_location_cost l) ) :: res
+  Data_model.Location_id_set.fold (fun location_id res ->
+    ( (eU location_id) *~ constant (get_location_cost location_id) ) :: res
   ) location_ids []
 
 (* translation functions *)
-let simple ?(with_packages = true) component_type_ids =
+let simple ?(with_packages = true) ~component_type_ids =
   Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (sum (cost_all_components component_type_ids)) ))
 
-let compact_slow ?(with_packages = true) location_ids component_type_ids package_ids get_location_cost =
+let compact_slow ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids ~get_location_cost =
   let minimize_used_location_cost = Single_objective.Minimize (sum (cost_locations location_ids get_location_cost)) in (* First minimize the number of used locations, *) 
   let minimize_component_count    = Single_objective.Minimize (sum (cost_all_components component_type_ids))        in (* then minimize the number of components, *)
   let minimize_package_count      = Single_objective.Minimize (sum (cost_all_packages   package_ids))               in (* finally minimize the number of packages (so we do not have useless packages). *)
@@ -294,7 +295,7 @@ let compact_slow ?(with_packages = true) location_ids component_type_ids package
     else [minimize_used_location_cost; minimize_component_count] in
   Multi_objective.solve_goal_of_list_of_single_optimizations single_optimizations
 
-let compact_fast ?(with_packages = true) location_ids component_type_ids package_ids get_location_cost = 
+let compact_fast ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids ~get_location_cost = 
   let used_location_cost = sum (cost_all_components component_type_ids)        in
   let component_count    = sum (cost_locations location_ids get_location_cost) in
   let package_count      = sum (cost_all_packages package_ids)                 in
@@ -304,7 +305,7 @@ let compact_fast ?(with_packages = true) location_ids component_type_ids package
     else sum [used_location_cost; component_count] in
   Multi_objective.Optimize( Multi_objective.Single( Single_objective.Minimize total_cost))
 
-let spread_slow ?(with_packages = true) location_ids component_type_ids package_ids =
+let spread_slow ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids =
   let minimize_component_count = Single_objective.Minimize (sum (cost_all_components component_type_ids))                               in (* First minimize the number of components, *)
   let maximize_location_cost   = Single_objective.Maximize (sum (cost_used_locations location_ids component_type_ids package_ids true)) in (* then maximize the number of used locations (counting only locations with at least one component), *)
   let minimize_package_count   = Single_objective.Minimize (sum (cost_all_packages   package_ids))                                      in (* finally minimize the number of packages. *)
@@ -314,11 +315,11 @@ let spread_slow ?(with_packages = true) location_ids component_type_ids package_
     else [minimize_component_count; maximize_location_cost] in
   Multi_objective.solve_goal_of_list_of_single_optimizations single_optimizations
 
-let spread_fast ?(with_packages = true) location_ids component_type_ids package_ids = 
+let spread_fast ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids = 
   Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Maximize (
     (sum (cost_used_locations location_ids component_type_ids package_ids true)) -~ (sum (cost_all_components component_type_ids)))))
 
-let conservative_slow ?(with_packages = true) location_ids component_type_ids package_ids get_local_component get_local_package =
+let conservative_slow ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids ~get_local_component ~get_local_package =
   let minimize_component_difference = Single_objective.Minimize (sum (cost_difference_components location_ids component_type_ids get_local_component)) in (* First minimize the number of changed components, *)
   let minimize_location_cost        = Single_objective.Minimize (sum (cost_used_locations        location_ids component_type_ids package_ids false))   in (* then minimize the number of used locations, *)
   let minimize_package_count        = Single_objective.Minimize (sum (cost_difference_packages   location_ids package_ids        get_local_package))   in (* finally minimize the number of changed packages. *)
@@ -333,14 +334,18 @@ let conservative_slow ?(with_packages = true) location_ids component_type_ids pa
 
 (* set the optimization function in Data_state *)
 
-let optimization_function ?(with_packages = true) u c f =
-  let (location_ids, component_type_ids, package_ids, get_local_component, get_local_package, get_location_cost) =
-    (c#get_location_ids, u#get_component_type_ids, u#get_package_ids, c#get_local_component, c#get_local_package, (fun location_id -> (c#get_location location_id)#cost) ) in
-  match f with
-  | Data_model.Optimization_function_simple       -> simple            ~with_packages component_type_ids
-  | Data_model.Optimization_function_compact      -> compact_slow      ~with_packages location_ids component_type_ids package_ids get_location_cost
-  | Data_model.Optimization_function_conservative -> conservative_slow ~with_packages location_ids component_type_ids package_ids get_local_component get_local_package
-  | Data_model.Optimization_function_spread       -> spread_slow       ~with_packages location_ids component_type_ids package_ids
+let optimization_function ?(with_packages = true) (universe : Data_model.universe) (configuration : Data_model.configuration) (optimization_function : Data_model.optimization_function) =
+  let location_ids        = configuration#get_location_ids in
+  let component_type_ids  = universe#get_component_type_ids in
+  let package_ids         = universe#get_package_ids in
+  let get_local_component = configuration#get_local_component in
+  let get_local_package   = configuration#get_local_package in
+  let get_location_cost   = (fun location_id -> (configuration#get_location location_id)#cost) in
+  match optimization_function with
+  | Data_model.Optimization_function_simple       -> simple            ~with_packages ~component_type_ids
+  | Data_model.Optimization_function_compact      -> compact_slow      ~with_packages ~location_ids ~component_type_ids ~package_ids ~get_location_cost
+  | Data_model.Optimization_function_conservative -> conservative_slow ~with_packages ~location_ids ~component_type_ids ~package_ids ~get_local_component ~get_local_package
+  | Data_model.Optimization_function_spread       -> spread_slow       ~with_packages ~location_ids ~component_type_ids ~package_ids
   | Data_model.Optimization_function_none         -> Multi_objective.Satisfy
 
 
