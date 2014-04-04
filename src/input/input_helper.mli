@@ -32,3 +32,6 @@ val parse_standard : ((Lexing.lexbuf -> 'b) -> Lexing.lexbuf -> 'a) -> (Lexing.l
 
 (** [lines_of_file filename] reads a given file [filename] and returns a list of strings containing all the lines of the file. *)
 val lines_of_file : string -> string list
+
+(** [file_copy input_filename output_filename] copies the contents of file [input_filename] to the file [output_filename]. *)
+val file_copy : string -> string -> unit
