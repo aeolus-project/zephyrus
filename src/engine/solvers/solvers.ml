@@ -83,18 +83,42 @@ let solve_multi_objective settings bounds preprocess solve_step postprocess stru
 
 (* 2. generic minizinc handling *)
 
-
 module MiniZinc_generic = struct
   open Data_constraint
   open Minizinc
 
-  let solver : Engine_helper.program ref = ref Engine_helper.gecode_minizinc_solver
+  type solver = {
+    is_solver_available : unit -> bool;
+    solve_function : string -> string -> bool;
+  }
+
+  let make_solver_of_program (solver_program : Engine_helper.program) =
+    let is_solver_available = (fun () -> Engine_helper.program_is_available solver_program) in
+    let solve_function input_file output_file =
+      let status = Engine_helper.program_sync_exec solver_program [input_file; output_file] in
+      Engine_helper.did_program_exit_ok status in 
+    {
+      is_solver_available = is_solver_available;
+      solve_function      = solve_function;
+    }
+
+  let make_portfolio_solver_of_programs (solver_programs : Engine_helper.program list) =
+    let is_solver_available = (fun () -> Engine_helper.programs_are_available solver_programs) in
+    let solve_function input_file output_file =
+      Engine_helper.portfolio solver_programs (fun _ -> true) input_file output_file in
+    {
+      is_solver_available = is_solver_available;
+      solve_function      = solve_function;
+    }
+
+  let solver : solver ref = ref (make_solver_of_program Engine_helper.gecode_minizinc_solver)
+
   let input  : Engine_helper.file    ref = ref Engine_helper.file_default
   let output : Engine_helper.file    ref = ref Engine_helper.file_default
 
   let preprocess settings bounds structured_constraints (solve_goal : Data_constraint.Multi_objective.solve_goal) =
     Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
-    if Engine_helper.program_is_available !solver
+    if (!solver).is_solver_available ()
     then 
       begin
         Zephyrus_log.log_solver_execution "yes\n";
@@ -138,9 +162,9 @@ module MiniZinc_generic = struct
     let filename_output = Engine_helper.file_create settings.keep_output_file !output in
 
     Zephyrus_log.log_solver_execution "Solving the constraints...\n";
-    let status = Engine_helper.program_sync_exec !solver [filename_input; filename_output] in
+    let status = (!solver).solve_function filename_input filename_output in
 
-    if not (Engine_helper.did_program_exit_ok status) then
+    if not status then
       Zephyrus_log.log_panic "Error during the solving of the constraint. Aborting execution\n"
     else
       Zephyrus_log.log_solver_execution "Getting the solution found by the flatzinc solver...\n";
@@ -185,26 +209,35 @@ end
 
 module G12 : SOLVER = struct
   let solve settings bounds structured_constraints optimization_function = 
-    MiniZinc_generic.solver := Engine_helper.g12_minizinc_solver;
+    MiniZinc_generic.solver := MiniZinc_generic.make_solver_of_program Engine_helper.g12_minizinc_solver;
     solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 module G12_cpx : SOLVER = struct
   let solve settings bounds structured_constraints optimization_function = 
-    MiniZinc_generic.solver := Engine_helper.g12_cpx_minizinc_solver;
+    MiniZinc_generic.solver := MiniZinc_generic.make_solver_of_program Engine_helper.g12_cpx_minizinc_solver;
     solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 module GeCode : SOLVER = struct
   let solve settings bounds structured_constraints optimization_function = 
-    MiniZinc_generic.solver := Engine_helper.gecode_minizinc_solver;
+    MiniZinc_generic.solver := MiniZinc_generic.make_solver_of_program Engine_helper.gecode_minizinc_solver;
     solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function    
 end
 
 let make_custom_solver_module (solver_program : Engine_helper.program) =
   let module Solver = struct
     let solve settings bounds structured_constraints optimization_function = 
-      MiniZinc_generic.solver := solver_program;
+      MiniZinc_generic.solver := MiniZinc_generic.make_solver_of_program solver_program;
+      solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function
+    end
+  in
+  (module Solver : SOLVER)
+
+let make_portfolio_solver_module (solver_programs : Engine_helper.program list) =
+  let module Solver = struct
+    let solve settings bounds structured_constraints optimization_function = 
+      MiniZinc_generic.solver := MiniZinc_generic.make_portfolio_solver_of_programs solver_programs;
       solve_multi_objective settings bounds MiniZinc_generic.preprocess MiniZinc_generic.solve_step MiniZinc_generic.postprocess structured_constraints optimization_function
     end
   in
@@ -231,11 +264,16 @@ let full_of_settings kind =
     | Preprocess -> Settings.find Settings.preprocess_solver
     | Main       -> Settings.find Settings.solver in
   match solver with
-  | Settings.Solver_none    -> GeCode.solve (* default *)
-  | Settings.Solver_gecode  -> GeCode.solve
-  | Settings.Solver_g12     -> G12.solve
-  | Settings.Solver_g12_cpx -> G12_cpx.solve
-  | Settings.Solver_custom  -> (
+  | Settings.Solver_none      -> GeCode.solve (* default *)
+  | Settings.Solver_gecode    -> GeCode.solve
+  | Settings.Solver_g12       -> G12.solve
+  | Settings.Solver_g12_cpx   -> G12_cpx.solve
+  
+  | Settings.Solver_portfolio -> 
+      let module PortfolioSolver = (val (make_portfolio_solver_module [Engine_helper.g12_minizinc_solver; Engine_helper.g12_cpx_minizinc_solver; Engine_helper.gecode_minizinc_solver]) : SOLVER) in
+      PortfolioSolver.solve
+
+  | Settings.Solver_custom    -> (
       match Settings.get_custom_solver_command () with
       | None -> failwith "Cannot use a custom solver as the custom solver command is not specified!"
       | Some command ->

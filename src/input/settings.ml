@@ -164,15 +164,17 @@ type solver =
   | Solver_gecode
   | Solver_g12
   | Solver_g12_cpx
+  | Solver_portfolio
 (*  | Solver_facile *)
   | Solver_custom
 let solver_assoc = [
 (*  ("facile", Solver_facile); *)
-  ("none"    , Solver_none);
-  ("g12"     , Solver_g12);
-  ("g12_cpx" , Solver_g12_cpx);
-  ("gecode"  , Solver_gecode);
-  ("custom"  , Solver_custom) ]
+  ("none"     , Solver_none);
+  ("gecode"   , Solver_gecode);
+  ("g12"      , Solver_g12);
+  ("g12_cpx"  , Solver_g12_cpx);
+  ("portfolio", Solver_portfolio);
+  ("custom"   , Solver_custom) ]
 let solver_assoc_revert = revert solver_assoc
 
 let solver_names = extract_names solver_assoc
@@ -579,11 +581,11 @@ let disable_ralfs_redundant_constraints  () = add ralfs_redundant_constraints   
 
 let enable_stop_after_solving            () = add stop_after_solving                (BoolValue true)
 
-let get_input_file_universe              () = if (find import_universe              = true) & (mem input_file_universe)         then Some(find input_file_universe)         else None
-let get_input_file_repositories          () = if (find import_repositories          = true) & (mem input_file_repositories)     then Some(find input_file_repositories)     else None
-let get_input_file_initial_configuration () = if (find import_initial_configuration = true) & (mem input_file_configuration)    then Some(find input_file_configuration)    else None
-let get_input_file_specification         () = if (find import_specification         = true) & (mem input_file_specification)    then Some(find input_file_specification)    else None
-let get_input_optimization_function      () = if (find import_optimization_function = true) & (mem input_optimization_function) then Some(find input_optimization_function) else None
+let get_input_file_universe              () = if (find import_universe              = true) && (mem input_file_universe)         then Some(find input_file_universe)         else None
+let get_input_file_repositories          () = if (find import_repositories          = true) && (mem input_file_repositories)     then Some(find input_file_repositories)     else None
+let get_input_file_initial_configuration () = if (find import_initial_configuration = true) && (mem input_file_configuration)    then Some(find input_file_configuration)    else None
+let get_input_file_specification         () = if (find import_specification         = true) && (mem input_file_specification)    then Some(find input_file_specification)    else None
+let get_input_optimization_function      () = if (find import_optimization_function = true) && (mem input_optimization_function) then Some(find input_optimization_function) else None
 
 
 
@@ -599,5 +601,5 @@ let get_preprocess_output_file () = let res = find preprocess_solution_file   in
 
 let get_preprocess_file_informations () = ((get_preprocess_input_file (), find preprocess_keep_constraint_file), (get_preprocess_output_file (), find preprocess_keep_constraint_file))
 
-let get_custom_solver_command  () = if (find solver = Solver_custom) & (mem custom_solver_command) then Some(find custom_solver_command)  else None
-let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command)                                then Some(find custom_mzn2fzn_command) else None
+let get_custom_solver_command  () = if (find solver = Solver_custom) && (mem custom_solver_command) then Some(find custom_solver_command)  else None
+let get_custom_mzn2fzn_command () = if (mem custom_mzn2fzn_command)                                 then Some(find custom_mzn2fzn_command) else None

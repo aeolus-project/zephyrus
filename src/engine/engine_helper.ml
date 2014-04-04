@@ -134,7 +134,7 @@ let gecode_flatzinc_solver = {
 }
 
 let g12_minizinc_solver = {
-  name     = "G12 MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
+  name     = "G12 MiniZinc Solver"; (* (using the G12 MiniZinc to FlatZinc converter) *)
   commands = ["mzn2fzn"; "flatzinc"];
   exe      = (fun args -> 
                 match args with 
@@ -149,7 +149,7 @@ let g12_minizinc_solver = {
 }
 
 let gecode_minizinc_solver = {
-  name     = "GeCode MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
+  name     = "GeCode MiniZinc Solver"; (* (using the G12 MiniZinc to FlatZinc converter) *)
   commands = ["mzn2fzn"; "fz"];
   exe      = (fun args -> 
                 match args with 
@@ -164,7 +164,7 @@ let gecode_minizinc_solver = {
 }
 
 let g12_cpx_minizinc_solver = {
-  name     = "G12 CPX MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
+  name     = "G12 CPX MiniZinc Solver"; (* (using the G12 MiniZinc to FlatZinc converter) *)
   commands = ["mzn2fzn"; "mzn-g12cpx"];
   exe      = (fun args -> 
                 match args with 
@@ -262,6 +262,8 @@ let file_print keep file s =
 (** 4. The portfolio method. *)
 
 let portfolio (programs : program list) (verify_output_file : string -> bool) (input_file : string) (output_file : string) : bool =
+
+  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: BEGINNING...%!\n");
   
   (* First stage : launch asynchronously all the portfolio programs. *)
 
@@ -269,7 +271,7 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
 
   (* The list [running_programs] will be filled with all the information about the programs that are launched. *)
   let running_programs : (int * (program * string * string)) list = 
-    List.map (fun (program : program) ->
+    List.mapi (fun index (program : program) ->
 
       (* Prepare the program arguments *)
       let program_input_file  : string = input_file in
@@ -280,17 +282,31 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
       let command : string = program.exe args in
 
       (* Run the program asynchronously. *)
-      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Launching asynchronously program %s (command: %s)...\n%!" program.name command);
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Launching asynchronously program (%d): \"%s\"...\n%!" (index + 1) program.name);
       let pid = program_async_exec program args in
-      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Program %s (command: %s) has been launched!\n%!" program.name command);
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Program \"%s\" has been launched at pid %d !\n%!" program.name pid);
 
       (* Return the program information. *)
       (pid, (program, command, program_output_file))
 
     ) programs in
 
-  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: All portfolio programs have been launched!\n%!");
+  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: All portfolio programs have been launched:\n%!");
+  
+  let separator = "+-------" in
 
+  let program_descriptions =
+    List.mapi (fun index (pid, (program, command, program_output_file)) -> 
+      let lines = [
+        Printf.sprintf "| -( %d )-"    (index + 1);
+        Printf.sprintf "| Program: %s" program.name;
+        Printf.sprintf "| PID:     %d" pid;
+        Printf.sprintf "| Command: %s" command;
+      ] in
+      String.concat "\n" lines
+    ) running_programs in
+
+  Zephyrus_log.log_execution (Printf.sprintf "%s\n%s\n%s\n" separator (String.concat ("\n" ^ separator ^ "\n") program_descriptions) separator);
 
   (* Second stage : wait for results. *)
 
@@ -300,59 +316,59 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
 
   (* Until we find a solution, if there are still any processes left, wait for one of them to terminate... *)
   while (!the_first_correct_one = None) && (List.length !processes_left > 0) do
-    Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Waiting...\n%!");
+    Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Waiting for processes...\n%!");
     let (pid, termination_status) = Unix.wait () in
 
     (* Get the program information corresponding to the process that has just terminated. *)
-    let (program, command, program_output_file) = 
-      try 
-        List.assoc pid running_programs
-      with Not_found -> 
-        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: a child process with pid %d, which was not created by the portfolio, has just terminated!%!" pid);
-        failwith "Portfolio error!" in
+    try 
+      let (program, command, program_output_file) = List.assoc pid running_programs in
 
-    Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) has terminated with status %s\n%!" pid command (string_of_process_status termination_status));
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) has terminated with status %s\n%!" pid program.name (string_of_process_status termination_status));
 
-    (* Remove the process from the list of processes running. *)
-    processes_left := List.remove_assoc pid !processes_left;
-    
-    (* Check if it terminated correctly... *)
-    if did_program_exit_ok termination_status
-    then begin
-      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) termination status ok\n%!" pid command);
+      (* Remove the process from the list of processes running. *)
+      processes_left := List.remove_assoc pid !processes_left;
+      
+      (* Check if it terminated correctly... *)
+      if did_program_exit_ok termination_status
+      then begin
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) termination status OK!\n%!" pid program.name);
 
-      (* Check if its output is acceptable... *)
-      if verify_output_file program_output_file
-      then (
-        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) output file ok\n%!" pid command);
-        
-        (* This is the first process which has terminated correctly and produced a correct solution! *)
-        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) IS THE RIGHT ONE\n%!" pid command);
+        (* Check if its output is acceptable... *)
+        if verify_output_file program_output_file
+        then (
+          Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) output file OK!\n%!" pid program.name);
+          
+          (* This is the first process which has terminated correctly and produced a correct solution! *)
+          Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) is the portfolio WINNER\n%!" pid program.name);
 
-        (* Mark the process as the first correct one. *)
-        the_first_correct_one := Some(program, command, program_output_file);
+          (* Mark the process as the first correct one. *)
+          the_first_correct_one := Some(program, command, program_output_file);
 
-        (* Now kill all the other still running processes. *)
-        let processes_left_pids = fst (List.split !processes_left) in
-        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Found THE RIGHT ONE, killing the others...\n%!");
-        List.iter kill processes_left_pids;
+          (* Now kill all the other still running processes. *)
+          let processes_left_pids = fst (List.split !processes_left) in
+          Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Found the WINNER, killing the others...\n%!");
+          List.iter kill processes_left_pids;
 
-        (* After the killing there are no processes left running. *)
-        processes_left := []
-      )
-      else 
-        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) output file wrong\n%!" pid command);
+          (* After the killing there are no processes left running. *)
+          processes_left := []
+        )
+        else 
+          Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) output file (%s) wrong\n%!" pid program.name program_output_file);
+          ()
+      end else begin
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (program: %s) termination status wrong\n%!" pid program.name);
         ()
-    end else begin
-      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) termination status wrong\n%!" pid command);
-      ()
-    end
+      end
+
+    with Not_found -> 
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: A child process with pid %d, which was not created by the portfolio, has just terminated!\n%!" pid)
+
   done;
 
   (* Check if we have found a solution... *)
   match !the_first_correct_one with
   | Some (program, command, program_output_file) -> 
-     Printf.sprintf "Portfolio: the winner is %s (command: %s) with the output file: '%s'." program.name command program_output_file;
+     Zephyrus_log.log_execution (Printf.sprintf "Portfolio: END! The portfolio WINNER is the program '%s' with the output file '%s'!\n%!" program.name program_output_file);
 
      (* Copy the program's output file to the desired output file location. *)
      Input_helper.file_copy program_output_file output_file;
@@ -361,7 +377,47 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
      true
 
   | None -> 
-      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: No correct solution was found!%!");
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: END! No correct solution was found!\n%!");
 
       (* Return failure. *)
       false
+
+let portfolio_test () =
+  Printf.printf "START!\n";
+
+  let input_file  = "/tmp/portfolio.in" in 
+  let output_file = "/tmp/portfolio.out" in 
+
+  let make_program i = {
+    name     = Printf.sprintf "Sleeper %d" i;
+    commands = ["sleep"; "echo"];
+    exe      = (fun args -> 
+                  match args with 
+                  | [input; output] -> 
+                    let in_file  = String.escaped input in
+                    let out_file = String.escaped output in
+                    Printf.sprintf "sleep %d && echo \"done %d!\" > %s" i i out_file
+                  | _ -> raise Wrong_argument_number)
+  } in
+
+  let rec i_list i = 
+    if i = 0 
+    then []
+    else i::(i_list (i - 1)) in
+
+  let programs : program list = List.map (fun i -> make_program i) (i_list 9) in
+
+  let validate_output_file output_filename = 
+    Input_helper.lines_of_file output_filename = ["done 6!"] in
+
+  let result = portfolio programs validate_output_file input_file output_file in
+
+  (match result with
+  | true  -> Printf.printf "Success reported!\n" 
+  | false -> Printf.printf "Failure reported!\n");
+
+  let lines = Input_helper.lines_of_file output_file in
+  Printf.printf "Output file %s\n------\n%s\n------\n" output_file (String.concat "\n" lines);
+
+  Printf.printf "END!\n";
+  exit 0

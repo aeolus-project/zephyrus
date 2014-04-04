@@ -100,5 +100,9 @@ val file_print        : bool -> file -> string -> string
 
 (** 4. The portfolio method. *)
 
+(** Portfolio method of running worker-processes (run many processes trying to find a solution in parallel, get the first correct solution, kill remaining processes). *)
+
 (** [portfolio ps validate_output_file input_filename output_filename] *)
 val portfolio : program list -> (string -> bool) -> string -> string -> bool
+
+val portfolio_test : unit -> unit
