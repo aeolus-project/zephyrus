@@ -38,6 +38,9 @@ exception Wrong_argument_number
 
 type pid
 
+(** [string_of_process_status status] returns a printable string representation of a given process status. *)
+val string_of_process_status : Unix.process_status -> string
+
 (** [program_is_available p] checks if the external commands required to run a given program [p] are available in the standard PATH. *)
 val program_is_available : program -> bool
 
@@ -58,6 +61,8 @@ val program_wait : unit -> (pid * Unix.process_status)
 
 (** [did_program_exit_ok process_status] check if the process status returned by a terminated external command (i.e. returned by {!program_sync_exec}) means that the program has terminated successfuly. *)
 val did_program_exit_ok : Unix.process_status -> bool
+
+val kill : int -> unit
 
 (** [make_zephyrus_temp_file ext] returns a fresh Zephyrus temporary file path with a given extension [ext] (e.g. [make_zephyrus_temp_file ".mzn"] will return something like [/tmp/zephyrus-cbe43b.mzn]). *)
 val make_zephyrus_temp_file : string -> string
@@ -91,3 +96,9 @@ val file_default : file
 val file_process_name : string -> file
 val file_create       : bool -> file -> string
 val file_print        : bool -> file -> string -> string
+
+
+(** 4. The portfolio method. *)
+
+(** [portfolio ps validate_output_file input_filename output_filename] *)
+val portfolio : program list -> (string -> bool) -> string -> string -> bool

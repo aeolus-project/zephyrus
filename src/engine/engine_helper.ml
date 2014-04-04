@@ -36,6 +36,12 @@ type program = {
 
 type pid = int
 
+let string_of_process_status = 
+  function
+  | Unix.WEXITED   status -> Printf.sprintf "%s %d" "WEXITED"   status
+  | Unix.WSIGNALED status -> Printf.sprintf "%s %d" "WSIGNALED" status
+  | Unix.WSTOPPED  status -> Printf.sprintf "%s %d" "WSTOPPED"  status
+
 let did_program_exit_ok process_status = 
   match process_status with 
   | Unix.WEXITED 0 -> true 
@@ -78,12 +84,21 @@ let program_sync_exec program args =
   let pid = program_async_exec program args in
   program_wait_pid pid
 
+let kill pid =
+    try
+      Zephyrus_log.log_execution (Printf.sprintf "Killing process %d...\n%!" pid);
+      Unix.kill pid 9;
+      Zephyrus_log.log_execution (Printf.sprintf "Killed process %d!\n%!" pid);
+    with
+      Unix.Unix_error (Unix.ESRCH, "kill", _) -> 
+        Zephyrus_log.log_execution (Printf.sprintf "Process %d already dead!\n%!" pid);
+        ()
 
 let make_zephyrus_temp_file file_extension =
   Filename.temp_file "zephyrus-" file_extension
 
 let mzn2fzn = {
-  name     = "G12 mzn2fzn";
+  name     = "G12 MiniZinc to FlatZinc converter";
   commands = ["mzn2fzn"];
   exe      = (fun args -> 
                 match args with 
@@ -95,7 +110,7 @@ let mzn2fzn = {
 }
 
 let g12_flatzinc_solver = {
-  name     = "G12";
+  name     = "G12 FlatZinc Solver";
   commands = ["flatzinc"];
   exe      = (fun args -> 
                 match args with
@@ -107,7 +122,7 @@ let g12_flatzinc_solver = {
 }
 
 let gecode_flatzinc_solver = {
-  name     = "GeCode";
+  name     = "GeCode FlatZinc solver";
   commands = ["fz"];
   exe      = (fun args -> 
                 match args with 
@@ -119,7 +134,7 @@ let gecode_flatzinc_solver = {
 }
 
 let g12_minizinc_solver = {
-  name     = "G12";
+  name     = "G12 MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
   commands = ["mzn2fzn"; "flatzinc"];
   exe      = (fun args -> 
                 match args with 
@@ -133,23 +148,8 @@ let g12_minizinc_solver = {
                 | _ -> raise Wrong_argument_number)
 }
 
-let g12_cpx_minizinc_solver = {
-  name     = "G12-cpx";
-  commands = ["mzn2fzn"; "mzn-g12cpx"];
-  exe      = (fun args -> 
-                match args with 
-                | [input; output] ->
-                  let mzn_file = String.escaped input in
-                  let sol_file = String.escaped output in
-                  let fzn_file = make_zephyrus_temp_file ".fzn" in
-                  let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -G g12_cpx -o %s %s" fzn_file mzn_file in
-                  let flatzinc_command_part = Printf.sprintf "fzn_cpx -s %s > %s"                          fzn_file sol_file in
-                  Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
-                | _ -> raise Wrong_argument_number)
-}
-
 let gecode_minizinc_solver = {
-  name     = "GeCode";
+  name     = "GeCode MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
   commands = ["mzn2fzn"; "fz"];
   exe      = (fun args -> 
                 match args with 
@@ -159,6 +159,21 @@ let gecode_minizinc_solver = {
                   let fzn_file = make_zephyrus_temp_file ".fzn" in 
                   let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s"  fzn_file mzn_file in
                   let flatzinc_command_part = Printf.sprintf "fz -o %s %s" sol_file fzn_file in
+                  Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
+                | _ -> raise Wrong_argument_number)
+}
+
+let g12_cpx_minizinc_solver = {
+  name     = "G12 CPX MiniZinc Solver (using the G12 MiniZinc to FlatZinc converter)";
+  commands = ["mzn2fzn"; "mzn-g12cpx"];
+  exe      = (fun args -> 
+                match args with 
+                | [input; output] ->
+                  let mzn_file = String.escaped input in
+                  let sol_file = String.escaped output in
+                  let fzn_file = make_zephyrus_temp_file ".fzn" in
+                  let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -G g12_cpx -o %s %s" fzn_file mzn_file in
+                  let flatzinc_command_part = Printf.sprintf "fzn_cpx -s %s > %s"                          fzn_file sol_file in
                   Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
                 | _ -> raise Wrong_argument_number)
 }
@@ -242,3 +257,111 @@ let file_print keep file s =
   let (filename_tmp, out_c) = Filename.open_temp_file file.basename file.suffix in
   output_string out_c s; flush out_c; close_out out_c;
   if keep then keep_file filename_tmp file else filename_tmp
+
+
+(** 4. The portfolio method. *)
+
+let portfolio (programs : program list) (verify_output_file : string -> bool) (input_file : string) (output_file : string) : bool =
+  
+  (* First stage : launch asynchronously all the portfolio programs. *)
+
+  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Running all portfolio programs...%!\n");
+
+  (* The list [running_programs] will be filled with all the information about the programs that are launched. *)
+  let running_programs : (int * (program * string * string)) list = 
+    List.map (fun (program : program) ->
+
+      (* Prepare the program arguments *)
+      let program_input_file  : string = input_file in
+      let program_output_file : string = Filename.temp_file "zephyrus_portfolio_" ".output" in
+      let args = [program_input_file; program_output_file] in
+
+      (* Get the program command (for debug purposes). *)
+      let command : string = program.exe args in
+
+      (* Run the program asynchronously. *)
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Launching asynchronously program %s (command: %s)...\n%!" program.name command);
+      let pid = program_async_exec program args in
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Program %s (command: %s) has been launched!\n%!" program.name command);
+
+      (* Return the program information. *)
+      (pid, (program, command, program_output_file))
+
+    ) programs in
+
+  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: All portfolio programs have been launched!\n%!");
+
+
+  (* Second stage : wait for results. *)
+
+  (* Prepare the inital state. *)
+  let processes_left = ref running_programs in
+  let the_first_correct_one  = ref None in
+
+  (* Until we find a solution, if there are still any processes left, wait for one of them to terminate... *)
+  while (!the_first_correct_one = None) && (List.length !processes_left > 0) do
+    Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Waiting...\n%!");
+    let (pid, termination_status) = Unix.wait () in
+
+    (* Get the program information corresponding to the process that has just terminated. *)
+    let (program, command, program_output_file) = 
+      try 
+        List.assoc pid running_programs
+      with Not_found -> 
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: a child process with pid %d, which was not created by the portfolio, has just terminated!%!" pid);
+        failwith "Portfolio error!" in
+
+    Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) has terminated with status %s\n%!" pid command (string_of_process_status termination_status));
+
+    (* Remove the process from the list of processes running. *)
+    processes_left := List.remove_assoc pid !processes_left;
+    
+    (* Check if it terminated correctly... *)
+    if did_program_exit_ok termination_status
+    then begin
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) termination status ok\n%!" pid command);
+
+      (* Check if its output is acceptable... *)
+      if verify_output_file program_output_file
+      then (
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) output file ok\n%!" pid command);
+        
+        (* This is the first process which has terminated correctly and produced a correct solution! *)
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) IS THE RIGHT ONE\n%!" pid command);
+
+        (* Mark the process as the first correct one. *)
+        the_first_correct_one := Some(program, command, program_output_file);
+
+        (* Now kill all the other still running processes. *)
+        let processes_left_pids = fst (List.split !processes_left) in
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Found THE RIGHT ONE, killing the others...\n%!");
+        List.iter kill processes_left_pids;
+
+        (* After the killing there are no processes left running. *)
+        processes_left := []
+      )
+      else 
+        Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) output file wrong\n%!" pid command);
+        ()
+    end else begin
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Process %d (command: %s) termination status wrong\n%!" pid command);
+      ()
+    end
+  done;
+
+  (* Check if we have found a solution... *)
+  match !the_first_correct_one with
+  | Some (program, command, program_output_file) -> 
+     Printf.sprintf "Portfolio: the winner is %s (command: %s) with the output file: '%s'." program.name command program_output_file;
+
+     (* Copy the program's output file to the desired output file location. *)
+     Input_helper.file_copy program_output_file output_file;
+
+     (* Return success. *)
+     true
+
+  | None -> 
+      Zephyrus_log.log_execution (Printf.sprintf "Portfolio: No correct solution was found!%!");
+
+      (* Return failure. *)
+      false
