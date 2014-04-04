@@ -140,7 +140,7 @@ module MiniZinc_generic = struct
     Zephyrus_log.log_solver_execution "Solving the constraints...\n";
     let status = Engine_helper.program_sync_exec !solver [filename_input; filename_output] in
 
-    if not (Engine_helper.program_did_exit_ok status) then
+    if not (Engine_helper.did_program_exit_ok status) then
       Zephyrus_log.log_panic "Error during the solving of the constraint. Aborting execution\n"
     else
       Zephyrus_log.log_solver_execution "Getting the solution found by the flatzinc solver...\n";
@@ -173,10 +173,11 @@ module MiniZinc_generic = struct
         Some(solution, cost))
 
   let postprocess data (solve_goal : Data_constraint.Single_objective.solve_goal) cost = 
+    let open Data_constraint.Single_objective in
     match solve_goal with
-    | Data_constraint.Single_objective.Optimize(Minimize(e)) -> add_extra_constraint data e cost
-    | Data_constraint.Single_objective.Optimize(Maximize(e)) -> add_extra_constraint data e cost
-    | Data_constraint.Single_objective.Satisfy               -> data
+    | Optimize(Minimize(e)) -> add_extra_constraint data e cost
+    | Optimize(Maximize(e)) -> add_extra_constraint data e cost
+    | Satisfy               -> data
     
 end
 

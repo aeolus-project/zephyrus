@@ -29,29 +29,41 @@
 
 (** Type describing an external command which can be launched with a single file as its input and which outputs to a single file. *)
 type program = {
-  name     : string;                     (** Name of the command (just for debug printing purposes). *)
-  commands : string list;                (** Exact command used to call the program on the command line. *)
-  exe      : string list -> string;      (** Function which takes the different parameters for the program, and generate the command line to execute *)
+  name     : string;                (** Name of the command (just for debug printing purposes). *)
+  commands : string list;           (** Exact command used to call the program on the command line. *)
+  exe      : string list -> string; (** Function which takes the different parameters for the program, and generate the command line to execute *)
 }
 
 exception Wrong_argument_number
 
 type pid
 
-(** Check if the external command is available in the standard PATH. *)
+(** [program_is_available p] checks if the external commands required to run a given program [p] are available in the standard PATH. *)
 val program_is_available : program -> bool
+
+(** [programs_are_available ps] checks if the external commands required to run all the given programs from the list [ps] are available in the standard PATH. *)
 val programs_are_available : program list -> bool
 
-(** executing a program *)
-val program_sync_exec  : program -> (string list) -> Unix.process_status
+(** [program_sync_exec p args] executes a given program [p] with arguments [args] synchronically and returns its termination status. *)
+val program_sync_exec : program -> (string list) -> Unix.process_status
+
+(** [program_async_exec p args] executes a given program [p] with arguments [args] asynchronically and returns its pid. *)
 val program_async_exec : program -> (string list) -> pid
-val program_wait       : pid -> Unix.process_status
 
-(** Check if the process status returned by a terminated external command (i.e. returned by {!program_sync_exec}) means that the program has finished well. *)
-val program_did_exit_ok : Unix.process_status -> bool
+(** [program_wait_pid pid] waits for a process with the given pid to terminate, then it returns its termination status. *)
+val program_wait_pid : pid -> Unix.process_status
+
+(** [program_wait ()] waits for any child of the current process terminate, then it returns its pid and termination status. *)
+val program_wait : unit -> (pid * Unix.process_status)
+
+(** [did_program_exit_ok process_status] check if the process status returned by a terminated external command (i.e. returned by {!program_sync_exec}) means that the program has terminated successfuly. *)
+val did_program_exit_ok : Unix.process_status -> bool
+
+(** [make_zephyrus_temp_file ext] returns a fresh Zephyrus temporary file path with a given extension [ext] (e.g. [make_zephyrus_temp_file ".mzn"] will return something like [/tmp/zephyrus-cbe43b.mzn]). *)
+val make_zephyrus_temp_file : string -> string
 
 
-(** Some useful programs (usually, there [exe] only takes two arguments *)
+(** Some useful programs (usually, the [program.exe] only takes two arguments). *)
 
 val mzn2fzn                 : program
 val g12_flatzinc_solver     : program
@@ -62,6 +74,8 @@ val gecode_minizinc_solver  : program
 
 
 (** 2. Custom solver handling *)
+
+(** Substrings in the custom solver command string which should be replaced by the input/output file path *)
 
 val input_marker  : string
 val output_marker : string
@@ -77,8 +91,3 @@ val file_default : file
 val file_process_name : string -> file
 val file_create       : bool -> file -> string
 val file_print        : bool -> file -> string -> string
-
-(*
-val file_create : ?keep:bool -> file -> string
-val file_print : ?keep:bool -> file -> string -> string
-*)
