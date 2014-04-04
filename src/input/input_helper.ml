@@ -41,3 +41,14 @@ let parse_standard parser lexer filename =
   | Some(filename, file) -> 
     try Some (parser lexer (Lexing.from_channel file))
     with Parsing.Parse_error -> (Zephyrus_log.log_input_file_error filename "does not have a valid syntax"; None)
+
+let lines_of_file filename = 
+  let lines = ref [] in
+  let channel = open_in filename in
+  try
+    while true; do
+      lines := input_line channel :: !lines
+    done; []
+  with End_of_file ->
+    close_in channel;
+    List.rev !lines

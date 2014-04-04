@@ -30,4 +30,5 @@ val input_open : string -> (string * in_channel) option
 val parse_json     : (Yojson.Safe.lexer_state -> Lexing.lexbuf -> 'a) -> string -> 'a option
 val parse_standard : ((Lexing.lexbuf -> 'b) -> Lexing.lexbuf -> 'a) -> (Lexing.lexbuf -> 'b) -> string -> 'a option
 
-
+(** [lines_of_file filename] reads a given file [filename] and returns a list of strings containing all the lines of the file. *)
+val lines_of_file : string -> string list
