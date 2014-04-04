@@ -62,6 +62,10 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
   | Settings.Out_file_statistics         -> Data_statistics.to_string ()
 )
 
+(*
+let () =
+  Portfolio.test ()
+*)
 
 (* === Handling the arguments === *)
 let () = 
