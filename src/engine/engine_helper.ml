@@ -28,10 +28,14 @@
 
 exception Wrong_argument_number
 
+type program_exe_type =
+  | Bash_command
+
 type program = {
   name     : string;
   commands : string list;
   exe      : string list -> string;
+  exe_type : program_exe_type;
 }
 
 type pid = int
@@ -56,21 +60,32 @@ let program_is_available program =
 let programs_are_available programs = 
   List.for_all program_is_available programs
 
-let execv_run_bash_command command =
-    Zephyrus_log.log_execution (Printf.sprintf "Running a bash command at pid %d: /bin/bash -c %s\n%!" (Unix.getpid ()) command);
-    Unix.execv "/bin/bash" [|""; "-c"; command|]
+let execv_run_bash_command (command : string) =
+  Zephyrus_log.log_execution (Printf.sprintf "Running a bash command at pid %d: /bin/bash -c %s\n%!" (Unix.getpid ()) command);
+  Unix.execv "/bin/bash" [|""; "-c"; command|]
 
-let program_async_exec program args = 
+let exe_function_of_program program args =
+  let command = program.exe args in
+  match program.exe_type with
+  | Bash_command -> (fun () -> execv_run_bash_command command)
+
+let execute_asynchronically (exe_function : unit -> unit) =
   flush_all (); (* Before a fork we flush all the open output channels, if not the waiting data may get duplicated and some things may end up printed multiple times. *)
   let pid = Unix.fork () in
   if pid = 0
-  then 
-    (* The child process: run the program. *)
-    let command = program.exe args in
-    execv_run_bash_command command
+  then
+    (* We are in the child process: *)
+    begin
+      exe_function (); (* Execute the function. *)
+      exit 0 (* Terminate with status 0. *)
+    end 
   else
-    (* The parent process: return the child's pid. *)
-    pid
+    (* We are in the parent process: *)
+    pid (* Return the child's pid. *)
+
+let program_async_exec program args = 
+  let exe_function = exe_function_of_program program args in
+  execute_asynchronically exe_function
 
 let program_wait_pid pid =
   let (_, termination_status) = Unix.waitpid [] pid in
@@ -106,7 +121,8 @@ let mzn2fzn = {
                   let mzn_file = String.escaped input in
                   let fzn_file = String.escaped output in
                   Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" fzn_file mzn_file
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let g12_flatzinc_solver = {
@@ -118,7 +134,8 @@ let g12_flatzinc_solver = {
                   let fzn_file = String.escaped input in
                   let sol_file = String.escaped output in
                   Printf.sprintf "flatzinc -o %s %s" sol_file fzn_file
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let gecode_flatzinc_solver = {
@@ -130,7 +147,8 @@ let gecode_flatzinc_solver = {
                   let fzn_file = String.escaped input in
                   let sol_file = String.escaped output in
                   Printf.sprintf "fz -o %s %s" sol_file fzn_file
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let g12_minizinc_solver = {
@@ -145,7 +163,8 @@ let g12_minizinc_solver = {
                   let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s"  fzn_file mzn_file in
                   let flatzinc_command_part = Printf.sprintf "flatzinc -o %s %s" sol_file fzn_file in
                   Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let gecode_minizinc_solver = {
@@ -160,7 +179,8 @@ let gecode_minizinc_solver = {
                   let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s"  fzn_file mzn_file in
                   let flatzinc_command_part = Printf.sprintf "fz -o %s %s" sol_file fzn_file in
                   Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let g12_cpx_minizinc_solver = {
@@ -175,7 +195,8 @@ let g12_cpx_minizinc_solver = {
                   let mzn2fzn_command_part  = Printf.sprintf "mzn2fzn --no-output-ozn -G g12_cpx -o %s %s" fzn_file mzn_file in
                   let flatzinc_command_part = Printf.sprintf "fzn_cpx -s %s > %s"                          fzn_file sol_file in
                   Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
-                | _ -> raise Wrong_argument_number)
+                | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 
@@ -210,7 +231,8 @@ let make_minizinc_solver_of_custom_flatzinc_solver_command command = {
                    end in
                  let flatzinc_command_part = (concretize_command command) fzn_file sol_file in
                  Printf.sprintf "%s && %s" mzn2fzn_command_part flatzinc_command_part
-               | _ -> raise Wrong_argument_number)
+               | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 let make_minizinc_solver_of_custom_minizinc_solver_command command = {
@@ -222,7 +244,8 @@ let make_minizinc_solver_of_custom_minizinc_solver_command command = {
                  let mzn_file = String.escaped input in
                  let sol_file = String.escaped output in
                  (concretize_command command) mzn_file sol_file
-               | _ -> raise Wrong_argument_number)
+               | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
 }
 
 (** 3. File name manipulation *)
@@ -397,7 +420,8 @@ let portfolio_test () =
                     let in_file  = String.escaped input in
                     let out_file = String.escaped output in
                     Printf.sprintf "sleep %d && echo \"done %d!\" > %s" i i out_file
-                  | _ -> raise Wrong_argument_number)
+                  | _ -> raise Wrong_argument_number);
+    exe_type = Bash_command;
   } in
 
   let rec i_list i = 

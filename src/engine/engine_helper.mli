@@ -27,11 +27,16 @@
 
 (** 1. helpers on external commands. *)
 
+(** How the program should be run? *)
+type program_exe_type =
+  | Bash_command (** Program should be run directly as a bash command. *)
+
 (** Type describing an external command which can be launched with a single file as its input and which outputs to a single file. *)
 type program = {
   name     : string;                (** Name of the command (just for debug printing purposes). *)
   commands : string list;           (** Exact command used to call the program on the command line. *)
   exe      : string list -> string; (** Function which takes the different parameters for the program, and generate the command line to execute *)
+  exe_type : program_exe_type;      (** How the program command should be run? *)
 }
 
 exception Wrong_argument_number
@@ -62,6 +67,7 @@ val program_wait : unit -> (pid * Unix.process_status)
 (** [did_program_exit_ok process_status] check if the process status returned by a terminated external command (i.e. returned by {!program_sync_exec}) means that the program has terminated successfuly. *)
 val did_program_exit_ok : Unix.process_status -> bool
 
+(** [kill pid] sends a KILL signal to a process with the given [pid] (if the process does not exist, nothing happens). *)
 val kill : int -> unit
 
 (** [make_zephyrus_temp_file ext] returns a fresh Zephyrus temporary file path with a given extension [ext] (e.g. [make_zephyrus_temp_file ".mzn"] will return something like [/tmp/zephyrus-cbe43b.mzn]). *)
