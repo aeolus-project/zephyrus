@@ -501,11 +501,11 @@ let convert_specification (catalog : closed_model_catalog) =
 (** 4.5. Optimization_function  *)
 
 let convert_optimization_function o = match o with
-| Settings.Optim_none         -> Optimization_function_none
-| Settings.Optim_simple       -> Optimization_function_simple
-| Settings.Optim_compact      -> Optimization_function_compact
-| Settings.Optim_spread       -> Optimization_function_spread
-| Settings.Optim_conservative -> Optimization_function_conservative
+| Settings.Optimization_function_none         -> Optimization_function_none
+| Settings.Optimization_function_simple       -> Optimization_function_simple
+| Settings.Optimization_function_compact      -> Optimization_function_compact
+| Settings.Optimization_function_spread       -> Optimization_function_spread
+| Settings.Optimization_function_conservative -> Optimization_function_conservative
 
 
 (*****************************************************)

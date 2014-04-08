@@ -50,16 +50,16 @@ let check_option desc o = match o with
 
 let print_to_file kind filename u c = Output_helper.print_output filename (
   match kind with
-  | Settings.Out_file_plain              -> String_of.configuration                                 u c
-  | Settings.Out_file_json               -> Json_v0_of.configuration (* Json_of.configuration *)    u c (* For a while we will use the v0 by default for backwards compatibility. *)
-  | Settings.Out_file_json_v0            -> Json_v0_of.configuration                                u c
-  | Settings.Out_file_json_v1            -> Json_v1_of.configuration                                u c
-  | Settings.Out_file_graph_deployment   -> Dot_of.configuration Dot_of.Deployment_graph            u c
-  | Settings.Out_file_graph_simplified   -> Dot_of.configuration Dot_of.Simplified_deployment_graph u c
-  | Settings.Out_file_graph_components   -> Dot_of.configuration Dot_of.Components_graph            u c
-  | Settings.Out_file_graph_packages     -> Dot_of.configuration Dot_of.Packages_graph              u c
-  | Settings.Out_file_binpacking_problem -> Json_binpacking_problem_of.configuration                u c
-  | Settings.Out_file_statistics         -> Data_statistics.to_string ()
+  | Settings.Output_file_plain              -> String_of.configuration                                 u c
+  | Settings.Output_file_json               -> Json_v0_of.configuration (* Json_of.configuration *)    u c (* For a while we will use the v0 by default for backwards compatibility. *)
+  | Settings.Output_file_json_v0            -> Json_v0_of.configuration                                u c
+  | Settings.Output_file_json_v1            -> Json_v1_of.configuration                                u c
+  | Settings.Output_file_graph_deployment   -> Dot_of.configuration Dot_of.Deployment_graph            u c
+  | Settings.Output_file_graph_simplified   -> Dot_of.configuration Dot_of.Simplified_deployment_graph u c
+  | Settings.Output_file_graph_components   -> Dot_of.configuration Dot_of.Components_graph            u c
+  | Settings.Output_file_graph_packages     -> Dot_of.configuration Dot_of.Packages_graph              u c
+  | Settings.Output_file_binpacking_problem -> Json_binpacking_problem_of.configuration                u c
+  | Settings.Output_file_statistics         -> Data_statistics.to_string ()
 )
 
 
@@ -80,6 +80,7 @@ let () =
     | None           -> Load_model.initial_model_of_settings ()
     | Some benchmark -> Load_model.initial_model_of_benchmark benchmark) in
 
+  (* Set the global id <-> name catalog. *)
   Name_of.set_catalog (Some catalog);
 
   Zephyrus_log.log_stage_new "LOAD SECTION";
@@ -306,7 +307,8 @@ let () =
   (*  Printf.printf "\nPartial Final Configuration\n\n%s" (Json_of.configuration u partial_final_configuration r); *)
       if Settings.find Settings.modifiable_configuration
       then partial_final_configuration
-      else merge_configurations annex_conf partial_final_configuration in
+      (* TODO: For now: do not put the trimmed locations back into the final configuration. *)
+      else (* merge_configurations annex_conf *) partial_final_configuration in
     
     Zephyrus_log.log_stage_end ();
     

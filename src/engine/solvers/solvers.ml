@@ -247,16 +247,21 @@ let make_portfolio_solver_module (solver_programs : Engine_helper.program list) 
 type settings_kind = Preprocess | Main
 
 let settings_of_settings kind =
-  let ((in_file, in_keep), (out_file, out_keep)) = 
-    match kind with
-    | Preprocess -> Settings.get_preprocess_file_informations ()
-    | Main       -> Settings.get_main_file_informations () in 
-  {
-    input_file        = in_file;
-    output_file       = out_file;
-    keep_input_file   = in_keep;
-    keep_output_file  = out_keep
-  }
+  match kind with
+  | Preprocess ->
+    {
+      input_file        = Settings.get_preprocess_input_file ();
+      output_file       = Settings.get_preprocess_output_file ();
+      keep_input_file   = Settings.find Settings.preprocess_keep_constraint_file;
+      keep_output_file  = Settings.find Settings.preprocess_keep_constraint_file;
+    }
+  | Main ->
+    {
+      input_file        = Settings.get_main_input_file ();
+      output_file       = Settings.get_main_output_file ();
+      keep_input_file   = Settings.find Settings.solver_keep_constraint_file;
+      keep_output_file  = Settings.find Settings.solver_keep_constraint_file;
+    }
 
 let full_of_settings kind = 
   let solver = 
