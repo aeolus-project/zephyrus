@@ -94,7 +94,7 @@ let () =
   then
     let final_configuration = initial_configuration in
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration universe final_configuration) ^ "\n"));
-    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.results);
+    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
     print_string "\n\n\n <==========> THE END <==========>  \n\n"
   else
 
@@ -319,7 +319,7 @@ let () =
     Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
 
     (* Output the outputs *)
-    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.results);
+    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
 
     (* Validation *)
     Zephyrus_log.log_stage_new "FINAL CONFIGURATION VALIDATION";

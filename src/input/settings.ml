@@ -215,7 +215,7 @@ let generate_packages_domain_message = String.concat " | " generate_packages_nam
 
 
 (* 1.7. Output files *)
-type output_file_inner = 
+type output_type = 
   | Output_file_plain
   | Output_file_json
   | Output_file_json_v0
@@ -227,7 +227,7 @@ type output_file_inner =
   | Output_file_binpacking_problem
   | Output_file_statistics
 
-type output_file = (output_file_inner * string) 
+type output_file = (output_type * string) 
 type output_files = output_file list
 
 let output_files_assoc = [
@@ -380,7 +380,7 @@ let generate_bindings = ("generate-bindings", generate_bindings_setting)
 let generate_packages = ("generate-packages", generate_packages_setting)
 
 (* Output options *)
-let results = ("results", output_files_setting)
+let outputs = ("results", output_files_setting)
 
 (* Debug printing options *)
 let verbose_level     = ("verbose-level",     int_setting)
@@ -423,7 +423,7 @@ let all_settings = [
     solver_keep_solution_file;           (* ? *)
     generate_bindings;                   (* UNUSED: Use which method to generate bindings in the final configuration (candy algorithm / solver)? *)
     generate_packages;                   (* UNUSED: How to generate packages in the final configuration (all / only root packages / none)? *)
-    results;                             (* Which forms of output should Zephyrus produce and to which files. *)
+    outputs;                             (* Which forms of output should Zephyrus produce and to which files. *)
     verbose_level;                       (* How much information should Zephyrus print: 0,1,2,3 *)
     verbose_stage;                       (* UNUSED *)
     verbose_data;                        (* Should Zephyrus print the input data during execution. *)
@@ -512,9 +512,12 @@ let to_string () = let inner ((s,k) as key) res =
 (*| 5. Helper functions                                                    |*)
 (*\************************************************************************/*)
 
+let handle_setting_declaration setting value = add setting value
 
 let add_string s v = add s (IdentValue v)
+
 let add_double_lists s l1 l2  = add s (ListValue (List.map2 (fun n1 n2 -> PairValue(IdentValue(n1), IdentValue(n2))) l1 l2))
+
 let add_benchmark b =
   let (benchmark_name, benchmark_options) = b in
   add benchmark (PairValue 

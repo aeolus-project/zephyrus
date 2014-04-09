@@ -37,8 +37,10 @@
 
   let keyword_map = Data_common.String_map.of_assoc_list keywords
 
-  let process_string s = try  Data_common.String_map.find (String.lowercase s) keyword_map with
-    | Not_found -> Ident(s)
+  let process_string s = 
+    try 
+      Data_common.String_map.find (String.lowercase s) keyword_map
+    with Not_found -> Ident(s)
 }
 
 let blanks          = [' ' '\t' '\n']

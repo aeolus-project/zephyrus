@@ -23,7 +23,7 @@
 *)
 
 let manage_element ident value =
-  try Settings.add (Settings.setting_of_string ident) value
+  try Settings.handle_setting_declaration (Settings.setting_of_string ident) value
   with Not_found -> Settings.Settings_log.log_wrong_setting ident
 
 %}

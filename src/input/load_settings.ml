@@ -25,6 +25,67 @@
  - input/Settings_lexer
 *)
 
+(* Module used to incremetally build a pair (useful for handling tuple command line arguments):
+   - first we create the pair (make)
+   - then we can repeat a sequence of these four operations:
+     1. set the first element of the pair
+     2. set the second element of the pair
+     3. optional: get the pair (any number of times we need) 
+     4. reset the pair 
+  If an operation is performet out of this sequence it causes an exception (or simply an assertion fails). *)
+module IncrementalPair: sig
+  type ('a, 'b) t
+  
+  (* [make ()] creates a new pair with both elements unset. *)
+  val make : unit -> ('a, 'b) t
+  
+  (* [set_fst p v] sets the first element of the pair [p] to value [v]. (Requires: neither the first nor the second value are set yet.) *)
+  val set_fst : ('a, 'b) t -> 'a -> unit
+  
+  (* [set_snd p v] sets the SECOND element of the pair [p] to value [v]. (Requires: the first value is already set, the second value is not set yet.) *)
+  val set_snd : ('a, 'b) t -> 'b -> unit
+  
+  (* [get p] returns the pair [p]. (Requires: both the first value and the second value are already set.) *)
+  val get     : ('a, 'b) t -> 'a * 'b
+  
+  (* [reset p] unsets both values of the pair [p]. (Requires: both the first value and the second value are already set.) *)
+  val reset   : ('a, 'b) t -> unit
+  
+end = struct 
+
+  type ('a, 'b)  t = ('a option ref * 'b option ref)
+
+  let is_fst_set (p : ('a, 'b) t) = match !(fst p) with Some _ -> true | None -> false
+  let is_snd_set (p : ('a, 'b) t) = match !(snd p) with Some _ -> true | None -> false
+
+  let make () : ('a, 'b) t = (ref None, ref None)
+  
+  let set_fst (p : ('a, 'b) t) (v : 'a) : unit =
+    assert (not (is_fst_set p)); (* The fst should NOT be set at this point. *)
+    assert (not (is_snd_set p)); (* The snd should NOT be set at this point. *)
+    (fst p) := Some v
+  
+  let set_snd (p : ('a, 'b) t) (v : 'b) : unit =
+    assert (     is_fst_set p);  (* The fst should     be set at this point. *)
+    assert (not (is_snd_set p)); (* The snd should NOT be set at this point. *)
+    (snd p) := Some v
+
+  let get (p : ('a, 'b) t) : ('a * 'b) = 
+    assert (is_fst_set p); (* The fst should be set at this point. *)
+    assert (is_snd_set p); (* The snd should be set at this point. *)
+    match (!(fst p), !(snd p)) with
+    | Some(fst), Some(snd) -> (fst, snd)
+    | _ -> failwith "Impossible error during handling the IncrementalPair (assertions should have failed first)!"
+  
+  let reset (p : ('a, 'b) t) : unit =
+    assert (is_fst_set p); (* The fst should be set at this point. *)
+    assert (is_snd_set p); (* The snd should be set at this point. *)
+    (fst p) := None;
+    (snd p) := None
+
+end
+
+
 let usage = 
     "usage: " ^ Sys.argv.(0)
   ^ " [-settings settings-file]"
@@ -44,12 +105,18 @@ let load_settings_file file =
 let default_settings_file_path = "default.settings"
 
 (* Repositories to import *)
-let repository_names = ref []
-let repository_files = ref []
+let current_repository_data : (string, string) IncrementalPair.t = IncrementalPair.make ()
+
+let add_current_repository_to_settings () = 
+  let repository_name, repository_file = IncrementalPair.get current_repository_data in
+  Settings.add Settings.input_file_repositories (Settings.ListValue [Settings.PairValue (Settings.IdentValue(repository_name), Settings.IdentValue(repository_file))])
 
 (* Outputs *)
-let output_types = ref []
-let output_files = ref []
+let current_output_data : (string, string) IncrementalPair.t = IncrementalPair.make ()
+
+let add_current_output_to_settings () = 
+  let output_type, output_file = IncrementalPair.get current_output_data in
+  Settings.add Settings.outputs (Settings.ListValue [Settings.PairValue (Settings.IdentValue(output_type), Settings.IdentValue(output_file))])
 
 (* Benchmarks *)
 let benchmark_choice        = ref None
@@ -89,8 +156,9 @@ let speclist =
     ("-spec",     Arg.String (fun filename -> Settings.add_string Settings.input_file_specification filename), " The specification input file.");
     ("-repo",     
       Arg.Tuple ([
-        Arg.String (fun repository_name -> repository_names := repository_name::!repository_names);
-        Arg.String (fun repository_file -> repository_files := repository_file::!repository_files) 
+        (* We assume, that these two subparts of a tuple (corresponding to the name and file of a single imported repository) will be always handled directly after the other. *)
+        Arg.String (fun repository_name -> IncrementalPair.set_fst current_repository_data repository_name);
+        Arg.String (fun repository_file -> IncrementalPair.set_snd current_repository_data repository_file; add_current_repository_to_settings (); IncrementalPair.reset current_repository_data)
       ]), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories).");
 
     (* Benchmarks *)
@@ -119,8 +187,8 @@ let speclist =
     (* Output arguments *)
     ("-out",
       Arg.Tuple ([
-        Arg.Symbol ( Settings.output_files_names,  (fun s -> output_types := s::!output_types));
-        Arg.String (fun filename -> output_files := filename::!output_files)
+        Arg.Symbol ( Settings.output_files_names, (fun output_type -> IncrementalPair.set_fst current_output_data output_type));
+        Arg.String (                               fun output_file -> IncrementalPair.set_snd current_output_data output_file; add_current_output_to_settings (); IncrementalPair.reset current_output_data)
       ]), " The final configuration output file and the output format (you can specify multiple output files with different formats).");
 
     (* Other *)
@@ -141,18 +209,14 @@ let load () =
 
   (* 2. Handle command line settings. *)
 
+
   (* Handle the command line *)
   Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x))) usage;
 
+
   (* Post-treatment of command line settings: *)
 
-  (* 2.1. Additional repositories. *)
-  Settings.add_double_lists Settings.input_file_repositories !repository_names !repository_files;
-
-  (* 2.2. Outputs. *)
-  Settings.add_double_lists Settings.results !output_types !output_files;
-
-  (* 2.3. Benchmarks. *)
+  (* Benchmarks: *)
   (match !benchmark_choice with
   | Some benchmark_choice -> 
       let benchmark_options = List.combine !benchmark_option_keys !benchmark_option_values in
