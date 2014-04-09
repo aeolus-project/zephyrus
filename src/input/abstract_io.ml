@@ -74,6 +74,12 @@ type universe = {
   universe_repositories    : repository list
 }
 
+let universe_add_repositories (universe : universe) (repositories : repository list) : universe = {
+    universe_component_types = universe.universe_component_types;
+    universe_implementation  = universe.universe_implementation;
+    universe_repositories    = universe.universe_repositories @ repositories;
+  }  
+
 
 (** {2 Type definitions for the configuration.} *)
 

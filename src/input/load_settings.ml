@@ -50,7 +50,7 @@ module IncrementalPair: sig
   
   (* [reset p] unsets both values of the pair [p]. (Requires: both the first value and the second value are already set.) *)
   val reset   : ('a, 'b) t -> unit
-  
+
 end = struct 
 
   type ('a, 'b)  t = ('a option ref * 'b option ref)

@@ -39,9 +39,9 @@ type value =
   | PairValue  of value * value
   | ListValue  of value list
 
-let string_of_string s = "\"" ^ s ^ "\""
-let string_of_pair e1 e2 = "(" ^ e1 ^ ", " ^ e2 ^ ")"
-let string_of_list l = "[" ^ (String.concat "; " l) ^ "]"
+let string_of_string s     = Printf.sprintf "\"%s\"" s
+let string_of_pair fst snd = Printf.sprintf "(%s, %s)" fst snd
+let string_of_list l       = Printf.sprintf "[%s]"(String.concat "; " l)
 
 let rec string_of_value value = 
   match value with
@@ -471,6 +471,7 @@ module Table =
 
 type t = Table.t
 let table = Table.create 8
+
 let add (s,k) b = 
   match k with
   | Bool                  (convert, string_of, error_message) -> (try Table.add table s; Table.add_to_column table k s (convert b) with Wrong_value -> Settings_log.log s b error_message)
@@ -488,23 +489,31 @@ let add (s,k) b =
 let find (s,k) = Table.find table k s
 let mem (s,k) = Table.mem table s
 
-let to_string () = let inner ((s,k) as key) res = 
-  if mem key 
-  then ("  " ^ s ^ (
-    match k with
-    | Bool                  (convert, string_of, error_message) -> string_of (find key)
-    | String                (convert, string_of, error_message) -> string_of (find key)
-    | Int                   (convert, string_of, error_message) -> string_of (find key)
-    | Mode                  (convert, string_of, error_message) -> string_of (find key)
-    | Repositories          (convert, string_of, error_message) -> string_of (find key)
-    | Optimization_function (convert, string_of, error_message) -> string_of (find key)
-    | Solver                (convert, string_of, error_message) -> string_of (find key)
-    | Generate_bindings     (convert, string_of, error_message) -> string_of (find key)
-    | Generate_packages     (convert, string_of, error_message) -> string_of (find key)
-    | Output_files          (convert, string_of, error_message) -> string_of (find key)
-    | Benchmark             (convert, string_of, error_message) -> string_of (find key)
-  ))::res else res in
-  String.concat "\n" (List.fold_right inner all_settings [])
+let to_string () : string = 
+
+  let lines =
+    List.filter_map (fun ((setting_name, setting_kind) as key) ->
+      if mem key 
+      then 
+        let setting_value =
+          match setting_kind with
+          | Bool                  (convert, string_of, error_message) -> string_of (find key)
+          | String                (convert, string_of, error_message) -> string_of (find key)
+          | Int                   (convert, string_of, error_message) -> string_of (find key)
+          | Mode                  (convert, string_of, error_message) -> string_of (find key)
+          | Repositories          (convert, string_of, error_message) -> string_of (find key)
+          | Optimization_function (convert, string_of, error_message) -> string_of (find key)
+          | Solver                (convert, string_of, error_message) -> string_of (find key)
+          | Generate_bindings     (convert, string_of, error_message) -> string_of (find key)
+          | Generate_packages     (convert, string_of, error_message) -> string_of (find key)
+          | Output_files          (convert, string_of, error_message) -> string_of (find key)
+          | Benchmark             (convert, string_of, error_message) -> string_of (find key)
+        in
+        Some (Printf.sprintf "  %s = |%s|" setting_name setting_value)
+      else None
+    ) all_settings in
+  
+  String.concat "\n" lines
 
 
 
@@ -540,11 +549,12 @@ let disable_ralfs_redundant_constraints  () = add ralfs_redundant_constraints   
 
 let enable_stop_after_solving            () = add stop_after_solving                (BoolValue true)
 
-let get_input_file_universe              () = find input_file_universe
-let get_input_file_repositories          () = find input_file_repositories
-let get_input_file_initial_configuration () = find input_file_configuration
-let get_input_file_specification         () = find input_file_specification
-let get_input_optimization_function      () = find input_optimization_function
+(* WTF? Why did this suddenly change type? *)
+let get_input_file_universe              () : string                 = find input_file_universe
+let get_input_file_repositories          () : (string * string) list = find input_file_repositories
+let get_input_file_initial_configuration () : string                 = find input_file_configuration
+let get_input_file_specification         () : string                 = find input_file_specification
+let get_input_optimization_function      () : optimization_function  = find input_optimization_function
 
 
 let get_main_solver_file_extension () = ".mzn"

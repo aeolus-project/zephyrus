@@ -106,7 +106,7 @@ let log_stage_end () =
 
 
 (* setting logging *)
-let log_settings () = if (Settings.find Settings.verbose_level) > 2 then log_normal ("Settings =\n" ^ (Settings.to_string ()))
+let log_settings () = if (Settings.find Settings.verbose_level) > 2 then log_normal (Printf.sprintf "Settings :\n%s\n" (Settings.to_string ()))
 
 let log_input_file_error filename str = log_error ("file \"" ^ filename ^ "\" => " ^ str)
 
