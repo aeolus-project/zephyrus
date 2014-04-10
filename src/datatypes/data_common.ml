@@ -28,6 +28,7 @@
 *)
 
 include Data_common_int
+include Data_common_option
 include Data_common_list
 include Data_common_set
 include Data_common_map

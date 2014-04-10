@@ -17,49 +17,16 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Some common data structures and operations on them. *)
+(** Custom [Option] module for operation on the options. *)
 
-(* Depends on
-    -Data_common_int
-    -Data_common_list
-    -Data_common_set
-    -Data_common_map
-    -Data_common_unique_id
-    -Data_common_mapping
-    -Data_common_catalog
+(* Depends on nothing.
 *)
 
-(** Wrapper module for integer values to use with the [Set] and [Map] modules.
-    It has the same type as [Set.OrderedType] and [Map.OrderedType]. *)
-include module type of Data_common_int
-
-(** Custom [Option] module for operation on the options. *)
-include module type of Data_common_option
-
-(** {2 Custom and extended versions of standard library modules.} *)
-
-(** Custom extension of the [List] module from the standard library. *)
-include module type of Data_common_list
-
-(** Custom extension of the [Set] module from the standard library with construction and conversion. *)
-include module type of Data_common_set 
-(** Custom extension of the [Map] module from the standard library with construction, conversion and extraction. *)
-include module type of Data_common_map 
-
-
-(** {2 Some basic tools used mostly for managing identifiers and mappings between them.} *)
-
-(** Unique identifier management *)
-include module type of Data_common_unique_id
-
-(** One-way mappings. *)
-include module type of Data_common_mapping
-
-(** Catalogs: two-way mappings. *)
-include module type of Data_common_catalog
-
-
-(** {3 Other.} *)
-
-(** Generic trees. *)
-include module type of Data_common_tree
+module Option : sig 
+  (** [map f o] creates a new option value which is equal to [None] if the given option [o] was also [None] and equal to [Some (f v)] if the given option [o] was equal to [Some v]. *)
+  val map         : ('a -> 'b       ) -> 'a option -> 'b option
+  (** [map_flatten f o] creates a new option value which is: equal to [None] if the given option [o] was also [None],
+      also equal to [None] if the given option [o] was equal to [Some v] and [f v] is equal to [None],
+      finally equal to [Some (f v')] if the given option [o] was equal to [Some v] and [f v] is equal to [Some v']. *)
+  val map_flatten : ('a -> 'b option) -> 'a option -> 'b option
+end
