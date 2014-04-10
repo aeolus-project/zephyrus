@@ -489,6 +489,9 @@ let add (s,k) b =
 let find (s,k) = Table.find table k s
 let mem (s,k) = Table.mem table s
 
+(* Returns an option of the value of the setting: [Some value] if the setting was declared, [None] if it was not. *)
+let find_option setting = if mem setting then Some (find setting) else None
+
 let to_string () : string = 
 
   let lines =
@@ -549,12 +552,11 @@ let disable_ralfs_redundant_constraints  () = add ralfs_redundant_constraints   
 
 let enable_stop_after_solving            () = add stop_after_solving                (BoolValue true)
 
-(* WTF? Why did this suddenly change type? *)
-let get_input_file_universe              () : string                 = find input_file_universe
-let get_input_file_repositories          () : (string * string) list = find input_file_repositories
-let get_input_file_initial_configuration () : string                 = find input_file_configuration
-let get_input_file_specification         () : string                 = find input_file_specification
-let get_input_optimization_function      () : optimization_function  = find input_optimization_function
+let get_input_file_universe              () : string option                 = find_option input_file_universe
+let get_input_file_repositories          () : (string * string) list option = find_option input_file_repositories
+let get_input_file_initial_configuration () : string option                 = find_option input_file_configuration
+let get_input_file_specification         () : string option                 = find_option input_file_specification
+let get_input_optimization_function      () : optimization_function option  = find_option input_optimization_function
 
 
 let get_main_solver_file_extension () = ".mzn"

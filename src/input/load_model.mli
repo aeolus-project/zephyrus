@@ -37,11 +37,11 @@ type initial_model = {
 }
 
 val model_of_file_options :
-  string                         -> (* universe *)
-  (string * string) list         -> (* external repositories *)
-  string                         -> (* configuration *)
-  string                         -> (* specification *)
-  Settings.optimization_function -> (* optimization function *)
+  string option                         -> (* universe *)
+  (string * string) list option         -> (* external repositories *)
+  string option                         -> (* configuration *)
+  string option                         -> (* specification *)
+  Settings.optimization_function option -> (* optimization function *)
   ( Data_model_catalog.closed_model_catalog * initial_model )
 
 val empty_configuration : Data_model.configuration

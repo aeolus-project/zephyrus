@@ -63,14 +63,14 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
 )
 
 
-(* === Handling the arguments === *)
+
+
+
 let () = 
+
+  (* Handle the arguments *) 
   Load_settings.load ();
-  Zephyrus_log.log_settings ()
-
-
-(* === load everything  === *)
-let () = 
+  Zephyrus_log.log_settings ();
 
   (* Handle benchmarks *)
   let (benchmark : Benchmarks.benchmark option) = Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in

@@ -54,7 +54,6 @@ let convert_component_name         x = x
 (* A meta-catalog created from the Abstract_io model: universe, repositories and initial configuration. *)
 let model_catalog_of_abstract_io 
   (universe                : Abstract_io.universe      option)
-  (additional_repositories : Abstract_io.repository    list)
   (initial_configuration   : Abstract_io.configuration option)
   : model_catalog = 
 
@@ -98,7 +97,7 @@ let model_catalog_of_abstract_io
   let add_component_type_resources ct = List.iter resource#add (List.map convert_resource_name (List.map fst ct.Abstract_io.component_type_consume)) (* add consumed resources *) in
   let add_package_resources        k  = List.iter resource#add (List.map convert_resource_name (List.map fst k.Abstract_io.package_consume))         (* add consumed resources *) in
   
-  (* Add all the universe data and all the additional repositories data. *)
+  (* Add all the universe data. *)
   begin
     match universe with
     | None   -> ()
@@ -110,8 +109,6 @@ let model_catalog_of_abstract_io
         List.iter add_component_type_resources u.Abstract_io.universe_component_types; (* add resources from component types *)
         List.iter add_package_resources        (List.flatten (List.map (fun r -> r.Abstract_io.repository_packages) u.Abstract_io.universe_repositories)) (* add resources from packages*)
   end;
-  List.iter add_repository          additional_repositories; (* add additional repositories *)
-  List.iter add_repository_packages additional_repositories; (* add packages from additional repositories *)
 
 
   (* 2. Configuration *)
@@ -179,7 +176,7 @@ let model_catalog_of_abstract_io_with_exceptions (naming : closed_model_catalog)
 (*| 2. Universe Conversion                          |*)
 (*\*************************************************/*)
 
-let convert_universe (catalog : #closed_model_catalog) external_repositories u : universe = 
+let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe) : universe = 
 
   (* 1. Data Storage *)
 
@@ -299,7 +296,6 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 
   (* universe *)
   List.iter convert_repository     u.Abstract_io.universe_repositories;    (* include the repository and package data coming from the universe *) 
-  List.iter convert_repository     external_repositories;                  (* include the repository and package data coming from the external repositories *) 
   List.iter convert_component_type u.Abstract_io.universe_component_types; (* include the component type data *)
   
   (* may add erroneous packages and component types *)
@@ -331,7 +327,7 @@ let convert_universe (catalog : #closed_model_catalog) external_repositories u :
 (*| 3. Configuration Conversion                     |*)
 (*\*************************************************/*)
 
-let convert_configuration (catalog : closed_model_catalog) c : configuration =
+let convert_configuration (catalog : closed_model_catalog) (c : Abstract_io.configuration) : configuration =
 
   (* 1. Data storage *)
 
@@ -484,7 +480,7 @@ let convert_specification (catalog : closed_model_catalog) =
   | Abstract_io.SpecExprSub   (ex1, ex2) -> Spec_expr_sub   (convert_spec_expr ex1, convert_spec_expr ex2)
   | Abstract_io.SpecExprMul   (n, ex)    -> Spec_expr_mul   (convert_spec_const n,  convert_spec_expr ex) in
 
-  let rec convert_specification s = match s with 
+  let rec convert_specification (s : Abstract_io.specification) = match s with 
   | Abstract_io.SpecTrue               -> Spec_true
   | Abstract_io.SpecOp   (ex1, o, ex2) -> Spec_op   (convert_spec_expr ex1, convert_spec_op o, convert_spec_expr ex2)
   | Abstract_io.SpecAnd  (s1, s2)      -> Spec_and  (convert_specification s1, convert_specification s2)
@@ -501,71 +497,92 @@ let convert_specification (catalog : closed_model_catalog) =
 
 (** 4.5. Optimization_function  *)
 
-let convert_optimization_function optimization_function = 
+let convert_optimization_function (optimization_function : Abstract_io.optimization_function) : Data_model.optimization_function = 
   match optimization_function with
-  | Settings.Optimization_function_none         -> Optimization_function_none
-  | Settings.Optimization_function_simple       -> Optimization_function_simple
-  | Settings.Optimization_function_compact      -> Optimization_function_compact
-  | Settings.Optimization_function_spread       -> Optimization_function_spread
-  | Settings.Optimization_function_conservative -> Optimization_function_conservative
+  | Abstract_io.Optimization_function_none         -> Optimization_function_none
+  | Abstract_io.Optimization_function_simple       -> Optimization_function_simple
+  | Abstract_io.Optimization_function_compact      -> Optimization_function_compact
+  | Abstract_io.Optimization_function_conservative -> Optimization_function_conservative
+  | Abstract_io.Optimization_function_spread       -> Optimization_function_spread
 
 
 (*****************************************************)
 (** 5. Global Load Functions                         *)
 (*****************************************************)
 
-let read_versioned_object_from_file (file : string) : Json_versions_t.versioned_object option = 
-  Printf.printf "||| %s |||\n%!" file;
-  Input_helper.parse_json Json_versions_j.read_versioned_object file
+module Read_abstract_io = struct
+  (*
+  type initial_model_abstract_io = {
+    universe              : Abstract_io.universe              option;
+    initial_configuration : Abstract_io.configuration         option;
+    specification         : Abstract_io.specification         option;
+    optimization_function : Abstract_io.optimization_function option;  
+  }
+  *)
+  let read_versioned_object_from_file (file : string) : Json_versions_t.versioned_object option =
+    Input_helper.parse_json Json_versions_j.read_versioned_object file
 
-let read_version_from_file (file : string) : int = 
-  let versioned_object = read_versioned_object_from_file file in
-  match versioned_object with
-  | Some versioned_object' -> versioned_object'.Json_versions_t.version
-  | None -> 0
+  let read_version_from_file (file : string) : int =
+    let versioned_object = read_versioned_object_from_file file in
+    match versioned_object with
+    | Some versioned_object' -> versioned_object'.Json_versions_t.version
+    | None -> 0
 
-let read_abstract_io_universe_from_file (file : string) : Abstract_io.universe option =
-  let syntax_version = read_version_from_file file in
-  Zephyrus_log.log_execution (Printf.sprintf "Universe syntax version = %d%!\n" syntax_version);
-  match syntax_version with
-  | 0 -> (match Input_helper.parse_json Json_v0_j.read_universe file with
-          | None          -> None
-          | Some universe -> Some (Json_v0.To_abstract_io.universe universe))
-  | 1 -> (match Input_helper.parse_json Json_v1_j.read_universe file with
-          | None          -> None
-          | Some universe -> Some (Json_v1.To_abstract_io.universe universe))
-  | _ -> failwith "Unsupported universe syntax version!"
-
-let read_abstract_io_repositories_from_files (repository_names_and_files : (string * string) list) : Abstract_io.repository list = 
-  List.filter_map (fun (name, file) -> 
-    let packages = Input_helper.parse_json Json_v0_j.read_packages file in 
-    match packages with
-    | None          -> None
-    | Some packages -> Some 
-      ({ 
-        Abstract_io.repository_name     = name;
-        Abstract_io.repository_packages = List.map Json_v0.To_abstract_io.package packages
-      })
-  ) repository_names_and_files
-
-let read_abstract_io_configuration_from_file (file : string) : Abstract_io.configuration option = 
-  let syntax_version = read_version_from_file file in
-  Zephyrus_log.log_execution (Printf.sprintf "Configuration syntax version = %d%!\n" syntax_version);
+  let read_universe_from_file (file : string) : Abstract_io.universe option =
+    let syntax_version = read_version_from_file file in
+    Zephyrus_log.log_execution (Printf.sprintf "Universe syntax version = %d%!\n" syntax_version);
     match syntax_version with
-  | 0 -> (match Input_helper.parse_json Json_v0_j.read_configuration file with
-          | None   -> None
-          | Some c -> Some (Json_v0.To_abstract_io.configuration c))
-  | 1 -> (match Input_helper.parse_json Json_v1_j.read_configuration file with
-          | None   -> None
-          | Some c -> Some (Json_v1.To_abstract_io.configuration c))
-  | _ -> failwith "Unsupported configuration syntax version!"
+    | 0 -> (match Input_helper.parse_json Json_v0_j.read_universe file with
+            | None          -> None
+            | Some universe -> Some (Json_v0.To_abstract_io.universe universe))
+    | 1 -> (match Input_helper.parse_json Json_v1_j.read_universe file with
+            | None          -> None
+            | Some universe -> Some (Json_v1.To_abstract_io.universe universe))
+    | _ -> failwith "Unsupported universe syntax version!"
+
+  let read_repository_from_file (repository_name : Abstract_io.repository_name) (repository_file : string) : Abstract_io.repository option = 
+    let repository_packages = Input_helper.parse_json Json_v0_j.read_packages repository_file in 
+    match repository_packages with
+    | None                     -> None
+    | Some repository_packages -> Some 
+      ({ 
+        Abstract_io.repository_name     = repository_name;
+        Abstract_io.repository_packages = List.map Json_v0.To_abstract_io.package repository_packages
+      })
+
+  let read_repositories_from_files (repository_names_and_files : (string * string) list) : Abstract_io.repository list = 
+    List.filter_map (fun (repository_name, repository_file) -> 
+      read_repository_from_file repository_name repository_file
+    ) repository_names_and_files
+
+  let read_configuration_from_file (file : string) : Abstract_io.configuration option = 
+    let syntax_version = read_version_from_file file in
+    Zephyrus_log.log_execution (Printf.sprintf "Configuration syntax version = %d%!\n" syntax_version);
+      match syntax_version with
+    | 0 -> (match Input_helper.parse_json Json_v0_j.read_configuration file with
+            | None   -> None
+            | Some c -> Some (Json_v0.To_abstract_io.configuration c))
+    | 1 -> (match Input_helper.parse_json Json_v1_j.read_configuration file with
+            | None   -> None
+            | Some c -> Some (Json_v1.To_abstract_io.configuration c))
+    | _ -> failwith "Unsupported configuration syntax version!"
 
 
-let read_abstract_io_specification_from_file (file : string) : Abstract_io.specification option = 
-  Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
+  let read_specification_from_file (file : string) : Abstract_io.specification option = 
+    Input_helper.parse_standard Specification_parser.main Specification_lexer.token file
 
-let load_catalog (universe : Abstract_io.universe option) (repositories : Abstract_io.repository list) (configuration : Abstract_io.configuration option) : Data_model_catalog.closed_model_catalog = 
-  let model_catalog = model_catalog_of_abstract_io universe repositories configuration in 
+  let optimization_function_of_settings_optimization_function (optimization_function : Settings.optimization_function) : Abstract_io.optimization_function =
+    match optimization_function with
+    | Settings.Optimization_function_none         -> Abstract_io.Optimization_function_none
+    | Settings.Optimization_function_simple       -> Abstract_io.Optimization_function_simple
+    | Settings.Optimization_function_compact      -> Abstract_io.Optimization_function_compact
+    | Settings.Optimization_function_conservative -> Abstract_io.Optimization_function_conservative
+    | Settings.Optimization_function_spread       -> Abstract_io.Optimization_function_spread
+
+end
+
+let load_catalog (universe : Abstract_io.universe option) (configuration : Abstract_io.configuration option) : Data_model_catalog.closed_model_catalog = 
+  let model_catalog = model_catalog_of_abstract_io universe configuration in 
   let closed_model_catalog = close_model_catalog model_catalog in 
   model_catalog_of_abstract_io_with_exceptions closed_model_catalog {workaround = make_not_found_functions;}
 
@@ -579,17 +596,29 @@ type initial_model = {
 
 let model_of_file_options file_u files_rs file_c file_s opt_f =
 
-  let u   : Abstract_io.universe             option = read_abstract_io_universe_from_file      file_u in
-  let rs  : Abstract_io.repository           list   = read_abstract_io_repositories_from_files files_rs in
-  let c   : Abstract_io.configuration        option = read_abstract_io_configuration_from_file file_c in
-  let s   : Abstract_io.specification        option = read_abstract_io_specification_from_file file_s in
-  let opt : Data_model.optimization_function option = Some(convert_optimization_function opt_f) in
+  (* Read model data from files into the Abstract_io form. *)
+  let u    : Abstract_io.universe              option = 
+    let u         : Abstract_io.universe       option = Option.map_flatten Read_abstract_io.read_universe_from_file file_u in
+    let rs        : Abstract_io.repository     list   = List.of_option (Option.map Read_abstract_io.read_repositories_from_files files_rs) in
+    let u_with_rs : Abstract_io.universe       option = Option.map (fun u' -> Abstract_io.universe_add_repositories u' rs) u in
+    u_with_rs in
+    
+  let c    : Abstract_io.configuration         option = Option.map_flatten Read_abstract_io.read_configuration_from_file                            file_c in
+  let s    : Abstract_io.specification         option = Option.map_flatten Read_abstract_io.read_specification_from_file                            file_s in
+  let opt  : Abstract_io.optimization_function option = Option.map         Read_abstract_io.optimization_function_of_settings_optimization_function opt_f in
 
-  let catalog : Data_model_catalog.closed_model_catalog = load_catalog u rs c in
-  let u : Data_model.universe      option = match u with None -> None | Some(u') -> Some(convert_universe      catalog rs u') in
-  let c : Data_model.configuration option = match c with None -> None | Some(c') -> Some(convert_configuration catalog    c') in
-  let s : Data_model.specification option = match s with None -> None | Some(s') -> Some(convert_specification catalog    s') in
+  (* Add the external repositories to the universe. *)
 
+  (* Prepare the catalog. *)
+  let catalog : Data_model_catalog.closed_model_catalog = load_catalog u c in
+  
+  (* Convert the Abstract_io model to a Data_model model. *)
+  let u   : Data_model.universe              option = Option.map (convert_universe      catalog) u   in
+  let c   : Data_model.configuration         option = Option.map (convert_configuration catalog) c   in
+  let s   : Data_model.specification         option = Option.map (convert_specification catalog) s   in
+  let opt : Data_model.optimization_function option = Option.map  convert_optimization_function  opt in
+
+  (* Return the initial model. *)
   let initial_model = {
     universe              = u;
     initial_configuration = c;
@@ -613,13 +642,12 @@ let initial_model_of_settings () = model_of_settings ()
 let initial_model_of_benchmark (benchmark : Benchmarks.benchmark) =
   (* Written using the well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
   let u   : Abstract_io.universe             = benchmark#universe in
-  let rs  : Abstract_io.repository list      = [] in
   let c   : Abstract_io.configuration        = benchmark#initial_configuration in
   let s   : Abstract_io.specification        = benchmark#specification in
   let opt : Data_model.optimization_function = benchmark#optimisation_function in
 
-  let catalog = load_catalog (Some u) rs (Some c) in
-  let u : Data_model.universe      = convert_universe      catalog rs u in
+  let catalog = load_catalog (Some u) (Some c) in
+  let u : Data_model.universe      = convert_universe      catalog u in
   let c : Data_model.configuration = convert_configuration catalog c in
   let s : Data_model.specification = convert_specification catalog s in
 

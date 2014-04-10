@@ -74,7 +74,8 @@ type universe = {
   universe_repositories    : repository list
 }
 
-let universe_add_repositories (universe : universe) (repositories : repository list) : universe = {
+let universe_add_repositories (universe : universe) (repositories : repository list) : universe = 
+  {
     universe_component_types = universe.universe_component_types;
     universe_implementation  = universe.universe_implementation;
     universe_repositories    = universe.universe_repositories @ repositories;
@@ -178,3 +179,10 @@ type specification =
   | SpecNot        of specification
   | SpecEverywhere of                       local_specification
   | SpecAt         of spec_location_names * local_specification
+
+type optimization_function = 
+  | Optimization_function_simple
+  | Optimization_function_compact
+  | Optimization_function_conservative
+  | Optimization_function_spread
+  | Optimization_function_none
