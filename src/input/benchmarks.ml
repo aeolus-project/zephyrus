@@ -21,11 +21,19 @@
 
 open Abstract_io
 
-class virtual benchmark = object
+class virtual benchmark = object (self)
   method virtual universe              : Abstract_io.universe
   method virtual initial_configuration : Abstract_io.configuration
   method virtual specification         : Abstract_io.specification
-  method virtual optimisation_function : Data_model.optimization_function
+  method virtual optimization_function : Abstract_io.optimization_function
+
+  method initial_model () : initial_model = {
+    universe              = Some self#universe;
+    initial_configuration = Some self#initial_configuration;
+    specification         = Some self#specification;
+    optimization_function = Some self#optimization_function;
+  }
+
 end
 
 module Simple_machine_park =
@@ -291,7 +299,7 @@ struct
       let spec = "#Master > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
-    method optimisation_function = Data_model.Optimization_function_compact
+    method optimization_function = Abstract_io.Optimization_function_compact
 
   end
   
@@ -397,7 +405,7 @@ struct
       let spec = "#@wordpress-frontend > 0" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
-    method optimisation_function = Data_model.Optimization_function_simple
+    method optimization_function = Abstract_io.Optimization_function_simple
 
   end
   
@@ -485,7 +493,7 @@ struct
       let spec = "#@wordpress-frontend > 0 and everywhere(#Wordpress <= 1) and everywhere(#MySQL <= 1)" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
-    method optimisation_function = Data_model.Optimization_function_compact
+    method optimization_function = Abstract_io.Optimization_function_compact
 
   end
   

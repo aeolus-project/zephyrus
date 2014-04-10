@@ -17,11 +17,14 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Conversion of the Zephyrus abstract IO syntax to a full Zephyrus model in our internal representation.  *)
+(** Reading the abstract IO representation from files. *)
 
-(* Depends on
-    - Abstract_io
-    - Data_model
-*)
+val read_from_file_options :
+  universe_file:                string option                         ->
+  repository_files:             (string * string) list option         ->
+  configuration_file:           string option                         ->
+  specification_file:           string option                         ->
+  optimization_function_choice: Settings.optimization_function option ->
+  Abstract_io.initial_model
 
-val initial_model_of_abstract_io_initial_model : Abstract_io.initial_model -> (Data_model_catalog.closed_model_catalog * Data_model.initial_model)
+val from_settings : unit -> Abstract_io.initial_model

@@ -186,3 +186,11 @@ type optimization_function =
   | Optimization_function_conservative
   | Optimization_function_spread
   | Optimization_function_none
+
+
+type initial_model = {
+  universe              : universe              option;
+  initial_configuration : configuration         option;
+  specification         : specification         option;
+  optimization_function : optimization_function option;  
+}

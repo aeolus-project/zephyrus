@@ -830,7 +830,13 @@ type optimization_function =
 (*| 6. Putting all together                                                |*)
 (*\************************************************************************/*)
 
+(* TODO: Remove these two types...*)
 type model      = universe * configuration * specification
 type model_full = universe * configuration * specification * optimization_function
 
-
+type initial_model = {
+  universe              : universe              option;
+  initial_configuration : configuration         option;
+  specification         : specification         option;
+  optimization_function : optimization_function option;
+}

@@ -44,11 +44,11 @@ open Dot_of
 (* Latest version of JSON syntax is used for internal printing and as a default. *)
 module Json_of = Json_v1_of
 
-let check_option desc o = match o with
+let extract_and_check_option desc o = match o with
   | Some(a) -> a
-  | None -> Zephyrus_log.log_panic ("The element \"" ^ desc ^ "\" is not set")
+  | None -> Zephyrus_log.log_panic (Printf.sprintf "The input information concerning the %s is missing!" desc)
 
-let print_to_file kind filename u c = Output_helper.print_output filename (
+let print_output_to_file kind filename u c = Output_helper.print_output filename (
   match kind with
   | Settings.Output_file_plain              -> String_of.configuration                                 u c
   | Settings.Output_file_json               -> Json_v0_of.configuration (* Json_of.configuration *)    u c (* For a while we will use the v0 by default for backwards compatibility. *)
@@ -63,45 +63,54 @@ let print_to_file kind filename u c = Output_helper.print_output filename (
 )
 
 
-
-
-
 let () = 
 
-  (* Handle the arguments *) 
+  (* === Handle the settings (command line arguments and settings files) === *)
+  Zephyrus_log.log_stage_new "SETTINGS SECTION";
+  
   Load_settings.load ();
   Zephyrus_log.log_settings ();
+  
+  (* End SETTINGS SECTION *)
+  Zephyrus_log.log_stage_end ();
 
-  (* Handle benchmarks *)
-  let (benchmark : Benchmarks.benchmark option) = Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in
 
-  let (catalog, initial_model) =
+  (* === Load the model === *)
+  Zephyrus_log.log_stage_new "LOAD SECTION";
+
+  (* Handle benchmarks. *)
+  let (benchmark : Benchmarks.benchmark option) =
+    Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in
+
+  (* Prepare the initial model in the abstract IO representation. *)
+  let abstract_io_initial_model : Abstract_io.initial_model =
     (match benchmark with
-    | None           -> Load_model.initial_model_of_settings ()
-    | Some benchmark -> Load_model.initial_model_of_benchmark benchmark) in
+    | None           -> Read_abstract_io.from_settings ()
+    | Some benchmark -> benchmark#initial_model () ) in
+
+  (* Translate the initial model to the internal representation (and create a global id <-> name catalog). *)
+  let (catalog, initial_model) = Load_model.initial_model_of_abstract_io_initial_model abstract_io_initial_model in
 
   (* Set the global id <-> name catalog. *)
   Name_of.set_catalog (Some catalog);
 
-  Zephyrus_log.log_stage_new "LOAD SECTION";
-
   (* In every mode we need at least the universe and an initial configuration. *)
-  let universe              = check_option "universe"              initial_model.universe in
-  let initial_configuration = check_option "initial configuration" initial_model.initial_configuration in
+  let universe              = extract_and_check_option "universe"              initial_model.universe in
+  let initial_configuration = extract_and_check_option "initial configuration" initial_model.initial_configuration in
   
   (* If ==> NO-SOLVING MODE <== was chosen: *)
   if Settings.find Settings.mode = Settings.Mode_no_solving
   then
     let final_configuration = initial_configuration in
     Zephyrus_log.log_data "FINAL CONFIGURATION ==>\n" (lazy ((Json_of.configuration universe final_configuration) ^ "\n"));
-    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
+    List.iter (fun (kind, filename) -> print_output_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
     print_string "\n\n\n <==========> THE END <==========>  \n\n"
   else
 
   (* In validation mode we need also to have a specification. *)
-  let specification = check_option "specification" initial_model.specification in
+  let specification = extract_and_check_option "specification" initial_model.specification in
 
-  (* Validation *)
+  (* 3. Validation *)
   Zephyrus_log.log_stage_new "MODEL VALIDATION";
   let validation_results = Validate.standard_model_check universe initial_configuration specification in
   Zephyrus_log.log_stage_end ();
@@ -122,7 +131,7 @@ let () =
   else
   
   (* In the classic mode we also need an optimization function. *)
-  let optimization_function = check_option "optimization function" initial_model.optimization_function in
+  let optimization_function = extract_and_check_option "optimization function" initial_model.optimization_function in
 
   (* If we've got this far, we are in the ==> CLASSIC MODE <==. *)
 
@@ -142,6 +151,7 @@ let () =
   
   (* End LOAD SECTION *)
   Zephyrus_log.log_stage_end ();
+
 
 
   (* === Perform the trimming === *)
@@ -319,7 +329,7 @@ let () =
     Data_statistics.add "FinalConfigurationBindings"   (Printf.sprintf "%d" (Binding_set     .cardinal final_configuration#get_bindings));
 
     (* Output the outputs *)
-    List.iter (fun (kind, filename) -> print_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
+    List.iter (fun (kind, filename) -> print_output_to_file kind filename universe final_configuration) (Settings.find Settings.outputs);
 
     (* Validation *)
     Zephyrus_log.log_stage_new "FINAL CONFIGURATION VALIDATION";
