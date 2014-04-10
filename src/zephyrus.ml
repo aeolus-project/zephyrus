@@ -66,14 +66,8 @@ let print_output_to_file kind filename u c = Output_helper.print_output filename
 let () = 
 
   (* === Handle the settings (command line arguments and settings files) === *)
-  Zephyrus_log.log_stage_new "SETTINGS SECTION";
-  
   Load_settings.load ();
   Zephyrus_log.log_settings ();
-  
-  (* End SETTINGS SECTION *)
-  Zephyrus_log.log_stage_end ();
-
 
   (* === Load the model === *)
   Zephyrus_log.log_stage_new "LOAD SECTION";

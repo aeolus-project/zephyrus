@@ -58,6 +58,13 @@ struct
     match stage.stage_start_time, stage.stage_end_time with
     | Some start_time, Some end_time -> end_time -. start_time
     | _                              -> 0.0
+  
+  let string_of_stage_stack (stage_stack : stage_stack) = 
+    let lines =
+      List.map (fun stage ->
+        Printf.sprintf "%s" (stage_name stage)
+      ) !stage_stack in
+    Printf.sprintf "Stage stack:\n%s\n" (String.concat "\n" lines)
 
   let start_stage (stage_stack : stage_stack) (stage : stage_description) : unit =
     let start_time = Sys.time () in
@@ -70,6 +77,7 @@ struct
 
   let end_stage (stage_stack : stage_stack) : stage_description =
     let end_time = Sys.time () in
+    assert(!stage_stack != []);
     let stage = List.hd (!stage_stack) in 
     stage_stack := List.tl (!stage_stack);
     let ended_stage = {
@@ -79,30 +87,38 @@ struct
     } in
     ended_stage
 
+
 end
 
 let current_stages : Stage.stage_stack = Stage.empty_stage_stack ()
 let stage_condition () = (Settings.find Settings.verbose_level) > 1
+
 let log_stage_new stage_name = 
-  if stage_condition () then
-    let stage = Stage.make_new_stage stage_name in
-    Stage.start_stage current_stages stage;
-    let str' = Printf.sprintf "| New Stage: \"%s\" |" stage_name in
-    let n = (String.length str') - 2 in
-    let line = "+" ^ (String.make n '-') ^ "+\n" in
-    Output_helper.println out_channel (line ^ str' ^ "\n" ^ line);
-    Output_helper.new_stage ()
+  let stage = Stage.make_new_stage stage_name in
+  Stage.start_stage current_stages stage;
+  if stage_condition () then 
+    begin
+      let str' = Printf.sprintf "| New Stage: \"%s\" |" stage_name in
+      let n = (String.length str') - 2 in
+      let line = "+" ^ (String.make n '-') ^ "+\n" in
+      Output_helper.println out_channel (line ^ str' ^ "\n" ^ line);
+      Output_helper.new_stage ()
+    end
+  else ()
 
 let log_stage_end () = 
-  if stage_condition () then
-    let stage = Stage.end_stage current_stages in
-    let stage_name     = Stage.stage_name     stage in
-    let stage_duration = Stage.stage_duration stage in
-    let str' = Printf.sprintf "| End Stage: \"%s\" [duration : %8.3f s] |" stage_name stage_duration in
-    let n = (String.length str') - 2 in
-    let line = "+" ^ (String.make n '-') ^ "+\n" in
-    Output_helper.end_stage ();
-    Output_helper.println out_channel (line ^ str' ^ "\n" ^ line)
+  let stage = Stage.end_stage current_stages in
+  if stage_condition () then 
+    begin
+      let stage_name     = Stage.stage_name     stage in
+      let stage_duration = Stage.stage_duration stage in
+      let str' = Printf.sprintf "| End Stage: \"%s\" [duration : %8.3f s] |" stage_name stage_duration in
+      let n = (String.length str') - 2 in
+      let line = "+" ^ (String.make n '-') ^ "+\n" in
+      Output_helper.end_stage ();
+      Output_helper.println out_channel (line ^ str' ^ "\n" ^ line)
+    end
+  else ()
 
 
 (* setting logging *)
@@ -124,21 +140,3 @@ let log_solver_data desc str =  if (solver_condition ()) && (Settings.find Setti
 let constraint_condition () = (Settings.find Settings.verbose_level) > 1
 let log_constraint_execution str = if constraint_condition () then Output_helper.print out_channel str
 let log_constraint_data desc str = if (constraint_condition ()) && (Settings.find Settings.verbose_data) then (log_normal desc; log_normal (Lazy.force str))
-
-
-
-(*
-(* loading logging *)
-
-(* Not used *)
-let log_setting_not_set str = if (Settings.find Settings.verbose_level) > 2 then Printf.printf "Warning: the %s is not set" str
-let log_universe_full desc str = if Settings.get_bool_basic Settings.verbose_data_full then Output_helper.print out_channel (desc ^ (Lazy.force str))
-
-
-
-(* translation into constraint logging *)
-
-(* solver logging *)
-
-
-*)

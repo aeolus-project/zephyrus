@@ -85,43 +85,47 @@ end = struct
 
 end
 
+(** Helper functions. *)
 
-let usage = 
-    "usage: " ^ Sys.argv.(0)
-  ^ " [-settings settings-file]"
-  ^ " [-u universe-file]"
-  ^ " [-ic initial-configuration-file]"
-  ^ " [-spec specification-file]"
-  ^ " [-repo repository-name packages-file]*" 
-  ^ " [-opt optimization-function]"
-  ^ " [-solver solver]"
-  ^ " [-out output-format output-file]*"
+(* 1. Settings files. *)
 
-(* Load a settings file *)
+(* Load a settings file. *)
 let load_settings_file file = 
   ignore (Input_helper.parse_standard Settings_parser.main Settings_lexer.token file)
 
-(* Default settings *)
+
+(* Default settings file. *)
 let default_settings_file_path = "default.settings"
 
-(* Repositories to import *)
+
+(* 2. External repositories to import. *)
 let current_repository_data : (string, string) IncrementalPair.t = IncrementalPair.make ()
 
 let add_current_repository_to_settings () = 
   let repository_name, repository_file = IncrementalPair.get current_repository_data in
   Settings.add Settings.input_file_repositories (Settings.ListValue [Settings.PairValue (Settings.IdentValue(repository_name), Settings.IdentValue(repository_file))])
 
-(* Outputs *)
+
+(* 3. Outputs. *)
 let current_output_data : (string, string) IncrementalPair.t = IncrementalPair.make ()
 
 let add_current_output_to_settings () = 
   let output_type, output_file = IncrementalPair.get current_output_data in
   Settings.add Settings.outputs (Settings.ListValue [Settings.PairValue (Settings.IdentValue(output_type), Settings.IdentValue(output_file))])
 
-(* Benchmarks *)
+
+(* 4. Benchmarks. *)
 let benchmark_choice        = ref None
 let benchmark_option_keys   = ref []
 let benchmark_option_values = ref []
+
+let set_benchmark_settings () =
+  match !benchmark_choice with
+  | Some benchmark_choice -> 
+      let benchmark_options = List.combine !benchmark_option_keys !benchmark_option_values in
+      let benchmark : Settings.benchmark = (benchmark_choice, benchmark_options) in
+      Settings.add_benchmark benchmark
+  | None -> ()
 
 
 (* Mechanism simplifying on/off switch options. *)
@@ -144,8 +148,7 @@ let arg_on_off_switch setting =
   Arg.Symbol (on_off_switch_symbols, (switch_on_off_setting setting))
 
 
-(* Specification of command line options  *)
-
+(** Specification of command line options using the Arg module. *)
 let speclist = 
   Arg.align [
 
@@ -196,6 +199,18 @@ let speclist =
     ("-stop-after-solving", Arg.Unit (Settings.enable_stop_after_solving),                    " Do not generate the final configuration, exit directly after the solving phase is over (useful for benchmarking).");
   ]
 
+(** Zephyrus main executable usage description. *)
+let usage = 
+    "usage: " ^ Sys.argv.(0)
+  ^ " [-settings settings-file]"
+  ^ " [-u universe-file]"
+  ^ " [-ic initial-configuration-file]"
+  ^ " [-spec specification-file]"
+  ^ " [-repo repository-name packages-file]*" 
+  ^ " [-opt optimization-function]"
+  ^ " [-solver solver]"
+  ^ " [-out output-format output-file]*"
+
 open Settings
 
 let load () = 
@@ -209,22 +224,15 @@ let load () =
 
   (* 2. Handle command line settings. *)
 
-
-  (* Handle the command line *)
+  (* Handle the command line arguments one by one. *)
   Arg.parse speclist (fun x -> raise (Arg.Bad ("Bad argument : " ^ x))) usage;
 
-
   (* Post-treatment of command line settings: *)
+  set_benchmark_settings (); (* Benchmarks. *)
 
-  (* Benchmarks: *)
-  (match !benchmark_choice with
-  | Some benchmark_choice -> 
-      let benchmark_options = List.combine !benchmark_option_keys !benchmark_option_values in
-      let benchmark : Settings.benchmark = (benchmark_choice, benchmark_options) in
-      Settings.add_benchmark benchmark
-  | None -> ());
 
-  Zephyrus_log.log_settings () (* Print settings as they are now. *)
+  (* 3. Print settings as they are now. *)
+  Zephyrus_log.log_settings ()
 
 
 let check_settings () = (* TODO : what to do? *) ()
