@@ -111,15 +111,15 @@ let structured_constraints_of_constraint_universe constraint_universe : structur
   ( "  Incompatibilities between components: "                                  , constraint_universe.constraint_universe_incompatibilities             )]
 
 let structured_constraints_of_constraint_specification (constraint_specification : konstraint option) : structured_constraints =
-  [("  specification constraint" , List.of_option constraint_specification)]
+  [("  specification constraint" , List.singleton_of_option constraint_specification)]
 
 let structured_constraints_of_constraint_configuration (constraint_configuration : konstraint list) : structured_constraints =
   [("  configuration " , constraint_configuration)]
 
 let get_constraint_full constraint_universe constraint_specification constraint_configuration : structured_constraints = 
-  (structured_constraints_of_constraint_universe            constraint_universe     ) @ 
-  (structured_constraints_of_constraint_specification       constraint_specification) @ 
-  (structured_constraints_of_constraint_configuration       constraint_configuration)
+  (structured_constraints_of_constraint_universe       constraint_universe     ) @ 
+  (structured_constraints_of_constraint_specification  constraint_specification) @ 
+  (structured_constraints_of_constraint_configuration  constraint_configuration)
 
 
 

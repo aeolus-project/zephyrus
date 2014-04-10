@@ -58,9 +58,14 @@ module List = struct
                     map (fun res -> el::res) (cartesian_product t)
                   ) h)
 
-  let of_option =
+  let singleton_of_option =
     function
     | Some v -> [v]
+    | None   -> []
+
+  let of_option =
+    function
+    | Some l -> l
     | None   -> []
 
 end
