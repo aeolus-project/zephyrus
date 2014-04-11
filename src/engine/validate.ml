@@ -675,52 +675,12 @@ let configuration_validation_resources (universe : universe) (configuration : co
 
 let configuration_validation_specification (universe : universe) (configuration : configuration) (specification : specification) handle_validation : unit =
 
-  let rec number_of_packages_on_location location_id package_id : int =
-    if Package_id_set.mem package_id (configuration#get_location location_id)#packages_installed then 1 else 0
+  let measure_model = new Measure.model ~universe ~configuration () in
 
-  and number_of_packages_global package_id : int =
-    Location_id_set.fold (fun location_id sum ->
-      sum + (number_of_packages_on_location location_id package_id)
-    ) configuration#get_location_ids 0
-
-  and number_of_components_on_location location_id component_type_id : int =
-    Component_id_set.cardinal (Component_id_set.filter (fun component_id -> 
-      let component = configuration#get_component component_id in
-      (component#location = location_id) && (component#typ = component_type_id)
-    ) configuration#get_component_ids)
-
-  and number_of_components_global component_type_id : int =
-    Component_id_set.cardinal (Component_id_set.filter (fun component_id -> 
-      let component = configuration#get_component component_id in
-      component#typ = component_type_id
-    ) configuration#get_component_ids)
-
-  and number_of_ports_provided_on_location location_id port_id : int =
-    let int_of_provide_arity = function
-      | Infinite_provide -> max_int
-      | Finite_provide a' -> a'
-    in
-    Component_id_set.fold (fun component_id sum -> 
-      let component = configuration#get_component component_id in
-      let provide_arity =
-        if component#location = location_id then 
-          let component_type = universe#get_component_type (component#typ) in
-          if Port_id_set.mem port_id component_type#provide_domain
-          then int_of_provide_arity (component_type#provide port_id)
-          else 0
-        else 0 in
-      (sum + provide_arity)
-    ) configuration#get_component_ids 0
-
-  and number_of_ports_provided_global port_id : int =
-    Location_id_set.fold (fun location_id sum ->
-      sum + (number_of_ports_provided_on_location location_id port_id)
-    ) configuration#get_location_ids 0
-
-  and spec_local_element l e = match e with
-    | Data_model.Spec_local_element_package        (package_id)        -> number_of_packages_on_location       l package_id
-    | Data_model.Spec_local_element_component_type (component_type_id) -> number_of_components_on_location     l component_type_id
-    | Data_model.Spec_local_element_port           (port_id)           -> number_of_ports_provided_on_location l port_id
+  let rec spec_local_element l e = match e with
+    | Data_model.Spec_local_element_package        (package_id)        -> measure_model#number_of_packages_on_location       l package_id
+    | Data_model.Spec_local_element_component_type (component_type_id) -> measure_model#number_of_components_on_location     l component_type_id
+    | Data_model.Spec_local_element_port           (port_id)           -> measure_model#number_of_ports_provided_on_location l port_id
   
   and spec_local_expr l e = match e with
     | Data_model.Spec_local_expr_var   v       -> 0 (* TODO: Treat variables... *)
@@ -760,9 +720,9 @@ let configuration_validation_specification (universe : universe) (configuration 
             ) cr
 
   and spec_element e = match e with
-    | Data_model.Spec_element_package        (package_id)        -> number_of_packages_global       package_id
-    | Data_model.Spec_element_component_type (component_type_id) -> number_of_components_global     component_type_id
-    | Data_model.Spec_element_port           (port_id)           -> number_of_ports_provided_global port_id
+    | Data_model.Spec_element_package        (package_id)        -> measure_model#number_of_packages_global       package_id
+    | Data_model.Spec_element_component_type (component_type_id) -> measure_model#number_of_components_global     component_type_id
+    | Data_model.Spec_element_port           (port_id)           -> measure_model#number_of_ports_provided_global port_id
     | Data_model.Spec_element_location       (co, cr, ls)        -> 
         (* For all locations fulfilling the conditions the local specification applies. *)
         let concerned_locations = List.filter (fun l -> 
