@@ -111,10 +111,10 @@ module type S = sig
 
   val structured_constraints : Data_state.structured_constraints -> string
 
-  val constraint_single_optimization : Data_constraint.Single_objective.optimization -> string
-  val constraint_single_solve_goal   : Data_constraint.Single_objective.solve_goal   -> string
-  val constraint_multi_optimization  : Data_constraint.Multi_objective.optimization  -> string
-  val constraint_multi_solve_goal    : Data_constraint.Multi_objective.solve_goal    -> string
+  val constraint_single_optimization : ('a -> string) -> 'a Data_constraint.Single_objective.optimization -> string
+  val constraint_single_solve_goal   : ('a -> string) -> 'a Data_constraint.Single_objective.solve_goal   -> string
+  val constraint_multi_optimization  : ('a -> string) -> 'a Data_constraint.Multi_objective.optimization  -> string
+  val constraint_multi_solve_goal    : ('a -> string) -> 'a Data_constraint.Multi_objective.solve_goal    -> string
 
   val constraint_optimization_function : Data_constraint.optimization_function -> string
 

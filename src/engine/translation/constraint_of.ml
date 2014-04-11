@@ -283,7 +283,8 @@ let cost_locations location_ids (get_location_cost : Data_model.location_id -> D
 
 (* translation functions *)
 let simple ?(with_packages = true) ~component_type_ids =
-  Multi_objective.Optimize( Multi_objective.Single ( Single_objective.Minimize (sum (cost_all_components component_type_ids)) ))
+  Multi_objective.solve_goal_of_single_solve_goal
+    (Single_objective.Optimize (Single_objective.Minimize (sum (cost_all_components component_type_ids)) )) (* Minimize the number of components. *)
 
 let compact_slow ?(with_packages = true) ~location_ids ~component_type_ids ~package_ids ~get_location_cost =
   let minimize_used_location_cost = Single_objective.Minimize (sum (cost_locations location_ids get_location_cost)) in (* First minimize the number of used locations, *) 

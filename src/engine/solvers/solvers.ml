@@ -43,9 +43,9 @@ end
 (* 1. Generic extension of a one-optimum solver to an n-optimum solver *)
 exception No_solution (* to break the normal control flow of solution computation in case there are none. Too painful to deal with options *)
 
-let solve_multi_objective settings bounds preprocess solve_step postprocess structured_constraints (multi_objective_solve_goal : Data_constraint.Multi_objective.solve_goal) = 
+let solve_multi_objective settings bounds preprocess solve_step postprocess structured_constraints (multi_objective_solve_goal : Data_constraint.expression Data_constraint.Multi_objective.solve_goal) = 
 
-  let rec iterative_solve data (multi_objective_optimization : Data_constraint.Multi_objective.optimization) = 
+  let rec iterative_solve data (multi_objective_optimization : Data_constraint.expression Data_constraint.Multi_objective.optimization) = 
     match multi_objective_optimization with
 
     (* If there are multiple optimizations to perform lexicographically, we perform the first one as a single optimization and then recursively the remaining ones. *)
@@ -116,7 +116,7 @@ module MiniZinc_generic = struct
   let input  : Engine_helper.file    ref = ref Engine_helper.file_default
   let output : Engine_helper.file    ref = ref Engine_helper.file_default
 
-  let preprocess settings bounds structured_constraints (solve_goal : Data_constraint.Multi_objective.solve_goal) =
+  let preprocess settings bounds structured_constraints (solve_goal : Data_constraint.expression Data_constraint.Multi_objective.solve_goal) =
     Zephyrus_log.log_solver_execution ("Checking if required programs are available... ");
     if (!solver).is_solver_available ()
     then 
@@ -152,7 +152,7 @@ module MiniZinc_generic = struct
         Zephyrus_log.log_panic "the constraint solver cannot be found. Aborting execution\n"
       end
 
-  let solve_step settings data (solve_goal : Data_constraint.Single_objective.solve_goal) =
+  let solve_step settings data (solve_goal : Data_constraint.expression Data_constraint.Single_objective.solve_goal) =
     let mzn_constraint = add_optimization_goal data solve_goal in
 
     Zephyrus_log.log_solver_execution "Printing the MiniZinc constraints to the file...\n";
@@ -196,7 +196,7 @@ module MiniZinc_generic = struct
 
         Some(solution, cost))
 
-  let postprocess data (solve_goal : Data_constraint.Single_objective.solve_goal) cost = 
+  let postprocess data (solve_goal : Data_constraint.expression Data_constraint.Single_objective.solve_goal) cost = 
     let open Data_constraint.Single_objective in
     match solve_goal with
     | Optimize(Minimize(e)) -> add_extra_constraint data e cost

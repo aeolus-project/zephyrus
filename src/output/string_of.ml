@@ -110,10 +110,10 @@ module type S = sig
 
   val structured_constraints : Data_state.structured_constraints -> string
 
-  val constraint_single_optimization   : Data_constraint.Single_objective.optimization -> string
-  val constraint_single_solve_goal     : Data_constraint.Single_objective.solve_goal   -> string
-  val constraint_multi_optimization    : Data_constraint.Multi_objective.optimization  -> string
-  val constraint_multi_solve_goal      : Data_constraint.Multi_objective.solve_goal    -> string
+  val constraint_single_optimization : ('a -> string) -> 'a Data_constraint.Single_objective.optimization -> string
+  val constraint_single_solve_goal   : ('a -> string) -> 'a Data_constraint.Single_objective.solve_goal   -> string
+  val constraint_multi_optimization  : ('a -> string) -> 'a Data_constraint.Multi_objective.optimization  -> string
+  val constraint_multi_solve_goal    : ('a -> string) -> 'a Data_constraint.Multi_objective.solve_goal    -> string
   val constraint_optimization_function : Data_constraint.optimization_function         -> string
 
   val bound : Data_constraint.Bound.t -> string
@@ -403,27 +403,27 @@ module Make =
         ) structured_constraints ) in
     String.concat "" (List.map (fun line -> Printf.sprintf "%s\n" line) lines)
 
-  let constraint_single_optimization (single_optimization : Data_constraint.Single_objective.optimization) =
+  let constraint_single_optimization (string_of_e : 'a -> string) (single_optimization : 'a Data_constraint.Single_objective.optimization) =
     match single_optimization with 
-    | Data_constraint.Single_objective.Minimize e -> Printf.sprintf "Minimize %s" (expression e)
-    | Data_constraint.Single_objective.Maximize e -> Printf.sprintf "Maximize %s" (expression e)
+    | Data_constraint.Single_objective.Minimize e -> Printf.sprintf "Minimize %s" (string_of_e e)
+    | Data_constraint.Single_objective.Maximize e -> Printf.sprintf "Maximize %s" (string_of_e e)
   
-  let constraint_single_solve_goal (single_solve_goal : Data_constraint.Single_objective.solve_goal) =    
+  let constraint_single_solve_goal (string_of_e : 'a -> string) (single_solve_goal : 'a Data_constraint.Single_objective.solve_goal) =    
     match single_solve_goal with
     | Data_constraint.Single_objective.Satisfy               -> "Satisfy"
-    | Data_constraint.Single_objective.Optimize optimization -> Printf.sprintf "Optimize (%s)" (constraint_single_optimization optimization)
+    | Data_constraint.Single_objective.Optimize optimization -> Printf.sprintf "Optimize (%s)" (constraint_single_optimization string_of_e optimization)
 
-  let rec constraint_multi_optimization (multi_optimization : Data_constraint.Multi_objective.optimization) =
+  let rec constraint_multi_optimization (string_of_e : 'a -> string) (multi_optimization : 'a Data_constraint.Multi_objective.optimization) =
     match multi_optimization with 
-    | Data_constraint.Multi_objective.Single         single_optimization                ->                          constraint_single_optimization single_optimization
-    | Data_constraint.Multi_objective.Lexicographic (single_optimization, optimization) -> Printf.sprintf "%s; %s" (constraint_single_optimization single_optimization) (constraint_multi_optimization optimization)
+    | Data_constraint.Multi_objective.Single         single_optimization                ->                          constraint_single_optimization string_of_e single_optimization
+    | Data_constraint.Multi_objective.Lexicographic (single_optimization, optimization) -> Printf.sprintf "%s; %s" (constraint_single_optimization string_of_e single_optimization) (constraint_multi_optimization string_of_e optimization)
 
-  let constraint_multi_solve_goal (multi_solve_goal : Data_constraint.Multi_objective.solve_goal) =
+  let constraint_multi_solve_goal (string_of_e : 'a -> string) (multi_solve_goal : 'a Data_constraint.Multi_objective.solve_goal) =
     match multi_solve_goal with
     | Data_constraint.Multi_objective.Satisfy               -> "Satisfy"
-    | Data_constraint.Multi_objective.Optimize optimization -> Printf.sprintf "Optimize (%s)" (constraint_multi_optimization optimization)
+    | Data_constraint.Multi_objective.Optimize optimization -> Printf.sprintf "Optimize (%s)" (constraint_multi_optimization string_of_e optimization)
 
-  let constraint_optimization_function = constraint_multi_solve_goal
+  let constraint_optimization_function = constraint_multi_solve_goal expression
 
 
   let bound b = "(" ^ (value (Data_constraint.Bound.min b))  ^ ", " ^ (value (Data_constraint.Bound.max b)) ^ ")"

@@ -236,9 +236,9 @@ and variables_of_konstraint c = match c with
 module Single_objective = struct
 
   (** Optimize the solution by minimizing or maximizing a certain expression. *)
-  type optimization =
-    | Minimize of expression
-    | Maximize of expression
+  type 'expr optimization =
+    | Minimize of 'expr
+    | Maximize of 'expr
   
   let variables_of_optimization optimization =
     let expression = 
@@ -248,9 +248,9 @@ module Single_objective = struct
     variables_of_expression expression
 
   (** A goal for solving a single-objective constraint problem. *)
-  type solve_goal =
-    | Satisfy                  (** Satisfy the constraints. *)
-    | Optimize of optimization (** Find an optimal solution which satisfies the constraints. *)
+  type 'expr solve_goal =
+    | Satisfy                     (** Satisfy the constraints. *)
+    | Optimize of 'expr optimization (** Find an optimal solution which satisfies the constraints. *)
 
   let variables_of_solve_goal solve_goal =
     match solve_goal with
@@ -263,9 +263,9 @@ end
 module Multi_objective = struct
 
   (** Optimize the solution by certain criteria. *)
-  type optimization =
-    | Single        of Single_objective.optimization                (** Optimize the solution by minimizing or maximizing a certain expression. *)
-    | Lexicographic of Single_objective.optimization * optimization (** Optimize the solution by minimizing or maximizing lexicographically certain expressions. *)
+  type 'expr optimization =
+    | Single        of 'expr Single_objective.optimization                   (** Optimize the solution by minimizing or maximizing a certain expression. *)
+    | Lexicographic of 'expr Single_objective.optimization * 'expr optimization (** Optimize the solution by minimizing or maximizing lexicographically certain expressions. *)
 
   let rec variables_of_optimization optimization =
     match optimization with 
@@ -273,28 +273,28 @@ module Multi_objective = struct
     | Lexicographic (single_optimization, optimization) -> Variable_set.union (Single_objective.variables_of_optimization single_optimization) (variables_of_optimization optimization)
 
   (** A goal for solving a multi-objective constraint problem. *)
-  type solve_goal = 
-    | Satisfy                  (** Satisfy the constraints. *)
-    | Optimize of optimization (** Find an optimal solution which satisfies the constraints. *)
+  type 'expr solve_goal = 
+    | Satisfy                     (** Satisfy the constraints. *)
+    | Optimize of 'expr optimization (** Find an optimal solution which satisfies the constraints. *)
 
   let variables_of_solve_goal solve_goal =
     match solve_goal with
     | Satisfy               -> Variable_set.empty
     | Optimize optimization -> variables_of_optimization optimization
 
-  let solve_goal_of_list_of_single_optimizations (l : Single_objective.optimization list) =
+  let solve_goal_of_list_of_single_optimizations (l : 'expr Single_objective.optimization list) =
     match List.rev l with
     | []   -> Satisfy
     | h::t -> Optimize (List.fold_left (fun acc single_optimization -> Lexicographic (single_optimization, acc) ) (Single h) t)
 
-  let solve_goal_of_single_solve_goal (single_solve_goal : Single_objective.solve_goal) =
+  let solve_goal_of_single_solve_goal (single_solve_goal : 'expr Single_objective.solve_goal) =
     match single_solve_goal with
    | Single_objective.Satisfy                      -> Satisfy
    | Single_objective.Optimize single_optimization -> Optimize (Single (single_optimization))
 
 end
 
-type optimization_function = Multi_objective.solve_goal
+type optimization_function = expression Multi_objective.solve_goal
 
 
 (*/************************************************************************\*)
