@@ -101,6 +101,10 @@ module Value = struct
     | (_              , Finite_value _ ) -> infty
     | _  -> of_int 1
   
+  let modulo v1 v2 = match (v1, v2) with
+    | (Finite_value n1, Finite_value n2) -> of_int (n1 mod n2)
+    | _  -> assert false (* TODO *)
+
   let is_finite v = (v != Infinite_value)
   let is_infty  v = (v  = Infinite_value)
   
@@ -119,6 +123,18 @@ module Value = struct
   let int_of v default = match v with | Finite_value v -> v | Infinite_value -> default
   let int_of_unsafe v  = match v with | Finite_value v -> v | Infinite_value -> raise (Failure "cannot give a normal value for an infinite one")
   
+  let abs v = match v with
+    | Finite_value v' -> if v' >= 0 then Finite_value v' else Finite_value (-v')
+    | Infinite_value -> Infinite_value
+
+  (* Workaround... *)
+  let leq = is_inf_eq
+  let gt  = is_sup
+  let eq  = (=)
+  let lt v1 v2 = (is_inf_eq v1 v2) && (not (eq v1 v2))
+  let geq v1 v2 = (gt v1 v2) || (eq v1 v2)
+  let neq v1 v2 = not (eq v1 v2)
+
 end
 
 
@@ -249,7 +265,7 @@ module Single_objective = struct
 
   (** A goal for solving a single-objective constraint problem. *)
   type 'expr solve_goal =
-    | Satisfy                     (** Satisfy the constraints. *)
+    | Satisfy                        (** Satisfy the constraints. *)
     | Optimize of 'expr optimization (** Find an optimal solution which satisfies the constraints. *)
 
   let variables_of_solve_goal solve_goal =
@@ -264,7 +280,7 @@ module Multi_objective = struct
 
   (** Optimize the solution by certain criteria. *)
   type 'expr optimization =
-    | Single        of 'expr Single_objective.optimization                   (** Optimize the solution by minimizing or maximizing a certain expression. *)
+    | Single        of 'expr Single_objective.optimization                      (** Optimize the solution by minimizing or maximizing a certain expression. *)
     | Lexicographic of 'expr Single_objective.optimization * 'expr optimization (** Optimize the solution by minimizing or maximizing lexicographically certain expressions. *)
 
   let rec variables_of_optimization optimization =
@@ -274,7 +290,7 @@ module Multi_objective = struct
 
   (** A goal for solving a multi-objective constraint problem. *)
   type 'expr solve_goal = 
-    | Satisfy                     (** Satisfy the constraints. *)
+    | Satisfy                        (** Satisfy the constraints. *)
     | Optimize of 'expr optimization (** Find an optimal solution which satisfies the constraints. *)
 
   let variables_of_solve_goal solve_goal =

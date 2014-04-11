@@ -116,7 +116,8 @@ module type S = sig
   val constraint_multi_optimization  : ('a -> string) -> 'a Data_constraint.Multi_objective.optimization  -> string
   val constraint_multi_solve_goal    : ('a -> string) -> 'a Data_constraint.Multi_objective.solve_goal    -> string
 
-  val constraint_optimization_function : Data_constraint.optimization_function -> string
+  val constraint_optimization_function          : Data_constraint.optimization_function                            -> string
+  val measured_constraint_optimization_function : Data_constraint.value Data_constraint.Multi_objective.solve_goal -> string
 
   val bound : Data_constraint.Bound.t -> string
 

@@ -206,6 +206,7 @@ let () =
     then constraint_variable_bounds (* ERRORS! *) 
     else None 
   ) in
+  (* let variable_bounds = Data_state.get_variable_bounds (None) in (* Left here for later... *) *)
   Zephyrus_log.log_stage_end ();
 
 
@@ -331,13 +332,22 @@ let () =
              of them are often not generated (we usually assume that it is not useful to generate them all). *)
     let validation_results = Validate.standard_model_check ~with_packages:false universe final_configuration specification in
     if Validate.validation_passed validation_results
-    then Zephyrus_log.log_execution "\nFinal configuration has passed all checks and is completely valid!\n"
+    then Zephyrus_log.log_execution "Final configuration has passed all checks and is completely valid!\n"
     else begin
       let final_configuration_validation_errors = Validate.validation_results_filter_errors validation_results in
-      Zephyrus_log.log_execution "\nFinal configuration validation errors:\n";
+      Zephyrus_log.log_execution "Final configuration validation errors:\n";
       List.iter (fun validation_result -> Zephyrus_log.log_execution (Printf.sprintf "%s\n%!" (Validate.String_of.validation_result validation_result))) final_configuration_validation_errors;
       ignore (exit 13)
     end;
+    Zephyrus_log.log_stage_end ();
+
+    (* Measurements *)
+    Zephyrus_log.log_stage_new "FINAL CONFIGURATION MEASUREMENTS";
+    let constraint_optimization_function = Constraint_of.optimization_function ~with_packages universe final_configuration optimization_function in
+    let measured_optimization_function = Measure.measured_optimization_function_of_constraint_optimization_function ~with_packages universe final_configuration constraint_optimization_function in
+
+    Zephyrus_log.log_execution (Printf.sprintf "Solve goal optimization measurements:\n  %s\n" (String_of.measured_constraint_optimization_function measured_optimization_function));
+
     Zephyrus_log.log_stage_end ()
 
   );

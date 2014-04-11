@@ -114,7 +114,9 @@ module type S = sig
   val constraint_single_solve_goal   : ('a -> string) -> 'a Data_constraint.Single_objective.solve_goal   -> string
   val constraint_multi_optimization  : ('a -> string) -> 'a Data_constraint.Multi_objective.optimization  -> string
   val constraint_multi_solve_goal    : ('a -> string) -> 'a Data_constraint.Multi_objective.solve_goal    -> string
-  val constraint_optimization_function : Data_constraint.optimization_function         -> string
+
+  val constraint_optimization_function          : Data_constraint.optimization_function                            -> string
+  val measured_constraint_optimization_function : Data_constraint.value Data_constraint.Multi_objective.solve_goal -> string
 
   val bound : Data_constraint.Bound.t -> string
 
@@ -423,7 +425,8 @@ module Make =
     | Data_constraint.Multi_objective.Satisfy               -> "Satisfy"
     | Data_constraint.Multi_objective.Optimize optimization -> Printf.sprintf "Optimize (%s)" (constraint_multi_optimization string_of_e optimization)
 
-  let constraint_optimization_function = constraint_multi_solve_goal expression
+  let constraint_optimization_function          = constraint_multi_solve_goal expression
+  let measured_constraint_optimization_function = constraint_multi_solve_goal value
 
 
   let bound b = "(" ^ (value (Data_constraint.Bound.min b))  ^ ", " ^ (value (Data_constraint.Bound.max b)) ^ ")"
