@@ -87,23 +87,60 @@ let program_async_exec program args =
   let exe_function = exe_function_of_program program args in
   execute_asynchronically exe_function
 
-let program_wait_pid pid =
-  let (_, termination_status) = Unix.waitpid [] pid in
-  termination_status
+let process_is_dead pid =
+  try
+    let (wait_pid, termination_status) = Unix.waitpid [Unix.WNOHANG] pid in
+    if wait_pid = pid 
+    then true
+    else 
+      if wait_pid = 0 
+      then false
+      else failwith (Printf.sprintf "Waiting specifically for the process with pid %d and the process with pid %d returned!\n%!" pid wait_pid)
+  with Unix.Unix_error(Unix.ECHILD, "waitpid", _) ->
+    Zephyrus_log.log_execution (Printf.sprintf "process_is_dead: Unix error catched: %s\n%!" (Unix.error_message Unix.ECHILD));
+    true
 
-let program_wait () =
-  let (pid, termination_status) = Unix.wait () in
-  (pid, termination_status)
+let process_wait_pid pid =
+  try
+    let (wait_pid, termination_status) = Unix.waitpid [] pid in
+    if wait_pid != pid
+    then failwith (Printf.sprintf "Waiting specifically for the process with pid %d and the process with pid %d returned!\n%!" pid wait_pid)
+    else termination_status
+  with Unix.Unix_error(Unix.ECHILD, "waitpid", _) ->
+    Zephyrus_log.log_execution (Printf.sprintf "process_wait_pid: Unix error catched: %s\n%!" (Unix.error_message Unix.ECHILD));
+    (Unix.WEXITED 0)
+
+let process_wait () =
+  try
+    let (pid, termination_status) = Unix.wait () in
+    (pid, termination_status)
+  with Unix.Unix_error(err, s1, s2) ->
+    Zephyrus_log.log_execution (Printf.sprintf "process_wait: unix error: %s\n%!" (Unix.error_message err));
+    raise (Unix.Unix_error (err, s1, s2))
+
+let no_more_children () =
+  try
+    ignore (Unix.waitpid [Unix.WNOHANG] (-1)); false
+  with Unix.Unix_error(Unix.ECHILD, "waitpid", _) -> true
+    
 
 let program_sync_exec program args = 
   let pid = program_async_exec program args in
-  program_wait_pid pid
+  process_wait_pid pid
 
 let kill pid =
     try
       Zephyrus_log.log_execution (Printf.sprintf "Killing process %d...\n%!" pid);
       Unix.kill pid 9;
       Zephyrus_log.log_execution (Printf.sprintf "Killed process %d!\n%!" pid);
+
+      Zephyrus_log.log_execution (Printf.sprintf "Checking if process %d was killed properly...\n%!" pid);      
+      while not (process_is_dead pid) do
+        Zephyrus_log.log_execution (Printf.sprintf "Waiting for process %d to die...\n%!" pid);  
+        process_wait_pid pid
+      done;
+      Zephyrus_log.log_execution (Printf.sprintf "Process %d has died!\n%!" pid);
+
     with
       Unix.Unix_error (Unix.ESRCH, "kill", _) -> 
         Zephyrus_log.log_execution (Printf.sprintf "Process %d already dead!\n%!" pid);
@@ -340,7 +377,7 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
   (* Until we find a solution, if there are still any processes left, wait for one of them to terminate... *)
   while (!the_first_correct_one = None) && (List.length !processes_left > 0) do
     Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Waiting for processes...\n%!");
-    let (pid, termination_status) = Unix.wait () in
+    let (pid, termination_status) = process_wait () in
 
     (* Get the program information corresponding to the process that has just terminated. *)
     try 
@@ -372,6 +409,15 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
           Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Found the WINNER, killing the others...\n%!");
           List.iter kill processes_left_pids;
 
+          (* Check if all the children are dead. *)
+          Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Checking if all the others died properly...\n%!");
+          List.iter (fun child_pid ->
+            let is_dead = process_is_dead child_pid in
+            if is_dead
+            then (Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Child with pid %d has died properly!\n%!" child_pid))
+            else (Printf.sprintf "Portfolio: Error: Child with pid %d is still alive!\n%!" child_pid; assert false)
+          ) processes_left_pids;
+
           (* After the killing there are no processes left running. *)
           processes_left := []
         )
@@ -387,6 +433,8 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
       Zephyrus_log.log_execution (Printf.sprintf "Portfolio: A child process with pid %d, which was not created by the portfolio, has just terminated!\n%!" pid)
 
   done;
+
+  assert(no_more_children ());
 
   (* Check if we have found a solution... *)
   match !the_first_correct_one with

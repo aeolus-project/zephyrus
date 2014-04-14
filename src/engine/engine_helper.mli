@@ -58,11 +58,11 @@ val program_sync_exec : program -> (string list) -> Unix.process_status
 (** [program_async_exec p args] executes a given program [p] with arguments [args] asynchronically and returns its pid. *)
 val program_async_exec : program -> (string list) -> pid
 
-(** [program_wait_pid pid] waits for a process with the given pid to terminate, then it returns its termination status. *)
-val program_wait_pid : pid -> Unix.process_status
+(** [process_wait_pid pid] waits for a process with the given pid to terminate, then it returns its termination status. *)
+val process_wait_pid : pid -> Unix.process_status
 
-(** [program_wait ()] waits for any child of the current process terminate, then it returns its pid and termination status. *)
-val program_wait : unit -> (pid * Unix.process_status)
+(** [process_wait ()] waits for any child of the current process terminate, then it returns its pid and termination status. *)
+val process_wait : unit -> (pid * Unix.process_status)
 
 (** [did_program_exit_ok process_status] check if the process status returned by a terminated external command (i.e. returned by {!program_sync_exec}) means that the program has terminated successfuly. *)
 val did_program_exit_ok : Unix.process_status -> bool
