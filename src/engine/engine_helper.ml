@@ -97,7 +97,7 @@ let process_is_dead pid =
       then false
       else failwith (Printf.sprintf "Waiting specifically for the process with pid %d and the process with pid %d returned!\n%!" pid wait_pid)
   with Unix.Unix_error(Unix.ECHILD, "waitpid", _) ->
-    Zephyrus_log.log_execution (Printf.sprintf "process_is_dead: Unix error catched: %s\n%!" (Unix.error_message Unix.ECHILD));
+    (* Zephyrus_log.log_execution (Printf.sprintf "process_is_dead: Unix error catched: %s\n%!" (Unix.error_message Unix.ECHILD)); *)
     true
 
 let process_wait_pid pid =
@@ -137,7 +137,7 @@ let kill pid =
       Zephyrus_log.log_execution (Printf.sprintf "Checking if process %d was killed properly...\n%!" pid);      
       while not (process_is_dead pid) do
         Zephyrus_log.log_execution (Printf.sprintf "Waiting for process %d to die...\n%!" pid);  
-        process_wait_pid pid
+        ignore (process_wait_pid pid)
       done;
       Zephyrus_log.log_execution (Printf.sprintf "Process %d has died!\n%!" pid);
 
@@ -235,6 +235,22 @@ let g12_cpx_minizinc_solver = {
                 | _ -> raise Wrong_argument_number);
   exe_type = Bash_command;
 }
+
+(* This bash one-liner kills (SIGKILL) all the family of a given process (all the processes in his process group), but spares the process itself.  *)
+let kill_family = {
+  name     = "kill_family";
+  commands = ["ps";"tr";"grep";"cut";"kill"];
+  exe      = (fun args ->
+              match args with
+              | [pid; signal] ->
+                Printf.sprintf "ps x -o \"PID:%%p|GROUP:%%r\" | tr -d ' ' | grep \"GROUP:%s\" | grep -v \"PID:%s\" | cut -d '|' -f 1 | cut -d ':' -f 2 | xargs kill %s" pid pid signal
+              | _ -> raise Wrong_argument_number);
+  exe_type = Bash_command;
+}
+
+(* Helper function to convert the integer pid and signal to strings... *)
+let make_kill_family_args pid signal =
+  [string_of_int pid; string_of_int signal]
 
 
 (** 2. Custom solver handling *)
@@ -414,8 +430,8 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
           List.iter (fun child_pid ->
             let is_dead = process_is_dead child_pid in
             if is_dead
-            then (Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Child with pid %d has died properly!\n%!" child_pid))
-            else (Printf.sprintf "Portfolio: Error: Child with pid %d is still alive!\n%!" child_pid; assert false)
+            then (Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Child with pid %d has died properly!\n%!"     child_pid))
+            else (Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Error: Child with pid %d is still alive!\n%!" child_pid); assert false)
           ) processes_left_pids;
 
           (* After the killing there are no processes left running. *)
@@ -434,7 +450,13 @@ let portfolio (programs : program list) (verify_output_file : string -> bool) (i
 
   done;
 
+  (* Check if at this point we really have no living children. *)
   assert(no_more_children ());
+
+  (* As sometimes apparently the created bash processes do not kill their children properly,
+     we need to use this workaround to kill all the living grandchildren etc. of our process... *)
+  Zephyrus_log.log_execution (Printf.sprintf "Portfolio: Just in case killing all the family of the main process directly...\n%!");
+  ignore (program_sync_exec kill_family (make_kill_family_args (Unix.getpid ()) 9));
 
   (* Check if we have found a solution... *)
   match !the_first_correct_one with
