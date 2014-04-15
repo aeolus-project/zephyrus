@@ -266,12 +266,12 @@ class model ?(with_packages = true) ~universe ~configuration () = object (self :
     | ArithKonstraint  (arith_cmp_op, e1, e2) -> 
       let perform_op : value -> value -> bool = 
         (match arith_cmp_op with
-        | Lt  -> Value.lt
-        | LEq -> Value.leq
-        | Eq  -> Value.eq
-        | GEq -> Value.geq
-        | Gt  -> Value.gt
-        | NEq -> Value.neq) in
+        | Data_constraint.Lt  -> Value.lt
+        | Data_constraint.LEq -> Value.leq
+        | Data_constraint.Eq  -> Value.eq
+        | Data_constraint.GEq -> Value.geq
+        | Data_constraint.Gt  -> Value.gt
+        | Data_constraint.NEq -> Value.neq) in
       perform_op (self#value_of_expression e1) (self#value_of_expression e2)
 
     | UnaryKonstraint  (unary_konstraint_op, k) ->

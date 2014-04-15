@@ -282,8 +282,8 @@ let minizinc_goal_of_solve_goal v_map ?(solve_strategy=None) solve_goal =
       Printf.sprintf ":: %s\n" annotation in
 
   match solve_goal with
-  | Single_objective.Optimize(Maximize(e)) -> (Some(e), Printf.sprintf "solve %smaximize (%s);" search_strategy_annotation cost_variable_name)
-  | Single_objective.Optimize(Minimize(e)) -> (Some(e), Printf.sprintf "solve %sminimize (%s);" search_strategy_annotation cost_variable_name)
+  | Single_objective.Optimize(Single_objective.Maximize(e)) -> (Some(e), Printf.sprintf "solve %smaximize (%s);" search_strategy_annotation cost_variable_name)
+  | Single_objective.Optimize(Single_objective.Minimize(e)) -> (Some(e), Printf.sprintf "solve %sminimize (%s);" search_strategy_annotation cost_variable_name)
   | Single_objective.Satisfy               -> (None,    Printf.sprintf "solve %ssatisfy;"       search_strategy_annotation                   )
 
 let add_optimization_goal smzn solve_goal = 
