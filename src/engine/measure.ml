@@ -23,76 +23,6 @@
 open Data_constraint
 open Data_model
 
-(*
-module Value = struct
-  type t = value
-  
-  let zero     = Finite_value 0
-  let one      = Finite_value 1
-  let infty    = Infinite_value
-  let of_int n = Finite_value n
-
-  let min v1 v2 = match (v1,v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (min n1 n2)
-    | (Finite_value _ , Infinite_value ) -> v1
-    | (Infinite_value , Finite_value _ ) -> v2
-    | (Infinite_value , Infinite_value ) -> infty
-
-  let mins l = Data_common.List.fold_combine (fun x -> x) min l infty
-
-  let max v1 v2 = match (v1,v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (max n1 n2)
-    | _ -> Infinite_value
-
-  let maxs l = Data_common.List.fold_combine (fun x -> x) max l zero
-
-  let add v1 v2 = match (v1,v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (n1 + n2)
-    | _ -> Infinite_value
-  let sum l = Data_common.List.fold_combine (fun x -> x) add l zero
-
-  let multiply v1 v2 = match (v1,v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (n1 * n2)
-    | _ -> Infinite_value
-  let product l = Data_common.List.fold_combine (fun x -> x) multiply l one
-  
-  let sub v1 v2 = match (v1, v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int (Pervasives.max 0 (n1 - n2)) (* we want to stay positive :p *)
-    | (Finite_value _ , _              ) -> zero
-    | (_              , Finite_value _ ) -> infty
-    | _  -> zero
-
-  let div v1 v2 = match (v1, v2) with
-    | (Finite_value n1, Finite_value n2) -> of_int ((n1 / n2)
-    | (Finite_value _ , _              ) -> zero
-    | (_              , Finite_value _ ) -> infty
-    | _  -> of_int 1
-  
-  let is_finite v = (v != Infinite_value)
-  let is_infty  v = (v  = Infinite_value)
-  
-  let is_sup v1 v2 = match (v1, v2) with
-    | (Finite_value n1, Finite_value n2) -> v1 > v2
-    | (Finite_value _ , _              ) -> false
-    | (_              , Finite_value _ ) -> true
-    | _  -> false
-    
-  let is_inf_eq v1 v2 = match (v1, v2) with
-    | (Finite_value n1, Finite_value n2) -> v1 <= v2
-    | (Finite_value _ , _              ) -> true
-    | (_              , Finite_value _ ) -> false
-    | _  -> true
-  
-  let int_of v default = match v with | Finite_value v -> v | Infinite_value -> default
-  let int_of_unsafe v  = match v with | Finite_value v -> v | Infinite_value -> raise (Failure "cannot give a normal value for an infinite one")
-  
-  let abs v = match v with
-    | Finite_value v' -> if v' >= 0 then Finite_value v' else Finite_value (-v')
-    | Infinite_value -> Infinite_value
-
-end
-*)
-
 class model ?(with_packages = true) ~universe ~configuration () = object (self : 'selftype)
 
   val with_packages : bool          = with_packages
@@ -312,28 +242,6 @@ end
 
 
 type measured_optimization_function = value Multi_objective.solve_goal
-
-(*
-(* TODO: Probably remove. *)
-
-type optimality_measure = int list
-
-let measure_optimality ?(with_packages = true) (universe : universe) (configuration : configuration) (optimization_function : optimization_function) : optimality_measure =
-  let measure_model = new model ~with_packages ~universe ~configuration () in
-  match optimization_function with
-
-  | Optimization_function_simple -> 
-      [measure_model#number_of_any_components_global ()] (* Minimize the number of components. *)
-  
-  | Optimization_function_compact -> 
-      [measure_model#used_locations_cost ();             (* First minimize the number of used locations, *) 
-       measure_model#number_of_any_components_global (); (* then minimize the number of components, *)
-       measure_model#number_of_any_packages_global ()]   (* finally minimize the number of packages (so we do not have useless packages). *)
-
-  | Optimization_function_conservative -> [] (* TODO *)
-  | Optimization_function_spread       -> [] (* TODO *)
-  | Optimization_function_none         -> [] (* TODO *)
-*)
 
 let measured_optimization_function_of_constraint_optimization_function ?(with_packages = true) (universe : universe) (configuration : configuration) (constraint_optimization_function : expression Multi_objective.solve_goal) : measured_optimization_function =
   let measure_model = new model ~with_packages ~universe ~configuration () in
