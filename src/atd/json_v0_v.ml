@@ -43,7 +43,7 @@ type component_types = Json_v0_t.component_types
 
 type package = Json_v0_t.package = {
   package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
+  package_depend (*atd depend *): (package_name list) list;
   package_conflict (*atd conflict *): package_name list;
   package_consume (*atd consume *):
     (resource_name * resource_consumption) list
@@ -119,7 +119,7 @@ let validate_location_name = (
 let validate_resource_name = (
   (fun _ _ -> None)
 )
-let validate_provide_arity = (
+let validate_provide_arity : _ -> provide_arity -> _ = (
   fun _ _ -> None
 )
 let validate_require_arity = (
@@ -143,7 +143,7 @@ let validate__3 = (
 let validate__4 = (
   fun _ _ -> None
 )
-let validate_component_type = (
+let validate_component_type : _ -> component_type -> _ = (
   fun _ _ -> None
 )
 let validate__5 = (
@@ -158,7 +158,7 @@ let validate__6 = (
 let validate__7 = (
   fun _ _ -> None
 )
-let validate_package = (
+let validate_package : _ -> package -> _ = (
   fun _ _ -> None
 )
 let validate__8 = (
@@ -167,7 +167,7 @@ let validate__8 = (
 let validate_packages = (
   validate__8
 )
-let validate_repository = (
+let validate_repository : _ -> repository -> _ = (
   fun _ _ -> None
 )
 let validate__9 = (
@@ -185,7 +185,7 @@ let validate_package_names = (
 let validate__11 = (
   fun _ _ -> None
 )
-let validate_universe = (
+let validate_universe : _ -> universe -> _ = (
   fun _ _ -> None
 )
 let validate__12 = (
@@ -197,13 +197,13 @@ let validate_resources_provided = (
 let validate_location_cost = (
   (fun _ _ -> None)
 )
-let validate_location = (
+let validate_location : _ -> location -> _ = (
   fun _ _ -> None
 )
-let validate_component = (
+let validate_component : _ -> component -> _ = (
   fun _ _ -> None
 )
-let validate_binding = (
+let validate_binding : _ -> binding -> _ = (
   fun _ _ -> None
 )
 let validate__13 = (
@@ -215,7 +215,7 @@ let validate__14 = (
 let validate__15 = (
   fun _ _ -> None
 )
-let validate_configuration = (
+let validate_configuration : _ -> configuration -> _ = (
   fun _ _ -> None
 )
 let create_component_type 
@@ -224,7 +224,7 @@ let create_component_type
   ?(component_type_require = [])
   ?(component_type_conflict = [])
   ?(component_type_consume = [])
-  () =
+  () : component_type =
   {
     component_type_name = component_type_name;
     component_type_provide = component_type_provide;
@@ -237,7 +237,7 @@ let create_package
   ?(package_depend = [])
   ?(package_conflict = [])
   ?(package_consume = [])
-  () =
+  () : package =
   {
     package_name = package_name;
     package_depend = package_depend;
@@ -247,7 +247,7 @@ let create_package
 let create_repository 
   ~repository_name
   ?(repository_packages = [])
-  () =
+  () : repository =
   {
     repository_name = repository_name;
     repository_packages = repository_packages;
@@ -256,7 +256,7 @@ let create_universe
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
-  () =
+  () : universe =
   {
     universe_component_types = universe_component_types;
     universe_implementation = universe_implementation;
@@ -268,7 +268,7 @@ let create_location
   ~location_repository
   ?(location_packages_installed = [])
   ?(location_cost = 1)
-  () =
+  () : location =
   {
     location_name = location_name;
     location_provide_resources = location_provide_resources;
@@ -280,7 +280,7 @@ let create_component
   ~component_name
   ~component_type
   ~component_location
-  () =
+  () : component =
   {
     component_name = component_name;
     component_type = component_type;
@@ -290,7 +290,7 @@ let create_binding
   ~binding_port
   ~binding_requirer
   ~binding_provider
-  () =
+  () : binding =
   {
     binding_port = binding_port;
     binding_requirer = binding_requirer;
@@ -300,7 +300,7 @@ let create_configuration
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
-  () =
+  () : configuration =
   {
     configuration_locations = configuration_locations;
     configuration_components = configuration_components;

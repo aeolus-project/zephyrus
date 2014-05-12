@@ -42,7 +42,7 @@ type component_types = component_type list
 
 type package = {
   package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
+  package_depend (*atd depend *): (package_name list) list;
   package_conflict (*atd conflict *): package_name list;
   package_consume (*atd consume *):
     (resource_name * resource_consumption) list

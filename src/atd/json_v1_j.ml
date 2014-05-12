@@ -42,7 +42,7 @@ type component_types = Json_v1_t.component_types
 
 type package = Json_v1_t.package = {
   package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
+  package_depend (*atd depend *): (package_name list) list;
   package_conflict (*atd conflict *): package_name list;
   package_consume (*atd consume *):
     (resource_name * resource_consumption) list
@@ -326,7 +326,7 @@ let read__4 = (
 )
 let _4_of_string s =
   read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component_type = (
+let write_component_type : _ -> component_type -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -385,7 +385,7 @@ let read_component_type = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : component_type) =
       {
         component_type_name = Obj.magic 0.0;
         component_type_provide = [];
@@ -672,7 +672,14 @@ let _6_of_string s =
   read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__7 = (
   Ag_oj_run.write_list (
-    write__6
+    fun ob x ->
+      Bi_outbuf.add_char ob '[';
+      (let x = x in
+      (
+        write__6
+      ) ob x
+      );
+      Bi_outbuf.add_char ob ']';
   )
 )
 let string_of__7 ?(len = 1024) x =
@@ -681,12 +688,41 @@ let string_of__7 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__7 = (
   Ag_oj_run.read_list (
-    read__6
+    fun p lb ->
+      Yojson.Safe.read_space p lb;
+      let std_tuple = Yojson.Safe.start_any_tuple p lb in
+      let len = ref 0 in
+      let end_of_tuple = ref false in
+      (try
+        let x0 =
+          let x =
+            (
+              read__6
+            ) p lb
+          in
+          incr len;
+          (try
+            Yojson.Safe.read_space p lb;
+            Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+          with Yojson.End_of_tuple -> end_of_tuple := true);
+          x
+        in
+        if not !end_of_tuple then (
+          try
+            while true do
+              Yojson.Safe.skip_json p lb;
+              Yojson.Safe.read_tuple_sep2 p std_tuple lb;
+            done
+          with Yojson.End_of_tuple -> ()
+        );
+        (x0)
+      with Yojson.End_of_tuple ->
+        Ag_oj_run.missing_tuple_fields !len [ 0 ]);
   )
 )
 let _7_of_string s =
   read__7 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_package = (
+let write_package : _ -> package -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -736,7 +772,7 @@ let read_package = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : package) =
       {
         package_name = Obj.magic 0.0;
         package_depend = [];
@@ -958,7 +994,7 @@ let read_packages = (
 )
 let packages_of_string s =
   read_packages (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_repository = (
+let write_repository : _ -> repository -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -990,7 +1026,7 @@ let read_repository = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : repository) =
       {
         repository_name = Obj.magic 0.0;
         repository_packages = [];
@@ -1239,7 +1275,7 @@ let read__11 = (
 )
 let _11_of_string s =
   read__11 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_universe = (
+let write_universe : _ -> universe -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1289,7 +1325,7 @@ let read_universe = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : universe) =
       {
         universe_version = Obj.magic 0.0;
         universe_component_types = [];
@@ -1523,7 +1559,7 @@ let read_location_cost = (
 )
 let location_cost_of_string s =
   read_location_cost (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_location = (
+let write_location : _ -> location -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1582,7 +1618,7 @@ let read_location = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : location) =
       {
         location_name = Obj.magic 0.0;
         location_provide_resources = [];
@@ -1821,7 +1857,7 @@ let read_location = (
 )
 let location_of_string s =
   read_location (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component = (
+let write_component : _ -> component -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1862,7 +1898,7 @@ let read_component = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : component) =
       {
         component_name = Obj.magic 0.0;
         component_type = Obj.magic 0.0;
@@ -2029,7 +2065,7 @@ let read_component = (
 )
 let component_of_string s =
   read_component (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_binding = (
+let write_binding : _ -> binding -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2070,7 +2106,7 @@ let read_binding = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : binding) =
       {
         binding_port = Obj.magic 0.0;
         binding_requirer = Obj.magic 0.0;
@@ -2285,7 +2321,7 @@ let read__15 = (
 )
 let _15_of_string s =
   read__15 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_configuration = (
+let write_configuration : _ -> configuration -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2335,7 +2371,7 @@ let read_configuration = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : configuration) =
       {
         configuration_version = Obj.magic 0.0;
         configuration_locations = [];

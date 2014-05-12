@@ -30,13 +30,13 @@ let validate__2 = (
 let validate__3 = (
   fun _ _ -> None
 )
-let validate_coinst_conflicts = (
+let validate_coinst_conflicts : _ -> coinst_conflicts -> _ = (
   fun _ _ -> None
 )
 let create_coinst_conflicts 
   ~classes
   ~incompatibilities
-  () =
+  () : coinst_conflicts =
   {
     classes = classes;
     incompatibilities = incompatibilities;

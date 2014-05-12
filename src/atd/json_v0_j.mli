@@ -43,7 +43,7 @@ type component_types = Json_v0_t.component_types
 
 type package = Json_v0_t.package = {
   package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
+  package_depend (*atd depend *): (package_name list) list;
   package_conflict (*atd conflict *): package_name list;
   package_consume (*atd consume *):
     (resource_name * resource_consumption) list
