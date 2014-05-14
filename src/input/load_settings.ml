@@ -163,6 +163,7 @@ let speclist =
         Arg.String (fun repository_name -> IncrementalPair.set_fst current_repository_data repository_name);
         Arg.String (fun repository_file -> IncrementalPair.set_snd current_repository_data repository_file; add_current_repository_to_settings (); IncrementalPair.reset current_repository_data)
       ]), " Import additional repository: specify the repository name and the packages input file (you can import multiple repositories).");
+    ("-stateful", arg_on_off_switch Settings.input_stateful, " Expect stateful model as input (default: off)." );
 
     (* Benchmarks *)
     ("-benchmark", Arg.Symbol (Settings.benchmark_choice_names, (fun benchmark_choice_name -> benchmark_choice := Some (List.assoc benchmark_choice_name Settings.benchmark_choice_assoc))), " The benchmark choice.");

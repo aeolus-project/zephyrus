@@ -79,7 +79,13 @@ let () =
   (* Prepare the initial model in the abstract IO representation. *)
   let abstract_io_initial_model : Abstract_io.initial_model =
     (match benchmark with
-    | None           -> Read_abstract_io.from_settings ()
+    | None -> 
+      (match (Settings.find Settings.input_stateful) with
+      | false -> Read_abstract_io.from_settings ()
+      | true  -> 
+          let stateful_abstract_io_initial_model = Read_stateful_abstract_io.from_settings () in
+          let abstract_io_initial_model          = Stateful_converter.To_stateless.initial_model stateful_abstract_io_initial_model in
+          abstract_io_initial_model)
     | Some benchmark -> benchmark#initial_model () ) in
 
   (* Translate the initial model to the internal representation (and create a global id <-> name catalog). *)

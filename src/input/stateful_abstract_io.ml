@@ -133,7 +133,7 @@ type spec_const = int
 
 type spec_local_element =
   | SpecLocalElementPackage       of repository_name * package_name
-  | SpecLocalElementComponentType of component_type_name * state_name option
+  | SpecLocalElementComponentType of component_type_name * state_name
   | SpecLocalElementPort          of port_name
 
 type spec_local_expr =
@@ -164,7 +164,7 @@ type spec_resource_constraints = spec_resource_constraint list
 
 type spec_element =
   | SpecElementPackage       of repository_name * package_name
-  | SpecElementComponentType of component_type_name
+  | SpecElementComponentType of component_type_name * state_name
   | SpecElementPort          of port_name
   | SpecElementLocalisation  of spec_resource_constraints * spec_repository_constraints * local_specification
 

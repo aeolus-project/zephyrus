@@ -337,6 +337,7 @@ type 'a setting = string * setting_kind
 let mode = ("mode", mode_setting)
 
 (* Loading options *)
+let input_stateful              = ("input-stateful",              bool_setting)
 let input_file_universe         = ("input-file-universe",         string_setting)
 let input_file_configuration    = ("input-file-configuration",    string_setting)
 let input_file_specification    = ("input-file-specification",    string_setting)
@@ -395,6 +396,7 @@ let benchmark = ("benchmark", benchmark_setting)
 (* 2.2. list of all settings *)
 let all_settings = [
     mode;                                (* The Zephyrus functioning mode: {classic|validate|no-solving}. *)
+    input_stateful;                      (* Is the input a stateless or stateful model? *)
     input_file_universe;                 (* The universe file. *)
     input_file_configuration;            (* The initial configuration file. *) (* The file where Zephyrus should look for the input configuration. *)
     input_file_specification;            (* The specification file. *)
@@ -456,18 +458,18 @@ module AddListColumn(I : List_input)(T : S with type key = string and type 'a co
    AddOptional(WithAggregate(WithDefaultValue(WithoutChecking(struct include Base include I type t = I.el list end))(Base))(Base))(T)
 
 module Table = 
-            AddColumn    (struct type t  = bool                  let name = bool_setting                  let default = false                         end)(
-            AddColumn    (struct type t  = string                let name = string_setting                let default = ""                            end)(
-            AddColumn    (struct type t  = int                   let name = int_setting                   let default = -1                            end)(
-            AddListColumn(struct type el = repository            let name = repositories_setting                                                      end)(
-            AddColumn    (struct type t  = optimization_function let name = optimization_function_setting let default = default_optimization_function end)(
-            AddColumn    (struct type t  = mode                  let name = mode_setting                  let default = default_mode                  end)(
-            AddColumn    (struct type t  = solver                let name = solver_setting                let default = default_solver                end)(
-            AddColumn    (struct type t  = generate_bindings     let name = generate_bindings_setting     let default = default_generate_bindings     end)(
-            AddColumn    (struct type t  = generate_packages     let name = generate_packages_setting     let default = default_generate_packages     end)(
-            AddListColumn(struct type el = output_file           let name = output_files_setting                                                      end)(
-            AddColumn    (struct type t  = benchmark             let name = benchmark_setting             let default = (Benchmark_none, [])          end)(
-              Empty(Base))))))))))))
+  AddColumn    (struct type t  = bool                  let name = bool_setting                  let default = false                         end)(
+  AddColumn    (struct type t  = string                let name = string_setting                let default = ""                            end)(
+  AddColumn    (struct type t  = int                   let name = int_setting                   let default = -1                            end)(
+  AddListColumn(struct type el = repository            let name = repositories_setting                                                      end)(
+  AddColumn    (struct type t  = optimization_function let name = optimization_function_setting let default = default_optimization_function end)(
+  AddColumn    (struct type t  = mode                  let name = mode_setting                  let default = default_mode                  end)(
+  AddColumn    (struct type t  = solver                let name = solver_setting                let default = default_solver                end)(
+  AddColumn    (struct type t  = generate_bindings     let name = generate_bindings_setting     let default = default_generate_bindings     end)(
+  AddColumn    (struct type t  = generate_packages     let name = generate_packages_setting     let default = default_generate_packages     end)(
+  AddListColumn(struct type el = output_file           let name = output_files_setting                                                      end)(
+  AddColumn    (struct type t  = benchmark             let name = benchmark_setting             let default = (Benchmark_none, [])          end)(
+    Empty(Base))))))))))))
 
 type t = Table.t
 let table = Table.create 8
