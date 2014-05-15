@@ -54,6 +54,8 @@ let print_output_to_file kind filename u c = Output_helper.print_output filename
   | Settings.Output_file_json               -> Json_v0_of.configuration (* Json_of.configuration *)    u c (* For a while we will use the v0 by default for backwards compatibility. *)
   | Settings.Output_file_json_v0            -> Json_v0_of.configuration                                u c
   | Settings.Output_file_json_v1            -> Json_v1_of.configuration                                u c
+  | Settings.Output_file_stateful_json      -> Stateful_json_v1_of.configuration                       u c
+  | Settings.Output_file_stateful_json_v1   -> Stateful_json_v1_of.configuration                       u c
   | Settings.Output_file_graph_deployment   -> Dot_of.configuration Dot_of.Deployment_graph            u c
   | Settings.Output_file_graph_simplified   -> Dot_of.configuration Dot_of.Simplified_deployment_graph u c
   | Settings.Output_file_graph_components   -> Dot_of.configuration Dot_of.Components_graph            u c

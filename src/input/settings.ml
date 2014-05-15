@@ -220,6 +220,8 @@ type output_type =
   | Output_file_json
   | Output_file_json_v0
   | Output_file_json_v1
+  | Output_file_stateful_json
+  | Output_file_stateful_json_v1
   | Output_file_graph_deployment
   | Output_file_graph_simplified
   | Output_file_graph_components
@@ -235,6 +237,8 @@ let output_files_assoc = [
   ("json"                       , Output_file_json);
   ("json-v0"                    , Output_file_json_v0);
   ("json-v1"                    , Output_file_json_v1);
+  ("stateful-json"              , Output_file_stateful_json);
+  ("stateful-json-v1"           , Output_file_stateful_json_v1);
   ("simplified-deployment-graph", Output_file_graph_simplified);
   ("components-graph"           , Output_file_graph_components);
   ("packages-graph"             , Output_file_graph_packages);

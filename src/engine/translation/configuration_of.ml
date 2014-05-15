@@ -118,6 +118,15 @@ let get_last_used_i component_type_name : int =
 
 let fresh_component_name (location_name : location_name) (component_type_name : component_type_name) (used_names : used_names) : component_name =
 
+  (* Prepare the proper component type name which should be used. *)
+  let component_type_name =
+    (* Was the component type was converted from the stateful form? *)
+    match (Settings.find Settings.input_stateful) with
+    (* No! Them the component type name is the right one. *)
+    | false -> component_type_name
+    (* Yes! Then the name of the initial stateful component type should be used, not the one created artificially for its stateless form. *)
+    | true  -> fst (Stateful_converter.To_stateful.stateless_component_type_name component_type_name) in
+
   let build_component_name = 
     Printf.sprintf
     "%s-%d" 

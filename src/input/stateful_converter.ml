@@ -21,7 +21,8 @@
 
 open Data_common
 
-(*
+(* Internal *)
+
 module Stateful_id = struct 
   type t = (Stateful_abstract_io.component_type_name * Stateful_abstract_io.state_name)
   let compare = compare
@@ -41,7 +42,7 @@ module Stateless_id_map = Map.Make(Stateless_id)
 module Stateful_to_stateless_mapping = Mapping(Stateful_id_set)(Stateless_id_set)(Stateful_id_map)
 module Stateless_to_stateful_mapping = Mapping(Stateless_id_set)(Stateful_id_set)(Stateless_id_map)
 
-class conversion = object (self)
+class conversion_dictionary = object (self)
 
   val mutable stateful_to_stateless_mapping = new Stateful_to_stateless_mapping.mapping
   val mutable stateless_to_stateful_mapping = new Stateless_to_stateful_mapping.mapping
@@ -53,7 +54,7 @@ class conversion = object (self)
     try
       stateful_to_stateless_mapping#find stateful_id
     with Not_found -> 
-      let stateless_id = convert_stateful_id_to_stateless_id stateful_id in
+      let stateless_id = self#convert_stateful_id_to_stateless_id stateful_id in
       stateful_to_stateless_mapping#add stateful_id stateless_id;
       stateless_to_stateful_mapping#add stateless_id stateful_id;
       stateless_id
@@ -62,28 +63,20 @@ class conversion = object (self)
     try
       stateless_to_stateful_mapping#find stateless_id
     with Not_found ->
-      failwith (Printf.sprintf "There is no stateful component type and state with match the stateless component name %s" stateless_id)
+      failwith (Printf.sprintf "There is no stateful component type and state with match the stateless component name '%s'!" stateless_id)
 
 end
 
-class converter = object (self)
-
-  val conversion = new conversion
-
-  method private component_type_name_stateless_of_stateful component_type_name state_name =
-    conversion#get_stateful_of_stateless (component_type_name, state_name)
-    
-  method private component_type_name_and_state_stateful_of_stateless component_type_name =
-    conversion#get_stateless_of_stateful component_type_name
-
-*)
+let converter = new conversion_dictionary
 
 let component_type_name_stateless_of_stateful component_type_name state_name =
-  Printf.sprintf "%s_%s" component_type_name state_name
+  converter#get_stateless_of_stateful (component_type_name, state_name)
 
 let component_type_name_and_state_stateful_of_stateless component_type_name =
-  failwith "TODO!"
+  converter#get_stateful_of_stateless component_type_name
 
+(* External *)
+(* TODO: Put in the interface. *)
 
 module To_stateless = struct
 
@@ -99,7 +92,7 @@ module To_stateless = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
   
-  let stateless_component_type_name component_type_name' state_name' =
+  let stateless_component_type_name_and_state component_type_name' state_name' =
     component_type_name_stateless_of_stateful (component_type_name component_type_name') (state_name state_name')
 
   let provide_arity provide_arity' =
@@ -117,7 +110,7 @@ module To_stateless = struct
 
   let component_type component_type' : O.component_type list = 
     let state state' = {
-      O.component_type_name     = stateless_component_type_name component_type'.I.component_type_name state'.I.state_name;
+      O.component_type_name     = stateless_component_type_name_and_state component_type'.I.component_type_name state'.I.state_name;
       O.component_type_provide  = List.map single_provide state'.I.state_provide;
       O.component_type_require  = List.map single_require state'.I.state_require;
       O.component_type_conflict = List.map port_name      state'.I.state_conflict;
@@ -165,7 +158,7 @@ module To_stateless = struct
 
   let component component' = {
     O.component_name     = component_name                component'.I.component_name;
-    O.component_type     = stateless_component_type_name component'.I.component_type component'.I.component_state;
+    O.component_type     = stateless_component_type_name_and_state component'.I.component_type component'.I.component_state;
     O.component_location = location_name                 component'.I.component_location;
   }
 
@@ -187,7 +180,7 @@ module To_stateless = struct
 
   let spec_local_element = function
     | I.SpecLocalElementPackage       (repository_name', package_name')   -> O.SpecLocalElementPackage       (repository_name repository_name', package_name package_name')  
-    | I.SpecLocalElementComponentType (component_type_name', state_name') -> O.SpecLocalElementComponentType (stateless_component_type_name component_type_name' state_name')
+    | I.SpecLocalElementComponentType (component_type_name', state_name') -> O.SpecLocalElementComponentType (stateless_component_type_name_and_state component_type_name' state_name')
     | I.SpecLocalElementPort          (port_name')                        -> O.SpecLocalElementPort          (port_name port_name')
 
   let rec spec_local_expr = function
@@ -225,7 +218,7 @@ module To_stateless = struct
 
   let spec_element = function
     | I.SpecElementPackage       (repository_name', package_name')   -> O.SpecElementPackage       (repository_name repository_name', package_name package_name')  
-    | I.SpecElementComponentType (component_type_name', state_name') -> O.SpecElementComponentType (stateless_component_type_name component_type_name' state_name')
+    | I.SpecElementComponentType (component_type_name', state_name') -> O.SpecElementComponentType (stateless_component_type_name_and_state component_type_name' state_name')
     | I.SpecElementPort          (port_name')                        -> O.SpecElementPort          (port_name port_name')
     | I.SpecElementLocalisation  (spec_resource_constraints', spec_repository_constraints', local_specification') ->
         O.SpecElementLocalisation (spec_resource_constraints spec_resource_constraints', spec_repository_constraints spec_repository_constraints', local_specification local_specification')
@@ -267,7 +260,6 @@ module To_stateless = struct
 
 end
 
-(*
 module To_stateful = struct
 
   module I = Abstract_io
@@ -281,8 +273,10 @@ module To_stateful = struct
   let repository_name     repository_name'     = repository_name'
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
-  
-  let stateful_component_type_name_and_state component_type_name' state_name' =
+
+  let resource_provide_arity resource_provide_arity' = resource_provide_arity'
+
+  let stateless_component_type_name component_type_name' =
     component_type_name_and_state_stateful_of_stateless (component_type_name component_type_name')
 
   let location_cost location_cost' = location_cost'
@@ -297,10 +291,13 @@ module To_stateful = struct
     O.location_cost               = location_cost                     location'.I.location_cost;
   }
 
-  let component component' = {
-    O.component_name     = component_name                component'.I.component_name;
-    O.component_type     = stateless_component_type_name component'.I.component_type component'.I.component_state;
-    O.component_location = location_name                 component'.I.component_location;
+  let component component' = 
+    let (component_type_name', component_state') = stateless_component_type_name component'.I.component_type 
+    in {
+    O.component_name     = component_name       component'.I.component_name;
+    O.component_type     = component_type_name';
+    O.component_state    = component_state';
+    O.component_location = location_name        component'.I.component_location;
   }
 
   let binding binding' = {
@@ -316,6 +313,3 @@ module To_stateful = struct
   }
 
 end
-
-end
-*)
