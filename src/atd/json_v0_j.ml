@@ -43,7 +43,7 @@ type component_types = Json_v0_t.component_types
 
 type package = Json_v0_t.package = {
   package_name (*atd name *): package_name;
-  package_depend (*atd depend *): (package_name list) list;
+  package_depend (*atd depend *): package_name list list;
   package_conflict (*atd conflict *): package_name list;
   package_consume (*atd consume *):
     (resource_name * resource_consumption) list
@@ -917,14 +917,7 @@ let _6_of_string s =
   read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__7 = (
   Ag_oj_run.write_list (
-    fun ob x ->
-      Bi_outbuf.add_char ob '[';
-      (let x = x in
-      (
-        write__6
-      ) ob x
-      );
-      Bi_outbuf.add_char ob ']';
+    write__6
   )
 )
 let string_of__7 ?(len = 1024) x =
@@ -933,36 +926,7 @@ let string_of__7 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__7 = (
   Ag_oj_run.read_list (
-    fun p lb ->
-      Yojson.Safe.read_space p lb;
-      let std_tuple = Yojson.Safe.start_any_tuple p lb in
-      let len = ref 0 in
-      let end_of_tuple = ref false in
-      (try
-        let x0 =
-          let x =
-            (
-              read__6
-            ) p lb
-          in
-          incr len;
-          (try
-            Yojson.Safe.read_space p lb;
-            Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-          with Yojson.End_of_tuple -> end_of_tuple := true);
-          x
-        in
-        if not !end_of_tuple then (
-          try
-            while true do
-              Yojson.Safe.skip_json p lb;
-              Yojson.Safe.read_tuple_sep2 p std_tuple lb;
-            done
-          with Yojson.End_of_tuple -> ()
-        );
-        (x0)
-      with Yojson.End_of_tuple ->
-        Ag_oj_run.missing_tuple_fields !len [ 0 ]);
+    read__6
   )
 )
 let _7_of_string s =

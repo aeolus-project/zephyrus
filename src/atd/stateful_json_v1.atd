@@ -62,7 +62,7 @@ type component_types = component_type list
 
 type package = {
   name                           : package_name;
-  ~depend   <ocaml default="[]"> : (package_name list) list;
+  ~depend   <ocaml default="[]"> : package_name list list;
   ~conflict <ocaml default="[]"> : package_name list;
   ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object">
 } <ocaml field_prefix="package_">
