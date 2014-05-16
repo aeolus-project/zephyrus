@@ -1,0 +1,17 @@
+# Input
+
+input-stateful = y
+
+input-file-universe         = "tests/stateful-u-1.json"
+input-file-configuration    = "tests/ic-single-location-json-v1.json"
+input-file-specification    = "tests/stateful-spec-1.spec"
+input-file-repositories     = []
+input-optimization-function = compact
+
+#solver = custom
+#custom-solver-command = "flatzinc -o <OUT> <IN>"
+
+
+# Output
+
+results = [("json-v1", "tests/output.json"); ("graph-deployment", "tests/output.dot")]

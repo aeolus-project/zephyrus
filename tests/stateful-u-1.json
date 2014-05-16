@@ -1,0 +1,85 @@
+{
+	"version" : 1,
+	"component_types": [
+		{
+			"name": "Provider",
+			"states": [
+				{
+					"name": "state0",
+					"provide": {"@port" : 3}
+				}
+			],
+			"consume": {"resource" : 5}
+		},
+		{
+			"name": "Requirer",
+			"states": [
+				{
+					"name": "state0",
+					"require": {"@port" : 2}
+				}
+			],
+			"consume": {"resource" : 3}
+		},
+		{
+			"name": "Conflicter",
+			"states": [
+				{
+					"name": "state0",
+					"conflict": ["@port"]
+				}
+			],
+			"consume": {"resource" : 7}
+		}
+	],
+	"implementation": {
+		"Provider" :
+		[
+			{
+				"repository": "repository",
+				"package" : "provider_package"
+			}
+		],
+
+		"Requirer" :
+		[
+			{
+				"repository": "repository",
+				"package" : "requirer_package"
+			}
+		],
+		
+		"Conflicter" :
+		[
+			{
+				"repository": "repository",
+				"package" : "conflicting_package"
+			}
+		]
+		
+	},
+	"repositories": [
+		{
+			"name": "repository",
+			"packages": [
+				{
+					"name": "provider_package",
+					"depend": [["common_package"]],
+					"consume": {"resource" : 1}
+				},
+				{
+					"name": "requirer_package",
+					"depend": [["common_package"]],
+					"consume": {"resource" : 1}
+				},
+				{
+					"name": "common_package"
+				},
+				{
+					"name": "conflicting_package",
+					"conflict": ["common_package"]
+				}
+			]
+		}
+	]
+}

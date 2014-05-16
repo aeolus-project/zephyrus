@@ -87,6 +87,7 @@ let () =
       | true  -> 
           let stateful_abstract_io_initial_model = Read_stateful_abstract_io.from_settings () in
           let abstract_io_initial_model          = Stateful_converter.To_stateless.initial_model stateful_abstract_io_initial_model in
+          (* Zephyrus_log.log_data "stateless converted from stateful ==>\n" (lazy (Printf.sprintf "%s" (Yojson.Safe.prettify (Json_v1_j.string_of_universe (Json_v1.Of_abstract_io.universe (match abstract_io_initial_model.Abstract_io.universe with Some u -> u | None -> failwith "ohh")))))); *)
           abstract_io_initial_model)
     | Some benchmark -> benchmark#initial_model () ) in
 
