@@ -48,7 +48,7 @@ class conversion_dictionary = object (self)
   val mutable stateless_to_stateful_mapping = new Stateless_to_stateful_mapping.mapping
 
   method private convert_stateful_id_to_stateless_id (component_type_name, state_name) =
-    Printf.sprintf "%s_%s" component_type_name state_name
+    Printf.sprintf "%s:%s" component_type_name state_name
 
   method get_stateless_of_stateful (stateful_id : Stateful_id.t) : Stateless_id.t =
     try
@@ -94,6 +94,8 @@ module To_stateless = struct
   
   let stateless_component_type_name_and_state component_type_name' state_name' =
     component_type_name_stateless_of_stateful (component_type_name component_type_name') (state_name state_name')
+
+  (* Universe *)
 
   let provide_arity provide_arity' =
   	match provide_arity' with
@@ -142,13 +144,18 @@ module To_stateless = struct
 
   let universe universe' = 
     let states_of_component_type component_type_name' =
-      let component_type' = List.find (fun component_type' -> component_type'.I.component_type_name = component_type_name') universe'.I.universe_component_types in
+      let component_type' = 
+        try 
+          List.find (fun component_type' -> component_type'.I.component_type_name = component_type_name') universe'.I.universe_component_types 
+        with Not_found -> failwith "Stateful universe inconsistence: a component type %s mentioned in implementation part does not exist!" component_type_name' in
       component_type'.I.component_type_states
     in {
     O.universe_component_types = List.flatten (List.map component_type universe'.I.universe_component_types);
     O.universe_implementation  = List.flatten (List.map (single_implementation states_of_component_type) universe'.I.universe_implementation);
     O.universe_repositories    =               List.map repository            universe'.I.universe_repositories;
   }
+
+  (* Configuration *)
 
   let location_cost location_cost' = location_cost'
 
@@ -179,6 +186,8 @@ module To_stateless = struct
     O.configuration_components = List.map component configuration'.I.configuration_components;
     O.configuration_bindings   = List.map binding   configuration'.I.configuration_bindings;
   }
+
+  (* Specification *)
 
   let spec_variable_name spec_variable_name' = spec_variable_name'
 
@@ -280,10 +289,12 @@ module To_stateful = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
 
-  let resource_provide_arity resource_provide_arity' = resource_provide_arity'
-
   let stateless_component_type_name component_type_name' =
     component_type_name_and_state_stateful_of_stateless (component_type_name component_type_name')
+  
+  (* Configuration *)
+
+  let resource_provide_arity resource_provide_arity' = resource_provide_arity'
 
   let location_cost location_cost' = location_cost'
 
