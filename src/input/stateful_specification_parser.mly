@@ -116,6 +116,7 @@ spec_expr:
 spec_element:
   | LPAREN repository_name COMMA package_name RPAREN       { Stateful_abstract_io.SpecElementPackage       ($2, $4) }
   | component_type_name COLON state_name                   { Stateful_abstract_io.SpecElementComponentType ($1, $3) }
+  | LPAREN component_type_name COLON state_name RPAREN     { Stateful_abstract_io.SpecElementComponentType ($2, $4) }
   | port_name                                              { Stateful_abstract_io.SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
     LCURLY spec_repository_constraints COLON 
@@ -142,10 +143,11 @@ spec_local_expr:
   | LPAREN spec_local_expr RPAREN           { $2 }
 
 spec_local_element:
-  | LPAREN repository_name COMMA package_name RPAREN { Stateful_abstract_io.SpecLocalElementPackage       ($2, $4) }
-  | component_type_name COLON state_name             { Stateful_abstract_io.SpecLocalElementComponentType ($1, $3) }
-  | port_name                                        { Stateful_abstract_io.SpecLocalElementPort          ($1) }
-  | LPAREN spec_local_element RPAREN                 { $2 }
+  | LPAREN repository_name COMMA package_name RPAREN   { Stateful_abstract_io.SpecLocalElementPackage       ($2, $4) }
+  | component_type_name COLON state_name               { Stateful_abstract_io.SpecLocalElementComponentType ($1, $3) }
+  | LPAREN component_type_name COLON state_name RPAREN { Stateful_abstract_io.SpecLocalElementComponentType ($2, $4) }
+  | port_name                                          { Stateful_abstract_io.SpecLocalElementPort          ($1) }
+  | LPAREN spec_local_element RPAREN                   { $2 }
 
 spec_resource_constraints:
   | UNDERSCORE                                                     { [] }

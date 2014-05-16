@@ -44,12 +44,12 @@ type resource_consumption   = int
 type resource_provide_arity = int (* Better name? *)
 
 type state = {
-  name                              : state_name;
-  ~initial  <ocaml default="false"> : bool;
-  ~provide  <ocaml default="[]">    : (port_name * provide_arity) list <json repr = "object">;
-  ~require  <ocaml default="[]">    : (port_name * require_arity) list <json repr = "object">;
-  ~conflict <ocaml default="[]">    : port_name list;
-  successors                        : state_name list;
+  name                                : state_name;
+  ~initial    <ocaml default="false"> : bool;
+  ~provide    <ocaml default="[]">    : (port_name * provide_arity) list <json repr = "object">;
+  ~require    <ocaml default="[]">    : (port_name * require_arity) list <json repr = "object">;
+  ~conflict   <ocaml default="[]">    : port_name list;
+  ~successors <ocaml default="[]">    : state_name list;
 } <ocaml field_prefix="state_">
 
 type component_type = {

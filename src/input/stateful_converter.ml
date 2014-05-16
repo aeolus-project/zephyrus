@@ -135,12 +135,18 @@ module To_stateless = struct
   let implementation_package (repository_name', package_name') = 
     (repository_name repository_name', package_name package_name')
 
-  let single_implementation (component_type_name', implementation_packages_list) = 
-    (component_type_name component_type_name', List.map implementation_package implementation_packages_list)
+  let single_implementation states_of_component_type (component_type_name', implementation_packages_list) = 
+    let state state' =
+      (stateless_component_type_name_and_state component_type_name' state'.I.state_name, List.map implementation_package implementation_packages_list) in
+    List.map state (states_of_component_type component_type_name')
 
-  let universe universe' = {
-    O.universe_component_types = List.flatten (List.map component_type        universe'.I.universe_component_types);
-    O.universe_implementation  =               List.map single_implementation universe'.I.universe_implementation;
+  let universe universe' = 
+    let states_of_component_type component_type_name' =
+      let component_type' = List.find (fun component_type' -> component_type'.I.component_type_name = component_type_name') universe'.I.universe_component_types in
+      component_type'.I.component_type_states
+    in {
+    O.universe_component_types = List.flatten (List.map component_type universe'.I.universe_component_types);
+    O.universe_implementation  = List.flatten (List.map (single_implementation states_of_component_type) universe'.I.universe_implementation);
     O.universe_repositories    =               List.map repository            universe'.I.universe_repositories;
   }
 

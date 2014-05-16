@@ -172,7 +172,7 @@ val create_state :
   ?state_provide: (port_name * provide_arity) list ->
   ?state_require: (port_name * require_arity) list ->
   ?state_conflict: port_name list ->
-  state_successors: state_name list ->
+  ?state_successors: state_name list ->
   unit -> state
   (** Create a record of type {!state}. *)
 

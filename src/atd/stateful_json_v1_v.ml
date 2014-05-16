@@ -264,7 +264,7 @@ let create_state
   ?(state_provide = [])
   ?(state_require = [])
   ?(state_conflict = [])
-  ~state_successors
+  ?(state_successors = [])
   () : state =
   {
     state_name = state_name;

@@ -428,7 +428,7 @@ let read_state = (
         state_provide = [];
         state_require = [];
         state_conflict = [];
-        state_successors = Obj.magic 0.0;
+        state_successors = [];
       }
     in
     let bits0 = ref 0 in
@@ -548,13 +548,14 @@ let read_state = (
               Obj.set_field (Obj.repr x) 4 (Obj.repr v);
             )
           | 5 ->
-            let v =
-              (
-                read__4
-              ) p lb
-            in
-            Obj.set_field (Obj.repr x) 5 (Obj.repr v);
-            bits0 := !bits0 lor 0x2;
+            if not (Yojson.Safe.read_null_if_possible p lb) then (
+              let v =
+                (
+                  read__4
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 5 (Obj.repr v);
+            )
           | _ -> (
               Yojson.Safe.skip_json p lb
             )
@@ -675,13 +676,14 @@ let read_state = (
                 Obj.set_field (Obj.repr x) 4 (Obj.repr v);
               )
             | 5 ->
-              let v =
-                (
-                  read__4
-                ) p lb
-              in
-              Obj.set_field (Obj.repr x) 5 (Obj.repr v);
-              bits0 := !bits0 lor 0x2;
+              if not (Yojson.Safe.read_null_if_possible p lb) then (
+                let v =
+                  (
+                    read__4
+                  ) p lb
+                in
+                Obj.set_field (Obj.repr x) 5 (Obj.repr v);
+              )
             | _ -> (
                 Yojson.Safe.skip_json p lb
               )
@@ -689,7 +691,7 @@ let read_state = (
       done;
       assert false;
     with Yojson.End_of_object -> (
-        if !bits0 <> 0x3 then Ag_oj_run.missing_fields [| !bits0 |] [| "name"; "successors" |];
+        if !bits0 <> 0x1 then Ag_oj_run.missing_fields [| !bits0 |] [| "name" |];
         Ag_oj_run.identity x
       )
 )
