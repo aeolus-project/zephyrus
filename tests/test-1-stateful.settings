@@ -14,4 +14,4 @@ input-optimization-function = compact
 
 # Output
 
-results = [("json-v1", "tests/output.json"); ("graph-deployment", "tests/output.dot")]
+results = [("stateful-json-v1", "tests/output.json"); ("graph-deployment", "tests/output.dot")]
