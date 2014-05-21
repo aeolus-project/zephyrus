@@ -7,6 +7,13 @@
 				{
 					"name": "state0",
 					"provide": {"@port" : 3}
+				},
+				{
+					"name": "initial",
+					"initial":true,
+					"successors":[
+					    "state0"
+					]	
 				}
 			],
 			"consume": {"resource" : 5}
@@ -17,6 +24,13 @@
 				{
 					"name": "state0",
 					"require": {"@port" : 2}
+				},
+				{
+					"name": "initial",
+					"initial":true,
+					"successors":[
+					    "state0"
+					]	
 				}
 			],
 			"consume": {"resource" : 3}
@@ -27,6 +41,13 @@
 				{
 					"name": "state0",
 					"conflict": ["@port"]
+				},
+				{
+					"name": "initial",
+					"initial":true,
+					"successors":[
+					    "state0"
+					]	
 				}
 			],
 			"consume": {"resource" : 7}
