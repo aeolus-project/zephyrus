@@ -115,9 +115,9 @@ rule token = parse
   | '\'' ((alpha_lower) (ident)* ('(' ['x' '='] ' ' (ident | other_characters)+ ')') as lxm) '\'' { PACKAGE_NAME(lxm) }
 
   (* Other names *)
-  |      (      (alpha) (ident)+ as lxm)                                                          { NAME(lxm) }
-  | '"'  (      (alpha) (ident)+ as lxm) '"'                                                      { NAME(lxm) }
-  | '\'' (      (alpha) (ident)+ as lxm) '\''                                                     { NAME(lxm) }
+  |      (      (alpha) (ident)* as lxm)                                                          { NAME(lxm) }
+  | '"'  (      (alpha) (ident)* as lxm) '"'                                                      { NAME(lxm) }
+  | '\'' (      (alpha) (ident)* as lxm) '\''                                                     { NAME(lxm) }
 
 
   (* End of file *)

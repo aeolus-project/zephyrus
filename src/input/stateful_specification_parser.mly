@@ -82,6 +82,7 @@ location_name:
 
 state_name:
   | NAME                     { $1 }
+  | COMPONENT_TYPE_NAME      { $1 }
   | LPAREN state_name RPAREN { $2 }  
 
 spec_variable_name:
