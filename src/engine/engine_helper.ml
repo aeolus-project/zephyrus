@@ -24,6 +24,24 @@
 *)
 
 
+(** 0. functions to redirect output *)
+
+(* Helper functions for stdout/stderr redirection *)
+
+(* freopen emulation, from Xavier's suggestion on OCaml mailing list *)
+let reopen_out outchan fname =
+  flush outchan;
+  let fd1 = Unix.descr_of_out_channel outchan in
+  let fd2 = Unix.openfile
+      fname [Unix.O_WRONLY; Unix.O_CREAT; Unix.O_TRUNC] 0o666 in
+  Unix.dup2 fd2 fd1;
+  Unix.close fd2
+
+(* send stdout and stderr to /dev/null *)
+let redirect_to_dev_null () =
+  reopen_out stdout "/dev/null";
+  reopen_out stderr "/dev/null";;
+
 (** 1. helpers on external commands. *)
 
 exception Wrong_argument_number
@@ -62,6 +80,7 @@ let programs_are_available programs =
 
 let execv_run_bash_command (command : string) =
   Zephyrus_log.log_execution (Printf.sprintf "Running a bash command at pid %d: /bin/bash -c %s\n%!" (Unix.getpid ()) command);
+  redirect_to_dev_null ();
   Unix.execv "/bin/bash" [|""; "-c"; command|]
 
 let exe_function_of_program program args =
