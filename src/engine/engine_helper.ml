@@ -322,24 +322,36 @@ let make_minizinc_solver_of_custom_minizinc_solver_command command = {
 
 (** 3. File name manipulation *)
 
-type file = {dirname : string; basename : string; suffix : string}
-let file_default = {dirname = ""; basename = ""; suffix = ""}
+type file = {
+  dirname  : string;
+  basename : string;
+  suffix   : string
+}
+
+let file_default = {
+  dirname  = Filename.get_temp_dir_name ();
+  basename = "";
+  suffix   = ""
+}
 
 let file_process_name s = 
   if s <> ""
   then (
-    let dir_name  = Filename.dirname s in
+    let dir_name = 
+      match Filename.dirname s with
+      | "." -> if s<> Filename.basename s then "." else Filename.get_temp_dir_name ()
+      | d  -> d in
     let base_name_tmp = Filename.basename s in
      let (index, len) = (String.rindex base_name_tmp '.', String.length base_name_tmp) in
       if (0 <= index) && (index < len) 
       then {
-        dirname = dir_name;
+        dirname  = dir_name;
         basename = String.sub base_name_tmp 0 index;
-        suffix = String.sub base_name_tmp index (len - index) 
+        suffix   = String.sub base_name_tmp index (len - index) 
       } else { 
-        dirname = dir_name;
+        dirname  = dir_name;
         basename = base_name_tmp;
-        suffix = "" 
+        suffix   = "" 
       }) 
   else file_default
 
