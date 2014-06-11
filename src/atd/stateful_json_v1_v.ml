@@ -34,6 +34,7 @@ type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 type state = Stateful_json_v1_t.state = {
   state_name (*atd name *): state_name;
   state_initial (*atd initial *): bool;
+  state_final (*atd final *): bool;
   state_provide (*atd provide *): (port_name * provide_arity) list;
   state_require (*atd require *): (port_name * require_arity) list;
   state_conflict (*atd conflict *): port_name list;
@@ -165,7 +166,7 @@ let validate__3 = (
 let validate__4 = (
   fun _ _ -> None
 )
-let validate_state : _ -> state -> _ = (
+let validate_state = (
   fun _ _ -> None
 )
 let validate__5 = (
@@ -174,7 +175,7 @@ let validate__5 = (
 let validate__6 = (
   fun _ _ -> None
 )
-let validate_component_type : _ -> component_type -> _ = (
+let validate_component_type = (
   fun _ _ -> None
 )
 let validate__7 = (
@@ -189,7 +190,7 @@ let validate__8 = (
 let validate__9 = (
   fun _ _ -> None
 )
-let validate_package : _ -> package -> _ = (
+let validate_package = (
   fun _ _ -> None
 )
 let validate__10 = (
@@ -198,7 +199,7 @@ let validate__10 = (
 let validate_packages = (
   validate__10
 )
-let validate_repository : _ -> repository -> _ = (
+let validate_repository = (
   fun _ _ -> None
 )
 let validate__11 = (
@@ -207,7 +208,7 @@ let validate__11 = (
 let validate_repositories = (
   validate__11
 )
-let validate_implementation_package : _ -> implementation_package -> _ = (
+let validate_implementation_package = (
   fun _ _ -> None
 )
 let validate__12 = (
@@ -219,7 +220,7 @@ let validate_implementation_packages = (
 let validate__13 = (
   fun _ _ -> None
 )
-let validate_universe : _ -> universe -> _ = (
+let validate_universe = (
   fun path x ->
     (
       validate_version
@@ -234,13 +235,13 @@ let validate_resources_provided = (
 let validate_location_cost = (
   (fun _ _ -> None)
 )
-let validate_location : _ -> location -> _ = (
+let validate_location = (
   fun _ _ -> None
 )
-let validate_component : _ -> component -> _ = (
+let validate_component = (
   fun _ _ -> None
 )
-let validate_binding : _ -> binding -> _ = (
+let validate_binding = (
   fun _ _ -> None
 )
 let validate__15 = (
@@ -252,7 +253,7 @@ let validate__16 = (
 let validate__17 = (
   fun _ _ -> None
 )
-let validate_configuration : _ -> configuration -> _ = (
+let validate_configuration = (
   fun path x ->
     (
       validate_version
@@ -261,14 +262,16 @@ let validate_configuration : _ -> configuration -> _ = (
 let create_state 
   ~state_name
   ?(state_initial = false)
+  ?(state_final = false)
   ?(state_provide = [])
   ?(state_require = [])
   ?(state_conflict = [])
   ?(state_successors = [])
-  () : state =
+  () =
   {
     state_name = state_name;
     state_initial = state_initial;
+    state_final = state_final;
     state_provide = state_provide;
     state_require = state_require;
     state_conflict = state_conflict;
@@ -278,7 +281,7 @@ let create_component_type
   ~component_type_name
   ~component_type_states
   ?(component_type_consume = [])
-  () : component_type =
+  () =
   {
     component_type_name = component_type_name;
     component_type_states = component_type_states;
@@ -289,7 +292,7 @@ let create_package
   ?(package_depend = [])
   ?(package_conflict = [])
   ?(package_consume = [])
-  () : package =
+  () =
   {
     package_name = package_name;
     package_depend = package_depend;
@@ -299,7 +302,7 @@ let create_package
 let create_repository 
   ~repository_name
   ?(repository_packages = [])
-  () : repository =
+  () =
   {
     repository_name = repository_name;
     repository_packages = repository_packages;
@@ -307,7 +310,7 @@ let create_repository
 let create_implementation_package 
   ~implementation_package_repository
   ~implementation_package_package
-  () : implementation_package =
+  () =
   {
     implementation_package_repository = implementation_package_repository;
     implementation_package_package = implementation_package_package;
@@ -317,7 +320,7 @@ let create_universe
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
-  () : universe =
+  () =
   {
     universe_version = universe_version;
     universe_component_types = universe_component_types;
@@ -330,7 +333,7 @@ let create_location
   ~location_repository
   ?(location_packages_installed = [])
   ?(location_cost = 1)
-  () : location =
+  () =
   {
     location_name = location_name;
     location_provide_resources = location_provide_resources;
@@ -343,7 +346,7 @@ let create_component
   ~component_type
   ~component_state
   ~component_location
-  () : component =
+  () =
   {
     component_name = component_name;
     component_type = component_type;
@@ -354,7 +357,7 @@ let create_binding
   ~binding_port
   ~binding_requirer
   ~binding_provider
-  () : binding =
+  () =
   {
     binding_port = binding_port;
     binding_requirer = binding_requirer;
@@ -365,7 +368,7 @@ let create_configuration
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
-  () : configuration =
+  () =
   {
     configuration_version = configuration_version;
     configuration_locations = configuration_locations;

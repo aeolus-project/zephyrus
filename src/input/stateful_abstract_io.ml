@@ -48,6 +48,7 @@ type resource_provide_arity = int
 type state = {
   state_name       : state_name;
   state_initial    : bool;
+  state_final      : bool;
   state_provide    : (port_name * provide_arity) list;
   state_require    : (port_name * require_arity) list;
   state_conflict   : port_name list;

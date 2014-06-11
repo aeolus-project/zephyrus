@@ -34,6 +34,7 @@ type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 type state = Stateful_json_v1_t.state = {
   state_name (*atd name *): state_name;
   state_initial (*atd initial *): bool;
+  state_final (*atd final *): bool;
   state_provide (*atd provide *): (port_name * provide_arity) list;
   state_require (*atd require *): (port_name * require_arity) list;
   state_conflict (*atd conflict *): port_name list;
@@ -353,7 +354,7 @@ let read__4 = (
 )
 let _4_of_string s =
   read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_state : _ -> state -> _ = (
+let write_state = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -375,6 +376,15 @@ let write_state : _ -> state -> _ = (
       Yojson.Safe.write_bool
     )
       ob x.state_initial;
+    if !is_first then
+      is_first := false
+    else
+      Bi_outbuf.add_char ob ',';
+    Bi_outbuf.add_string ob "\"final\":";
+    (
+      Yojson.Safe.write_bool
+    )
+      ob x.state_final;
     if !is_first then
       is_first := false
     else
@@ -421,10 +431,11 @@ let read_state = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : state) =
+    let x =
       {
         state_name = Obj.magic 0.0;
         state_initial = false;
+        state_final = false;
         state_provide = [];
         state_require = [];
         state_conflict = [];
@@ -449,6 +460,14 @@ let read_state = (
                   -1
                 )
               )
+            | 5 -> (
+                if String.unsafe_get s pos = 'f' && String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'a' && String.unsafe_get s (pos+4) = 'l' then (
+                  2
+                )
+                else (
+                  -1
+                )
+              )
             | 7 -> (
                 match String.unsafe_get s pos with
                   | 'i' -> (
@@ -461,7 +480,7 @@ let read_state = (
                     )
                   | 'p' -> (
                       if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'o' && String.unsafe_get s (pos+3) = 'v' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'd' && String.unsafe_get s (pos+6) = 'e' then (
-                        2
+                        3
                       )
                       else (
                         -1
@@ -469,7 +488,7 @@ let read_state = (
                     )
                   | 'r' -> (
                       if String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'q' && String.unsafe_get s (pos+3) = 'u' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'r' && String.unsafe_get s (pos+6) = 'e' then (
-                        3
+                        4
                       )
                       else (
                         -1
@@ -481,7 +500,7 @@ let read_state = (
               )
             | 8 -> (
                 if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'f' && String.unsafe_get s (pos+4) = 'l' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 'c' && String.unsafe_get s (pos+7) = 't' then (
-                  4
+                  5
                 )
                 else (
                   -1
@@ -489,7 +508,7 @@ let read_state = (
               )
             | 10 -> (
                 if String.unsafe_get s pos = 's' && String.unsafe_get s (pos+1) = 'u' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'c' && String.unsafe_get s (pos+4) = 'e' && String.unsafe_get s (pos+5) = 's' && String.unsafe_get s (pos+6) = 's' && String.unsafe_get s (pos+7) = 'o' && String.unsafe_get s (pos+8) = 'r' && String.unsafe_get s (pos+9) = 's' then (
-                  5
+                  6
                 )
                 else (
                   -1
@@ -524,7 +543,7 @@ let read_state = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__1
+                  Ag_oj_run.read_bool
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 2 (Obj.repr v);
@@ -533,7 +552,7 @@ let read_state = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__2
+                  read__1
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 3 (Obj.repr v);
@@ -542,7 +561,7 @@ let read_state = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__3
+                  read__2
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 4 (Obj.repr v);
@@ -551,10 +570,19 @@ let read_state = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__4
+                  read__3
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 5 (Obj.repr v);
+            )
+          | 6 ->
+            if not (Yojson.Safe.read_null_if_possible p lb) then (
+              let v =
+                (
+                  read__4
+                ) p lb
+              in
+              Obj.set_field (Obj.repr x) 6 (Obj.repr v);
             )
           | _ -> (
               Yojson.Safe.skip_json p lb
@@ -577,6 +605,14 @@ let read_state = (
                     -1
                   )
                 )
+              | 5 -> (
+                  if String.unsafe_get s pos = 'f' && String.unsafe_get s (pos+1) = 'i' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'a' && String.unsafe_get s (pos+4) = 'l' then (
+                    2
+                  )
+                  else (
+                    -1
+                  )
+                )
               | 7 -> (
                   match String.unsafe_get s pos with
                     | 'i' -> (
@@ -589,7 +625,7 @@ let read_state = (
                       )
                     | 'p' -> (
                         if String.unsafe_get s (pos+1) = 'r' && String.unsafe_get s (pos+2) = 'o' && String.unsafe_get s (pos+3) = 'v' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'd' && String.unsafe_get s (pos+6) = 'e' then (
-                          2
+                          3
                         )
                         else (
                           -1
@@ -597,7 +633,7 @@ let read_state = (
                       )
                     | 'r' -> (
                         if String.unsafe_get s (pos+1) = 'e' && String.unsafe_get s (pos+2) = 'q' && String.unsafe_get s (pos+3) = 'u' && String.unsafe_get s (pos+4) = 'i' && String.unsafe_get s (pos+5) = 'r' && String.unsafe_get s (pos+6) = 'e' then (
-                          3
+                          4
                         )
                         else (
                           -1
@@ -609,7 +645,7 @@ let read_state = (
                 )
               | 8 -> (
                   if String.unsafe_get s pos = 'c' && String.unsafe_get s (pos+1) = 'o' && String.unsafe_get s (pos+2) = 'n' && String.unsafe_get s (pos+3) = 'f' && String.unsafe_get s (pos+4) = 'l' && String.unsafe_get s (pos+5) = 'i' && String.unsafe_get s (pos+6) = 'c' && String.unsafe_get s (pos+7) = 't' then (
-                    4
+                    5
                   )
                   else (
                     -1
@@ -617,7 +653,7 @@ let read_state = (
                 )
               | 10 -> (
                   if String.unsafe_get s pos = 's' && String.unsafe_get s (pos+1) = 'u' && String.unsafe_get s (pos+2) = 'c' && String.unsafe_get s (pos+3) = 'c' && String.unsafe_get s (pos+4) = 'e' && String.unsafe_get s (pos+5) = 's' && String.unsafe_get s (pos+6) = 's' && String.unsafe_get s (pos+7) = 'o' && String.unsafe_get s (pos+8) = 'r' && String.unsafe_get s (pos+9) = 's' then (
-                    5
+                    6
                   )
                   else (
                     -1
@@ -652,7 +688,7 @@ let read_state = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__1
+                    Ag_oj_run.read_bool
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 2 (Obj.repr v);
@@ -661,7 +697,7 @@ let read_state = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__2
+                    read__1
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 3 (Obj.repr v);
@@ -670,7 +706,7 @@ let read_state = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__3
+                    read__2
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 4 (Obj.repr v);
@@ -679,10 +715,19 @@ let read_state = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__4
+                    read__3
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 5 (Obj.repr v);
+              )
+            | 6 ->
+              if not (Yojson.Safe.read_null_if_possible p lb) then (
+                let v =
+                  (
+                    read__4
+                  ) p lb
+                in
+                Obj.set_field (Obj.repr x) 6 (Obj.repr v);
               )
             | _ -> (
                 Yojson.Safe.skip_json p lb
@@ -729,7 +774,7 @@ let read__6 = (
 )
 let _6_of_string s =
   read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component_type : _ -> component_type -> _ = (
+let write_component_type = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -770,7 +815,7 @@ let read_component_type = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : component_type) =
+    let x =
       {
         component_type_name = Obj.magic 0.0;
         component_type_states = Obj.magic 0.0;
@@ -987,7 +1032,7 @@ let read__9 = (
 )
 let _9_of_string s =
   read__9 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_package : _ -> package -> _ = (
+let write_package = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1037,7 +1082,7 @@ let read_package = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : package) =
+    let x =
       {
         package_name = Obj.magic 0.0;
         package_depend = [];
@@ -1259,7 +1304,7 @@ let read_packages = (
 )
 let packages_of_string s =
   read_packages (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_repository : _ -> repository -> _ = (
+let write_repository = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1291,7 +1336,7 @@ let read_repository = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : repository) =
+    let x =
       {
         repository_name = Obj.magic 0.0;
         repository_packages = [];
@@ -1443,7 +1488,7 @@ let read_repositories = (
 )
 let repositories_of_string s =
   read_repositories (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_implementation_package : _ -> implementation_package -> _ = (
+let write_implementation_package = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1475,7 +1520,7 @@ let read_implementation_package = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : implementation_package) =
+    let x =
       {
         implementation_package_repository = Obj.magic 0.0;
         implementation_package_package = Obj.magic 0.0;
@@ -1641,7 +1686,7 @@ let read__13 = (
 )
 let _13_of_string s =
   read__13 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_universe : _ -> universe -> _ = (
+let write_universe = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1691,7 +1736,7 @@ let read_universe = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : universe) =
+    let x =
       {
         universe_version = Obj.magic 0.0;
         universe_component_types = [];
@@ -1925,7 +1970,7 @@ let read_location_cost = (
 )
 let location_cost_of_string s =
   read_location_cost (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_location : _ -> location -> _ = (
+let write_location = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1984,7 +2029,7 @@ let read_location = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : location) =
+    let x =
       {
         location_name = Obj.magic 0.0;
         location_provide_resources = [];
@@ -2223,7 +2268,7 @@ let read_location = (
 )
 let location_of_string s =
   read_location (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component : _ -> component -> _ = (
+let write_component = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2273,7 +2318,7 @@ let read_component = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : component) =
+    let x =
       {
         component_name = Obj.magic 0.0;
         component_type = Obj.magic 0.0;
@@ -2473,7 +2518,7 @@ let read_component = (
 )
 let component_of_string s =
   read_component (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_binding : _ -> binding -> _ = (
+let write_binding = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2514,7 +2559,7 @@ let read_binding = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : binding) =
+    let x =
       {
         binding_port = Obj.magic 0.0;
         binding_requirer = Obj.magic 0.0;
@@ -2729,7 +2774,7 @@ let read__17 = (
 )
 let _17_of_string s =
   read__17 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_configuration : _ -> configuration -> _ = (
+let write_configuration = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2779,7 +2824,7 @@ let read_configuration = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : configuration) =
+    let x =
       {
         configuration_version = Obj.magic 0.0;
         configuration_locations = [];

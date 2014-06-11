@@ -50,6 +50,7 @@ module To_abstract_io = struct
   let component_name      component_name'      = component_name'
 
   let state_initial    state_initial'    = state_initial'
+  let state_final      state_final'      = state_final'
   let state_successors state_successors' = List.map state_name state_successors'
 
   let provide_arity provide_arity' = 
@@ -69,6 +70,7 @@ module To_abstract_io = struct
   let state state' = {
     O.state_name       = state_name              state'.I.state_name;
     O.state_initial    = state_initial           state'.I.state_initial;
+    O.state_final      = state_final             state'.I.state_final;
     O.state_provide    = List.map single_provide state'.I.state_provide;
     O.state_require    = List.map single_require state'.I.state_require;
     O.state_conflict   = List.map port_name      state'.I.state_conflict;
@@ -157,6 +159,7 @@ module Of_abstract_io = struct
   let component_name      component_name'      = component_name'
 
   let state_initial    state_initial'    = state_initial'
+  let state_final      state_final'      = state_final'
   let state_successors state_successors' = List.map state_name state_successors'
 
   let provide_arity provide_arity' = 
@@ -175,6 +178,7 @@ module Of_abstract_io = struct
   let state state' = {
     O.state_name       = state_name              state'.I.state_name;
     O.state_initial    = state_initial           state'.I.state_initial;
+    O.state_final      = state_final             state'.I.state_final;
     O.state_provide    = List.map single_provide state'.I.state_provide;
     O.state_require    = List.map single_require state'.I.state_require;
     O.state_conflict   = List.map port_name      state'.I.state_conflict;

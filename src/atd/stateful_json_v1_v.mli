@@ -34,6 +34,7 @@ type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 type state = Stateful_json_v1_t.state = {
   state_name (*atd name *): state_name;
   state_initial (*atd initial *): bool;
+  state_final (*atd final *): bool;
   state_provide (*atd provide *): (port_name * provide_arity) list;
   state_require (*atd require *): (port_name * require_arity) list;
   state_conflict (*atd conflict *): port_name list;
@@ -169,6 +170,7 @@ val validate_resource_provide_arity :
 val create_state :
   state_name: state_name ->
   ?state_initial: bool ->
+  ?state_final: bool ->
   ?state_provide: (port_name * provide_arity) list ->
   ?state_require: (port_name * require_arity) list ->
   ?state_conflict: port_name list ->
