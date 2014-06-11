@@ -326,11 +326,12 @@ let file_process_name s =
 
 let keep_file current_name file = current_name
 
-let file_create keep file = let filename_tmp = Filename.temp_file file.basename file.suffix in
+let file_create keep file = 
+  let filename_tmp = Filename.temp_file ~temp_dir:file.dirname file.basename file.suffix in
   if keep then keep_file filename_tmp file else filename_tmp
 
 let file_print keep file s = 
-  let (filename_tmp, out_c) = Filename.open_temp_file file.basename file.suffix in
+  let (filename_tmp, out_c) = Filename.open_temp_file ~temp_dir:file.dirname file.basename file.suffix in
   output_string out_c s; flush out_c; close_out out_c;
   if keep then keep_file filename_tmp file else filename_tmp
 

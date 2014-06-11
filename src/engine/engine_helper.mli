@@ -96,11 +96,20 @@ val make_minizinc_solver_of_custom_minizinc_solver_command : string -> program
 
 (** 3. File name manipulation *)
 
-type file = {dirname : string; basename : string; suffix : string}
+type file = {
+  dirname  : string;
+  basename : string;
+  suffix : string
+}
+
 val file_default : file
 
 val file_process_name : string -> file
+
+(** [file_create keep file] returns a name of a fresh temporary file, constructed using the [file] structure. *)
 val file_create       : bool -> file -> string
+
+(** [file_print keep file content] creates a fresh temporary file, constructed using the [file] structure, and fills it with given [content]. *)
 val file_print        : bool -> file -> string -> string
 
 
