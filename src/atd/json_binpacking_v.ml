@@ -62,7 +62,7 @@ let validate_item_arity = (
 let validate__1 = (
   fun _ _ -> None
 )
-let validate_item : _ -> item -> _ = (
+let validate_item = (
   fun _ _ -> None
 )
 let validate_bin_name = (
@@ -74,7 +74,7 @@ let validate_bin_cost = (
 let validate_bin_arity = (
   (fun _ _ -> None)
 )
-let validate_bin : _ -> bin -> _ = (
+let validate_bin = (
   fun _ _ -> None
 )
 let validate_repository_name = (
@@ -101,14 +101,14 @@ let validate__5 = (
 let validate__6 = (
   fun _ _ -> None
 )
-let validate_binpacking_problem : _ -> binpacking_problem -> _ = (
+let validate_binpacking_problem = (
   fun _ _ -> None
 )
 let create_item 
   ~item_name
   ~item_sizes
   ~item_arity
-  () : item =
+  () =
   {
     item_name = item_name;
     item_sizes = item_sizes;
@@ -119,7 +119,7 @@ let create_bin
   ~bin_sizes
   ~bin_cost
   ~bin_arity
-  () : bin =
+  () =
   {
     bin_name = bin_name;
     bin_sizes = bin_sizes;
@@ -130,7 +130,7 @@ let create_binpacking_problem
   ~binpacking_problem_items
   ~binpacking_problem_bins
   ~binpacking_problem_incompatibilities
-  () : binpacking_problem =
+  () =
   {
     binpacking_problem_items = binpacking_problem_items;
     binpacking_problem_bins = binpacking_problem_bins;

@@ -10,7 +10,7 @@ type versioned_object = Json_versions_t.versioned_object = {
 let validate_version = (
   fun x -> 0 <= x && x <= 1
 )
-let validate_versioned_object : _ -> versioned_object -> _ = (
+let validate_versioned_object = (
   fun path x ->
     (
       validate_version
@@ -18,7 +18,7 @@ let validate_versioned_object : _ -> versioned_object -> _ = (
 )
 let create_versioned_object 
   ?(version = 0)
-  () : versioned_object =
+  () =
   {
     version = version;
   }

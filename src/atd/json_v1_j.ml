@@ -326,7 +326,7 @@ let read__4 = (
 )
 let _4_of_string s =
   read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component_type : _ -> component_type -> _ = (
+let write_component_type = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -385,7 +385,7 @@ let read_component_type = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : component_type) =
+    let x =
       {
         component_type_name = Obj.magic 0.0;
         component_type_provide = [];
@@ -686,7 +686,7 @@ let read__7 = (
 )
 let _7_of_string s =
   read__7 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_package : _ -> package -> _ = (
+let write_package = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -736,7 +736,7 @@ let read_package = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : package) =
+    let x =
       {
         package_name = Obj.magic 0.0;
         package_depend = [];
@@ -958,7 +958,7 @@ let read_packages = (
 )
 let packages_of_string s =
   read_packages (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_repository : _ -> repository -> _ = (
+let write_repository = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -990,7 +990,7 @@ let read_repository = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : repository) =
+    let x =
       {
         repository_name = Obj.magic 0.0;
         repository_packages = [];
@@ -1239,7 +1239,7 @@ let read__11 = (
 )
 let _11_of_string s =
   read__11 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_universe : _ -> universe -> _ = (
+let write_universe = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1289,7 +1289,7 @@ let read_universe = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : universe) =
+    let x =
       {
         universe_version = Obj.magic 0.0;
         universe_component_types = [];
@@ -1523,7 +1523,7 @@ let read_location_cost = (
 )
 let location_cost_of_string s =
   read_location_cost (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_location : _ -> location -> _ = (
+let write_location = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1582,7 +1582,7 @@ let read_location = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : location) =
+    let x =
       {
         location_name = Obj.magic 0.0;
         location_provide_resources = [];
@@ -1821,7 +1821,7 @@ let read_location = (
 )
 let location_of_string s =
   read_location (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_component : _ -> component -> _ = (
+let write_component = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -1862,7 +1862,7 @@ let read_component = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : component) =
+    let x =
       {
         component_name = Obj.magic 0.0;
         component_type = Obj.magic 0.0;
@@ -2029,7 +2029,7 @@ let read_component = (
 )
 let component_of_string s =
   read_component (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_binding : _ -> binding -> _ = (
+let write_binding = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2070,7 +2070,7 @@ let read_binding = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : binding) =
+    let x =
       {
         binding_port = Obj.magic 0.0;
         binding_requirer = Obj.magic 0.0;
@@ -2285,7 +2285,7 @@ let read__15 = (
 )
 let _15_of_string s =
   read__15 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_configuration : _ -> configuration -> _ = (
+let write_configuration = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -2335,7 +2335,7 @@ let read_configuration = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : configuration) =
+    let x =
       {
         configuration_version = Obj.magic 0.0;
         configuration_locations = [];

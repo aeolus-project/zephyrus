@@ -111,7 +111,7 @@ let read__1 = (
 )
 let _1_of_string s =
   read__1 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_item : _ -> item -> _ = (
+let write_item = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -152,7 +152,7 @@ let read_item = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : item) =
+    let x =
       {
         item_name = Obj.magic 0.0;
         item_sizes = Obj.magic 0.0;
@@ -355,7 +355,7 @@ let read_bin_arity = (
 )
 let bin_arity_of_string s =
   read_bin_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_bin : _ -> bin -> _ = (
+let write_bin = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -405,7 +405,7 @@ let read_bin = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : bin) =
+    let x =
       {
         bin_name = Obj.magic 0.0;
         bin_sizes = Obj.magic 0.0;
@@ -733,7 +733,7 @@ let read__6 = (
 )
 let _6_of_string s =
   read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_binpacking_problem : _ -> binpacking_problem -> _ = (
+let write_binpacking_problem = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -774,7 +774,7 @@ let read_binpacking_problem = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : binpacking_problem) =
+    let x =
       {
         binpacking_problem_items = Obj.magic 0.0;
         binpacking_problem_bins = Obj.magic 0.0;

@@ -149,7 +149,7 @@ let read__3 = (
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_coinst_conflicts : _ -> coinst_conflicts -> _ = (
+let write_coinst_conflicts = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -181,7 +181,7 @@ let read_coinst_conflicts = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : coinst_conflicts) =
+    let x =
       {
         classes = Obj.magic 0.0;
         incompatibilities = Obj.magic 0.0;

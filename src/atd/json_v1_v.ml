@@ -147,7 +147,7 @@ let validate__3 = (
 let validate__4 = (
   fun _ _ -> None
 )
-let validate_component_type : _ -> component_type -> _ = (
+let validate_component_type = (
   fun _ _ -> None
 )
 let validate__5 = (
@@ -162,7 +162,7 @@ let validate__6 = (
 let validate__7 = (
   fun _ _ -> None
 )
-let validate_package : _ -> package -> _ = (
+let validate_package = (
   fun _ _ -> None
 )
 let validate__8 = (
@@ -171,7 +171,7 @@ let validate__8 = (
 let validate_packages = (
   validate__8
 )
-let validate_repository : _ -> repository -> _ = (
+let validate_repository = (
   fun _ _ -> None
 )
 let validate__9 = (
@@ -189,7 +189,7 @@ let validate_package_names = (
 let validate__11 = (
   fun _ _ -> None
 )
-let validate_universe : _ -> universe -> _ = (
+let validate_universe = (
   fun path x ->
     (
       validate_version
@@ -204,13 +204,13 @@ let validate_resources_provided = (
 let validate_location_cost = (
   (fun _ _ -> None)
 )
-let validate_location : _ -> location -> _ = (
+let validate_location = (
   fun _ _ -> None
 )
-let validate_component : _ -> component -> _ = (
+let validate_component = (
   fun _ _ -> None
 )
-let validate_binding : _ -> binding -> _ = (
+let validate_binding = (
   fun _ _ -> None
 )
 let validate__13 = (
@@ -222,7 +222,7 @@ let validate__14 = (
 let validate__15 = (
   fun _ _ -> None
 )
-let validate_configuration : _ -> configuration -> _ = (
+let validate_configuration = (
   fun path x ->
     (
       validate_version
@@ -234,7 +234,7 @@ let create_component_type
   ?(component_type_require = [])
   ?(component_type_conflict = [])
   ?(component_type_consume = [])
-  () : component_type =
+  () =
   {
     component_type_name = component_type_name;
     component_type_provide = component_type_provide;
@@ -247,7 +247,7 @@ let create_package
   ?(package_depend = [])
   ?(package_conflict = [])
   ?(package_consume = [])
-  () : package =
+  () =
   {
     package_name = package_name;
     package_depend = package_depend;
@@ -257,7 +257,7 @@ let create_package
 let create_repository 
   ~repository_name
   ?(repository_packages = [])
-  () : repository =
+  () =
   {
     repository_name = repository_name;
     repository_packages = repository_packages;
@@ -267,7 +267,7 @@ let create_universe
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
-  () : universe =
+  () =
   {
     universe_version = universe_version;
     universe_component_types = universe_component_types;
@@ -280,7 +280,7 @@ let create_location
   ~location_repository
   ?(location_packages_installed = [])
   ?(location_cost = 1)
-  () : location =
+  () =
   {
     location_name = location_name;
     location_provide_resources = location_provide_resources;
@@ -292,7 +292,7 @@ let create_component
   ~component_name
   ~component_type
   ~component_location
-  () : component =
+  () =
   {
     component_name = component_name;
     component_type = component_type;
@@ -302,7 +302,7 @@ let create_binding
   ~binding_port
   ~binding_requirer
   ~binding_provider
-  () : binding =
+  () =
   {
     binding_port = binding_port;
     binding_requirer = binding_requirer;
@@ -313,7 +313,7 @@ let create_configuration
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
-  () : configuration =
+  () =
   {
     configuration_version = configuration_version;
     configuration_locations = configuration_locations;

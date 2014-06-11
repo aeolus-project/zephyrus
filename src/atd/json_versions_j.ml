@@ -19,7 +19,7 @@ let read_version = (
 )
 let version_of_string s =
   read_version (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_versioned_object : _ -> versioned_object -> _ = (
+let write_versioned_object = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -42,7 +42,7 @@ let read_versioned_object = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let (x : versioned_object) =
+    let x =
       {
         version = (fun x -> x) (0);
       }
