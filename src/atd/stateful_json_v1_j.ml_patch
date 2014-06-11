@@ -1,6 +1,6 @@
---- stateful_json_v1_j.ml.orig	2014-05-12 15:54:55.970636818 +0200
-+++ stateful_json_v1_j.ml	2014-05-12 15:55:38.174636016 +0200
-@@ -223,14 +223,33 @@
+--- stateful_json_v1_j.ml	2014-06-11 15:43:47.800854211 +0200
++++ stateful_json_v1_j.ml_patched	2014-06-11 15:00:53.844945939 +0200
+@@ -224,14 +224,33 @@
  let resource_name_of_string s =
    read_resource_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
  let write_provide_arity = (
