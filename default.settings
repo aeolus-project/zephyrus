@@ -13,5 +13,11 @@
 #verbose-level = 2
 #verbose-data = y
 
+# Uncomment these lines to change the place where MiniZinc files are created and how they are named:
+# (if you specify a path "/foo/bar/baz-.mzn" then files will be created
+#  in the "/foo/bar/" directory and will be named "baz-[random part].mzn")
+#solver-constraint-file = "/tmp/constraint-problem-.mzn"
+#solver-keep-constraint-file = y
+
 # Uncomment these lines to output simple results (final configuration in form of a JSON file and a deployment graph):
 #results = [("json-v1", "output.json"); ("graph-deployment", "output.dot")]
