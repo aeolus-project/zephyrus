@@ -168,6 +168,13 @@ let kill pid =
 let make_zephyrus_temp_file file_extension =
   Filename.temp_file "zephyrus-" file_extension
 
+let coinst = {
+  name     = "Coinstallability checker";
+  commands = ["coinst"];
+  exe      = (fun args -> "");
+  exe_type = Bash_command;
+}
+
 let mzn2fzn = {
   name     = "G12 MiniZinc to FlatZinc converter";
   commands = ["mzn2fzn"];
@@ -178,13 +185,6 @@ let mzn2fzn = {
                   let fzn_file = String.escaped output in
                   Printf.sprintf "mzn2fzn --no-output-ozn -o %s %s" fzn_file mzn_file
                 | _ -> raise Wrong_argument_number);
-  exe_type = Bash_command;
-}
-
-let coinst = {
-  name     = "Coinstallability checker";
-  commands = ["coinst"];
-  exe      = (fun args -> "");
   exe_type = Bash_command;
 }
 

@@ -118,12 +118,15 @@ let repository universe repository_id =
 
   (* 6. Use coinst to generate the conflicts file. *)
   let conflicts_filepath = Printf.sprintf "tmp/%s-conflicts.json" repository_name in
-  if not (Engine_helper.program_is_available Engine_helper.coinst) then 
-    Zephyrus_log.log_panic "The coinst external tool cannot be found. Aborting execution\n";
-    let coinst_exit_code = 
-      Unix.system (Printf.sprintf "coinst -all -conflicts %s -cudf %s" conflicts_filepath cudf_filepath) in
-    if not (Engine_helper.did_program_exit_ok coinst_exit_code) then
-      Zephyrus_log.log_panic "The coinst external tool exited abnormally. Aborting execution\n";
+  
+  if not (Engine_helper.program_is_available Engine_helper.coinst)
+  then Zephyrus_log.log_panic "The coinst external tool cannot be found. Aborting execution.\n";
+
+  let coinst_exit_code = 
+    Unix.system (Printf.sprintf "coinst -all -conflicts %s -cudf %s" conflicts_filepath cudf_filepath) in
+  
+  if not (Engine_helper.did_program_exit_ok coinst_exit_code) then
+    Zephyrus_log.log_panic "The coinst external tool exited abnormally. Aborting execution.\n";
 
   (* 7. Parse the generated conflicts file to a conflicts structure. *)
   match Input_helper.parse_json Coinst_conflicts_j.read_coinst_conflicts conflicts_filepath with
