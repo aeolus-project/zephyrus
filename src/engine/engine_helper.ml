@@ -181,6 +181,13 @@ let mzn2fzn = {
   exe_type = Bash_command;
 }
 
+let coinst = {
+  name     = "Coinstallability checker";
+  commands = ["coinst"];
+  exe      = (fun args -> "");
+  exe_type = Bash_command;
+}
+
 let g12_flatzinc_solver = {
   name     = "G12 FlatZinc Solver";
   commands = ["flatzinc"];

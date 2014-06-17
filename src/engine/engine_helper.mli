@@ -76,6 +76,7 @@ val make_zephyrus_temp_file : string -> string
 
 (** Some useful programs (usually, the [program.exe] only takes two arguments). *)
 
+val coinst                  : program
 val mzn2fzn                 : program
 val g12_flatzinc_solver     : program
 val gecode_flatzinc_solver  : program
