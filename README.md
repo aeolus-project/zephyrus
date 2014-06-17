@@ -36,6 +36,15 @@ To compile the Zephyrus tool simply type `make`. However, before attempting the 
 
 #####Coinst
 
+<Attention!>
+
+This section is outdated! Zephyrus is now using the **coinst** available globally, not the one in the Zephyrus repository submodule. You should either:
+
+- Install **coinst** separately (e.g. `sudo apt-get install coinst` on Debian).
+- Follow the instructions in this section and after that make sure that your local `coinst` executable is in your PATH when you execute Zephyrus.
+
+</Attention!>
+
 If you want to use some features which require the [coinst](http://coinst.irill.org/) tool, you will need to compile it as well. As it is included as a submodule int the Zephyrus git repository, you do not need to download it separately, it is enough if you type:
 
 ```sh
