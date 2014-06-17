@@ -171,7 +171,13 @@ let make_zephyrus_temp_file file_extension =
 let coinst = {
   name     = "Coinstallability checker";
   commands = ["coinst"];
-  exe      = (fun args -> "");
+  exe      = (fun args -> 
+                match args with 
+                | [input; output] -> 
+                  let cudf_filepath      = String.escaped input in
+                  let conflicts_filepath = String.escaped output in
+                  Printf.sprintf "coinst -all -conflicts %s -cudf %s" conflicts_filepath cudf_filepath
+                | _ -> raise Wrong_argument_number);
   exe_type = Bash_command;
 }
 
