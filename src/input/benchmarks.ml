@@ -490,7 +490,8 @@ struct
     }
 
     method specification = 
-      let spec = "#@wordpress-frontend > 0 and everywhere(#Wordpress <= 1) and everywhere(#MySQL <= 1)" in
+      (* let spec = "#@wordpress-frontend > 0 and everywhere(#Wordpress <= 1) and everywhere(#MySQL <= 1)" in *)
+      let spec = "(#HTTP-Load-Balancer + #DNS-Load-Balancer) > 0 and everywhere(#Wordpress <= 1) and everywhere(#MySQL <= 1)" in
       Specification_parser.main Specification_lexer.token (Lexing.from_string spec)
 
     method optimization_function = Abstract_io.Optimization_function_compact
