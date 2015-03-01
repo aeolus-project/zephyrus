@@ -79,6 +79,7 @@ module To_abstract_io = struct
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
+    O.universe_port_hierarchy  = []
   }
 
   let location_cost location_cost' = location_cost'

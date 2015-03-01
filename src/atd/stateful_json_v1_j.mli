@@ -6,30 +6,13 @@
 (** Type definitions for naming. *)
 type version = Json_versions_t.version
 
-type component_type_name = Stateful_json_v1_t.component_type_name
-
 type state_name = Stateful_json_v1_t.state_name
-
-type port_name = Stateful_json_v1_t.port_name
-
-type component_name = Stateful_json_v1_t.component_name
-
-type package_name = Stateful_json_v1_t.package_name
-
-type repository_name = Stateful_json_v1_t.repository_name
-
-type location_name = Stateful_json_v1_t.location_name
-
-(** Type definitions for Universe. *)
-type resource_name = Stateful_json_v1_t.resource_name
-
-type provide_arity = Stateful_json_v1_t.provide_arity
 
 type require_arity = Stateful_json_v1_t.require_arity
 
-type resource_consumption = Stateful_json_v1_t.resource_consumption
+type provide_arity = Stateful_json_v1_t.provide_arity
 
-type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
+type port_name = Stateful_json_v1_t.port_name
 
 type state = Stateful_json_v1_t.state = {
   state_name (*atd name *): state_name;
@@ -41,14 +24,14 @@ type state = Stateful_json_v1_t.state = {
   state_successors (*atd successors *): state_name list
 }
 
-type component_type = Stateful_json_v1_t.component_type = {
-  component_type_name (*atd name *): component_type_name;
-  component_type_states (*atd states *): state list;
-  component_type_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
+(** Type definitions for Universe. *)
+type resource_name = Stateful_json_v1_t.resource_name
 
-type component_types = Stateful_json_v1_t.component_types
+type resource_consumption = Stateful_json_v1_t.resource_consumption
+
+type repository_name = Stateful_json_v1_t.repository_name
+
+type package_name = Stateful_json_v1_t.package_name
 
 type package = Stateful_json_v1_t.package = {
   package_name (*atd name *): package_name;
@@ -58,14 +41,17 @@ type package = Stateful_json_v1_t.package = {
     (resource_name * resource_consumption) list
 }
 
-type packages = Stateful_json_v1_t.packages
-
 type repository = Stateful_json_v1_t.repository = {
   repository_name (*atd name *): repository_name;
   repository_packages (*atd packages *): package list
 }
 
 type repositories = Stateful_json_v1_t.repositories
+
+type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subport (*atd subport *): port_name
+}
 
 type implementation_package = Stateful_json_v1_t.implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
@@ -74,16 +60,34 @@ type implementation_package = Stateful_json_v1_t.implementation_package = {
 
 type implementation_packages = Stateful_json_v1_t.implementation_packages
 
+type component_type_name = Stateful_json_v1_t.component_type_name
+
+type component_type = Stateful_json_v1_t.component_type = {
+  component_type_name (*atd name *): component_type_name;
+  component_type_states (*atd states *): state list;
+  component_type_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type component_types = Stateful_json_v1_t.component_types
+
 (** Type definitions for Configuration. *)
 type universe = Stateful_json_v1_t.universe = {
   universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
-  universe_repositories (*atd repositories *): repositories
+  universe_repositories (*atd repositories *): repositories;
+  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
 }
 
+type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
+
 type resources_provided = Stateful_json_v1_t.resources_provided
+
+type packages = Stateful_json_v1_t.packages
+
+type location_name = Stateful_json_v1_t.location_name
 
 type location_cost = Stateful_json_v1_t.location_cost
 
@@ -94,6 +98,8 @@ type location = Stateful_json_v1_t.location = {
   location_packages_installed (*atd packages_installed *): package_name list;
   location_cost (*atd cost *): location_cost
 }
+
+type component_name = Stateful_json_v1_t.component_name
 
 type component = Stateful_json_v1_t.component = {
   component_name (*atd name *): component_name;
@@ -135,26 +141,6 @@ val version_of_string :
   string -> version
   (** Deserialize JSON data of type {!version}. *)
 
-val write_component_type_name :
-  Bi_outbuf.t -> component_type_name -> unit
-  (** Output a JSON value of type {!component_type_name}. *)
-
-val string_of_component_type_name :
-  ?len:int -> component_type_name -> string
-  (** Serialize a value of type {!component_type_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_component_type_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_type_name
-  (** Input JSON data of type {!component_type_name}. *)
-
-val component_type_name_of_string :
-  string -> component_type_name
-  (** Deserialize JSON data of type {!component_type_name}. *)
-
 val write_state_name :
   Bi_outbuf.t -> state_name -> unit
   (** Output a JSON value of type {!state_name}. *)
@@ -174,146 +160,6 @@ val read_state_name :
 val state_name_of_string :
   string -> state_name
   (** Deserialize JSON data of type {!state_name}. *)
-
-val write_port_name :
-  Bi_outbuf.t -> port_name -> unit
-  (** Output a JSON value of type {!port_name}. *)
-
-val string_of_port_name :
-  ?len:int -> port_name -> string
-  (** Serialize a value of type {!port_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_port_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> port_name
-  (** Input JSON data of type {!port_name}. *)
-
-val port_name_of_string :
-  string -> port_name
-  (** Deserialize JSON data of type {!port_name}. *)
-
-val write_component_name :
-  Bi_outbuf.t -> component_name -> unit
-  (** Output a JSON value of type {!component_name}. *)
-
-val string_of_component_name :
-  ?len:int -> component_name -> string
-  (** Serialize a value of type {!component_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_component_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_name
-  (** Input JSON data of type {!component_name}. *)
-
-val component_name_of_string :
-  string -> component_name
-  (** Deserialize JSON data of type {!component_name}. *)
-
-val write_package_name :
-  Bi_outbuf.t -> package_name -> unit
-  (** Output a JSON value of type {!package_name}. *)
-
-val string_of_package_name :
-  ?len:int -> package_name -> string
-  (** Serialize a value of type {!package_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_package_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> package_name
-  (** Input JSON data of type {!package_name}. *)
-
-val package_name_of_string :
-  string -> package_name
-  (** Deserialize JSON data of type {!package_name}. *)
-
-val write_repository_name :
-  Bi_outbuf.t -> repository_name -> unit
-  (** Output a JSON value of type {!repository_name}. *)
-
-val string_of_repository_name :
-  ?len:int -> repository_name -> string
-  (** Serialize a value of type {!repository_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_repository_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> repository_name
-  (** Input JSON data of type {!repository_name}. *)
-
-val repository_name_of_string :
-  string -> repository_name
-  (** Deserialize JSON data of type {!repository_name}. *)
-
-val write_location_name :
-  Bi_outbuf.t -> location_name -> unit
-  (** Output a JSON value of type {!location_name}. *)
-
-val string_of_location_name :
-  ?len:int -> location_name -> string
-  (** Serialize a value of type {!location_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_location_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> location_name
-  (** Input JSON data of type {!location_name}. *)
-
-val location_name_of_string :
-  string -> location_name
-  (** Deserialize JSON data of type {!location_name}. *)
-
-val write_resource_name :
-  Bi_outbuf.t -> resource_name -> unit
-  (** Output a JSON value of type {!resource_name}. *)
-
-val string_of_resource_name :
-  ?len:int -> resource_name -> string
-  (** Serialize a value of type {!resource_name}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_resource_name :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_name
-  (** Input JSON data of type {!resource_name}. *)
-
-val resource_name_of_string :
-  string -> resource_name
-  (** Deserialize JSON data of type {!resource_name}. *)
-
-val write_provide_arity :
-  Bi_outbuf.t -> provide_arity -> unit
-  (** Output a JSON value of type {!provide_arity}. *)
-
-val string_of_provide_arity :
-  ?len:int -> provide_arity -> string
-  (** Serialize a value of type {!provide_arity}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_provide_arity :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> provide_arity
-  (** Input JSON data of type {!provide_arity}. *)
-
-val provide_arity_of_string :
-  string -> provide_arity
-  (** Deserialize JSON data of type {!provide_arity}. *)
 
 val write_require_arity :
   Bi_outbuf.t -> require_arity -> unit
@@ -335,45 +181,45 @@ val require_arity_of_string :
   string -> require_arity
   (** Deserialize JSON data of type {!require_arity}. *)
 
-val write_resource_consumption :
-  Bi_outbuf.t -> resource_consumption -> unit
-  (** Output a JSON value of type {!resource_consumption}. *)
+val write_provide_arity :
+  Bi_outbuf.t -> provide_arity -> unit
+  (** Output a JSON value of type {!provide_arity}. *)
 
-val string_of_resource_consumption :
-  ?len:int -> resource_consumption -> string
-  (** Serialize a value of type {!resource_consumption}
+val string_of_provide_arity :
+  ?len:int -> provide_arity -> string
+  (** Serialize a value of type {!provide_arity}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_resource_consumption :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_consumption
-  (** Input JSON data of type {!resource_consumption}. *)
+val read_provide_arity :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> provide_arity
+  (** Input JSON data of type {!provide_arity}. *)
 
-val resource_consumption_of_string :
-  string -> resource_consumption
-  (** Deserialize JSON data of type {!resource_consumption}. *)
+val provide_arity_of_string :
+  string -> provide_arity
+  (** Deserialize JSON data of type {!provide_arity}. *)
 
-val write_resource_provide_arity :
-  Bi_outbuf.t -> resource_provide_arity -> unit
-  (** Output a JSON value of type {!resource_provide_arity}. *)
+val write_port_name :
+  Bi_outbuf.t -> port_name -> unit
+  (** Output a JSON value of type {!port_name}. *)
 
-val string_of_resource_provide_arity :
-  ?len:int -> resource_provide_arity -> string
-  (** Serialize a value of type {!resource_provide_arity}
+val string_of_port_name :
+  ?len:int -> port_name -> string
+  (** Serialize a value of type {!port_name}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_resource_provide_arity :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_provide_arity
-  (** Input JSON data of type {!resource_provide_arity}. *)
+val read_port_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> port_name
+  (** Input JSON data of type {!port_name}. *)
 
-val resource_provide_arity_of_string :
-  string -> resource_provide_arity
-  (** Deserialize JSON data of type {!resource_provide_arity}. *)
+val port_name_of_string :
+  string -> port_name
+  (** Deserialize JSON data of type {!port_name}. *)
 
 val write_state :
   Bi_outbuf.t -> state -> unit
@@ -395,45 +241,85 @@ val state_of_string :
   string -> state
   (** Deserialize JSON data of type {!state}. *)
 
-val write_component_type :
-  Bi_outbuf.t -> component_type -> unit
-  (** Output a JSON value of type {!component_type}. *)
+val write_resource_name :
+  Bi_outbuf.t -> resource_name -> unit
+  (** Output a JSON value of type {!resource_name}. *)
 
-val string_of_component_type :
-  ?len:int -> component_type -> string
-  (** Serialize a value of type {!component_type}
+val string_of_resource_name :
+  ?len:int -> resource_name -> string
+  (** Serialize a value of type {!resource_name}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_component_type :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_type
-  (** Input JSON data of type {!component_type}. *)
+val read_resource_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_name
+  (** Input JSON data of type {!resource_name}. *)
 
-val component_type_of_string :
-  string -> component_type
-  (** Deserialize JSON data of type {!component_type}. *)
+val resource_name_of_string :
+  string -> resource_name
+  (** Deserialize JSON data of type {!resource_name}. *)
 
-val write_component_types :
-  Bi_outbuf.t -> component_types -> unit
-  (** Output a JSON value of type {!component_types}. *)
+val write_resource_consumption :
+  Bi_outbuf.t -> resource_consumption -> unit
+  (** Output a JSON value of type {!resource_consumption}. *)
 
-val string_of_component_types :
-  ?len:int -> component_types -> string
-  (** Serialize a value of type {!component_types}
+val string_of_resource_consumption :
+  ?len:int -> resource_consumption -> string
+  (** Serialize a value of type {!resource_consumption}
       into a JSON string.
       @param len specifies the initial length
                  of the buffer used internally.
                  Default: 1024. *)
 
-val read_component_types :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_types
-  (** Input JSON data of type {!component_types}. *)
+val read_resource_consumption :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_consumption
+  (** Input JSON data of type {!resource_consumption}. *)
 
-val component_types_of_string :
-  string -> component_types
-  (** Deserialize JSON data of type {!component_types}. *)
+val resource_consumption_of_string :
+  string -> resource_consumption
+  (** Deserialize JSON data of type {!resource_consumption}. *)
+
+val write_repository_name :
+  Bi_outbuf.t -> repository_name -> unit
+  (** Output a JSON value of type {!repository_name}. *)
+
+val string_of_repository_name :
+  ?len:int -> repository_name -> string
+  (** Serialize a value of type {!repository_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_repository_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> repository_name
+  (** Input JSON data of type {!repository_name}. *)
+
+val repository_name_of_string :
+  string -> repository_name
+  (** Deserialize JSON data of type {!repository_name}. *)
+
+val write_package_name :
+  Bi_outbuf.t -> package_name -> unit
+  (** Output a JSON value of type {!package_name}. *)
+
+val string_of_package_name :
+  ?len:int -> package_name -> string
+  (** Serialize a value of type {!package_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_package_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> package_name
+  (** Input JSON data of type {!package_name}. *)
+
+val package_name_of_string :
+  string -> package_name
+  (** Deserialize JSON data of type {!package_name}. *)
 
 val write_package :
   Bi_outbuf.t -> package -> unit
@@ -454,26 +340,6 @@ val read_package :
 val package_of_string :
   string -> package
   (** Deserialize JSON data of type {!package}. *)
-
-val write_packages :
-  Bi_outbuf.t -> packages -> unit
-  (** Output a JSON value of type {!packages}. *)
-
-val string_of_packages :
-  ?len:int -> packages -> string
-  (** Serialize a value of type {!packages}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_packages :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> packages
-  (** Input JSON data of type {!packages}. *)
-
-val packages_of_string :
-  string -> packages
-  (** Deserialize JSON data of type {!packages}. *)
 
 val write_repository :
   Bi_outbuf.t -> repository -> unit
@@ -515,6 +381,26 @@ val repositories_of_string :
   string -> repositories
   (** Deserialize JSON data of type {!repositories}. *)
 
+val write_port_hierarchy :
+  Bi_outbuf.t -> port_hierarchy -> unit
+  (** Output a JSON value of type {!port_hierarchy}. *)
+
+val string_of_port_hierarchy :
+  ?len:int -> port_hierarchy -> string
+  (** Serialize a value of type {!port_hierarchy}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_port_hierarchy :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> port_hierarchy
+  (** Input JSON data of type {!port_hierarchy}. *)
+
+val port_hierarchy_of_string :
+  string -> port_hierarchy
+  (** Deserialize JSON data of type {!port_hierarchy}. *)
+
 val write_implementation_package :
   Bi_outbuf.t -> implementation_package -> unit
   (** Output a JSON value of type {!implementation_package}. *)
@@ -555,6 +441,66 @@ val implementation_packages_of_string :
   string -> implementation_packages
   (** Deserialize JSON data of type {!implementation_packages}. *)
 
+val write_component_type_name :
+  Bi_outbuf.t -> component_type_name -> unit
+  (** Output a JSON value of type {!component_type_name}. *)
+
+val string_of_component_type_name :
+  ?len:int -> component_type_name -> string
+  (** Serialize a value of type {!component_type_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_component_type_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_type_name
+  (** Input JSON data of type {!component_type_name}. *)
+
+val component_type_name_of_string :
+  string -> component_type_name
+  (** Deserialize JSON data of type {!component_type_name}. *)
+
+val write_component_type :
+  Bi_outbuf.t -> component_type -> unit
+  (** Output a JSON value of type {!component_type}. *)
+
+val string_of_component_type :
+  ?len:int -> component_type -> string
+  (** Serialize a value of type {!component_type}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_component_type :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_type
+  (** Input JSON data of type {!component_type}. *)
+
+val component_type_of_string :
+  string -> component_type
+  (** Deserialize JSON data of type {!component_type}. *)
+
+val write_component_types :
+  Bi_outbuf.t -> component_types -> unit
+  (** Output a JSON value of type {!component_types}. *)
+
+val string_of_component_types :
+  ?len:int -> component_types -> string
+  (** Serialize a value of type {!component_types}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_component_types :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_types
+  (** Input JSON data of type {!component_types}. *)
+
+val component_types_of_string :
+  string -> component_types
+  (** Deserialize JSON data of type {!component_types}. *)
+
 val write_universe :
   Bi_outbuf.t -> universe -> unit
   (** Output a JSON value of type {!universe}. *)
@@ -575,6 +521,26 @@ val universe_of_string :
   string -> universe
   (** Deserialize JSON data of type {!universe}. *)
 
+val write_resource_provide_arity :
+  Bi_outbuf.t -> resource_provide_arity -> unit
+  (** Output a JSON value of type {!resource_provide_arity}. *)
+
+val string_of_resource_provide_arity :
+  ?len:int -> resource_provide_arity -> string
+  (** Serialize a value of type {!resource_provide_arity}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_resource_provide_arity :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> resource_provide_arity
+  (** Input JSON data of type {!resource_provide_arity}. *)
+
+val resource_provide_arity_of_string :
+  string -> resource_provide_arity
+  (** Deserialize JSON data of type {!resource_provide_arity}. *)
+
 val write_resources_provided :
   Bi_outbuf.t -> resources_provided -> unit
   (** Output a JSON value of type {!resources_provided}. *)
@@ -594,6 +560,46 @@ val read_resources_provided :
 val resources_provided_of_string :
   string -> resources_provided
   (** Deserialize JSON data of type {!resources_provided}. *)
+
+val write_packages :
+  Bi_outbuf.t -> packages -> unit
+  (** Output a JSON value of type {!packages}. *)
+
+val string_of_packages :
+  ?len:int -> packages -> string
+  (** Serialize a value of type {!packages}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_packages :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> packages
+  (** Input JSON data of type {!packages}. *)
+
+val packages_of_string :
+  string -> packages
+  (** Deserialize JSON data of type {!packages}. *)
+
+val write_location_name :
+  Bi_outbuf.t -> location_name -> unit
+  (** Output a JSON value of type {!location_name}. *)
+
+val string_of_location_name :
+  ?len:int -> location_name -> string
+  (** Serialize a value of type {!location_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_location_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> location_name
+  (** Input JSON data of type {!location_name}. *)
+
+val location_name_of_string :
+  string -> location_name
+  (** Deserialize JSON data of type {!location_name}. *)
 
 val write_location_cost :
   Bi_outbuf.t -> location_cost -> unit
@@ -634,6 +640,26 @@ val read_location :
 val location_of_string :
   string -> location
   (** Deserialize JSON data of type {!location}. *)
+
+val write_component_name :
+  Bi_outbuf.t -> component_name -> unit
+  (** Output a JSON value of type {!component_name}. *)
+
+val string_of_component_name :
+  ?len:int -> component_name -> string
+  (** Serialize a value of type {!component_name}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_component_name :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_name
+  (** Input JSON data of type {!component_name}. *)
+
+val component_name_of_string :
+  string -> component_name
+  (** Deserialize JSON data of type {!component_name}. *)
 
 val write_component :
   Bi_outbuf.t -> component -> unit

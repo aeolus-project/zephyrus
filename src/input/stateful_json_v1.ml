@@ -49,6 +49,8 @@ module To_abstract_io = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
 
+  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
+
   let state_initial    state_initial'    = state_initial'
   let state_final      state_final'      = state_final'
   let state_successors state_successors' = List.map state_name state_successors'
@@ -109,7 +111,8 @@ module To_abstract_io = struct
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
-  }
+    O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
+ }
 
   let location_cost location_cost' = location_cost'
 
@@ -157,6 +160,8 @@ module Of_abstract_io = struct
   let repository_name     repository_name'     = repository_name'
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
+
+  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
 
   let state_initial    state_initial'    = state_initial'
   let state_final      state_final'      = state_final'
@@ -218,6 +223,7 @@ module Of_abstract_io = struct
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
+    O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
   }
 
   let location_cost location_cost' = location_cost'

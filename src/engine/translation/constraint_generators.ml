@@ -24,9 +24,9 @@ open Data_common
 open Data_constraint
 open Data_model
 
-(*******************************************)
-(** 1. Helper functions                    *)
-(*******************************************)
+(*/*****************************************\*)
+(*|* 1. Helper functions                    |*)
+(*\*****************************************/*)
 
 let get_provide_arity_safe component_type_id port_id = if Port_id_set.mem port_id component_type_id#provide_domain then constant_of_provide_arity (component_type_id#provide port_id) else constant 0
 let get_provide_arity      component_type_id port_id = constant_of_provide_arity (component_type_id#provide port_id)
@@ -52,12 +52,12 @@ let eU location_id = Variable(Location_used_variable(location_id))
 
 
 
-(*******************************************)
-(** 2. Universe Translation                *)
-(*******************************************)
+(*/*****************************************\*)
+(*|* 2. Universe Translation                |*)
+(*\*****************************************/*)
 
 (* flat model *)
-let ralfs_redundant_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
+(*let ralfs_redundant_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
   Zephyrus_log.log_constraint_execution "Compute Ralf's redundant require constraints\n";
   Port_id_set.fold (fun port_id acc ->
     Component_type_id_set.fold (fun requiring_component_type_id acc -> (
@@ -66,7 +66,7 @@ let ralfs_redundant_require ~port_ids ~get_requirers ~get_providers ~get_compone
       let sum_of_providing_component_type_global_arities : expression = sum (Component_type_id_set.map_to_list (fun providing_component_type -> eNt providing_component_type) (get_providers port_id) ) in
       requiring_component_type_arity_equal_zero ||~~ (requiring_component_type_require_arity <=~ sum_of_providing_component_type_global_arities)
     )::acc) (get_requirers port_id) acc
-  ) port_ids []
+  ) port_ids []*)
 
 let flat_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
   Zephyrus_log.log_constraint_execution "Compute binding requires\n";

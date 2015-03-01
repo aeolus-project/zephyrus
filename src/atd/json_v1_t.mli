@@ -6,28 +6,44 @@
 (** Type definitions for naming. *)
 type version = Json_versions_t.version
 
-type component_type_name = string
-
-type port_name = string
-
-type component_name = string
-
-type package_name = string
-
-type repository_name = string
-
-type location_name = string
-
 (** Type definitions for Universe. *)
 type resource_name = string
 
-type provide_arity = string
+type resource_consumption = int
 
 type require_arity = int
 
-type resource_consumption = int
+type repository_name = string
 
-type resource_provide_arity = int
+type package_name = string
+
+type package = {
+  package_name (*atd name *): package_name;
+  package_depend (*atd depend *): package_name list list;
+  package_conflict (*atd conflict *): package_name list;
+  package_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type repository = {
+  repository_name (*atd name *): repository_name;
+  repository_packages (*atd packages *): package list
+}
+
+type repositories = repository list
+
+type provide_arity = string
+
+type port_name = string
+
+type port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subport (*atd subport *): port_name
+}
+
+type package_names = (repository_name * package_name) list
+
+type component_type_name = string
 
 type component_type = {
   component_type_name (*atd name *): component_type_name;
@@ -40,35 +56,23 @@ type component_type = {
 
 type component_types = component_type list
 
-type package = {
-  package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
-  package_conflict (*atd conflict *): package_name list;
-  package_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
-
-type packages = package list
-
-type repository = {
-  repository_name (*atd name *): repository_name;
-  repository_packages (*atd packages *): package list
-}
-
-type repositories = repository list
-
-type package_names = (repository_name * package_name) list
-
 (** Type definitions for Configuration. *)
 type universe = {
   universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * package_names) list;
-  universe_repositories (*atd repositories *): repositories
+  universe_repositories (*atd repositories *): repositories;
+  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
 }
 
+type resource_provide_arity = int
+
 type resources_provided = (resource_name * resource_provide_arity) list
+
+type packages = package list
+
+type location_name = string
 
 type location_cost = int
 
@@ -79,6 +83,8 @@ type location = {
   location_packages_installed (*atd packages_installed *): package_name list;
   location_cost (*atd cost *): location_cost
 }
+
+type component_name = string
 
 type component = {
   component_name (*atd name *): component_name;

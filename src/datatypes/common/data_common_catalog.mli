@@ -29,6 +29,9 @@ open Data_common_set
 open Data_common_map
 open Data_common_unique_id
 
+(* TODO: Split the catalog thing in two parts: one with automatic id creation and one without. This is currently not safe enough for me *)
+(* TODO: Add a possibility to have Fresh taking a parameter: to generate an appropriate name for variables: I want to put them in the catalog *)
+
 
 (** Module providing a class for storing id and names and creating two-way mappings between names and ids. *)
 (** In fact it's general enough to use it for mappings between ids and anything 
@@ -42,82 +45,86 @@ module Catalog :
   functor (Obj_set  : Set.S)                             -> (** Set of names. *)
   functor (Id_map   : Map.S with type key = Id_set.elt)  -> (** Map with ids as keys.   Must match with the Id_set  element type. *)
   functor (Obj_map  : Map.S with type key = Obj_set.elt) -> (** Map with names as keys. Must match with the Id_name element type. *)
-  sig
+sig
 
-    (** Five functors is quite heavy indeed, let's extract the two basic types. *)
-    type id  = Id_set.elt
-    type obj = Obj_set.elt
+  (** Five functors is quite heavy indeed, let's extract the two basic types. *)
+  type id  = Id_set.elt
+  type obj = Obj_set.elt
 
-    (** A modifiable catalog with id <-> object mapping. *)
-    class type obj_catalog_iface = object
-      (** Access *)
-      method ids             : Id_set.t           (** All the ids. *)
-      method objs            : Obj_set.t          (** All the objects. *)
-      method obj_of_id       : id  -> obj         (** Get the object corresponding to the given id. May throw Not_found exception. *)
-      method id_of_obj       : obj -> id          (** Get the id corresponding to the given object. May throw Not_found exception. *)
-      (** Modify *)
-      method get_else_add    : obj -> id          (** Get the id corresponding to the given object. If the object does not exist, create a new fresh id for this object, update the data structures and the return the id. *)
-      method add             : obj -> unit        (** If the object does not exist, create a new fresh id for this object and update the data structures. *)
-      method add_id_obj_pair : id  -> obj -> unit (** Update the data structures with the given (id, object) pair. *)
-      (** Lower level manipulation *)
-      method set_id_of_obj   : obj -> id  -> unit (** Adds the object to objs and makes it correspond to the given id     (only one way, we have obj -> id, but not id -> obj!). *)
-      method set_obj_of_id   : id  -> obj -> unit (** Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
-      method id_to_obj_map   : obj Id_map.t       (** Retrieve directly the id -> object map. *)
-      method obj_to_id_map   : id Obj_map.t       (** Retrieve directly the object -> id map. *)
-    end
-
-    (** Implementation of the catalog. *)
-    class obj_catalog : obj_catalog_iface
-
-    (** Create a new catalog by taking a set of objects and adding them all. *)
-    val of_set_of_objs   : Obj_set.t    -> obj_catalog_iface
-    (** Create a new catalog corresponding to a given id -> object map. *)
-    val of_id_to_obj_map : obj Id_map.t -> obj_catalog_iface
-
-
-
-    (** A catalog variation with just one purely syntactic difference - we have names not objects. *)
-    type name = obj
-
-    (** A modifiable catalog with name <-> id mapping. *)
-    class type catalog_iface = object
-      (* Access *)
-      method ids              : Id_set.t           (** All the ids. *)
-      method names            : Obj_set.t          (** All the names. *)
-      method name_of_id       : id   -> name       (** Get the name corresponding to the given id. May throw Not_found exception. *)
-      method id_of_name       : name -> id         (** Get the id corresponding to the given name. May throw Not_found exception. *)
-      (* Modify *)
-      method get_else_add     : name -> id         (** Get the id corresponding to the given name. If the name does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
-      method add              : name -> unit       (** If the name does not exist, create a new fresh id for this name and update the data structures. *)
-      method add_id_name_pair : id -> name -> unit (** Update the data structures with the given (id, name) pair. *)
-      (* Lower level manipulation *)
-      method set_id_of_name   : name -> id -> unit (** Adds the name to names and makes it correspond to the given id     (only one way, we have name -> id, but not id -> name!). *)
-      method set_name_of_id   : id -> name -> unit (** Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
-      method id_to_name_map   : name Id_map.t      (** Retrieve directly the id -> object map. *)
-      method name_to_id_map   : id Obj_map.t       (** Retrieve directly the object -> id map. *)
-    end
-
-    (** Implementation of the catalog. *)
-    class catalog : catalog_iface
-
-    (** A closed catalog (closed means that it cannot be modified. *)
-    class type closed_catalog_iface = object
-      method ids            : Id_set.t
-      method names          : Obj_set.t
-      method name_of_id     : id   -> name
-      method id_of_name     : name -> id
-      method id_to_name_map : name Id_map.t
-      method name_to_id_map : id Obj_map.t
-    end
-
-    val close_catalog : #closed_catalog_iface -> closed_catalog_iface
-
-    (** Implementation of a closed catalog which throws appropriate exceptions. *)
-    class closed_catalog_with_exceptions : #closed_catalog_iface -> ((id -> name) * (name -> id)) -> closed_catalog_iface
-
-    (** Create a new catalog by taking a set of names and adding them all. *)
-    val of_set_of_names   : Obj_set.t     -> catalog_iface
-    (** Create a new catalog corresponding to a given id -> name map. *)
-    val of_id_to_name_map : name Id_map.t -> catalog_iface
-
+  (** A modifiable catalog with id <-> object mapping. *)
+  class type obj_catalog_iface = object
+    (** Access *)
+    method ids             : Id_set.t           (** All the ids. *)
+    method objs            : Obj_set.t          (** All the objects. *)
+    method obj_of_id       : id  -> obj         (** Get the object corresponding to the given id. May throw Not_found exception. *)
+    method id_of_obj       : obj -> id          (** Get the id corresponding to the given object. May throw Not_found exception. *)
+    (** Modify *)
+    method get_else_add    : obj -> id          (** Get the id corresponding to the given object. If the object does not exist, create a new fresh id for this object, update the data structures and the return the id. *)
+    method add             : obj -> unit        (** If the object does not exist, create a new fresh id for this object and update the data structures. *)
+    method add_id_obj_pair : id  -> obj -> unit (** Update the data structures with the given (id, object) pair. *)
+    (** Lower level manipulation *)
+    method set_id_of_obj   : obj -> id  -> unit (** Adds the object to objs and makes it correspond to the given id     (only one way, we have obj -> id, but not id -> obj!). *)
+    method set_obj_of_id   : id  -> obj -> unit (** Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
+    method id_to_obj_map   : obj Id_map.t       (** Retrieve directly the id -> object map. *)
+    method obj_to_id_map   : id Obj_map.t       (** Retrieve directly the object -> id map. *)
   end
+
+  (** Implementation of the catalog. *)
+  class obj_catalog : obj_catalog_iface
+
+  (** Create a new catalog by taking a set of objects and adding them all. *)
+  val of_set_of_objs   : Obj_set.t    -> obj_catalog_iface
+  (** Create a new catalog corresponding to a given id -> object map. *)
+  val of_id_to_obj_map : obj Id_map.t -> obj_catalog_iface
+
+
+
+  (** A catalog variation with just one purely syntactic difference - we have names not objects. *)
+  type name = obj
+
+  (** A modifiable catalog with name <-> id mapping. *)
+  class type catalog_iface = object
+    (* Access *)
+    method ids              : Id_set.t           (** All the ids. *)
+    method names            : Obj_set.t          (** All the names. *)
+    method name_of_id       : id   -> name       (** Get the name corresponding to the given id. May throw Not_found exception. *)
+    method id_of_name       : name -> id         (** Get the id corresponding to the given name. May throw Not_found exception. *)
+    (* Modify *)
+    method get_else_add     : name -> id         (** Get the id corresponding to the given name. If the name does not exist, create a new fresh id for this name, update the data structures and the return the id. *)
+    method add              : name -> unit       (** If the name does not exist, create a new fresh id for this name and update the data structures. *)
+    method add_id_name_pair : id -> name -> unit (** Update the data structures with the given (id, name) pair. *)
+    (* Lower level manipulation *)
+    method set_id_of_name   : name -> id -> unit (** Adds the name to names and makes it correspond to the given id     (only one way, we have name -> id, but not id -> name!). *)
+    method set_name_of_id   : id -> name -> unit (** Adds the id     to ids  and makes it correspond to the given object (only one way, we have id -> obj, but not obj -> id!). *)
+    method id_to_name_map   : name Id_map.t      (** Retrieve directly the id -> object map. *)
+    method name_to_id_map   : id Obj_map.t       (** Retrieve directly the object -> id map. *)
+  end
+
+  (** Implementation of the catalog. *)
+  class catalog : catalog_iface
+
+  (** A closed catalog (closed means that it cannot be modified. *)
+  class type closed_catalog_iface = object
+    method ids            : Id_set.t
+    method names          : Obj_set.t
+    method name_of_id     : id   -> name
+    method id_of_name     : name -> id
+    method id_to_name_map : name Id_map.t
+    method name_to_id_map : id Obj_map.t
+  end
+
+  val close_catalog : #closed_catalog_iface -> closed_catalog_iface
+
+  (** Implementation of a closed catalog which throws appropriate exceptions. *)
+  class closed_catalog_with_exceptions : #closed_catalog_iface -> ((id -> name) * (name -> id)) -> closed_catalog_iface
+
+  (** Create a new catalog by taking a set of names and adding them all. *)
+  val of_set_of_names   : Obj_set.t     -> catalog_iface
+  (** Create a new catalog corresponding to a given id -> name map. *)
+  val of_id_to_name_map : name Id_map.t -> catalog_iface
+
+end
+
+
+
+

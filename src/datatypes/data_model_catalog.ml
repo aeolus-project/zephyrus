@@ -19,6 +19,14 @@
 
 (** Catalogs for all the id <-> object and id <-> name two-way mappings which can be found in the Zephyrus model. *)
 
+(* Depends on
+     - Data_model
+     - Data_common.Catalog
+     - Data_common.Fresh_integer_with_deprecated
+     - Data_common.Set
+     - Data_common.Map
+ *)
+
 open Data_model
 
 
@@ -31,19 +39,12 @@ end
 module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
 module Repository_id_package_name_map = Data_common.Map.Make(Repository_id_package_name)
 
-
-
 module Fresh_id = Data_common.Fresh_integer_with_deprecated
 
-(* Catalog modules for types of all our objects. *)
-(* Five-functor structure makes it quite long but we are sure it types well. *)
-module Component_type_obj_catalog = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_set            )(Component_type_id_map)(Component_type_map            )
-module Port_obj_catalog           = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_set                      )(Port_id_map          )(Port_map                      )
-module Repository_obj_catalog     = Data_common.Catalog(Fresh_id)(Repository_id_set    )(Repository_set                )(Repository_id_map    )(Repository_map                )
-module Package_obj_catalog        = Data_common.Catalog(Fresh_id)(Package_id_set       )(Package_set                   )(Package_id_map       )(Package_map                   )
-module Resource_obj_catalog       = Data_common.Catalog(Fresh_id)(Resource_id_set      )(Resource_set                  )(Resource_id_map      )(Resource_map                  )
-module Location_obj_catalog       = Data_common.Catalog(Fresh_id)(Location_id_set      )(Location_set                  )(Location_id_map      )(Location_map                  )
-module Component_obj_catalog      = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_set                 )(Component_id_map     )(Component_map                 )
+
+(*/************************************************************************\*)
+(*| 1. Mapping Name <-> ID                                                 |*)
+(*\************************************************************************/*)
 
 module Component_type_catalog     = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_name_set       )(Component_type_id_map)(Component_type_name_map       )
 module Port_catalog               = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_name_set                 )(Port_id_map          )(Port_name_map                 )
@@ -54,7 +55,25 @@ module Location_catalog           = Data_common.Catalog(Fresh_id)(Location_id_se
 module Component_catalog          = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_name_set            )(Component_id_map     )(Component_name_map            )
 
 
-(* A meta-catalog containing catalogs of all objects from our model. *)
+
+(*/************************************************************************\*)
+(*| 2. Mapping ID <-> Structure                                            |*)
+(*\************************************************************************/*)
+
+module Component_type_obj_catalog = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_set            )(Component_type_id_map)(Component_type_map            )
+module Port_obj_catalog           = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_set                      )(Port_id_map          )(Port_map                      )
+module Repository_obj_catalog     = Data_common.Catalog(Fresh_id)(Repository_id_set    )(Repository_set                )(Repository_id_map    )(Repository_map                )
+module Package_obj_catalog        = Data_common.Catalog(Fresh_id)(Package_id_set       )(Package_set                   )(Package_id_map       )(Package_map                   )
+module Resource_obj_catalog       = Data_common.Catalog(Fresh_id)(Resource_id_set      )(Resource_set                  )(Resource_id_map      )(Resource_map                  )
+module Location_obj_catalog       = Data_common.Catalog(Fresh_id)(Location_id_set      )(Location_set                  )(Location_id_map      )(Location_map                  )
+module Component_obj_catalog      = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_set                 )(Component_id_map     )(Component_map                 )
+
+
+
+(*/************************************************************************\*)
+(*| 3. Class with all the necessary mappings                               |*)
+(*\************************************************************************/*)
+
 class model_catalog 
   ~component_type_catalog
   ~port_catalog
@@ -120,3 +139,8 @@ let close_model_catalog (model_catalog : model_catalog) : closed_model_catalog =
     ~resource_catalog:       (Resource_catalog      .close_catalog model_catalog#resource)
     ~location_catalog:       (Location_catalog      .close_catalog model_catalog#location)
     ~component_catalog:      (Component_catalog     .close_catalog model_catalog#component)
+
+
+
+
+

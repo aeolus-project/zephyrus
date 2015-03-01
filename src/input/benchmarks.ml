@@ -286,7 +286,8 @@ struct
             }
           ]
         }
-      ]
+      ];
+      universe_port_hierarchy = []
     };
 
     method initial_configuration = {
@@ -393,6 +394,7 @@ struct
         universe_component_types = universe_component_types;
         universe_implementation  = universe_implementation;
         universe_repositories    = universe_repositories;
+        universe_port_hierarchy = []
       };
 
     method initial_configuration = {
@@ -481,6 +483,7 @@ struct
         universe_component_types = universe_component_types;
         universe_implementation  = universe_implementation;
         universe_repositories    = universe_repositories;
+        universe_port_hierarchy = []
       };
 
     method initial_configuration = {

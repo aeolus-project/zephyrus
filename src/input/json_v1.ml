@@ -48,6 +48,8 @@ module To_abstract_io = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
 
+  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
+
   let provide_arity provide_arity' = 
     if List.mem provide_arity' infinite_provide_arity_strings
     then O.InfiniteProvide
@@ -93,6 +95,7 @@ module To_abstract_io = struct
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
+    O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
   }
 
   let location_cost location_cost' = location_cost'
@@ -140,6 +143,8 @@ module Of_abstract_io = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
 
+  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
+
   let provide_arity provide_arity' = 
     match provide_arity' with
     | I.FiniteProvide (i) -> Printf.sprintf "%d" i
@@ -185,6 +190,7 @@ module Of_abstract_io = struct
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
     O.universe_repositories    = List.map repository            universe'.I.universe_repositories;
+    O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
   }
 
   let location_cost location_cost' = location_cost'

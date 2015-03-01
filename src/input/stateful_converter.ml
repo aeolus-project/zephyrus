@@ -92,6 +92,8 @@ module To_stateless = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
   
+  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
+
   let stateless_component_type_name_and_state component_type_name' state_name' =
     component_type_name_stateless_of_stateful (component_type_name component_type_name') (state_name state_name')
 
@@ -153,6 +155,7 @@ module To_stateless = struct
     O.universe_component_types = List.flatten (List.map component_type universe'.I.universe_component_types);
     O.universe_implementation  = List.flatten (List.map (single_implementation states_of_component_type) universe'.I.universe_implementation);
     O.universe_repositories    =               List.map repository            universe'.I.universe_repositories;
+    O.universe_port_hierarchy  =               List.map port_hierarchy        universe'.I.universe_port_hierarchy;
   }
 
   (* Configuration *)

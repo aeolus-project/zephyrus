@@ -23,7 +23,7 @@
 
 
 {
-  open Specification_parser (* The type token is defined in specification_parser.mli *)
+  open Stateful_specification_parser (* The type token is defined in stateful_specification_parser.mli *)
   exception Eof
 }
 

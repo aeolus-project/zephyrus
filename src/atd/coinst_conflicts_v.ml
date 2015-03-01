@@ -3,9 +3,9 @@
 
 type id = Coinst_conflicts_t.id
 
-type class_definition = Coinst_conflicts_t.class_definition
-
 type incompatibility = Coinst_conflicts_t.incompatibility
+
+type class_definition = Coinst_conflicts_t.class_definition
 
 type coinst_conflicts = Coinst_conflicts_t.coinst_conflicts = {
   classes: class_definition list;
@@ -18,25 +18,25 @@ let validate_id = (
 let validate__1 = (
   fun _ _ -> None
 )
-let validate_class_definition = (
-  fun _ _ -> None
-)
 let validate_incompatibility = (
   validate__1
 )
-let validate__2 = (
+let validate_class_definition = (
   fun _ _ -> None
 )
 let validate__3 = (
   fun _ _ -> None
 )
-let validate_coinst_conflicts = (
+let validate__2 = (
+  fun _ _ -> None
+)
+let validate_coinst_conflicts : _ -> coinst_conflicts -> _ = (
   fun _ _ -> None
 )
 let create_coinst_conflicts 
   ~classes
   ~incompatibilities
-  () =
+  () : coinst_conflicts =
   {
     classes = classes;
     incompatibilities = incompatibilities;

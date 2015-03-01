@@ -16,11 +16,6 @@
    (*    along with Zephyrus.  If not, see <http://www.gnu.org/licenses/>.     *)
    (*                                                                          *)
    (****************************************************************************)
-
-(* Depends on
-    - atd/json.atd | _build/atd/json_t (construct a atd data structure, that will get converted in the real data.)
-  SHOULD DEPEND ON datatypes/Data_model
-*)
 %}
 
 %token <int> INT
@@ -85,18 +80,23 @@ location_name:
   | NAME                        { $1 }
   | LPAREN location_name RPAREN { $2 }
 
+state_name:
+  | NAME                     { $1 }
+  | COMPONENT_TYPE_NAME      { $1 }
+  | LPAREN state_name RPAREN { $2 }  
+
 spec_variable_name:
   | NAME                             { $1 }
   | LPAREN spec_variable_name RPAREN { $2 }
 
 specification:
-  | TRUE                             { Abstract_io.SpecTrue              }
-  | spec_expr spec_op spec_expr      { Abstract_io.SpecOp   ($1, $2, $3) }
-  | specification AND  specification { Abstract_io.SpecAnd  ($1, $3)     }
-  | specification OR   specification { Abstract_io.SpecOr   ($1, $3)     }
-  | specification IMPL specification { Abstract_io.SpecImpl ($1, $3)     }
-  | NOT specification                { Abstract_io.SpecNot  ($2)         }
-  | LPAREN specification RPAREN      { $2 }
+  | TRUE                                                                   { Abstract_io.SpecTrue              }
+  | spec_expr spec_op spec_expr                                            { Abstract_io.SpecOp   ($1, $2, $3) }
+  | specification AND  specification                                       { Abstract_io.SpecAnd  ($1, $3)     }
+  | specification OR   specification                                       { Abstract_io.SpecOr   ($1, $3)     }
+  | specification IMPL specification                                       { Abstract_io.SpecImpl ($1, $3)     }
+  | NOT specification                                                      { Abstract_io.SpecNot  ($2)         }
+  | LPAREN specification RPAREN                                            { $2 }
   | EVERYWHERE                           LPAREN local_specification RPAREN { Abstract_io.SpecEverywhere ($3)     }
   | AT LCURLY spec_location_names RCURLY LPAREN local_specification RPAREN { Abstract_io.SpecAt         ($3, $6) }
 
@@ -115,13 +115,14 @@ spec_expr:
   | LPAREN spec_expr RPAREN     { $2 }
 
 spec_element:
-  | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecElementPackage       ($2,$4) }
-  | component_type_name { Abstract_io.SpecElementComponentType ($1) }
-  | port_name           { Abstract_io.SpecElementPort          ($1) }
+  | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecElementPackage       ($2, $4) }
+  | component_type_name COLON state_name                   { Abstract_io.SpecElementComponentType ($1, $3) }
+  | LPAREN component_type_name COLON state_name RPAREN     { Abstract_io.SpecElementComponentType ($2, $4) }
+  | port_name                                              { Abstract_io.SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
-    LCURLY spec_repository_constraints COLON local_specification RCURLY
-     { Abstract_io.SpecElementLocalisation ($2, $5, $7) }
-  | LPAREN spec_element RPAREN { $2 }
+    LCURLY spec_repository_constraints COLON 
+    local_specification RCURLY                             { Abstract_io.SpecElementLocalisation ($2, $5, $7) }
+  | LPAREN spec_element RPAREN                             { $2 }
 
 local_specification:
   | TRUE                                         { Abstract_io.SpecLocalTrue              }
@@ -143,10 +144,11 @@ spec_local_expr:
   | LPAREN spec_local_expr RPAREN           { $2 }
 
 spec_local_element:
-  | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecLocalElementPackage       ($2,$4) }
-  | component_type_name { Abstract_io.SpecLocalElementComponentType ($1) }
-  | port_name           { Abstract_io.SpecLocalElementPort          ($1) }
-  | LPAREN spec_local_element RPAREN { $2 }
+  | LPAREN repository_name COMMA package_name RPAREN   { Abstract_io.SpecLocalElementPackage       ($2, $4) }
+  | component_type_name COLON state_name               { Abstract_io.SpecLocalElementComponentType ($1, $3) }
+  | LPAREN component_type_name COLON state_name RPAREN { Abstract_io.SpecLocalElementComponentType ($2, $4) }
+  | port_name                                          { Abstract_io.SpecLocalElementPort          ($1) }
+  | LPAREN spec_local_element RPAREN                   { $2 }
 
 spec_resource_constraints:
   | UNDERSCORE                                                     { [] }
@@ -154,7 +156,7 @@ spec_resource_constraints:
   | spec_resource_constraint SEMICOLON spec_resource_constraints   { ($1) :: ($3) }
 
 spec_resource_constraint:
-  | resource_name spec_op spec_const   { ($1, $2, $3) }
+  | resource_name spec_op spec_const       { ($1, $2, $3) }
   | LPAREN spec_resource_constraint RPAREN { $2 }
 
 spec_repository_constraints:
@@ -172,3 +174,6 @@ spec_op:
   | GEQ { Abstract_io.GEq }
   | GT  { Abstract_io.Gt  }
   | NEQ { Abstract_io.NEq }
+
+
+

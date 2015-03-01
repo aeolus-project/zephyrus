@@ -148,6 +148,7 @@ module Component_name_map     = Map.Make(Component_name)
 (*| 2. Universe                                                           |*)
 (*\************************************************************************/*)
 
+(*
 (** 2.1. Resources. *)
 
 type resource = resource_id
@@ -170,9 +171,14 @@ module Port_set     = Port_id_set
 module Port_set_set = Port_id_set_set
 module Port_map     = Port_id_map
 module Port_map_extract_key = Port_id_map_extract_key
+*)
+
+(** 2.3 Port Hierarchy. *)
+
+type port_hierarchy = Port_id_set.t Port_id_map.t (* each port can have a set of subports. by construction the set always contains the port itself *)
 
 
-(** 2.3. Component types. *)
+(** 2.4. Component types. *)
 
 let deprecated_component_type_id = -1
 
@@ -215,7 +221,7 @@ module Component_type_set = Set.Make(Component_type)
 module Component_type_map = Map.Make(Component_type)
 
 
-(** 2.4. Packages. *)
+(** 2.5. Packages. *)
 
 let deprecated_package_id = -1
 
@@ -263,7 +269,7 @@ module Package_set_set = Set.Make(Package_set)
 module Package_map     = Map.Make(Package)
 
 
-(** 2.5. Repositories. *)
+(** 2.6. Repositories. *)
 
 exception Repository_package_not_found of package_id
 
@@ -286,15 +292,17 @@ module Repository_set = Set.Make(Repository)
 module Repository_map = Map.Make(Repository)
 
 
-(** 2.6. Universes. *)
+(** 2.7. Universes. *)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
+exception Universe_port_not_found           of oprt_id
 exception Universe_package_not_found        of package_id
 exception Package_repository_not_found      of package_id
 
 class universe 
-  ?(ports           = Port_id_set.empty)
+  ?(subports           = Port_id_map.empty)
+  ?(supports           = Port_id_map.empty)
   ?(packages        = Package_id_map.empty)
   ?(resources       = Resource_id_set.empty)
   ?(component_types = Component_type_id_map.empty)
@@ -302,7 +310,7 @@ class universe
   ?(repositories    = Repository_id_map.empty)
   () = object (self : 'selftype)
 
-  val ports           : Port_id_set.t                            = ports
+  val ports           : Port_id_set.t                            = (Port_id_map_extract_key.set_of_keys subports)
   val packages        : package Package_id_map.t                 = packages
   val resources       : Resource_id_set.t                        = resources
   val component_types : component_type Component_type_id_map.t   = component_types (** Component types available in this universe. *)
@@ -315,12 +323,20 @@ class universe
   val mutable implem_uc = Port_id_map.empty; (* Set of component types conflicting. Not directly computed, filled when requested. *)
 
   (* Methods *)
-  method get_port_ids              : Port_id_set.t           = ports
-  method get_package_ids           : Package_id_set.t        = Package_id_map_extract_key.set_of_keys        packages
-  method get_resource_ids          : Resource_id_set.t       = resources
-  method get_component_type_ids    : Component_type_id_set.t = Component_type_id_map_extract_key.set_of_keys component_types
-  method get_repository_ids        : Repository_id_set.t     = Repository_id_map_extract_key.set_of_keys     repositories
-  method get_implementation_domain : Component_type_id_set.t = Component_type_id_map_extract_key.set_of_keys implementation
+  method get_port_ids              : Port_id_set.t            = ports
+  method get_package_ids           : Package_id_set.t         = Package_id_map_extract_key.set_of_keys        packages
+  method get_resource_ids          : Resource_id_set.t        = resources
+  method get_component_type_ids    : Component_type_id_set.t  = Component_type_id_map_extract_key.set_of_keys component_types
+  method get_repository_ids        : Repository_id_set.t      = Repository_id_map_extract_key.set_of_keys     repositories
+  method get_implementation_domain : Component_type_id_set.t  = Component_type_id_map_extract_key.set_of_keys implementation
+
+  method get_sub_ports  (id : port_id) : Port_id_set.t =
+    try Port_id_map.find id subports
+    with Not_found -> raise (Universe_port_not_found p)
+
+  method get_sup_ports  (id : port_id) : Port_id_set.t =
+    try Port_id_map.find id supports
+    with Not_found -> raise (Universe_port_not_found p)
 
   method get_component_type (id : component_type_id) : component_type =
     try Component_type_id_map.find id component_types 
@@ -352,20 +368,20 @@ class universe
 
     let package_of_package_id_map_trimmed : package Package_id_map.t =
       Package_id_set.fold (fun package_id package_of_package_id_map ->
-        if Package_id_set.mem package_id package_ids_to_keep then                  (* If the package is to be kept... *)
+        if Package_id_set.mem package_id package_ids_to_keep then                    (* If the package is to be kept... *)
           let package = self#get_package package_id in                               (* The old package. *)
           let trimmed_package = package#trim_by_package_ids package_ids_to_keep in   (* The trimmed package. *)
           Package_id_map.add package_id trimmed_package package_of_package_id_map    (* Put the trimmed package package in the map. *)
-        else package_of_package_id_map                                             (* If the package is not to be kept: ignore it. *)
+        else package_of_package_id_map                                               (* If the package is not to be kept: ignore it. *)
       ) self#get_package_ids Package_id_map.empty in
 
     let repository_of_repository_id_map_trimmed : repository Repository_id_map.t =
       Repository_id_set.fold (fun repository_id repository_of_repository_id_map ->
-        let repository = self#get_repository repository_id in                                    (* The old repository. *)
-        let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in           (* The trimmed repository. *)
-        if not (Package_id_set.is_empty trimmed_repository#package_ids) then                     (* If the repository is not empty now... *)
+        let repository = self#get_repository repository_id in                                      (* The old repository. *)
+        let trimmed_repository = repository#trim_by_package_ids package_ids_to_keep in             (* The trimmed repository. *)
+        if not (Package_id_set.is_empty trimmed_repository#package_ids) then                       (* If the repository is not empty now... *)
           Repository_id_map.add repository_id trimmed_repository repository_of_repository_id_map   (* Put the trimmed repository in the map. *)
-        else repository_of_repository_id_map                                                     (* If the repository is empty: ignore it. *)
+        else repository_of_repository_id_map                                                       (* If the repository is empty: ignore it. *)
       ) self#get_repository_ids Repository_id_map.empty in
 
     {< 

@@ -3,14 +3,16 @@
 
 (** Resources. *)
 
-type dimension = Json_binpacking_t.dimension
-
 (** Items. *)
 type size = Json_binpacking_t.size
+
+type repository_name = Json_binpacking_t.repository_name
 
 type item_name = Json_binpacking_t.item_name
 
 type item_arity = Json_binpacking_t.item_arity
+
+type dimension = Json_binpacking_t.dimension
 
 (** Bins. *)
 type item = Json_binpacking_t.item = {
@@ -18,6 +20,11 @@ type item = Json_binpacking_t.item = {
   item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
+
+type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type bin_name = Json_binpacking_t.bin_name
 
@@ -33,13 +40,6 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-type repository_name = Json_binpacking_t.repository_name
-
-type incompatibility = Json_binpacking_t.incompatibility
-
-(** Binpacking problem. *)
-type incompatibilities = Json_binpacking_t.incompatibilities
-
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
@@ -47,18 +47,6 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
     (repository_name * incompatibilities) list
 }
 
-let write_dimension = (
-  Yojson.Safe.write_string
-)
-let string_of_dimension ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_dimension ob x;
-  Bi_outbuf.contents ob
-let read_dimension = (
-  Ag_oj_run.read_string
-)
-let dimension_of_string s =
-  read_dimension (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_size = (
   Yojson.Safe.write_int
 )
@@ -71,6 +59,18 @@ let read_size = (
 )
 let size_of_string s =
   read_size (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_repository_name = (
+  Yojson.Safe.write_string
+)
+let string_of_repository_name ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_repository_name ob x;
+  Bi_outbuf.contents ob
+let read_repository_name = (
+  Ag_oj_run.read_string
+)
+let repository_name_of_string s =
+  read_repository_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_item_name = (
   Yojson.Safe.write_string
 )
@@ -95,6 +95,18 @@ let read_item_arity = (
 )
 let item_arity_of_string s =
   read_item_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_dimension = (
+  Yojson.Safe.write_string
+)
+let string_of_dimension ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_dimension ob x;
+  Bi_outbuf.contents ob
+let read_dimension = (
+  Ag_oj_run.read_string
+)
+let dimension_of_string s =
+  read_dimension (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__1 = (
   Ag_oj_run.write_assoc_list (
     write_size
@@ -111,7 +123,7 @@ let read__1 = (
 )
 let _1_of_string s =
   read__1 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_item = (
+let write_item : _ -> item -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -152,7 +164,7 @@ let read_item = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : item) =
       {
         item_name = Obj.magic 0.0;
         item_sizes = Obj.magic 0.0;
@@ -319,6 +331,62 @@ let read_item = (
 )
 let item_of_string s =
   read_item (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__2 = (
+  Ag_oj_run.write_list (
+    write_item_name
+  )
+)
+let string_of__2 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__2 ob x;
+  Bi_outbuf.contents ob
+let read__2 = (
+  Ag_oj_run.read_list (
+    read_item_name
+  )
+)
+let _2_of_string s =
+  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_incompatibility = (
+  write__2
+)
+let string_of_incompatibility ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_incompatibility ob x;
+  Bi_outbuf.contents ob
+let read_incompatibility = (
+  read__2
+)
+let incompatibility_of_string s =
+  read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__3 = (
+  Ag_oj_run.write_list (
+    write_incompatibility
+  )
+)
+let string_of__3 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__3 ob x;
+  Bi_outbuf.contents ob
+let read__3 = (
+  Ag_oj_run.read_list (
+    read_incompatibility
+  )
+)
+let _3_of_string s =
+  read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_incompatibilities = (
+  write__3
+)
+let string_of_incompatibilities ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_incompatibilities ob x;
+  Bi_outbuf.contents ob
+let read_incompatibilities = (
+  read__3
+)
+let incompatibilities_of_string s =
+  read_incompatibilities (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_bin_name = (
   Yojson.Safe.write_string
 )
@@ -355,7 +423,7 @@ let read_bin_arity = (
 )
 let bin_arity_of_string s =
   read_bin_arity (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_bin = (
+let write_bin : _ -> bin -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -405,7 +473,7 @@ let read_bin = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : bin) =
       {
         bin_name = Obj.magic 0.0;
         bin_sizes = Obj.magic 0.0;
@@ -617,106 +685,6 @@ let read_bin = (
 )
 let bin_of_string s =
   read_bin (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_repository_name = (
-  Yojson.Safe.write_string
-)
-let string_of_repository_name ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_repository_name ob x;
-  Bi_outbuf.contents ob
-let read_repository_name = (
-  Ag_oj_run.read_string
-)
-let repository_name_of_string s =
-  read_repository_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__2 = (
-  Ag_oj_run.write_list (
-    write_item_name
-  )
-)
-let string_of__2 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__2 ob x;
-  Bi_outbuf.contents ob
-let read__2 = (
-  Ag_oj_run.read_list (
-    read_item_name
-  )
-)
-let _2_of_string s =
-  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_incompatibility = (
-  write__2
-)
-let string_of_incompatibility ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_incompatibility ob x;
-  Bi_outbuf.contents ob
-let read_incompatibility = (
-  read__2
-)
-let incompatibility_of_string s =
-  read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__3 = (
-  Ag_oj_run.write_list (
-    write_incompatibility
-  )
-)
-let string_of__3 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__3 ob x;
-  Bi_outbuf.contents ob
-let read__3 = (
-  Ag_oj_run.read_list (
-    read_incompatibility
-  )
-)
-let _3_of_string s =
-  read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_incompatibilities = (
-  write__3
-)
-let string_of_incompatibilities ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_incompatibilities ob x;
-  Bi_outbuf.contents ob
-let read_incompatibilities = (
-  read__3
-)
-let incompatibilities_of_string s =
-  read_incompatibilities (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__4 = (
-  Ag_oj_run.write_list (
-    write_item
-  )
-)
-let string_of__4 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__4 ob x;
-  Bi_outbuf.contents ob
-let read__4 = (
-  Ag_oj_run.read_list (
-    read_item
-  )
-)
-let _4_of_string s =
-  read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__5 = (
-  Ag_oj_run.write_list (
-    write_bin
-  )
-)
-let string_of__5 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__5 ob x;
-  Bi_outbuf.contents ob
-let read__5 = (
-  Ag_oj_run.read_list (
-    read_bin
-  )
-)
-let _5_of_string s =
-  read__5 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__6 = (
   Ag_oj_run.write_assoc_list (
     write_incompatibilities
@@ -733,7 +701,39 @@ let read__6 = (
 )
 let _6_of_string s =
   read__6 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_binpacking_problem = (
+let write__5 = (
+  Ag_oj_run.write_list (
+    write_bin
+  )
+)
+let string_of__5 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__5 ob x;
+  Bi_outbuf.contents ob
+let read__5 = (
+  Ag_oj_run.read_list (
+    read_bin
+  )
+)
+let _5_of_string s =
+  read__5 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__4 = (
+  Ag_oj_run.write_list (
+    write_item
+  )
+)
+let string_of__4 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__4 ob x;
+  Bi_outbuf.contents ob
+let read__4 = (
+  Ag_oj_run.read_list (
+    read_item
+  )
+)
+let _4_of_string s =
+  read__4 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_binpacking_problem : _ -> binpacking_problem -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -774,7 +774,7 @@ let read_binpacking_problem = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : binpacking_problem) =
       {
         binpacking_problem_items = Obj.magic 0.0;
         binpacking_problem_bins = Obj.magic 0.0;

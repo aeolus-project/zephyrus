@@ -23,7 +23,10 @@
 
 open Data_common_set
 
-(* Modules for used tokens (names, ids, etc.) management. *)
+(*/************************************************************************\*)
+(*| 1. Modules to store Used (and Forbidden) Values                        |*)
+(*\************************************************************************/*)
+
 module type Used_tokens_type = sig
   type t
   type token
@@ -32,7 +35,7 @@ module type Used_tokens_type = sig
   val add   : token -> t -> unit
 end
 
-module Used_tokens_set =
+module Used_tokens_make =
 functor (Token_set : Set.S) -> struct
   type t     = Token_set.t ref
   type token = Token_set.elt
@@ -41,8 +44,8 @@ functor (Token_set : Set.S) -> struct
   let add token used_tokens = used_tokens := Token_set.add token !used_tokens
 end
 
-module Used_tokens_string : Used_tokens_type with type token = string = Used_tokens_set(String_set)
-module Used_tokens_int    : Used_tokens_type with type token = int    = Used_tokens_set(Int_set)
+module Used_tokens_string : Used_tokens_type with type token = string = Used_tokens_make(String_set)
+module Used_tokens_int    : Used_tokens_type with type token = int    = Used_tokens_make(Int_set)
 
 (* Modules for unique identifier creation *)
 module type Fresh = sig

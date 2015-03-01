@@ -3,14 +3,16 @@
 
 (** Resources. *)
 
-type dimension = Json_binpacking_t.dimension
-
 (** Items. *)
 type size = Json_binpacking_t.size
+
+type repository_name = Json_binpacking_t.repository_name
 
 type item_name = Json_binpacking_t.item_name
 
 type item_arity = Json_binpacking_t.item_arity
+
+type dimension = Json_binpacking_t.dimension
 
 (** Bins. *)
 type item = Json_binpacking_t.item = {
@@ -18,6 +20,11 @@ type item = Json_binpacking_t.item = {
   item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
+
+type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type bin_name = Json_binpacking_t.bin_name
 
@@ -33,13 +40,6 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-type repository_name = Json_binpacking_t.repository_name
-
-type incompatibility = Json_binpacking_t.incompatibility
-
-(** Binpacking problem. *)
-type incompatibilities = Json_binpacking_t.incompatibilities
-
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
@@ -47,10 +47,10 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
     (repository_name * incompatibilities) list
 }
 
-let validate_dimension = (
+let validate_size = (
   (fun _ _ -> None)
 )
-let validate_size = (
+let validate_repository_name = (
   (fun _ _ -> None)
 )
 let validate_item_name = (
@@ -59,26 +59,14 @@ let validate_item_name = (
 let validate_item_arity = (
   (fun _ _ -> None)
 )
+let validate_dimension = (
+  (fun _ _ -> None)
+)
 let validate__1 = (
   fun _ _ -> None
 )
-let validate_item = (
+let validate_item : _ -> item -> _ = (
   fun _ _ -> None
-)
-let validate_bin_name = (
-  (fun _ _ -> None)
-)
-let validate_bin_cost = (
-  (fun _ _ -> None)
-)
-let validate_bin_arity = (
-  (fun _ _ -> None)
-)
-let validate_bin = (
-  fun _ _ -> None
-)
-let validate_repository_name = (
-  (fun _ _ -> None)
 )
 let validate__2 = (
   fun _ _ -> None
@@ -92,23 +80,35 @@ let validate__3 = (
 let validate_incompatibilities = (
   validate__3
 )
-let validate__4 = (
-  fun _ _ -> None
+let validate_bin_name = (
+  (fun _ _ -> None)
 )
-let validate__5 = (
+let validate_bin_cost = (
+  (fun _ _ -> None)
+)
+let validate_bin_arity = (
+  (fun _ _ -> None)
+)
+let validate_bin : _ -> bin -> _ = (
   fun _ _ -> None
 )
 let validate__6 = (
   fun _ _ -> None
 )
-let validate_binpacking_problem = (
+let validate__5 = (
+  fun _ _ -> None
+)
+let validate__4 = (
+  fun _ _ -> None
+)
+let validate_binpacking_problem : _ -> binpacking_problem -> _ = (
   fun _ _ -> None
 )
 let create_item 
   ~item_name
   ~item_sizes
   ~item_arity
-  () =
+  () : item =
   {
     item_name = item_name;
     item_sizes = item_sizes;
@@ -119,7 +119,7 @@ let create_bin
   ~bin_sizes
   ~bin_cost
   ~bin_arity
-  () =
+  () : bin =
   {
     bin_name = bin_name;
     bin_sizes = bin_sizes;
@@ -130,7 +130,7 @@ let create_binpacking_problem
   ~binpacking_problem_items
   ~binpacking_problem_bins
   ~binpacking_problem_incompatibilities
-  () =
+  () : binpacking_problem =
   {
     binpacking_problem_items = binpacking_problem_items;
     binpacking_problem_bins = binpacking_problem_bins;

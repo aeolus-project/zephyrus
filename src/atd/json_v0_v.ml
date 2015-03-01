@@ -3,31 +3,42 @@
 
 (** Type definitions for naming. *)
 
-type component_type_name = Json_v0_t.component_type_name
+(** Type definitions for Component Type. *)
+type resource_name = Json_v0_t.resource_name
 
-type port_name = Json_v0_t.port_name
+type resource_consumption = Json_v0_t.resource_consumption
 
-type component_name = Json_v0_t.component_name
-
-type package_name = Json_v0_t.package_name
+type require_arity = Json_v0_t.require_arity
 
 type repository_name = Json_v0_t.repository_name
 
-type location_name = Json_v0_t.location_name
+type package_name = Json_v0_t.package_name
 
-(** Type definitions for Component Type. *)
-type resource_name = Json_v0_t.resource_name
+type package = Json_v0_t.package = {
+  package_name (*atd name *): package_name;
+  package_depend (*atd depend *): package_name list list;
+  package_conflict (*atd conflict *): package_name list;
+  package_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type repository = Json_v0_t.repository = {
+  repository_name (*atd name *): repository_name;
+  repository_packages (*atd packages *): package list
+}
+
+type repositories = Json_v0_t.repositories
 
 type provide_arity = Json_v0_t.provide_arity = 
     InfiniteProvide
   | FiniteProvide of int
 
 
-type require_arity = Json_v0_t.require_arity
+type port_name = Json_v0_t.port_name
 
-type resource_consumption = Json_v0_t.resource_consumption
+type package_names = Json_v0_t.package_names
 
-type resource_provide_arity = Json_v0_t.resource_provide_arity
+type component_type_name = Json_v0_t.component_type_name
 
 type component_type = Json_v0_t.component_type = {
   component_type_name (*atd name *): component_type_name;
@@ -41,25 +52,6 @@ type component_type = Json_v0_t.component_type = {
 (** Type definitions for Universe. *)
 type component_types = Json_v0_t.component_types
 
-type package = Json_v0_t.package = {
-  package_name (*atd name *): package_name;
-  package_depend (*atd depend *): package_name list list;
-  package_conflict (*atd conflict *): package_name list;
-  package_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
-
-type packages = Json_v0_t.packages
-
-type repository = Json_v0_t.repository = {
-  repository_name (*atd name *): repository_name;
-  repository_packages (*atd packages *): package list
-}
-
-type repositories = Json_v0_t.repositories
-
-type package_names = Json_v0_t.package_names
-
 (** Type definitions for Configuration. *)
 type universe = Json_v0_t.universe = {
   universe_component_types (*atd component_types *): component_types;
@@ -68,7 +60,13 @@ type universe = Json_v0_t.universe = {
   universe_repositories (*atd repositories *): repositories
 }
 
+type resource_provide_arity = Json_v0_t.resource_provide_arity
+
 type resources_provided = Json_v0_t.resources_provided
+
+type packages = Json_v0_t.packages
+
+type location_name = Json_v0_t.location_name
 
 type location_cost = Json_v0_t.location_cost
 
@@ -79,6 +77,8 @@ type location = Json_v0_t.location = {
   location_packages_installed (*atd packages_installed *): package_name list;
   location_cost (*atd cost *): location_cost
 }
+
+type component_name = Json_v0_t.component_name
 
 type component = Json_v0_t.component = {
   component_name: component_name;
@@ -98,59 +98,20 @@ type configuration = Json_v0_t.configuration = {
   configuration_bindings (*atd bindings *): binding list
 }
 
-let validate_component_type_name = (
-  (fun _ _ -> None)
-)
-let validate_port_name = (
-  (fun _ _ -> None)
-)
-let validate_component_name = (
-  (fun _ _ -> None)
-)
-let validate_package_name = (
-  (fun _ _ -> None)
-)
-let validate_repository_name = (
-  (fun _ _ -> None)
-)
-let validate_location_name = (
-  (fun _ _ -> None)
-)
 let validate_resource_name = (
-  (fun _ _ -> None)
-)
-let validate_provide_arity = (
-  fun _ _ -> None
-)
-let validate_require_arity = (
   (fun _ _ -> None)
 )
 let validate_resource_consumption = (
   (fun _ _ -> None)
 )
-let validate_resource_provide_arity = (
+let validate_require_arity = (
   (fun _ _ -> None)
 )
-let validate__1 = (
-  fun _ _ -> None
+let validate_repository_name = (
+  (fun _ _ -> None)
 )
-let validate__2 = (
-  fun _ _ -> None
-)
-let validate__3 = (
-  fun _ _ -> None
-)
-let validate__4 = (
-  fun _ _ -> None
-)
-let validate_component_type = (
-  fun _ _ -> None
-)
-let validate__5 = (
-  fun _ _ -> None
-)
-let validate_component_types = (
-  validate__5
+let validate_package_name = (
+  (fun _ _ -> None)
 )
 let validate__6 = (
   fun _ _ -> None
@@ -158,16 +119,16 @@ let validate__6 = (
 let validate__7 = (
   fun _ _ -> None
 )
-let validate_package = (
+let validate__4 = (
+  fun _ _ -> None
+)
+let validate_package : _ -> package -> _ = (
   fun _ _ -> None
 )
 let validate__8 = (
   fun _ _ -> None
 )
-let validate_packages = (
-  validate__8
-)
-let validate_repository = (
+let validate_repository : _ -> repository -> _ = (
   fun _ _ -> None
 )
 let validate__9 = (
@@ -176,17 +137,47 @@ let validate__9 = (
 let validate_repositories = (
   validate__9
 )
+let validate_provide_arity : _ -> provide_arity -> _ = (
+  fun _ _ -> None
+)
+let validate_port_name = (
+  (fun _ _ -> None)
+)
 let validate__10 = (
   fun _ _ -> None
 )
 let validate_package_names = (
   validate__10
 )
+let validate_component_type_name = (
+  (fun _ _ -> None)
+)
+let validate__3 = (
+  fun _ _ -> None
+)
+let validate__2 = (
+  fun _ _ -> None
+)
+let validate__1 = (
+  fun _ _ -> None
+)
+let validate_component_type : _ -> component_type -> _ = (
+  fun _ _ -> None
+)
+let validate__5 = (
+  fun _ _ -> None
+)
+let validate_component_types = (
+  validate__5
+)
 let validate__11 = (
   fun _ _ -> None
 )
-let validate_universe = (
+let validate_universe : _ -> universe -> _ = (
   fun _ _ -> None
+)
+let validate_resource_provide_arity = (
+  (fun _ _ -> None)
 )
 let validate__12 = (
   fun _ _ -> None
@@ -194,50 +185,45 @@ let validate__12 = (
 let validate_resources_provided = (
   validate__12
 )
+let validate_packages = (
+  validate__8
+)
+let validate_location_name = (
+  (fun _ _ -> None)
+)
 let validate_location_cost = (
   (fun _ _ -> None)
 )
-let validate_location = (
+let validate_location : _ -> location -> _ = (
   fun _ _ -> None
 )
-let validate_component = (
+let validate_component_name = (
+  (fun _ _ -> None)
+)
+let validate_component : _ -> component -> _ = (
   fun _ _ -> None
 )
-let validate_binding = (
-  fun _ _ -> None
-)
-let validate__13 = (
-  fun _ _ -> None
-)
-let validate__14 = (
+let validate_binding : _ -> binding -> _ = (
   fun _ _ -> None
 )
 let validate__15 = (
   fun _ _ -> None
 )
-let validate_configuration = (
+let validate__14 = (
   fun _ _ -> None
 )
-let create_component_type 
-  ~component_type_name
-  ?(component_type_provide = [])
-  ?(component_type_require = [])
-  ?(component_type_conflict = [])
-  ?(component_type_consume = [])
-  () =
-  {
-    component_type_name = component_type_name;
-    component_type_provide = component_type_provide;
-    component_type_require = component_type_require;
-    component_type_conflict = component_type_conflict;
-    component_type_consume = component_type_consume;
-  }
+let validate__13 = (
+  fun _ _ -> None
+)
+let validate_configuration : _ -> configuration -> _ = (
+  fun _ _ -> None
+)
 let create_package 
   ~package_name
   ?(package_depend = [])
   ?(package_conflict = [])
   ?(package_consume = [])
-  () =
+  () : package =
   {
     package_name = package_name;
     package_depend = package_depend;
@@ -247,16 +233,30 @@ let create_package
 let create_repository 
   ~repository_name
   ?(repository_packages = [])
-  () =
+  () : repository =
   {
     repository_name = repository_name;
     repository_packages = repository_packages;
+  }
+let create_component_type 
+  ~component_type_name
+  ?(component_type_provide = [])
+  ?(component_type_require = [])
+  ?(component_type_conflict = [])
+  ?(component_type_consume = [])
+  () : component_type =
+  {
+    component_type_name = component_type_name;
+    component_type_provide = component_type_provide;
+    component_type_require = component_type_require;
+    component_type_conflict = component_type_conflict;
+    component_type_consume = component_type_consume;
   }
 let create_universe 
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
-  () =
+  () : universe =
   {
     universe_component_types = universe_component_types;
     universe_implementation = universe_implementation;
@@ -268,7 +268,7 @@ let create_location
   ~location_repository
   ?(location_packages_installed = [])
   ?(location_cost = 1)
-  () =
+  () : location =
   {
     location_name = location_name;
     location_provide_resources = location_provide_resources;
@@ -280,7 +280,7 @@ let create_component
   ~component_name
   ~component_type
   ~component_location
-  () =
+  () : component =
   {
     component_name = component_name;
     component_type = component_type;
@@ -290,7 +290,7 @@ let create_binding
   ~binding_port
   ~binding_requirer
   ~binding_provider
-  () =
+  () : binding =
   {
     binding_port = binding_port;
     binding_requirer = binding_requirer;
@@ -300,7 +300,7 @@ let create_configuration
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
-  () =
+  () : configuration =
   {
     configuration_locations = configuration_locations;
     configuration_components = configuration_components;

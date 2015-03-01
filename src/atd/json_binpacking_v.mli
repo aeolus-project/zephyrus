@@ -3,14 +3,16 @@
 
 (** Resources. *)
 
-type dimension = Json_binpacking_t.dimension
-
 (** Items. *)
 type size = Json_binpacking_t.size
+
+type repository_name = Json_binpacking_t.repository_name
 
 type item_name = Json_binpacking_t.item_name
 
 type item_arity = Json_binpacking_t.item_arity
+
+type dimension = Json_binpacking_t.dimension
 
 (** Bins. *)
 type item = Json_binpacking_t.item = {
@@ -18,6 +20,11 @@ type item = Json_binpacking_t.item = {
   item_sizes (*atd sizes *): (dimension * size) list;
   item_arity (*atd arity *): item_arity
 }
+
+type incompatibility = Json_binpacking_t.incompatibility
+
+(** Binpacking problem. *)
+type incompatibilities = Json_binpacking_t.incompatibilities
 
 type bin_name = Json_binpacking_t.bin_name
 
@@ -33,13 +40,6 @@ type bin = Json_binpacking_t.bin = {
   bin_arity (*atd arity *): bin_arity
 }
 
-type repository_name = Json_binpacking_t.repository_name
-
-type incompatibility = Json_binpacking_t.incompatibility
-
-(** Binpacking problem. *)
-type incompatibilities = Json_binpacking_t.incompatibilities
-
 type binpacking_problem = Json_binpacking_t.binpacking_problem = {
   binpacking_problem_items (*atd items *): item list;
   binpacking_problem_bins (*atd bins *): bin list;
@@ -47,13 +47,13 @@ type binpacking_problem = Json_binpacking_t.binpacking_problem = {
     (repository_name * incompatibilities) list
 }
 
-val validate_dimension :
-  Ag_util.Validation.path -> dimension -> Ag_util.Validation.error option
-  (** Validate a value of type {!dimension}. *)
-
 val validate_size :
   Ag_util.Validation.path -> size -> Ag_util.Validation.error option
   (** Validate a value of type {!size}. *)
+
+val validate_repository_name :
+  Ag_util.Validation.path -> repository_name -> Ag_util.Validation.error option
+  (** Validate a value of type {!repository_name}. *)
 
 val validate_item_name :
   Ag_util.Validation.path -> item_name -> Ag_util.Validation.error option
@@ -62,6 +62,10 @@ val validate_item_name :
 val validate_item_arity :
   Ag_util.Validation.path -> item_arity -> Ag_util.Validation.error option
   (** Validate a value of type {!item_arity}. *)
+
+val validate_dimension :
+  Ag_util.Validation.path -> dimension -> Ag_util.Validation.error option
+  (** Validate a value of type {!dimension}. *)
 
 val create_item :
   item_name: item_name ->
@@ -73,6 +77,14 @@ val create_item :
 val validate_item :
   Ag_util.Validation.path -> item -> Ag_util.Validation.error option
   (** Validate a value of type {!item}. *)
+
+val validate_incompatibility :
+  Ag_util.Validation.path -> incompatibility -> Ag_util.Validation.error option
+  (** Validate a value of type {!incompatibility}. *)
+
+val validate_incompatibilities :
+  Ag_util.Validation.path -> incompatibilities -> Ag_util.Validation.error option
+  (** Validate a value of type {!incompatibilities}. *)
 
 val validate_bin_name :
   Ag_util.Validation.path -> bin_name -> Ag_util.Validation.error option
@@ -97,18 +109,6 @@ val create_bin :
 val validate_bin :
   Ag_util.Validation.path -> bin -> Ag_util.Validation.error option
   (** Validate a value of type {!bin}. *)
-
-val validate_repository_name :
-  Ag_util.Validation.path -> repository_name -> Ag_util.Validation.error option
-  (** Validate a value of type {!repository_name}. *)
-
-val validate_incompatibility :
-  Ag_util.Validation.path -> incompatibility -> Ag_util.Validation.error option
-  (** Validate a value of type {!incompatibility}. *)
-
-val validate_incompatibilities :
-  Ag_util.Validation.path -> incompatibilities -> Ag_util.Validation.error option
-  (** Validate a value of type {!incompatibilities}. *)
 
 val create_binpacking_problem :
   binpacking_problem_items: item list ->

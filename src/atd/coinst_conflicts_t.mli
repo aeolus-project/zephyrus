@@ -3,9 +3,9 @@
 
 type id = string
 
-type class_definition = (id * id list)
-
 type incompatibility = id list
+
+type class_definition = (id * id list)
 
 type coinst_conflicts = {
   classes: class_definition list;

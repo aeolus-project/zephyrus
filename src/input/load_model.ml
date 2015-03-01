@@ -22,13 +22,16 @@
     - Data_model
     - Abstract_io
     - Settings (to get "append_repository_to_package_name" setting)
-    - Data_model
     - Data_model_catalog
 *)
 
 open Data_common
-open Data_model
+(*open Data_model*)
 open Data_model_catalog
+
+
+(* TODO: replace mapping component_name <-> id to component_name+state <-> id *)
+(* For now, because of that, it cannot compile *)
 
 (* 0. Name Conversion *)
 
@@ -52,8 +55,8 @@ let convert_component_name         x = x
 
 (* A meta-catalog created from the Abstract_io model: universe, repositories and initial configuration. *)
 let model_catalog_of_abstract_io 
-  (universe                : Abstract_io.universe      option)
-  (initial_configuration   : Abstract_io.configuration option)
+  (universe                : Abstract_io.universe      option)  (* for resources/ports/component types/packages/repositories *)
+  (initial_configuration   : Abstract_io.configuration option)  (* for deprecated component types/locations *)
   : model_catalog = 
 
   (* Mappings *)
@@ -67,22 +70,22 @@ let model_catalog_of_abstract_io
 
 
   (* 1. Universe *)
-
-  (* component_types *)
+    (* component_types *)
   let add_component_type ct = component_type#add (convert_component_type_name ct.Abstract_io.component_type_name) in
-  
-  (* ports *)
-  let add_component_type_ports ct =
+    (* ports *)
+  let add_component_type_ports ct = (* from components *)
     List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_provide )); (* add provide  ports *)
     List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_require )); (* add require  ports *)
     List.iter port#add (List.map convert_port_name               ct.Abstract_io.component_type_conflict)   (* add conflict ports *)
   in
-
-  (* repositories *)
+  let add_port_dependency_ports pdep =  (* from port dependencies *)
+    port#add (convert_port_name pdep.Abstract_io.port_hierarchy_port);
+    List.iter port#add (List.map convert_port_name  pdep.Abstract_io.port_hierarchy_subport)
+  in
+    (* repositories *)
   let add_repository r = repository#add (convert_repository_name r.Abstract_io.repository_name) in
   let add_package r_id r_name k = package#add (r_id, (convert_package_name r_name k.Abstract_io.package_name)) in
-  
-  (* packages *)
+    (* packages *)
   let add_repository_packages r =
     let add_package =
       let r_name = convert_repository_name r.Abstract_io.repository_name in (* repository name *)
@@ -91,43 +94,36 @@ let model_catalog_of_abstract_io
       add_package r_id r_name in
     List.iter add_package r.Abstract_io.repository_packages (* add available packages *)
   in
-
-  (* resources *)
+    (* resources *)
   let add_component_type_resources ct = List.iter resource#add (List.map convert_resource_name (List.map fst ct.Abstract_io.component_type_consume)) (* add consumed resources *) in
   let add_package_resources        k  = List.iter resource#add (List.map convert_resource_name (List.map fst k.Abstract_io.package_consume))         (* add consumed resources *) in
-  
-  (* Add all the universe data. *)
+    (* Add all the universe data. *)
   begin
     match universe with
     | None   -> ()
     | Some u -> 
         List.iter add_component_type           u.Abstract_io.universe_component_types; (* add component types *)
         List.iter add_component_type_ports     u.Abstract_io.universe_component_types; (* add ports from component types *)
+        List.iter add_port_dependency_ports    u.Abstract_io.universe_port_hierarchy;  (* add ports from port dependencies *)    
         List.iter add_repository               u.Abstract_io.universe_repositories;    (* add repositories *)
         List.iter add_repository_packages      u.Abstract_io.universe_repositories;    (* add packages from repositories *)
         List.iter add_component_type_resources u.Abstract_io.universe_component_types; (* add resources from component types *)
         List.iter add_package_resources        (List.flatten (List.map (fun r -> r.Abstract_io.repository_packages) u.Abstract_io.universe_repositories)) (* add resources from packages*)
   end;
 
-
   (* 2. Configuration *)
-
-  (* location *)
+    (* location *)
   let add_location l = location#add (convert_location_name l.Abstract_io.location_name) in
-
-  (* component *)
+    (* component *)
   let add_component c = component#add (convert_component_name c.Abstract_io.component_name)  in
-
-  (* resources *)
+    (* resources *)
   let add_location_resources l = List.iter resource#add (List.map convert_resource_name (List.map fst l.Abstract_io.location_provide_resources)) in
-
-  (* deprecated component types *)
+    (* deprecated component types *)
   let add_component_deprecated_component_type c =
     try let _ = component_type#id_of_name (convert_component_type_name c.Abstract_io.component_type) in ()
     (* If there is an exception it means that this component type does not exist in the universe - it is deprecated. *)
     with Not_found -> component_type#set_id_of_name (convert_component_type_name c.Abstract_io.component_type) (Fresh_id.special Data_common.Deprecated) in
-
-  (* Add all the initial configuration data. *)
+    (* Add all the initial configuration data. *)
   begin
     match initial_configuration with
     | None   -> ()
@@ -137,7 +133,6 @@ let model_catalog_of_abstract_io
         List.iter add_location_resources c.Abstract_io.configuration_locations;  (* add resources from locations *)
         List.iter add_component_deprecated_component_type c.Abstract_io.configuration_components (* add deprecated component types *)
   end;
-
   (* The meta-catalog object: *)
   new model_catalog 
     ~component_type_catalog: component_type
@@ -176,6 +171,7 @@ let load_catalog (universe : Abstract_io.universe option) (configuration : Abstr
   model_catalog_of_abstract_io_with_exceptions closed_model_catalog {workaround = make_not_found_functions;}
 
 
+
 (*/*************************************************\*)
 (*| 2. Universe Conversion                          |*)
 (*\*************************************************/*)
@@ -189,119 +185,105 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
   let repositories    : Repository_obj_catalog     .obj_catalog_iface = new Repository_obj_catalog     .obj_catalog in
 
 
-  (* 2. Conversion *)
-    
-  (* component types *)
+  (* 2. Conversion -- and direct storage in the corresponding catalog *)
+    (* component types *)
   let convert_component_type t : unit =
-
-    (* name *)  
-    let name = convert_component_type_name t.Abstract_io.component_type_name in
-
-    (* id *)
-    let id = catalog#component_type#id_of_name name in
-
+    (* name *) let name = convert_component_type_name t.Abstract_io.component_type_name in
+    (* id *) let id = catalog#component_type#id_of_name name in
     (* create the mapping for provide *)
     let provide : provide_arity Port_id_map.t = 
       Port_id_map.of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_provide_arity arity)
       ) t.Abstract_io.component_type_provide in
-
     (* create the mapping for require *)
     let require : require_arity Port_id_map.t = 
       Port_id_map.of_list (fun (name, arity) -> 
         let id = catalog#port#id_of_name (convert_port_name name) in 
         (id, convert_require_arity arity)
       ) t.Abstract_io.component_type_require in
-
     (* create the set for conflict *)
     let conflict : Port_id_set.t = 
       Port_id_set.of_list (fun name -> 
         catalog#port#id_of_name (convert_port_name name)
       ) t.Abstract_io.component_type_conflict in 
-
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.of_list (fun (name, arity) -> 
         (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
       ) t.Abstract_io.component_type_consume in
-
     (* create the component type object *)
     let new_component_type = new component_type ~provide ~require ~conflict ~consume () in
-
     (* store the component type *)
     component_types#add_id_obj_pair id new_component_type
   in
-    
 
   (* packages *)
   let convert_package r_id r_name k : package_id =
-
-    (* name *)
-    let name = convert_package_name r_name k.Abstract_io.package_name in
-
-    (* id *)
-    let id = catalog#package#id_of_name (r_id, name) in
-
+    (* name *) let name = convert_package_name r_name k.Abstract_io.package_name in
+    (* id *) let id = catalog#package#id_of_name (r_id, name) in
     (* create the dependency sets *)
     let depend : Package_id_set_set.t = 
       Package_id_set_set.of_list (fun s -> 
         Package_id_set.of_list (fun n -> 
           catalog#package#id_of_name (r_id, convert_package_name r_name n)) s
       ) k.Abstract_io.package_depend in
-    
     (* similar *)
     let conflict : Package_id_set.t = 
       Package_id_set.of_list (fun n -> 
         catalog#package#id_of_name (r_id, (convert_package_name r_name n))
       ) k.Abstract_io.package_conflict in
-    
     (* create the mapping for resource consumption *)
     let consume : resource_consume_arity Resource_id_map.t = 
       Resource_id_map.of_list (fun (r_id,n) -> 
         (catalog#resource#id_of_name (convert_resource_name r_id), convert_resource_consume_arity n)
       ) k.Abstract_io.package_consume in
-
     (* create the package object *)
     let new_package = new package ~depend ~conflict ~consume () in
-
     (* store the package *)
     packages#add_id_obj_pair id new_package;
-
     (* return the package id *)
     id
   in
 
-
   (* repositories *)
   let convert_repository r : unit = 
-
-    (* name *)
-    let name = convert_repository_name r.Abstract_io.repository_name in
-
-    (* id *)
-    let id = catalog#repository#id_of_name name in
-
+    (* name *) let name = convert_repository_name r.Abstract_io.repository_name in
+    (* id *) let id = catalog#repository#id_of_name name in
     (* packages *)
     let packages : Package_id_set.t = 
       Package_id_set.of_list (fun k -> 
         convert_package id name k (* this returns the package id, thus the set is built *)
       ) r.Abstract_io.repository_packages in
-
     (* create the repository object *)
     let new_repository = new repository
       ~packages: packages
       ()
     in
-
     (* store the repository *)
     repositories#add_id_obj_pair id new_repository
+  in
+
+  (* port dependencies *)
+  let convert_port_dependencies l : port_hierarchy = (* missing ports without dependencies, and mising self dependency *)
+    let subports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
+    let supports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
+    List.iter (fun pdep -> let name_port = catalog#port#id_of_name pdep.Abstract_io.port_hierarchy_port in
+        List.iter (fun subport -> let name_subport = catalog#port#id_of_name subport in
+            let s  = Port_id_map.find subports name in s := Port_id_set.add name_subport (!s);
+            let s' = Port_id_map.find supports name_subport in s' := Port_id_set.add name (!s')
+          ) pdep.Abstract_io.port_hierarchy_subports
+      ) l;
+   (Port_id_map.map (fun x -> !x) subports, Port_id_map.map (fun x -> !x) supports)
+
   in
 
   (* universe *)
   List.iter convert_repository     u.Abstract_io.universe_repositories;    (* include the repository and package data coming from the universe *) 
   List.iter convert_component_type u.Abstract_io.universe_component_types; (* include the component type data *)
   
+  let (subports, supports) = convert_port_dependencies u.Abstract_io.universe_port_hierarchy in
+
   (* may add erroneous packages and component types *)
   let implementation = 
     Component_type_id_map.of_list (fun (t, ks) -> 
@@ -313,7 +295,8 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
     ) u.Abstract_io.universe_implementation in
   
   new universe 
-    ~ports:           catalog#port#ids
+    ~subports:        subports
+    ~supports:        supports
     ~packages:        packages#id_to_obj_map
     ~resources:       catalog#resource#ids
     ~component_types: component_types#id_to_obj_map

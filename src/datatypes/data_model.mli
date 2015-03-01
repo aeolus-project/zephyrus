@@ -148,6 +148,7 @@ module Component_name_map     : Map.S with type key = Component_name.t
 (*| 2. Universe                                                            |*)
 (*\************************************************************************/*)
 
+(*
 (** 2.1. Resources. *)
 
 type resource = resource_id
@@ -170,9 +171,14 @@ module Port_set     : Set.S with type elt = Port.t
 module Port_set_set : Set.S with type elt = Port_set.t
 module Port_map     : Map.S with type key = Port.t
 module Port_map_extract_key : sig val set_of_keys : 'a Port_map.t -> Port_set.t end
+*)
+
+(** 2.3 Port Hierarchy. *)
+
+type port_hierarchy = Port_id_set.t Port_id_map.t (* we compute the transitive closure of the thing directly *)
 
 
-(** 2.3. Component types. *)
+(** 2.4. Component types. *)
 
 val deprecated_component_type_id : component_type_id
 
@@ -215,7 +221,7 @@ module Component_type_set : Set.S with type elt = Component_type.t
 module Component_type_map : Map.S with type key = Component_type.t
 
 
-(** 2.4. Packages. *)
+(** 2.5. Packages. *)
 
 val deprecated_package_id : package_id
 
@@ -244,7 +250,7 @@ module Package_set_set : Set.S with type elt = Package_set.t
 module Package_map     : Map.S with type key = Package.t
 
 
-(** 2.5. Repositories. *)
+(** 2.6. Repositories. *)
 
 exception Repository_package_not_found of package_id
 
@@ -265,7 +271,7 @@ module Repository_set : Set.S with type elt = Repository.t
 module Repository_map : Map.S with type key = Repository.t
 
 
-(** 2.6. Universes. *)
+(** 2.7. Universes. *)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
@@ -273,7 +279,7 @@ exception Universe_package_not_found        of package_id
 exception Package_repository_not_found      of package_id
 
 class universe :
-  ?ports           : Port_id_set.t ->
+  ?ports           : Port_id_map.t ->
   ?packages        : package Package_id_map.t ->
   ?resources       : Resource_id_set.t ->
   ?component_types : component_type Component_type_id_map.t ->
@@ -281,7 +287,7 @@ class universe :
   ?repositories    : repository Repository_id_map.t ->
   unit -> object ('selftype)
 
-  val ports           : Port_id_set.t                            
+  val ports           : Port_id_map.t                            
   val packages        : package Package_id_map.t                 
   val resources       : Resource_id_set.t                        
   val component_types : component_type Component_type_id_map.t   (** Component types available in this universe. *)
@@ -289,13 +295,14 @@ class universe :
   val repositories    : repository Repository_id_map.t           (** Package repositories available in this universe. *)
   
   (* Methods *)
-  method get_port_ids              : Port_id_set.t          
+  method get_port_ids              : Port_id_set.t
   method get_package_ids           : Package_id_set.t       
   method get_resource_ids          : Resource_id_set.t      
   method get_component_type_ids    : Component_type_id_set.t
   method get_repository_ids        : Repository_id_set.t    
   method get_implementation_domain : Component_type_id_set.t
 
+  method get_sub_ports         : port_id -> Port_id_set.t
   method get_component_type    : component_type_id -> component_type
   method get_implementation    : component_type_id -> Package_id_set.t
   method get_repository        : repository_id -> repository
@@ -313,7 +320,7 @@ class universe :
   (* This method is almost like a constructor, but based on a existing object:
      it will replace only the given fields of the existing object, leaving the rest as it was. *)
   method copy :
-    ?ports           : Port_id_set.t ->
+    ?ports           : Port_id_map.t ->
     ?packages        : package Package_id_map.t ->
     ?resources       : Resource_id_set.t ->
     ?component_types : component_type Component_type_id_map.t ->

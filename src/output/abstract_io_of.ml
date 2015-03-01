@@ -83,6 +83,7 @@ let universe (u : universe) =
     Abstract_io.universe_component_types = List.map component_type                     (Component_type_id_set.elements u#get_component_type_ids);
     Abstract_io.universe_implementation  = List.map implementation_of_a_component_type (Component_type_id_set.elements u#get_component_type_ids);
     Abstract_io.universe_repositories    = List.map repository                         (Repository_id_set    .elements u#get_repository_ids);
+    Abstract_io.universe_port_hierarchy  = []; (* TODO *)
   }
 
 

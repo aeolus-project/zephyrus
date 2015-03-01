@@ -37,8 +37,9 @@ type variable =
   | Simple_variable            of spec_variable_name           (** Specifiaction variable *)
   | Global_variable            of element                      (** Number of instances of a given component_type / port / package installed globally in the configuration. *)
   | Local_variable             of location_id * element        (** Number of instances of a given component_type / port / package installed on a given location. *)
-  | Binding_variable           of port_id * component_type_id * component_type_id
+  | Binding_variable           of port_id * component_type_id * port_id * component_type_id
     (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
+  | Binding_variable_global    of component_type_id * port_id * component_type_id
   | Local_repository_variable  of location_id * repository_id  (** Is the given repository installed on the given location? (boolean variable) *)
   | Local_resource_variable    of location_id * resource_id    (** How many resources of the given type are provided by the given location. *)
   | Location_used_variable     of location_id
@@ -49,7 +50,7 @@ module Variable_map = Data_common.Map.Make(Variable)
 
 
 (*/************************************************************************\*)
-(*| 2. Values                                                              |*)
+(*| 2. Values: integers with infinite, with base operations                |*)
 (*\************************************************************************/*)
 
 type value = Finite_value of int | Infinite_value
@@ -127,7 +128,8 @@ module Value = struct
     | Finite_value v' -> if v' >= 0 then Finite_value v' else Finite_value (-v')
     | Infinite_value -> Infinite_value
 
-  (* Workaround... *)
+
+  (* Syntactic sugar for standard operations *)
   let leq = is_inf_eq
   let gt  = is_sup
   let eq  = (=)
@@ -351,3 +353,5 @@ type solution = {
 
 let is_empty sol = 
   Variable_set.fold (fun v res -> if not res then (if (sol.variable_values v) != 0 then false else res) else res) sol.domain true
+
+

@@ -6,30 +6,13 @@
 (** Type definitions for naming. *)
 type version = Json_versions_t.version
 
-type component_type_name = Stateful_json_v1_t.component_type_name
-
 type state_name = Stateful_json_v1_t.state_name
-
-type port_name = Stateful_json_v1_t.port_name
-
-type component_name = Stateful_json_v1_t.component_name
-
-type package_name = Stateful_json_v1_t.package_name
-
-type repository_name = Stateful_json_v1_t.repository_name
-
-type location_name = Stateful_json_v1_t.location_name
-
-(** Type definitions for Universe. *)
-type resource_name = Stateful_json_v1_t.resource_name
-
-type provide_arity = Stateful_json_v1_t.provide_arity
 
 type require_arity = Stateful_json_v1_t.require_arity
 
-type resource_consumption = Stateful_json_v1_t.resource_consumption
+type provide_arity = Stateful_json_v1_t.provide_arity
 
-type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
+type port_name = Stateful_json_v1_t.port_name
 
 type state = Stateful_json_v1_t.state = {
   state_name (*atd name *): state_name;
@@ -41,14 +24,14 @@ type state = Stateful_json_v1_t.state = {
   state_successors (*atd successors *): state_name list
 }
 
-type component_type = Stateful_json_v1_t.component_type = {
-  component_type_name (*atd name *): component_type_name;
-  component_type_states (*atd states *): state list;
-  component_type_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
+(** Type definitions for Universe. *)
+type resource_name = Stateful_json_v1_t.resource_name
 
-type component_types = Stateful_json_v1_t.component_types
+type resource_consumption = Stateful_json_v1_t.resource_consumption
+
+type repository_name = Stateful_json_v1_t.repository_name
+
+type package_name = Stateful_json_v1_t.package_name
 
 type package = Stateful_json_v1_t.package = {
   package_name (*atd name *): package_name;
@@ -58,14 +41,17 @@ type package = Stateful_json_v1_t.package = {
     (resource_name * resource_consumption) list
 }
 
-type packages = Stateful_json_v1_t.packages
-
 type repository = Stateful_json_v1_t.repository = {
   repository_name (*atd name *): repository_name;
   repository_packages (*atd packages *): package list
 }
 
 type repositories = Stateful_json_v1_t.repositories
+
+type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subport (*atd subport *): port_name
+}
 
 type implementation_package = Stateful_json_v1_t.implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
@@ -74,16 +60,34 @@ type implementation_package = Stateful_json_v1_t.implementation_package = {
 
 type implementation_packages = Stateful_json_v1_t.implementation_packages
 
+type component_type_name = Stateful_json_v1_t.component_type_name
+
+type component_type = Stateful_json_v1_t.component_type = {
+  component_type_name (*atd name *): component_type_name;
+  component_type_states (*atd states *): state list;
+  component_type_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type component_types = Stateful_json_v1_t.component_types
+
 (** Type definitions for Configuration. *)
 type universe = Stateful_json_v1_t.universe = {
   universe_version (*atd version *): version;
   universe_component_types (*atd component_types *): component_types;
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
-  universe_repositories (*atd repositories *): repositories
+  universe_repositories (*atd repositories *): repositories;
+  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
 }
 
+type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
+
 type resources_provided = Stateful_json_v1_t.resources_provided
+
+type packages = Stateful_json_v1_t.packages
+
+type location_name = Stateful_json_v1_t.location_name
 
 type location_cost = Stateful_json_v1_t.location_cost
 
@@ -94,6 +98,8 @@ type location = Stateful_json_v1_t.location = {
   location_packages_installed (*atd packages_installed *): package_name list;
   location_cost (*atd cost *): location_cost
 }
+
+type component_name = Stateful_json_v1_t.component_name
 
 type component = Stateful_json_v1_t.component = {
   component_name (*atd name *): component_name;
@@ -118,71 +124,44 @@ type configuration = Stateful_json_v1_t.configuration = {
 let validate_version = (
   Json_versions_v.validate_version
 )
-let validate_component_type_name = (
-  (fun _ _ -> None)
-)
 let validate_state_name = (
-  (fun _ _ -> None)
-)
-let validate_port_name = (
-  (fun _ _ -> None)
-)
-let validate_component_name = (
-  (fun _ _ -> None)
-)
-let validate_package_name = (
-  (fun _ _ -> None)
-)
-let validate_repository_name = (
-  (fun _ _ -> None)
-)
-let validate_location_name = (
-  (fun _ _ -> None)
-)
-let validate_resource_name = (
-  (fun _ _ -> None)
-)
-let validate_provide_arity = (
   (fun _ _ -> None)
 )
 let validate_require_arity = (
   (fun _ _ -> None)
 )
-let validate_resource_consumption = (
+let validate_provide_arity = (
   (fun _ _ -> None)
 )
-let validate_resource_provide_arity = (
+let validate_port_name = (
   (fun _ _ -> None)
 )
-let validate__1 = (
-  fun _ _ -> None
-)
-let validate__2 = (
+let validate__4 = (
   fun _ _ -> None
 )
 let validate__3 = (
   fun _ _ -> None
 )
-let validate__4 = (
+let validate__2 = (
   fun _ _ -> None
 )
-let validate_state = (
+let validate__1 = (
   fun _ _ -> None
 )
-let validate__5 = (
+let validate_state : _ -> state -> _ = (
   fun _ _ -> None
 )
-let validate__6 = (
-  fun _ _ -> None
+let validate_resource_name = (
+  (fun _ _ -> None)
 )
-let validate_component_type = (
-  fun _ _ -> None
+let validate_resource_consumption = (
+  (fun _ _ -> None)
 )
-let validate__7 = (
-  fun _ _ -> None
+let validate_repository_name = (
+  (fun _ _ -> None)
 )
-let validate_component_types = (
-  validate__7
+let validate_package_name = (
+  (fun _ _ -> None)
 )
 let validate__8 = (
   fun _ _ -> None
@@ -190,16 +169,16 @@ let validate__8 = (
 let validate__9 = (
   fun _ _ -> None
 )
-let validate_package = (
+let validate__6 = (
+  fun _ _ -> None
+)
+let validate_package : _ -> package -> _ = (
   fun _ _ -> None
 )
 let validate__10 = (
   fun _ _ -> None
 )
-let validate_packages = (
-  validate__10
-)
-let validate_repository = (
+let validate_repository : _ -> repository -> _ = (
   fun _ _ -> None
 )
 let validate__11 = (
@@ -208,7 +187,10 @@ let validate__11 = (
 let validate_repositories = (
   validate__11
 )
-let validate_implementation_package = (
+let validate_port_hierarchy : _ -> port_hierarchy -> _ = (
+  fun _ _ -> None
+)
+let validate_implementation_package : _ -> implementation_package -> _ = (
   fun _ _ -> None
 )
 let validate__12 = (
@@ -217,43 +199,73 @@ let validate__12 = (
 let validate_implementation_packages = (
   validate__12
 )
+let validate_component_type_name = (
+  (fun _ _ -> None)
+)
+let validate__5 = (
+  fun _ _ -> None
+)
+let validate_component_type : _ -> component_type -> _ = (
+  fun _ _ -> None
+)
+let validate__7 = (
+  fun _ _ -> None
+)
+let validate_component_types = (
+  validate__7
+)
+let validate__14 = (
+  fun _ _ -> None
+)
 let validate__13 = (
   fun _ _ -> None
 )
-let validate_universe = (
+let validate_universe : _ -> universe -> _ = (
   fun path x ->
     (
       validate_version
     ) (`Field "universe_version" :: path) x.universe_version
 )
-let validate__14 = (
-  fun _ _ -> None
-)
-let validate_resources_provided = (
-  validate__14
-)
-let validate_location_cost = (
+let validate_resource_provide_arity = (
   (fun _ _ -> None)
-)
-let validate_location = (
-  fun _ _ -> None
-)
-let validate_component = (
-  fun _ _ -> None
-)
-let validate_binding = (
-  fun _ _ -> None
 )
 let validate__15 = (
   fun _ _ -> None
 )
-let validate__16 = (
+let validate_resources_provided = (
+  validate__15
+)
+let validate_packages = (
+  validate__10
+)
+let validate_location_name = (
+  (fun _ _ -> None)
+)
+let validate_location_cost = (
+  (fun _ _ -> None)
+)
+let validate_location : _ -> location -> _ = (
+  fun _ _ -> None
+)
+let validate_component_name = (
+  (fun _ _ -> None)
+)
+let validate_component : _ -> component -> _ = (
+  fun _ _ -> None
+)
+let validate_binding : _ -> binding -> _ = (
+  fun _ _ -> None
+)
+let validate__18 = (
   fun _ _ -> None
 )
 let validate__17 = (
   fun _ _ -> None
 )
-let validate_configuration = (
+let validate__16 = (
+  fun _ _ -> None
+)
+let validate_configuration : _ -> configuration -> _ = (
   fun path x ->
     (
       validate_version
@@ -267,7 +279,7 @@ let create_state
   ?(state_require = [])
   ?(state_conflict = [])
   ?(state_successors = [])
-  () =
+  () : state =
   {
     state_name = state_name;
     state_initial = state_initial;
@@ -277,22 +289,12 @@ let create_state
     state_conflict = state_conflict;
     state_successors = state_successors;
   }
-let create_component_type 
-  ~component_type_name
-  ~component_type_states
-  ?(component_type_consume = [])
-  () =
-  {
-    component_type_name = component_type_name;
-    component_type_states = component_type_states;
-    component_type_consume = component_type_consume;
-  }
 let create_package 
   ~package_name
   ?(package_depend = [])
   ?(package_conflict = [])
   ?(package_consume = [])
-  () =
+  () : package =
   {
     package_name = package_name;
     package_depend = package_depend;
@@ -302,30 +304,50 @@ let create_package
 let create_repository 
   ~repository_name
   ?(repository_packages = [])
-  () =
+  () : repository =
   {
     repository_name = repository_name;
     repository_packages = repository_packages;
   }
+let create_port_hierarchy 
+  ~port_hierarchy_port
+  ~port_hierarchy_subport
+  () : port_hierarchy =
+  {
+    port_hierarchy_port = port_hierarchy_port;
+    port_hierarchy_subport = port_hierarchy_subport;
+  }
 let create_implementation_package 
   ~implementation_package_repository
   ~implementation_package_package
-  () =
+  () : implementation_package =
   {
     implementation_package_repository = implementation_package_repository;
     implementation_package_package = implementation_package_package;
+  }
+let create_component_type 
+  ~component_type_name
+  ~component_type_states
+  ?(component_type_consume = [])
+  () : component_type =
+  {
+    component_type_name = component_type_name;
+    component_type_states = component_type_states;
+    component_type_consume = component_type_consume;
   }
 let create_universe 
   ~universe_version
   ?(universe_component_types = [])
   ?(universe_implementation = [])
   ?(universe_repositories = [])
-  () =
+  ?(universe_port_hierarchy = [])
+  () : universe =
   {
     universe_version = universe_version;
     universe_component_types = universe_component_types;
     universe_implementation = universe_implementation;
     universe_repositories = universe_repositories;
+    universe_port_hierarchy = universe_port_hierarchy;
   }
 let create_location 
   ~location_name
@@ -333,7 +355,7 @@ let create_location
   ~location_repository
   ?(location_packages_installed = [])
   ?(location_cost = 1)
-  () =
+  () : location =
   {
     location_name = location_name;
     location_provide_resources = location_provide_resources;
@@ -346,7 +368,7 @@ let create_component
   ~component_type
   ~component_state
   ~component_location
-  () =
+  () : component =
   {
     component_name = component_name;
     component_type = component_type;
@@ -357,7 +379,7 @@ let create_binding
   ~binding_port
   ~binding_requirer
   ~binding_provider
-  () =
+  () : binding =
   {
     binding_port = binding_port;
     binding_requirer = binding_requirer;
@@ -368,7 +390,7 @@ let create_configuration
   ?(configuration_locations = [])
   ?(configuration_components = [])
   ?(configuration_bindings = [])
-  () =
+  () : configuration =
   {
     configuration_version = configuration_version;
     configuration_locations = configuration_locations;

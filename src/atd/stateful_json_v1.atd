@@ -43,6 +43,11 @@ type require_arity = int
 type resource_consumption   = int
 type resource_provide_arity = int (* Better name? *)
 
+type port_hierarchy = {
+    port    : port_name;
+    subport : port_name;
+} <ocaml field_prefix="port_hierarchy_">
+
 type state = {
   name                                : state_name;
   ~initial    <ocaml default="false"> : bool;
@@ -89,7 +94,8 @@ type universe = {
   version                               : version;
   ~component_types <ocaml default="[]"> : component_types;
   ~implementation  <ocaml default="[]"> : (component_type_name * implementation_packages) list <json repr = "object">; (* mapping from component type name to sets of package names *)
-  ~repositories    <ocaml default="[]"> : repositories
+  ~repositories    <ocaml default="[]"> : repositories;
+  ~port_hierarchy  <ocaml default="[]"> : port_hierarchy list
 } <ocaml field_prefix="universe_">
 
 

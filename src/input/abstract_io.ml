@@ -17,17 +17,17 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Abstract syntax used as a common intermediate form of the Zephyrus model. *)
+(** Stateful abstract syntax used as a common intermediate form of the stateful Zephyrus model. *)
 
-(** This intermediate form makes it easier to convert between our internal
-    representation of the Zephyrus model and various forms in which its
-    different parts are read at input / written at output. *)
+(** This intermediate form makes it easier to read and write
+    the stateful model and to convert it to and from a stateless model. *)
 
 (** {2 General type definitions for naming.} *)
 
 type resource_name       = string
 type port_name           = string
 type component_type_name = string
+type state_name          = string
 type package_name        = string
 type repository_name     = string
 type location_name       = string
@@ -40,16 +40,30 @@ type component_name      = string
 type provide_arity = FiniteProvide of int | InfiniteProvide
 type require_arity = int
 
+(** Type definitions for port hierarchy **)
+type port_hierarchy = {
+    port_hierarchy_port    : port_name;
+    port_hierarchy_subports : port_name list;
+}
+
 (** Type definitions for resource provide / consume. *)
 type resource_consumption   = int
 type resource_provide_arity = int
 
 (** Type definitions for component types. *)
+type state = {
+  state_name       : state_name;
+  state_initial    : bool;
+  state_final      : bool;
+  state_provide    : (port_name * provide_arity) list;
+  state_require    : (port_name * require_arity) list;
+  state_conflict   : port_name list;
+  state_successors : state_name list;
+}
+
 type component_type = {
   component_type_name     : component_type_name;
-  component_type_provide  : (port_name * provide_arity) list;
-  component_type_require  : (port_name * require_arity) list;
-  component_type_conflict : port_name list;
+  component_type_states   : state list;
   component_type_consume  : (resource_name * resource_consumption) list
 }
 
@@ -71,7 +85,8 @@ type repository = {
 type universe = {
   universe_component_types : component_type list;
   universe_implementation  : (component_type_name * (repository_name * package_name) list) list;
-  universe_repositories    : repository list
+  universe_repositories    : repository list;
+  universe_port_hierarchy  : port_hierarchy list
 }
 
 let universe_add_repositories (universe : universe) (repositories : repository list) : universe = 
@@ -79,6 +94,7 @@ let universe_add_repositories (universe : universe) (repositories : repository l
     universe_component_types = universe.universe_component_types;
     universe_implementation  = universe.universe_implementation;
     universe_repositories    = universe.universe_repositories @ repositories;
+    universe_port_hierarchy  = universe.universe_port_hierarchy
   }  
 
 
@@ -99,6 +115,7 @@ type location = {
 type component = {
   component_name     : component_name;
   component_type     : component_type_name;
+  component_state    : state_name;
   component_location : location_name
 }
 
@@ -125,7 +142,7 @@ type spec_const = int
 
 type spec_local_element =
   | SpecLocalElementPackage       of repository_name * package_name
-  | SpecLocalElementComponentType of component_type_name
+  | SpecLocalElementComponentType of component_type_name * state_name
   | SpecLocalElementPort          of port_name
 
 type spec_local_expr =
@@ -156,7 +173,7 @@ type spec_resource_constraints = spec_resource_constraint list
 
 type spec_element =
   | SpecElementPackage       of repository_name * package_name
-  | SpecElementComponentType of component_type_name
+  | SpecElementComponentType of component_type_name * state_name
   | SpecElementPort          of port_name
   | SpecElementLocalisation  of spec_resource_constraints * spec_repository_constraints * local_specification
 

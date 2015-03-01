@@ -3,9 +3,9 @@
 
 type id = Coinst_conflicts_t.id
 
-type class_definition = Coinst_conflicts_t.class_definition
-
 type incompatibility = Coinst_conflicts_t.incompatibility
+
+type class_definition = Coinst_conflicts_t.class_definition
 
 type coinst_conflicts = Coinst_conflicts_t.coinst_conflicts = {
   classes: class_definition list;
@@ -40,6 +40,18 @@ let read__1 = (
 )
 let _1_of_string s =
   read__1 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_incompatibility = (
+  write__1
+)
+let string_of_incompatibility ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write_incompatibility ob x;
+  Bi_outbuf.contents ob
+let read_incompatibility = (
+  read__1
+)
+let incompatibility_of_string s =
+  read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_class_definition = (
   fun ob x ->
     Bi_outbuf.add_char ob '[';
@@ -105,34 +117,6 @@ let read_class_definition = (
 )
 let class_definition_of_string s =
   read_class_definition (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_incompatibility = (
-  write__1
-)
-let string_of_incompatibility ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write_incompatibility ob x;
-  Bi_outbuf.contents ob
-let read_incompatibility = (
-  read__1
-)
-let incompatibility_of_string s =
-  read_incompatibility (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__2 = (
-  Ag_oj_run.write_list (
-    write_class_definition
-  )
-)
-let string_of__2 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__2 ob x;
-  Bi_outbuf.contents ob
-let read__2 = (
-  Ag_oj_run.read_list (
-    read_class_definition
-  )
-)
-let _2_of_string s =
-  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__3 = (
   Ag_oj_run.write_list (
     write_incompatibility
@@ -149,7 +133,23 @@ let read__3 = (
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write_coinst_conflicts = (
+let write__2 = (
+  Ag_oj_run.write_list (
+    write_class_definition
+  )
+)
+let string_of__2 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__2 ob x;
+  Bi_outbuf.contents ob
+let read__2 = (
+  Ag_oj_run.read_list (
+    read_class_definition
+  )
+)
+let _2_of_string s =
+  read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write_coinst_conflicts : _ -> coinst_conflicts -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
     let is_first = ref true in
@@ -181,7 +181,7 @@ let read_coinst_conflicts = (
   fun p lb ->
     Yojson.Safe.read_space p lb;
     Yojson.Safe.read_lcurl p lb;
-    let x =
+    let (x : coinst_conflicts) =
       {
         classes = Obj.magic 0.0;
         incompatibilities = Obj.magic 0.0;
