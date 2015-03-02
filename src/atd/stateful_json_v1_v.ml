@@ -48,11 +48,6 @@ type repository = Stateful_json_v1_t.repository = {
 
 type repositories = Stateful_json_v1_t.repositories
 
-type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
-  port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subports (*atd subports *): port_name list
-}
-
 type implementation_package = Stateful_json_v1_t.implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
   implementation_package_package (*atd package *): package_name
@@ -91,12 +86,18 @@ type universe = Stateful_json_v1_t.universe = {
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
   universe_repositories (*atd repositories *): repositories;
-  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
+  universe_port_hierarchy (*atd port_hierarchy *):
+    (port_name * (port_name list)) list
 }
 
 type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 
 type resources_provided = Stateful_json_v1_t.resources_provided
+
+type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subports (*atd subports *): port_name list
+}
 
 type packages = Stateful_json_v1_t.packages
 
@@ -217,9 +218,6 @@ let validate__11 = (
 let validate_repositories = (
   validate__11
 )
-let validate_port_hierarchy : _ -> port_hierarchy -> _ = (
-  fun _ _ -> None
-)
 let validate_implementation_package : _ -> implementation_package -> _ = (
   fun _ _ -> None
 )
@@ -270,6 +268,9 @@ let validate__15 = (
 )
 let validate_resources_provided = (
   validate__15
+)
+let validate_port_hierarchy : _ -> port_hierarchy -> _ = (
+  fun _ _ -> None
 )
 let validate_packages = (
   validate__10
@@ -357,14 +358,6 @@ let create_repository
     repository_name = repository_name;
     repository_packages = repository_packages;
   }
-let create_port_hierarchy 
-  ~port_hierarchy_port
-  ~port_hierarchy_subports
-  () : port_hierarchy =
-  {
-    port_hierarchy_port = port_hierarchy_port;
-    port_hierarchy_subports = port_hierarchy_subports;
-  }
 let create_implementation_package 
   ~implementation_package_repository
   ~implementation_package_package
@@ -410,6 +403,14 @@ let create_universe
     universe_implementation = universe_implementation;
     universe_repositories = universe_repositories;
     universe_port_hierarchy = universe_port_hierarchy;
+  }
+let create_port_hierarchy 
+  ~port_hierarchy_port
+  ~port_hierarchy_subports
+  () : port_hierarchy =
+  {
+    port_hierarchy_port = port_hierarchy_port;
+    port_hierarchy_subports = port_hierarchy_subports;
   }
 let create_location 
   ~location_name

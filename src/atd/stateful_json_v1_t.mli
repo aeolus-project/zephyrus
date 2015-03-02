@@ -48,11 +48,6 @@ type repository = {
 
 type repositories = repository list
 
-type port_hierarchy = {
-  port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subports (*atd subports *): port_name list
-}
-
 type implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
   implementation_package_package (*atd package *): package_name
@@ -94,12 +89,18 @@ type universe = {
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
   universe_repositories (*atd repositories *): repositories;
-  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
+  universe_port_hierarchy (*atd port_hierarchy *):
+    (port_name * (port_name list)) list
 }
 
 type resource_provide_arity = int
 
 type resources_provided = (resource_name * resource_provide_arity) list
+
+type port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subports (*atd subports *): port_name list
+}
 
 type packages = package list
 

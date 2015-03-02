@@ -48,11 +48,6 @@ type repository = Stateful_json_v1_t.repository = {
 
 type repositories = Stateful_json_v1_t.repositories
 
-type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
-  port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subports (*atd subports *): port_name list
-}
-
 type implementation_package = Stateful_json_v1_t.implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
   implementation_package_package (*atd package *): package_name
@@ -91,12 +86,18 @@ type universe = Stateful_json_v1_t.universe = {
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
   universe_repositories (*atd repositories *): repositories;
-  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
+  universe_port_hierarchy (*atd port_hierarchy *):
+    (port_name * (port_name list)) list
 }
 
 type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 
 type resources_provided = Stateful_json_v1_t.resources_provided
+
+type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subports (*atd subports *): port_name list
+}
 
 type packages = Stateful_json_v1_t.packages
 
@@ -411,26 +412,6 @@ val repositories_of_string :
   string -> repositories
   (** Deserialize JSON data of type {!repositories}. *)
 
-val write_port_hierarchy :
-  Bi_outbuf.t -> port_hierarchy -> unit
-  (** Output a JSON value of type {!port_hierarchy}. *)
-
-val string_of_port_hierarchy :
-  ?len:int -> port_hierarchy -> string
-  (** Serialize a value of type {!port_hierarchy}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_port_hierarchy :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> port_hierarchy
-  (** Input JSON data of type {!port_hierarchy}. *)
-
-val port_hierarchy_of_string :
-  string -> port_hierarchy
-  (** Deserialize JSON data of type {!port_hierarchy}. *)
-
 val write_implementation_package :
   Bi_outbuf.t -> implementation_package -> unit
   (** Output a JSON value of type {!implementation_package}. *)
@@ -630,6 +611,26 @@ val read_resources_provided :
 val resources_provided_of_string :
   string -> resources_provided
   (** Deserialize JSON data of type {!resources_provided}. *)
+
+val write_port_hierarchy :
+  Bi_outbuf.t -> port_hierarchy -> unit
+  (** Output a JSON value of type {!port_hierarchy}. *)
+
+val string_of_port_hierarchy :
+  ?len:int -> port_hierarchy -> string
+  (** Serialize a value of type {!port_hierarchy}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_port_hierarchy :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> port_hierarchy
+  (** Input JSON data of type {!port_hierarchy}. *)
+
+val port_hierarchy_of_string :
+  string -> port_hierarchy
+  (** Deserialize JSON data of type {!port_hierarchy}. *)
 
 val write_packages :
   Bi_outbuf.t -> packages -> unit

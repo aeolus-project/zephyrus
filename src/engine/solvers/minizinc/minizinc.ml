@@ -18,6 +18,9 @@
 (****************************************************************************)
 
 
+(* First, create a variable for all the ids in the inner name catalog (that we need to add) *)
+(* second, use that new catalog for the translation of everything *)
+
 open Data_constraint
 
 type name = string
@@ -52,15 +55,16 @@ let name_of_k k = (sanitize_name (handle_deprecated Name_of.package_id k))
 let name_of_l l = (sanitize_name (handle_deprecated Name_of.location_id l))
 let name_of_r r = (sanitize_name (handle_deprecated Name_of.repository_id r))
 let name_of_o o = (sanitize_name (handle_deprecated Name_of.resource_id o))
+
 let name_of_element element = match element with
-  | Component_type (t) -> "component_" ^ (name_of_t t)
+  | Component_type (t) -> "component_type_" ^ (name_of_t t)
   | Port           (p) -> "port_"           ^ (name_of_p p)
   | Package        (k) -> "package_"        ^ (name_of_k k)
 let name_of_variable_unsafe v = match v with 
   | Simple_variable(v)             -> "spec_var_" ^ (sanitize_name (String_of.spec_variable_name v))
   | Global_variable(e)             -> "global_" ^ (name_of_element e)
   | Local_variable(l,e)            -> "local_" ^ (name_of_l l) ^ "_" ^ (name_of_element e)
-  | Binding_variable(p,t1,t2)      -> "binding_" ^ (name_of_p p) ^ "_" ^ (name_of_t t1) ^ "_" ^ (name_of_t t2)
+  | Binding_variable(pp,tp, pr,tr) -> "binding_" ^ (name_of_p pp) ^ "_" ^ (name_of_t tp) ^ "_" ^ (name_of_p pr) ^ "_" ^ (name_of_t tr)
   | Local_repository_variable(l,r) -> "localrepository_" ^ (name_of_l l) ^ "_" ^ (name_of_r r)
   | Local_resource_variable(l,o)   -> "localresource_" ^ (name_of_l l) ^ "_" ^ (name_of_o o)
   | Location_used_variable(l)      -> "location_used_" ^ (name_of_l l)

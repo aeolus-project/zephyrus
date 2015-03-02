@@ -21,23 +21,25 @@
 
 (* Depends on
      - Data_model
+     - Abstract_io
      - Data_common.Catalog
      - Data_common.Fresh_integer_with_deprecated
      - Data_common.Set
      - Data_common.Map
  *)
 
-open Data_model
-
 
 (* this module is used to get from a package name the right package, by giving in addition in which repository to look in for *)
 module Repository_id_package_name = struct
-  type t = repository_id * package_name
-  let compare = compare
+  type t = Data_model.repository_id * Abstract_io.package_name
+  let compare = Pervasives.compare
 end 
 
 module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
 module Repository_id_package_name_map = Data_common.Map.Make(Repository_id_package_name)
+
+
+
 
 module Fresh_id = Data_common.Fresh_integer_with_deprecated
 
@@ -46,27 +48,56 @@ module Fresh_id = Data_common.Fresh_integer_with_deprecated
 (*| 1. Mapping Name <-> ID                                                 |*)
 (*\************************************************************************/*)
 
-module Component_type_catalog     = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_name_set       )(Component_type_id_map)(Component_type_name_map       )
-module Port_catalog               = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_name_set                 )(Port_id_map          )(Port_name_map                 )
-module Repository_catalog         = Data_common.Catalog(Fresh_id)(Repository_id_set    )(Repository_name_set           )(Repository_id_map    )(Repository_name_map           )
-module Package_catalog            = Data_common.Catalog(Fresh_id)(Package_id_set       )(Repository_id_package_name_set)(Package_id_map       )(Repository_id_package_name_map)
-module Resource_catalog           = Data_common.Catalog(Fresh_id)(Resource_id_set      )(Resource_name_set             )(Resource_id_map      )(Resource_name_map             )
-module Location_catalog           = Data_common.Catalog(Fresh_id)(Location_id_set      )(Location_name_set             )(Location_id_map      )(Location_name_map             )
-module Component_catalog          = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_name_set            )(Component_id_map     )(Component_name_map            )
+module Component_type_catalog     = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Component_type_id_set)(Abstract_io.Component_type_ref_set)
+                                      (Data_model.Component_type_id_map)(Abstract_io.Component_type_ref_map)
+module Port_catalog               = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Port_id_set          )(Abstract_io.Port_name_set         )
+                                      (Data_model.Port_id_map          )(Abstract_io.Port_name_map         )
+module Repository_catalog         = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Repository_id_set    )(Abstract_io.Repository_name_set   )
+                                      (Data_model.Repository_id_map    )(Abstract_io.Repository_name_map   )
+module Package_catalog            = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Package_id_set       )(Repository_id_package_name_set    )
+                                      (Data_model.Package_id_map       )(Repository_id_package_name_map    )
+module Resource_catalog           = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Resource_id_set      )(Abstract_io.Resource_name_set     )
+                                      (Data_model.Resource_id_map      )(Abstract_io.Resource_name_map     )
+module Location_catalog           = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Location_id_set      )(Abstract_io.Location_name_set     )
+                                      (Data_model.Location_id_map      )(Abstract_io.Location_name_map     )
+module Component_catalog          = Data_common.Catalog(Fresh_id)
+                                      (Data_model.Component_id_set     )(Abstract_io.Component_name_set    )
+                                      (Data_model.Component_id_map     )(Abstract_io.Component_name_map    )
 
 
 
 (*/************************************************************************\*)
 (*| 2. Mapping ID <-> Structure                                            |*)
 (*\************************************************************************/*)
+open Data_model
 
-module Component_type_obj_catalog = Data_common.Catalog(Fresh_id)(Component_type_id_set)(Component_type_set            )(Component_type_id_map)(Component_type_map            )
-module Port_obj_catalog           = Data_common.Catalog(Fresh_id)(Port_id_set          )(Port_set                      )(Port_id_map          )(Port_map                      )
-module Repository_obj_catalog     = Data_common.Catalog(Fresh_id)(Repository_id_set    )(Repository_set                )(Repository_id_map    )(Repository_map                )
-module Package_obj_catalog        = Data_common.Catalog(Fresh_id)(Package_id_set       )(Package_set                   )(Package_id_map       )(Package_map                   )
-module Resource_obj_catalog       = Data_common.Catalog(Fresh_id)(Resource_id_set      )(Resource_set                  )(Resource_id_map      )(Resource_map                  )
-module Location_obj_catalog       = Data_common.Catalog(Fresh_id)(Location_id_set      )(Location_set                  )(Location_id_map      )(Location_map                  )
-module Component_obj_catalog      = Data_common.Catalog(Fresh_id)(Component_id_set     )(Component_set                 )(Component_id_map     )(Component_map                 )
+module Component_type_obj_catalog = Data_common.Catalog(Fresh_id)
+                                      (Component_type_id_set)(Component_type_set            )
+                                      (Component_type_id_map)(Component_type_map            )
+module Port_obj_catalog           = Data_common.Catalog(Fresh_id)
+                                      (Port_id_set          )(Port_set                      )
+                                      (Port_id_map          )(Port_map                      )
+module Repository_obj_catalog     = Data_common.Catalog(Fresh_id)
+                                      (Repository_id_set    )(Repository_set                )
+                                      (Repository_id_map    )(Repository_map                )
+module Package_obj_catalog        = Data_common.Catalog(Fresh_id)
+                                      (Package_id_set       )(Package_set                   )
+                                      (Package_id_map       )(Package_map                   )
+module Resource_obj_catalog       = Data_common.Catalog(Fresh_id)
+                                      (Resource_id_set      )(Resource_set                  )
+                                      (Resource_id_map      )(Resource_map                  )
+module Location_obj_catalog       = Data_common.Catalog(Fresh_id)
+                                      (Location_id_set      )(Location_set                  )
+                                      (Location_id_map      )(Location_map                  )
+module Component_obj_catalog      = Data_common.Catalog(Fresh_id)
+                                      (Component_id_set     )(Component_set                 )
+                                      (Component_id_map     )(Component_map                 )
 
 
 

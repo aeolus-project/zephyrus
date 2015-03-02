@@ -19,7 +19,10 @@
 
 (** abstract syntax used as a common intermediate form of the stateful Zephyrus model. *)
 
-(* Depends only on the Standard Library *)
+(* Depends on
+    - Data_common.Set
+    - Data_common.Map
+ *)
 
 
 exception Exception_incompatible_output_format
@@ -35,10 +38,47 @@ type package_name        = string
 type repository_name     = string
 type location_name       = string
 type component_name      = string
-
 type component_type_ref =
   | Component_type_simple of component_type_name 
   | Component_type_state  of component_type_name * state_name
+
+module Resource_name           = struct type t = resource_name let compare = compare end
+module Resource_name_set       = Data_common.Set.Make(Resource_name)
+module Resource_name_map       = Data_common.Map.Make(Resource_name)
+
+module Port_name               = struct type t = port_name let compare = compare end
+module Port_name_set           = Data_common.Set.Make(Port_name)
+module Port_name_map           = Data_common.Map.Make(Port_name)
+
+module Component_type_name     = struct type t = component_type_name let compare = compare end
+module Component_type_name_set = Data_common.Set.Make(Component_type_name)
+module Component_type_name_map = Data_common.Map.Make(Component_type_name)
+
+module State_name              = struct type t = state_name let compare = compare end
+module State_name_set          = Data_common.Set.Make(State_name)
+module State_name_map          = Data_common.Map.Make(State_name)
+
+module Package_name            = struct type t = package_name let compare = compare end
+module Package_name_set        = Data_common.Set.Make(Package_name)
+module Package_name_map        = Data_common.Map.Make(Package_name)
+
+module Repository_name         = struct type t = repository_name let compare = compare end
+module Repository_name_set     = Data_common.Set.Make(Repository_name)
+module Repository_name_map     = Data_common.Map.Make(Repository_name)
+
+module Location_name           = struct type t = location_name let compare = compare end
+module Location_name_set       = Data_common.Set.Make(Location_name)
+module Location_name_map       = Data_common.Map.Make(Location_name)
+
+module Component_name          = struct type t = component_name let compare = compare end
+module Component_name_set      = Data_common.Set.Make(Component_name)
+module Component_name_map      = Data_common.Map.Make(Component_name)
+
+module Component_type_ref      = struct type t = component_type_ref let compare = Pervasives.compare end
+module Component_type_ref_set  = Data_common.Set.Make(Component_type_ref)
+module Component_type_ref_map  = Data_common.Map.Make(Component_type_ref)
+
+
 
 (** {2 Type definitions for the universe.} *)
 

@@ -148,7 +148,7 @@ module Component_name_map     = Map.Make(Component_name)
 (*| 2. Universe                                                           |*)
 (*\************************************************************************/*)
 
-(*
+
 (** 2.1. Resources. *)
 
 type resource = resource_id
@@ -171,7 +171,7 @@ module Port_set     = Port_id_set
 module Port_set_set = Port_id_set_set
 module Port_map     = Port_id_map
 module Port_map_extract_key = Port_id_map_extract_key
-*)
+
 
 (** 2.3 Port Hierarchy. *)
 
@@ -200,13 +200,14 @@ class component_type
   ?(require  = Port_id_map.empty)
   ?(conflict = Port_id_set.empty)
   ?(consume  = Resource_id_map.empty)
-  () = object (self : 'selftype)
+  name = object (self : 'selftype)
 
   val provide  : provide_arity Port_id_map.t              = provide  (** Which ports does this component type provide and with what arities. *)
   val require  : require_arity Port_id_map.t              = require  (** Which ports does this component type require and with what arities. *)
   val conflict : Port_id_set.t                            = conflict (** With which ports is this component type in conflict. *)
   val consume  : resource_consume_arity Resource_id_map.t = consume  (** Which resources does this component type consume and in what amounts. *)
-  
+
+  method name : string = name  
   method provide (p : port_id)     : provide_arity          = try Port_id_map.find p provide with Not_found -> raise (Component_type_provide_port_not_found p)
   method provide_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys provide
   method require (p : port_id)     : require_arity          = try Port_id_map.find p require with Not_found -> raise (Component_type_require_port_not_found p)
@@ -301,8 +302,8 @@ exception Universe_package_not_found        of package_id
 exception Package_repository_not_found      of package_id
 
 class universe 
-  ?(subports           = Port_id_map.empty)
-  ?(supports           = Port_id_map.empty)
+  ?(subports        = Port_id_map.empty)
+  ?(supports        = Port_id_map.empty)
   ?(packages        = Package_id_map.empty)
   ?(resources       = Resource_id_set.empty)
   ?(component_types = Component_type_id_map.empty)
@@ -310,6 +311,8 @@ class universe
   ?(repositories    = Repository_id_map.empty)
   () = object (self : 'selftype)
 
+  val subports        : Port_id_set.t Port_id_map.t              = subports
+  val supports        : Port_id_set.t Port_id_map.t              = supports
   val ports           : Port_id_set.t                            = (Port_id_map_extract_key.set_of_keys subports)
   val packages        : package Package_id_map.t                 = packages
   val resources       : Resource_id_set.t                        = resources
@@ -446,7 +449,8 @@ class universe
   (* This method is almost like a constructor, but based on a existing object:
      it will replace only the given fields of the existing object, leaving the rest as it was. *)
   method copy
-    ?(ports           = ports)
+    ?(subports        = subports)
+    ?(supports        = supports)
     ?(packages        = packages)
     ?(resources       = resources)
     ?(component_types = component_types)
@@ -454,7 +458,9 @@ class universe
     ?(repositories    = repositories) 
     () =
     {<
-      ports           = ports;
+      subports        = subports;
+      supports        = supports;
+      ports           = (Port_id_map_extract_key.set_of_keys subports);
       packages        = packages;
       resources       = resources;
       component_types = component_types;
@@ -556,20 +562,20 @@ module Component_map = Map.Make(Component)
 (** 3.3. Bindings. *)
 
 class binding 
-  ~port_required
   ~port_provided
-  ~requirer
-  ~provider = object (self : 'selftype)
+  ~provider
+  ~port_required
+  ~requirer = object (self : 'selftype)
 
-  val port_required : port_id      = port_required     (** The port of this binding. *)
   val port_provided : port_id      = port_provided     (** The port of this binding. *)
-  val requirer      : component_id = requirer (** The id of the requiring component. *)
   val provider      : component_id = provider (** The id of the providing component. *)
+  val port_required : port_id      = port_required     (** The port of this binding. *)
+  val requirer      : component_id = requirer (** The id of the requiring component. *)
 
-  method port_required : port_id      = port_required
   method port_provided : port_id      = port_provided
-  method requirer      : component_id = requirer
   method provider      : component_id = provider
+  method port_required : port_id      = port_required
+  method requirer      : component_id = requirer
 end
 
 module Binding = struct type t = binding let compare = compare end 
@@ -859,3 +865,6 @@ type initial_model = {
   specification         : specification         option;
   optimization_function : optimization_function option;
 }
+
+
+

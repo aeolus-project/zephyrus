@@ -72,16 +72,19 @@ let model_catalog_of_abstract_io
 
   (* 1. Universe *)
     (* component_types *)
-  let add_component_type ct = component_type#add (convert_component_type_name ct.Abstract_io.component_type_name) in
+  let add_component_type ct = match ct.Abstract_io.component_type_state with
+    | Without_state _   -> component_type#add (Abstract_io.Component_type_simple ct.Abstract_io.component_type_name)
+    | With_state states -> List.iter (fun s -> 
+         (component_type#add (Abstract_io.Component_type_state (ct.Abstract_io.component_type_name, s.Abstract_io.state_name)))) states in
     (* ports *)
   let add_component_type_ports ct = (* from components *)
-    List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_provide )); (* add provide  ports *)
-    List.iter port#add (List.map convert_port_name (List.map fst ct.Abstract_io.component_type_require )); (* add require  ports *)
-    List.iter port#add (List.map convert_port_name               ct.Abstract_io.component_type_conflict)   (* add conflict ports *)
+    List.iter port#add (List.map fst ct.Abstract_io.component_type_provide ); (* add provide  ports *)
+    List.iter port#add (List.map fst ct.Abstract_io.component_type_require ); (* add require  ports *)
+    List.iter port#add ct.Abstract_io.component_type_conflict   (* add conflict ports *)
   in
   let add_port_dependency_ports pdep =  (* from port dependencies *)
-    port#add (convert_port_name pdep.Abstract_io.port_hierarchy_port);
-    List.iter port#add (List.map convert_port_name  pdep.Abstract_io.port_hierarchy_subport)
+    port#add pdep.Abstract_io.port_hierarchy_port;
+    List.iter port#add pdep.Abstract_io.port_hierarchy_subport
   in
     (* repositories *)
   let add_repository r = repository#add (convert_repository_name r.Abstract_io.repository_name) in
@@ -120,10 +123,10 @@ let model_catalog_of_abstract_io
     (* resources *)
   let add_location_resources l = List.iter resource#add (List.map convert_resource_name (List.map fst l.Abstract_io.location_provide_resources)) in
     (* deprecated component types *)
-  let add_component_deprecated_component_type c =
+  let add_component_deprecated_component_type c = component_type#add c.Abstract_io.component_type in (* (* DEPRECATED *)
     try let _ = component_type#id_of_name (convert_component_type_name c.Abstract_io.component_type) in ()
     (* If there is an exception it means that this component type does not exist in the universe - it is deprecated. *)
-    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.Abstract_io.component_type) (Fresh_id.special Data_common.Deprecated) in
+    with Not_found -> component_type#set_id_of_name (convert_component_type_name c.Abstract_io.component_type) (Fresh_id.special Data_common.Deprecated) in *)
     (* Add all the initial configuration data. *)
   begin
     match initial_configuration with
@@ -189,34 +192,38 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
   (* 2. Conversion -- and direct storage in the corresponding catalog *)
     (* component types *)
   let convert_component_type t : unit =
-    (* name *) let name = convert_component_type_name t.Abstract_io.component_type_name in
-    (* id *) let id = catalog#component_type#id_of_name name in
-    (* create the mapping for provide *)
-    let provide : provide_arity Port_id_map.t = 
-      Port_id_map.of_list (fun (name, arity) -> 
-        let id = catalog#port#id_of_name (convert_port_name name) in 
-        (id, convert_provide_arity arity)
-      ) t.Abstract_io.component_type_provide in
-    (* create the mapping for require *)
-    let require : require_arity Port_id_map.t = 
-      Port_id_map.of_list (fun (name, arity) -> 
-        let id = catalog#port#id_of_name (convert_port_name name) in 
-        (id, convert_require_arity arity)
-      ) t.Abstract_io.component_type_require in
-    (* create the set for conflict *)
-    let conflict : Port_id_set.t = 
-      Port_id_set.of_list (fun name -> 
-        catalog#port#id_of_name (convert_port_name name)
-      ) t.Abstract_io.component_type_conflict in 
-    (* create the mapping for resource consumption *)
-    let consume : resource_consume_arity Resource_id_map.t = 
-      Resource_id_map.of_list (fun (name, arity) -> 
-        (catalog#resource#id_of_name (convert_resource_name name), convert_resource_consume_arity arity)
-      ) t.Abstract_io.component_type_consume in
-    (* create the component type object *)
-    let new_component_type = new component_type ~provide ~require ~conflict ~consume () in
-    (* store the component type *)
-    component_types#add_id_obj_pair id new_component_type
+    let convert_component_type_simple id name provides requires conflicts consumes =
+      (* create the mapping for provide *)
+      let provide : provide_arity Port_id_map.t = 
+        Port_id_map.of_list (fun (name, arity) -> let id = catalog#port#id_of_name name in (id, convert_provide_arity arity)) provides in
+      (* create the mapping for require *)
+      let require : require_arity Port_id_map.t = 
+        Port_id_map.of_list (fun (name, arity) -> let id = catalog#port#id_of_name name in (id, convert_require_arity arity)) requires in
+      (* create the set for conflict *)
+      let conflict : Port_id_set.t = 
+        Port_id_set.of_list (fun name -> catalog#port#id_of_name name) conflicts in 
+      (* create the mapping for resource consumption *)
+      let consume : resource_consume_arity Resource_id_map.t = 
+        Resource_id_map.of_list (fun (name, arity) -> (catalog#resource#id_of_name name, convert_resource_consume_arity arity)) consumes in
+      (* create the component type object *)
+      let new_component_type = new component_type ~provide ~require ~conflict ~consume name in
+      (* store the component type *)
+      component_types#add_id_obj_pair id new_component_type in
+    match t.Abstract_io.component_type_states with
+    | With_state(states) -> List.iter (fun state -> convert_component_type_simple
+          (catalog#component_type#id_of_name (Abstract_io.Component_type_state (t.Abstract_io.component_type_name, state.Abstract_io.state_name)))
+          ((convert_component_type_name t.Abstract_io.component_type_name) ^ "!" ^ (convert_state_name state.Abstract_io.state_name))
+          (state.Abstract_io.state_ports.Abstract_io.provide)
+          (state.Abstract_io.state_ports.Abstract_io.require)
+          (state.Abstract_io.state_ports.Abstract_io.conflict)
+          (t.Abstract_io.component_type_consume) ) states
+    | Without_state (ce) -> convert_component_type_simple
+          (catalog#component_type#id_of_name (Abstract_io.Component_type_simple (t.Abstract_io.component_type_name)))
+          (convert_component_type_name t.Abstract_io.component_type_name)
+          (ce.Abstract_io.provide)
+          (ce.Abstract_io.require)
+          (ce.Abstract_io.conflict)
+          (t.Abstract_io.component_type_consume)
   in
 
   (* packages *)
@@ -266,7 +273,7 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
   in
 
   (* port dependencies *)
-  let convert_port_dependencies l : port_hierarchy = (* missing ports without dependencies, and mising self dependency *)
+  let convert_port_dependencies l =
     let subports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
     let supports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
     List.iter (fun pdep -> let name_port = catalog#port#id_of_name pdep.Abstract_io.port_hierarchy_port in
@@ -274,9 +281,8 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
             let s  = Port_id_map.find subports name in s := Port_id_set.add name_subport (!s);
             let s' = Port_id_map.find supports name_subport in s' := Port_id_set.add name (!s')
           ) pdep.Abstract_io.port_hierarchy_subports
-      ) l;
-   (Port_id_map.map (fun x -> !x) subports, Port_id_map.map (fun x -> !x) supports)
-
+        ) l;
+     (Port_id_map.map (fun x -> !x) subports, Port_id_map.map (fun x -> !x) supports)
   in
 
   (* universe *)
@@ -370,7 +376,7 @@ let convert_configuration (catalog : closed_model_catalog) (c : Abstract_io.conf
     let id = catalog#component#id_of_name name in
 
     (* type *)
-    let typ = catalog#component_type#id_of_name (convert_component_type_name c.Abstract_io.component_type) in
+    let typ = catalog#component_type#id_of_name c.Abstract_io.component_type in
 
     (* location *)
     let location = catalog#location#id_of_name (convert_location_name c.Abstract_io.component_location) in
@@ -404,9 +410,9 @@ let convert_configuration (catalog : closed_model_catalog) (c : Abstract_io.conf
 let empty_configuration = new configuration ()
 
 
-(*****************************************************)
-(** 4. Specification conversion                      *)
-(*****************************************************)
+(*/*************************************************\*)
+(*| 4. Specification conversion                     |*)
+(*\*************************************************/*)
 
 (* This translation is a one to one mapping. *)
 
@@ -427,7 +433,7 @@ let convert_specification (catalog : closed_model_catalog) : Abstract_io.specifi
   | Abstract_io.SpecLocalElementPackage       (r, k) -> let r_name = convert_repository_name r in 
                                                         let repo = catalog#repository#id_of_name r_name in
                                                         Spec_local_element_package        (catalog#package#id_of_name        (repo, (convert_package_name r_name k)))
-  | Abstract_io.SpecLocalElementComponentType (t)    -> Spec_local_element_component_type (catalog#component_type#id_of_name (convert_component_type_name t))
+  | Abstract_io.SpecLocalElementComponentType (t)    -> Spec_local_element_component_type (catalog#component_type#id_of_name t)
   | Abstract_io.SpecLocalElementPort          (p)    -> Spec_local_element_port           (catalog#port#id_of_name           (convert_port_name           p)) in
 
   let rec convert_spec_local_expr e = match e with
@@ -453,7 +459,7 @@ let convert_specification (catalog : closed_model_catalog) : Abstract_io.specifi
   | Abstract_io.SpecElementPackage       (r, k)       -> let r_name = convert_repository_name r in
                                                          let repo = catalog#repository#id_of_name r_name in
                                                          Spec_element_package        (catalog#package#id_of_name (repo, (convert_package_name r_name k)))
-  | Abstract_io.SpecElementComponentType (t)          -> Spec_element_component_type (catalog#component_type#id_of_name (convert_component_type_name t))
+  | Abstract_io.SpecElementComponentType (t)          -> Spec_element_component_type (catalog#component_type#id_of_name t)
   | Abstract_io.SpecElementPort          (p)          -> Spec_element_port           (catalog#port#id_of_name (convert_port_name p))
   | Abstract_io.SpecElementLocalisation  (phi, r, sl) -> Spec_element_location(
                                                            List.map convert_spec_resource_constraint   phi,

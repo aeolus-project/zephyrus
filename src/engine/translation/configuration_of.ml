@@ -132,7 +132,7 @@ let fresh_component_name (location_name : location_name) (component_type_name : 
     (* Yes! Then the name of the initial stateful component type should be used, not the one created artificially for its stateless form. *)
     | true  -> fst (Stateful_converter.To_stateful.stateless_component_type_name component_type_name) in*)
 
-  let build_component_name = Printf.sprintf "%s-%d" (String_of.component_type_name component_type_name in
+  let build_component_name = Printf.sprintf "%s-%d" (String_of.component_type_name component_type_name) in
 
   let i = ref (get_last_used_i component_type_name) in (* a hack to optimize the component naming process *)
   let component_name = ref (build_component_name !i) in
@@ -258,6 +258,8 @@ open My_matching_algorithm.Int_set_map_requirer_provider_types
 
 (* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
 let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
+  Binding_set.empty (*
+
 
   (* Get all the ports mentioned in the universe. *)
   let port_ids = universe#get_port_ids in
@@ -329,7 +331,7 @@ let generate_bindings (universe : universe) (component_ids : Component_id_set.t)
   
     ) port_ids;
 
-    !bindings
+    !bindings *)
 
 
 

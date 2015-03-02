@@ -39,7 +39,6 @@ type variable =
   | Local_variable             of location_id * element        (** Number of instances of a given component_type / port / package installed on a given location. *)
   | Binding_variable           of port_id * component_type_id * port_id * component_type_id
     (** Number of bindings on the given port between the instances of the given requiring type and given providing type. *)
-  | Binding_variable_global    of component_type_id * port_id * component_type_id
   | Local_repository_variable  of location_id * repository_id  (** Is the given repository installed on the given location? (boolean variable) *)
   | Local_resource_variable    of location_id * resource_id    (** How many resources of the given type are provided by the given location. *)
   | Location_used_variable     of location_id

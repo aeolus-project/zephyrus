@@ -48,7 +48,13 @@ class type named_variables = object
   method get_name : variable -> name
 end
 
-type structured_minizinc = { mzn_variables : named_variables; mzn_declaration : string; mzn_main_constraint : string; mzn_extra_constraint : string; mzn_output : string}
+type structured_minizinc = {
+  mzn_variables : named_variables;
+  mzn_declaration : string;
+  mzn_main_constraint : string;
+  mzn_extra_constraint : string;
+  mzn_output : string
+}
 
 exception Wrong_optimization_function
 val cost_variable_name : string

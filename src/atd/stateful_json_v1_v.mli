@@ -48,11 +48,6 @@ type repository = Stateful_json_v1_t.repository = {
 
 type repositories = Stateful_json_v1_t.repositories
 
-type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
-  port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subports (*atd subports *): port_name list
-}
-
 type implementation_package = Stateful_json_v1_t.implementation_package = {
   implementation_package_repository (*atd repository *): repository_name;
   implementation_package_package (*atd package *): package_name
@@ -91,12 +86,18 @@ type universe = Stateful_json_v1_t.universe = {
   universe_implementation (*atd implementation *):
     (component_type_name * implementation_packages) list;
   universe_repositories (*atd repositories *): repositories;
-  universe_port_hierarchy (*atd port_hierarchy *): port_hierarchy list
+  universe_port_hierarchy (*atd port_hierarchy *):
+    (port_name * (port_name list)) list
 }
 
 type resource_provide_arity = Stateful_json_v1_t.resource_provide_arity
 
 type resources_provided = Stateful_json_v1_t.resources_provided
+
+type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
+  port_hierarchy_port (*atd port *): port_name;
+  port_hierarchy_subports (*atd subports *): port_name list
+}
 
 type packages = Stateful_json_v1_t.packages
 
@@ -228,16 +229,6 @@ val validate_repositories :
   Ag_util.Validation.path -> repositories -> Ag_util.Validation.error option
   (** Validate a value of type {!repositories}. *)
 
-val create_port_hierarchy :
-  port_hierarchy_port: port_name ->
-  port_hierarchy_subports: port_name list ->
-  unit -> port_hierarchy
-  (** Create a record of type {!port_hierarchy}. *)
-
-val validate_port_hierarchy :
-  Ag_util.Validation.path -> port_hierarchy -> Ag_util.Validation.error option
-  (** Validate a value of type {!port_hierarchy}. *)
-
 val create_implementation_package :
   implementation_package_repository: repository_name ->
   implementation_package_package: package_name ->
@@ -293,7 +284,7 @@ val create_universe :
   ?universe_component_types: component_types ->
   ?universe_implementation: (component_type_name * implementation_packages) list ->
   ?universe_repositories: repositories ->
-  ?universe_port_hierarchy: port_hierarchy list ->
+  ?universe_port_hierarchy: (port_name * (port_name list)) list ->
   unit -> universe
   (** Create a record of type {!universe}. *)
 
@@ -308,6 +299,16 @@ val validate_resource_provide_arity :
 val validate_resources_provided :
   Ag_util.Validation.path -> resources_provided -> Ag_util.Validation.error option
   (** Validate a value of type {!resources_provided}. *)
+
+val create_port_hierarchy :
+  port_hierarchy_port: port_name ->
+  port_hierarchy_subports: port_name list ->
+  unit -> port_hierarchy
+  (** Create a record of type {!port_hierarchy}. *)
+
+val validate_port_hierarchy :
+  Ag_util.Validation.path -> port_hierarchy -> Ag_util.Validation.error option
+  (** Validate a value of type {!port_hierarchy}. *)
 
 val validate_packages :
   Ag_util.Validation.path -> packages -> Ag_util.Validation.error option

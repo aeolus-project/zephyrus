@@ -26,7 +26,7 @@
 type comparison = Lt | Eq | Gt
 let compare_int x y =
     if x = y then Eq
-    else (f x > y then Gt else Lt)
+    else (if x > y then Gt else Lt)
 
 module type ORDERED_DECREMENTABLE_TYPE = sig
   type t
@@ -52,7 +52,7 @@ module DecrementableIntegerWithInfinity : ORDERED_DECREMENTABLE_TYPE = struct
     else (match (x,y) with
       | (FiniteInteger x, FiniteInteger y) -> compare_int x y
       | (InfiniteInteger, _ ) -> Gt
-      | ( _, InfiniteInteger) -> Lt
+      | ( _, InfiniteInteger) -> Lt)
   let is_zero x = (x = (FiniteInteger 0))
   let decrement x = match x with
     | FiniteInteger x -> FiniteInteger (x - 1)
@@ -67,15 +67,15 @@ module type REQUIRER_PROVIDER_TYPES = sig
   module Require_arity : ORDERED_DECREMENTABLE_TYPE
   module Provide_arity : ORDERED_DECREMENTABLE_TYPE
 
-  type requirer_t
+  type requirer_key_t
   type require_arity = Require_arity.t
-  type provider_t
+  type provider_key_t
   type provide_arity = Provide_arity.t
   type result_t
 
   module Requirers : sig
     type t
-    val iter : ( (requirer_t * require_arity) -> unit) -> t -> unit
+    val iter : ( (requirer_key_t * require_arity) -> unit) -> t -> unit
   end
 
   module Providers : sig

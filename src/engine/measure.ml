@@ -124,10 +124,10 @@ class model ?(with_packages = true) ~universe ~configuration () = object (self :
     ) (self#get_used_location_ids ()) 0
 
   (** [number_of_bindings port_id requiring_component_type_id providing_component_type_id] returns the number of bindings on port [port_id] between the requiring components of type [requiring_component_type_id] and providing components of type [providing_component_type_id]. *)
-  method number_of_bindings port_id requiring_component_type_id providing_component_type_id : int =
+  method number_of_bindings port_provided_id requiring_component_type_id port_required_id providing_component_type_id : int =
     Binding_set.cardinal (
       Binding_set.filter (fun binding ->
-        binding#port = port_id &&
+        binding#port_provided = port_provided_id && binding#port_required = port_required_id &&
         ((configuration#get_component binding#requirer)#typ = requiring_component_type_id) &&
         ((configuration#get_component binding#provider)#typ = providing_component_type_id)
       ) (configuration#get_bindings))
@@ -146,8 +146,8 @@ class model ?(with_packages = true) ~universe ~configuration () = object (self :
     | Local_variable (location_id, (Port           port_id          )) -> Data_constraint.Finite_value (self#number_of_ports_provided_on_location location_id port_id)
     | Local_variable (location_id, (Package        package_id       )) -> Data_constraint.Finite_value (self#number_of_packages_on_location       location_id package_id)
 
-    | Binding_variable (port_id, requiring_component_type_id, providing_component_type_id) -> 
-        Data_constraint.Finite_value (self#number_of_bindings port_id requiring_component_type_id providing_component_type_id)
+    | Binding_variable (port_provided_id, requiring_component_type_id, port_required_id, providing_component_type_id) -> 
+        Data_constraint.Finite_value (self#number_of_bindings port_provided_id requiring_component_type_id port_required_id providing_component_type_id)
 
     | Local_repository_variable (location_id, repository_id) -> 
         reify_bool ((configuration#get_location location_id)#repository = repository_id)

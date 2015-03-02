@@ -43,7 +43,8 @@ let object_name_of_id object_f =
                     (fun id -> if id = -1 then "DEPRECATED" else ((snd object_f) catalog) id)
 
 let resource_id       id = object_name_of_id resource_f id
-let component_type_id id = object_name_of_id component_type_f id
+(* let component_type_id id = object_name_of_id component_type_f id *)
+let component_type_id id = string_of_int id (* temporary hack, as Jakub wrongly supposed that inputs were always strings ... *)
 let port_id           id = object_name_of_id port_f id
 let package_id        id = object_name_of_id package_f id
 let repository_id     id = object_name_of_id repository_f id
