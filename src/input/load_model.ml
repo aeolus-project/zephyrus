@@ -39,6 +39,7 @@ let convert_resource_name          x = x
 let convert_resource_consume_arity x = x
 let convert_resource_provide_arity x = x
 let convert_port_name              x = x
+let convert_state_name             x = x
 let convert_component_type_name    x = x
 let convert_provide_arity          x = match x with Abstract_io.InfiniteProvide -> Infinite_provide | Abstract_io.FiniteProvide(i) -> Finite_provide(i)
 let convert_require_arity          x = x

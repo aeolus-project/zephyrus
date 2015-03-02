@@ -54,6 +54,8 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
   let package_ids        = universe#get_package_ids in
   let resource_ids       = universe#get_resource_ids in
   
+  let get_subports       = universe#get_subports in
+  let get_supports       = universe#get_supports in
   let get_requirers      = universe#get_requirers in
   let get_providers      = universe#get_providers in
   let get_conflicters    = universe#get_conflicters in
@@ -81,10 +83,10 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
   if with_packages
   then 
   {
-    Data_state.constraint_universe_component_type_require        = require                        ~port_ids ~get_requirers   ~get_providers ~get_component_type_require_arity;
-    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity ~port_ids ~get_providers   ~get_requirers ~get_component_type_provide_arity;
-    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              ~port_ids ~get_conflicters ~get_providers;
-    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_component_type_require        = require ~port_ids ~get_supports ~get_requirers   ~get_providers ~get_component_type_require_arity;
+    Data_state.constraint_universe_component_type_provide        = provide ~port_ids ~get_subports ~get_providers   ~get_requirers ~get_component_type_provide_arity;
+    Data_state.constraint_universe_component_type_conflict       = conflict                       ~port_ids ~get_conflicters ~get_providers;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers   ~get_providers;
     Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
     Data_state.constraint_universe_location_package              = location_package               ~package_ids        ~location_ids;
     Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;
@@ -102,10 +104,10 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
   else 
   {
     (* Written using a well known programming paradigm invented by Mr. Copy and Dr. Paste. *)
-    Data_state.constraint_universe_component_type_require        = require                        ~port_ids ~get_requirers   ~get_providers ~get_component_type_require_arity;
-    Data_state.constraint_universe_component_type_provide        = provide_with_advanced_infinity ~port_ids ~get_providers   ~get_requirers ~get_component_type_provide_arity;
-    Data_state.constraint_universe_component_type_conflict       = conflict_advanced              ~port_ids ~get_conflicters ~get_providers;
-    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_component_type_require        = require ~port_ids ~get_supports ~get_requirers   ~get_providers ~get_component_type_require_arity;
+    Data_state.constraint_universe_component_type_provide        = provide ~port_ids ~get_subports ~get_providers   ~get_requirers ~get_component_type_provide_arity;
+    Data_state.constraint_universe_component_type_conflict       = conflict                       ~port_ids ~get_conflicters ~get_providers;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers   ~get_providers;
     Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
     Data_state.constraint_universe_location_package              = [];
     Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;

@@ -24,4 +24,6 @@
     - Data_model
 *)
 
-val initial_model_of_abstract_io_initial_model : Abstract_io.initial_model -> (Data_model_catalog.closed_model_catalog * Data_model.initial_model)
+val initial_model_of_abstract_io_initial_model :
+  Abstract_io.initial_model
+   -> (Data_model_catalog.closed_model_catalog * Data_model.initial_model)

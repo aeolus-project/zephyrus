@@ -19,110 +19,79 @@
 
 (** Component matching algorythm for creating bindings. *)
 
-(** All that is extremely generic. Sorry... *)
+(** All that is extremely generic. Sorry... *) (* <- very nice comment Jakub :p *)
 
 (** {2 Ordered types for [require_arity] and [provide_arity].} *)
 
 type comparison = Lt | Eq | Gt
+let compare_int x y =
+    if x = y then Eq
+    else (f x > y then Gt else Lt)
 
-module type ORDERED_DECREMENTABLE_TYPE =
-  sig
-    type t
-    val compare : t -> t -> comparison
-    val is_zero : t -> bool
-    val decrement : t -> t
-  end
+module type ORDERED_DECREMENTABLE_TYPE = sig
+  type t
+  val compare : t -> t -> comparison
+  val is_zero : t -> bool
+  val decrement : t -> t
+end
 
-module DecrementableNatural (* : ORDERED_DECREMENTABLE_TYPE *) =
-  struct
-    type t = int
+module DecrementableNatural : ORDERED_DECREMENTABLE_TYPE = struct
+  type t = int
     
-    let compare x y =
-      if x = y 
-      then Eq
-      else ( 
-        if x > y
-        then Gt
-        else Lt
-      )
+  let compare = compare_int
+  let is_zero x = (x = 0)
+  let decrement x = (x - 1)
+end
 
-    let is_zero x = (x = 0)
-
-    let decrement x = (x - 1)
-
-  end
-
-module DecrementableIntegerWithInfinity (* : ORDERED_DECREMENTABLE_TYPE *) =
-  struct
-    type t = 
-      | FiniteInteger of int 
-      | InfiniteInteger
+module DecrementableIntegerWithInfinity : ORDERED_DECREMENTABLE_TYPE = struct
+  type t = 
+  | FiniteInteger of int 
+  | InfiniteInteger
     
-    let compare x y =
-      if x = y
-      then Eq
-      else (
-        match x with
-        | FiniteInteger x -> 
-          (
-            match y with
-            | FiniteInteger y -> 
-                if x > y
-                then Gt
-                else Lt
-
-            | InfiniteInteger -> Lt
-          )
-        | InfiniteInteger -> Gt
-      )
-
-    let is_zero x = (x = (FiniteInteger 0))
-
-    let decrement x =
-      match x with
-      | FiniteInteger x -> FiniteInteger (x - 1)
-      | InfiniteInteger -> InfiniteInteger
-
-  end
+  let compare x y = if x = y then Eq
+    else (match (x,y) with
+      | (FiniteInteger x, FiniteInteger y) -> compare_int x y
+      | (InfiniteInteger, _ ) -> Gt
+      | ( _, InfiniteInteger) -> Lt
+  let is_zero x = (x = (FiniteInteger 0))
+  let decrement x = match x with
+    | FiniteInteger x -> FiniteInteger (x - 1)
+    | InfiniteInteger -> InfiniteInteger
+end
 
 
 (** {2 Generic requirer and provider types.} *)
 
-module type REQUIRER_PROVIDER_TYPES =
-  sig
+module type REQUIRER_PROVIDER_TYPES = sig
 
-    module Require_arity : ORDERED_DECREMENTABLE_TYPE
-    module Provide_arity : ORDERED_DECREMENTABLE_TYPE
+  module Require_arity : ORDERED_DECREMENTABLE_TYPE
+  module Provide_arity : ORDERED_DECREMENTABLE_TYPE
 
-    type requirer_key_t
-    type require_arity = Require_arity.t
-    type provider_key_t
-    type provide_arity = Provide_arity.t
-    type result_t
+  type requirer_t
+  type require_arity = Require_arity.t
+  type provider_t
+  type provide_arity = Provide_arity.t
+  type result_t
 
-    module Requirers :
-    sig
-      type t
-      val iter : ( (requirer_key_t * require_arity) -> unit) -> t -> unit
-    end
-
-    module Providers :
-    sig
-      type t
-      val is_empty  : t -> bool
-      val max_value : t -> (provider_key_t * provide_arity)
-      val remove    : provider_key_t -> t -> t
-      val decrement : provider_key_t -> t -> t
-    end
-
-    module Results :
-    sig
-      type t
-      val empty : t
-      val add   : requirer_key_t -> provider_key_t -> t -> t
-    end
-
+  module Requirers : sig
+    type t
+    val iter : ( (requirer_t * require_arity) -> unit) -> t -> unit
   end
+
+  module Providers : sig
+    type t
+    val is_empty  : t -> bool
+    val max_value : t -> (provider_key_t * provide_arity)
+    val remove    : provider_key_t -> t -> t
+    val decrement : provider_key_t -> t -> t
+  end
+
+  module Results : sig (* TODO: bad. We could translate the result in bindings directly here. *)
+    type t
+    val empty : t
+    val add   : requirer_key_t -> provider_key_t -> t -> t
+  end
+end
 
 
 module type REQUIRER_PROVIDER_TYPE_PARAMETER =
@@ -448,3 +417,7 @@ module Int_set_map_requirer_provider_types =
 
 module Int_set_map_match_requirers_with_providers =
   Match_requirers_with_providers(Int_set_map_requirer_provider_types)
+
+
+
+

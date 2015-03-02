@@ -50,7 +50,7 @@ type repositories = repository list
 
 type port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subports (*atd subports *): port_name list
 }
 
 type implementation_package = {
@@ -62,12 +62,28 @@ type implementation_packages = implementation_package list
 
 type component_type_name = string
 
-type component_type = {
-  component_type_name (*atd name *): component_type_name;
-  component_type_states (*atd states *): state list;
-  component_type_consume (*atd consume *):
+type component_type_stateful = {
+  component_type_stateful_name (*atd name *): component_type_name;
+  component_type_stateful_states (*atd states *): state list;
+  component_type_stateful_consume (*atd consume *):
     (resource_name * resource_consumption) list
 }
+
+type component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type component_type = [
+    `Component_type_simple of component_type_simple
+  | `Component_type_stateful of component_type_stateful
+]
 
 type component_types = component_type list
 
@@ -101,18 +117,41 @@ type location = {
 
 type component_name = string
 
-type component = {
-  component_name (*atd name *): component_name;
+type component_stateful = {
+  component_stateful_name (*atd name *): component_name;
   component_type (*atd component_type_workaround *): component_type_name;
-  component_state (*atd state *): state_name;
-  component_location (*atd location *): location_name
+  component_stateful_state (*atd state *): state_name;
+  component_stateful_location (*atd location *): location_name
 }
 
-type binding = {
-  binding_port (*atd port *): port_name;
-  binding_requirer (*atd requirer *): component_name;
-  binding_provider (*atd provider *): component_name
+type component_simple = {
+  component_simple_name (*atd name *): component_name;
+  component_type (*atd component_type_workaround *): component_type_name;
+  component_simple_location (*atd location *): location_name
 }
+
+type component = [
+    `Component_simple of component_simple
+  | `Component_stateful of component_stateful
+]
+
+type binding_simple = {
+  binding_simple_port (*atd port *): port_name;
+  binding_simple_requirer (*atd requirer *): component_name;
+  binding_simple_provider (*atd provider *): component_name
+}
+
+type binding_hierarchical = {
+  binding_hierarchical_port_required (*atd port_required *): port_name;
+  binding_hierarchical_port_provided (*atd port_provided *): port_name;
+  binding_hierarchical_requirer (*atd requirer *): component_name;
+  binding_hierarchical_provider (*atd provider *): component_name
+}
+
+type binding = [
+    `Binding_hierarchical of binding_hierarchical
+  | `Binding_simple of binding_simple
+]
 
 type configuration = {
   configuration_version (*atd version *): version;

@@ -19,6 +19,7 @@
 
 (** Create benchmark input data. *)
 
+(*
 open Abstract_io
 
 class virtual benchmark = object (self)
@@ -558,3 +559,6 @@ let create_benchmark_of_benchmark_settings (benchmark_settings : Settings.benchm
               (machine_park_type, machine_park_size)
               wordpress_require mysql_require mysql_provide
               dns_consume wordpress_consume mysql_consume)
+
+
+*)

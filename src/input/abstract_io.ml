@@ -17,10 +17,13 @@
 (*                                                                          *)
 (****************************************************************************)
 
-(** Stateful abstract syntax used as a common intermediate form of the stateful Zephyrus model. *)
+(** abstract syntax used as a common intermediate form of the stateful Zephyrus model. *)
 
-(** This intermediate form makes it easier to read and write
-    the stateful model and to convert it to and from a stateless model. *)
+(* Depends only on the Standard Library *)
+
+
+exception Exception_incompatible_output_format
+exception Exception_incompatible_input_format (* should never occur, as Abstract_io is a generic input format *)
 
 (** {2 General type definitions for naming.} *)
 
@@ -33,6 +36,9 @@ type repository_name     = string
 type location_name       = string
 type component_name      = string
 
+type component_type_ref =
+  | Component_type_simple of component_type_name 
+  | Component_type_state  of component_type_name * state_name
 
 (** {2 Type definitions for the universe.} *)
 
@@ -51,19 +57,27 @@ type resource_consumption   = int
 type resource_provide_arity = int
 
 (** Type definitions for component types. *)
+type component_type_environment = {
+  provide    : (port_name * provide_arity) list;
+  require    : (port_name * require_arity) list;
+  conflict   : port_name list;
+}
+
 type state = {
   state_name       : state_name;
   state_initial    : bool;
   state_final      : bool;
-  state_provide    : (port_name * provide_arity) list;
-  state_require    : (port_name * require_arity) list;
-  state_conflict   : port_name list;
+  state_ports      : component_type_environment;
   state_successors : state_name list;
 }
 
+type state_option = 
+  | With_state of state list
+  | Without_state of component_type_environment
+
 type component_type = {
   component_type_name     : component_type_name;
-  component_type_states   : state list;
+  component_type_states   : state_option;
   component_type_consume  : (resource_name * resource_consumption) list
 }
 
@@ -114,14 +128,15 @@ type location = {
 (** Type definitions for components. *)
 type component = {
   component_name     : component_name;
-  component_type     : component_type_name;
+  component_type     : component_type_ref;
   component_state    : state_name;
   component_location : location_name
 }
 
 (** Type definitions for bindings. *)
 type binding = {
-  binding_port     : port_name;
+  binding_port_provided : port_name;
+  binding_port_required : port_name;
   binding_requirer : component_name;
   binding_provider : component_name
 }
@@ -142,7 +157,7 @@ type spec_const = int
 
 type spec_local_element =
   | SpecLocalElementPackage       of repository_name * package_name
-  | SpecLocalElementComponentType of component_type_name * state_name
+  | SpecLocalElementComponentType of component_type_ref
   | SpecLocalElementPort          of port_name
 
 type spec_local_expr =
@@ -173,7 +188,7 @@ type spec_resource_constraints = spec_resource_constraint list
 
 type spec_element =
   | SpecElementPackage       of repository_name * package_name
-  | SpecElementComponentType of component_type_name * state_name
+  | SpecElementComponentType of component_type_ref
   | SpecElementPort          of port_name
   | SpecElementLocalisation  of spec_resource_constraints * spec_repository_constraints * local_specification
 
@@ -211,3 +226,6 @@ type initial_model = {
   specification         : specification         option;
   optimization_function : optimization_function option;  
 }
+
+
+

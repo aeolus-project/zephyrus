@@ -50,7 +50,7 @@ type repositories = Stateful_json_v1_t.repositories
 
 type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subports (*atd subports *): port_name list
 }
 
 type implementation_package = Stateful_json_v1_t.implementation_package = {
@@ -62,12 +62,25 @@ type implementation_packages = Stateful_json_v1_t.implementation_packages
 
 type component_type_name = Stateful_json_v1_t.component_type_name
 
-type component_type = Stateful_json_v1_t.component_type = {
-  component_type_name (*atd name *): component_type_name;
-  component_type_states (*atd states *): state list;
-  component_type_consume (*atd consume *):
+type component_type_stateful = Stateful_json_v1_t.component_type_stateful = {
+  component_type_stateful_name (*atd name *): component_type_name;
+  component_type_stateful_states (*atd states *): state list;
+  component_type_stateful_consume (*atd consume *):
     (resource_name * resource_consumption) list
 }
+
+type component_type_simple = Stateful_json_v1_t.component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type component_type = Stateful_json_v1_t.component_type
 
 type component_types = Stateful_json_v1_t.component_types
 
@@ -101,18 +114,35 @@ type location = Stateful_json_v1_t.location = {
 
 type component_name = Stateful_json_v1_t.component_name
 
-type component = Stateful_json_v1_t.component = {
-  component_name (*atd name *): component_name;
+type component_stateful = Stateful_json_v1_t.component_stateful = {
+  component_stateful_name (*atd name *): component_name;
   component_type (*atd component_type_workaround *): component_type_name;
-  component_state (*atd state *): state_name;
-  component_location (*atd location *): location_name
+  component_stateful_state (*atd state *): state_name;
+  component_stateful_location (*atd location *): location_name
 }
 
-type binding = Stateful_json_v1_t.binding = {
-  binding_port (*atd port *): port_name;
-  binding_requirer (*atd requirer *): component_name;
-  binding_provider (*atd provider *): component_name
+type component_simple = Stateful_json_v1_t.component_simple = {
+  component_simple_name (*atd name *): component_name;
+  component_type (*atd component_type_workaround *): component_type_name;
+  component_simple_location (*atd location *): location_name
 }
+
+type component = Stateful_json_v1_t.component
+
+type binding_simple = Stateful_json_v1_t.binding_simple = {
+  binding_simple_port (*atd port *): port_name;
+  binding_simple_requirer (*atd requirer *): component_name;
+  binding_simple_provider (*atd provider *): component_name
+}
+
+type binding_hierarchical = Stateful_json_v1_t.binding_hierarchical = {
+  binding_hierarchical_port_required (*atd port_required *): port_name;
+  binding_hierarchical_port_provided (*atd port_provided *): port_name;
+  binding_hierarchical_requirer (*atd requirer *): component_name;
+  binding_hierarchical_provider (*atd provider *): component_name
+}
+
+type binding = Stateful_json_v1_t.binding
 
 type configuration = Stateful_json_v1_t.configuration = {
   configuration_version (*atd version *): version;
@@ -205,7 +235,13 @@ let validate_component_type_name = (
 let validate__5 = (
   fun _ _ -> None
 )
-let validate_component_type : _ -> component_type -> _ = (
+let validate_component_type_stateful : _ -> component_type_stateful -> _ = (
+  fun _ _ -> None
+)
+let validate_component_type_simple : _ -> component_type_simple -> _ = (
+  fun _ _ -> None
+)
+let validate_component_type = (
   fun _ _ -> None
 )
 let validate__7 = (
@@ -250,10 +286,22 @@ let validate_location : _ -> location -> _ = (
 let validate_component_name = (
   (fun _ _ -> None)
 )
-let validate_component : _ -> component -> _ = (
+let validate_component_stateful : _ -> component_stateful -> _ = (
   fun _ _ -> None
 )
-let validate_binding : _ -> binding -> _ = (
+let validate_component_simple : _ -> component_simple -> _ = (
+  fun _ _ -> None
+)
+let validate_component = (
+  fun _ _ -> None
+)
+let validate_binding_simple : _ -> binding_simple -> _ = (
+  fun _ _ -> None
+)
+let validate_binding_hierarchical : _ -> binding_hierarchical -> _ = (
+  fun _ _ -> None
+)
+let validate_binding = (
   fun _ _ -> None
 )
 let validate__18 = (
@@ -311,11 +359,11 @@ let create_repository
   }
 let create_port_hierarchy 
   ~port_hierarchy_port
-  ~port_hierarchy_subport
+  ~port_hierarchy_subports
   () : port_hierarchy =
   {
     port_hierarchy_port = port_hierarchy_port;
-    port_hierarchy_subport = port_hierarchy_subport;
+    port_hierarchy_subports = port_hierarchy_subports;
   }
 let create_implementation_package 
   ~implementation_package_repository
@@ -325,15 +373,29 @@ let create_implementation_package
     implementation_package_repository = implementation_package_repository;
     implementation_package_package = implementation_package_package;
   }
-let create_component_type 
-  ~component_type_name
-  ~component_type_states
-  ?(component_type_consume = [])
-  () : component_type =
+let create_component_type_stateful 
+  ~component_type_stateful_name
+  ~component_type_stateful_states
+  ?(component_type_stateful_consume = [])
+  () : component_type_stateful =
   {
-    component_type_name = component_type_name;
-    component_type_states = component_type_states;
-    component_type_consume = component_type_consume;
+    component_type_stateful_name = component_type_stateful_name;
+    component_type_stateful_states = component_type_stateful_states;
+    component_type_stateful_consume = component_type_stateful_consume;
+  }
+let create_component_type_simple 
+  ~component_type_simple_name
+  ?(component_type_simple_provide = [])
+  ?(component_type_simple_require = [])
+  ?(component_type_simple_conflict = [])
+  ?(component_type_simple_consume = [])
+  () : component_type_simple =
+  {
+    component_type_simple_name = component_type_simple_name;
+    component_type_simple_provide = component_type_simple_provide;
+    component_type_simple_require = component_type_simple_require;
+    component_type_simple_conflict = component_type_simple_conflict;
+    component_type_simple_consume = component_type_simple_consume;
   }
 let create_universe 
   ~universe_version
@@ -363,27 +425,49 @@ let create_location
     location_packages_installed = location_packages_installed;
     location_cost = location_cost;
   }
-let create_component 
-  ~component_name
+let create_component_stateful 
+  ~component_stateful_name
   ~component_type
-  ~component_state
-  ~component_location
-  () : component =
+  ~component_stateful_state
+  ~component_stateful_location
+  () : component_stateful =
   {
-    component_name = component_name;
+    component_stateful_name = component_stateful_name;
     component_type = component_type;
-    component_state = component_state;
-    component_location = component_location;
+    component_stateful_state = component_stateful_state;
+    component_stateful_location = component_stateful_location;
   }
-let create_binding 
-  ~binding_port
-  ~binding_requirer
-  ~binding_provider
-  () : binding =
+let create_component_simple 
+  ~component_simple_name
+  ~component_type
+  ~component_simple_location
+  () : component_simple =
   {
-    binding_port = binding_port;
-    binding_requirer = binding_requirer;
-    binding_provider = binding_provider;
+    component_simple_name = component_simple_name;
+    component_type = component_type;
+    component_simple_location = component_simple_location;
+  }
+let create_binding_simple 
+  ~binding_simple_port
+  ~binding_simple_requirer
+  ~binding_simple_provider
+  () : binding_simple =
+  {
+    binding_simple_port = binding_simple_port;
+    binding_simple_requirer = binding_simple_requirer;
+    binding_simple_provider = binding_simple_provider;
+  }
+let create_binding_hierarchical 
+  ~binding_hierarchical_port_required
+  ~binding_hierarchical_port_provided
+  ~binding_hierarchical_requirer
+  ~binding_hierarchical_provider
+  () : binding_hierarchical =
+  {
+    binding_hierarchical_port_required = binding_hierarchical_port_required;
+    binding_hierarchical_port_provided = binding_hierarchical_port_provided;
+    binding_hierarchical_requirer = binding_hierarchical_requirer;
+    binding_hierarchical_provider = binding_hierarchical_provider;
   }
 let create_configuration 
   ~configuration_version

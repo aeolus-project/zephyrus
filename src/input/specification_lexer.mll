@@ -32,7 +32,7 @@ let digits           = ['0'-'9']
 let alpha_lower      = ['a'-'z']
 let alpha_upper      = ['A'-'Z']
 let alpha            = (alpha_lower | alpha_upper)
-let lines            = ['-' '_']
+let lines            = ['-' '_' '.' '@']
 let other_characters = ['+' ':']
 let ident            = (alpha | digits | lines)
 
@@ -122,3 +122,5 @@ rule token = parse
 
   (* End of file *)
   | eof { EOF }
+
+

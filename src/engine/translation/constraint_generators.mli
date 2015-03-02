@@ -44,37 +44,49 @@ val eU   : location_id                                       -> expression
 (* val ralfs_redundant_require :
     port_ids:Port_id_set.t ->
     get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> get_component_type_require_arity:(component_type_id -> port_id -> require_arity) ->
-    konstraint list *)
+    konstraint list
 val flat_require               :
    port_ids:Port_id_set.t
     -> get_requirers:(port_id -> Component_type_id_set.t)
     -> get_providers:(port_id -> Component_type_id_set.t)
     -> get_component_type_require_arity:(component_type_id -> port_id -> require_arity)
-    -> konstraint list
+    -> konstraint list *)
 val require                    :
     port_ids:Port_id_set.t
+     -> get_supports: (port_id -> Port_id_set.t)
      -> get_requirers:(port_id -> Component_type_id_set.t)
      -> get_providers:(port_id -> Component_type_id_set.t)
      -> get_component_type_require_arity:(component_type_id -> port_id -> require_arity)
      -> konstraint list
 
-val provide_with_fixed_infinity:
+(*(* DEPRECATED *) val provide_with_fixed_infinity:
     port_ids:Port_id_set.t
      -> get_providers:(port_id -> Component_type_id_set.t)
      -> get_requirers:(port_id -> Component_type_id_set.t)
      -> get_component_type_provide_arity:(component_type_id -> port_id -> provide_arity)
-     -> konstraint list
-val provide_with_advanced_infinity :
+     -> konstraint list *)
+val provide :
     port_ids:Port_id_set.t
+     -> get_subports: (port_id -> Port_id_set.t)
      -> get_providers:(port_id -> Component_type_id_set.t)
      -> get_requirers:(port_id -> Component_type_id_set.t)
      -> get_component_type_provide_arity:(component_type_id -> port_id -> provide_arity)
      -> konstraint list
 
-val binding                        : port_ids:Port_id_set.t -> get_requirers:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t) -> konstraint list
+val binding :
+    port_ids:Port_id_set.t
+     -> get_supports: (port_id -> Port_id_set.t)
+     -> get_requirers:(port_id -> Component_type_id_set.t)
+     -> get_providers:(port_id -> Component_type_id_set.t)
+     -> konstraint list
 
-val conflict_naive                 : port_ids:Port_id_set.t -> get_conflicters:(port_id -> Component_type_id_set.t) -> get_component_type_provide_arity:(component_type_id -> port_id -> provide_arity) -> konstraint list
-val conflict_advanced              : port_ids:Port_id_set.t -> get_conflicters:(port_id -> Component_type_id_set.t) -> get_providers:(port_id -> Component_type_id_set.t)                               -> konstraint list
+(*
+val conflict_naive                 : port_ids:Port_id_set.t -> get_conflicters:(port_id -> Component_type_id_set.t) -> get_component_type_provide_arity:(component_type_id -> port_id -> provide_arity) -> konstraint list *)
+val conflict :
+    port_ids:Port_id_set.t
+     -> get_conflicters:(port_id -> Component_type_id_set.t)
+     -> get_providers:(port_id -> Component_type_id_set.t)
+     -> konstraint list
 
 val location_component_type : component_type_ids:Component_type_id_set.t -> location_ids:Location_id_set.t -> konstraint list
 val location_package        : package_ids:Package_id_set.t               -> location_ids:Location_id_set.t -> konstraint list

@@ -43,10 +43,6 @@ type require_arity = int
 type resource_consumption   = int
 type resource_provide_arity = int (* Better name? *)
 
-type port_hierarchy = {
-    port    : port_name;
-    subport : port_name;
-} <ocaml field_prefix="port_hierarchy_">
 
 type state = {
   name                                : state_name;
@@ -58,11 +54,24 @@ type state = {
   ~successors <ocaml default="[]">    : state_name list;
 } <ocaml field_prefix="state_">
 
-type component_type = {
+type component_type_stateful = {
   name                           : component_type_name;
-  states                         : state list;
+  states                        : state list;
   ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
-} <ocaml field_prefix="component_type_">
+} <ocaml field_prefix="component_type_stateful_">
+
+type component_type_simple = {
+  name                           : component_type_name;
+  ~provide  <ocaml default="[]"> : (port_name * provide_arity) list <json repr = "object">;
+  ~require  <ocaml default="[]"> : (port_name * require_arity) list <json repr = "object">;
+  ~conflict <ocaml default="[]"> : port_name list;
+  ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
+} <ocaml field_prefix="component_type_simple_">
+
+type component_type = [
+  | Component_type_simple of component_type_simple
+  | Component_type_stateful of component_type_stateful
+]
 
 type component_types = component_type list
 
@@ -90,12 +99,17 @@ type implementation_package = {
 type implementation_packages = implementation_package list
   (* This definition is useless, but ATD won't swallow the next one with a type which has nested lists and tuples in the same type. WHY? *)
 
+type port_hierarchy = {
+  port : port_name;
+  subports : port_name list;
+ } <ocaml field_prefix="port_hierarchy_">
+
 type universe = {
   version                               : version;
   ~component_types <ocaml default="[]"> : component_types;
   ~implementation  <ocaml default="[]"> : (component_type_name * implementation_packages) list <json repr = "object">; (* mapping from component type name to sets of package names *)
   ~repositories    <ocaml default="[]"> : repositories;
-  ~port_hierarchy  <ocaml default="[]"> : port_hierarchy list
+  ~port_hierarchy  <ocaml default="[]"> : (port_name * (port_name list)) list <json repr = "object">;
 } <ocaml field_prefix="universe_">
 
 
@@ -114,21 +128,47 @@ type location = {
   ~cost               <ocaml default="1" > : location_cost
 } <ocaml field_prefix="location_">
 
-type component = {
+type component_stateful = {
   name                            : component_name;
   component_type_workaround 
     <json name="type"> 
     <ocaml name="component_type"> : component_type_name;
   (* This is a little workaround around the little problem, that the word "type" is an ATD keyword. *)
-  state                           : state_name;
+  state                           : state_name; (* in case of statless *)
   location                        : location_name;
-} <ocaml field_prefix="component_">
+} <ocaml field_prefix="component_stateful_">
 
-type binding = {
-  port : port_name;
-  requirer : component_name;
-  provider : component_name;
-} <ocaml field_prefix="binding_">
+type component_simple = {
+  name                            : component_name;
+  component_type_workaround 
+    <json name="type"> 
+    <ocaml name="component_type"> : component_type_name;
+  (* This is a little workaround around the little problem, that the word "type" is an ATD keyword. *)
+  location                        : location_name;
+} <ocaml field_prefix="component_simple_">
+
+type component = [
+  | Component_simple of component_simple
+  | Component_stateful of component_stateful
+]
+
+type binding_hierarchical = {
+  port_required : port_name;
+  port_provided : port_name;
+  requirer       : component_name;
+  provider       : component_name;
+} <ocaml field_prefix="binding_hierarchical_">
+
+type binding_simple = {
+  port          : port_name;
+  requirer      : component_name;
+  provider      : component_name;
+} <ocaml field_prefix="binding_simple_">
+
+type binding = [
+  | Binding_hierarchical of binding_hierarchical
+  | Binding_simple of binding_simple
+]
 
 type configuration = {
   version                          : version;
@@ -136,3 +176,6 @@ type configuration = {
   ~components <ocaml default="[]"> : component list;
   ~bindings   <ocaml default="[]"> : binding list;
 } <ocaml field_prefix="configuration_">
+
+
+

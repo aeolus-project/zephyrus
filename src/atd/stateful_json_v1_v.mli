@@ -50,7 +50,7 @@ type repositories = Stateful_json_v1_t.repositories
 
 type port_hierarchy = Stateful_json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subports (*atd subports *): port_name list
 }
 
 type implementation_package = Stateful_json_v1_t.implementation_package = {
@@ -62,12 +62,25 @@ type implementation_packages = Stateful_json_v1_t.implementation_packages
 
 type component_type_name = Stateful_json_v1_t.component_type_name
 
-type component_type = Stateful_json_v1_t.component_type = {
-  component_type_name (*atd name *): component_type_name;
-  component_type_states (*atd states *): state list;
-  component_type_consume (*atd consume *):
+type component_type_stateful = Stateful_json_v1_t.component_type_stateful = {
+  component_type_stateful_name (*atd name *): component_type_name;
+  component_type_stateful_states (*atd states *): state list;
+  component_type_stateful_consume (*atd consume *):
     (resource_name * resource_consumption) list
 }
+
+type component_type_simple = Stateful_json_v1_t.component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
+}
+
+type component_type = Stateful_json_v1_t.component_type
 
 type component_types = Stateful_json_v1_t.component_types
 
@@ -101,18 +114,35 @@ type location = Stateful_json_v1_t.location = {
 
 type component_name = Stateful_json_v1_t.component_name
 
-type component = Stateful_json_v1_t.component = {
-  component_name (*atd name *): component_name;
+type component_stateful = Stateful_json_v1_t.component_stateful = {
+  component_stateful_name (*atd name *): component_name;
   component_type (*atd component_type_workaround *): component_type_name;
-  component_state (*atd state *): state_name;
-  component_location (*atd location *): location_name
+  component_stateful_state (*atd state *): state_name;
+  component_stateful_location (*atd location *): location_name
 }
 
-type binding = Stateful_json_v1_t.binding = {
-  binding_port (*atd port *): port_name;
-  binding_requirer (*atd requirer *): component_name;
-  binding_provider (*atd provider *): component_name
+type component_simple = Stateful_json_v1_t.component_simple = {
+  component_simple_name (*atd name *): component_name;
+  component_type (*atd component_type_workaround *): component_type_name;
+  component_simple_location (*atd location *): location_name
 }
+
+type component = Stateful_json_v1_t.component
+
+type binding_simple = Stateful_json_v1_t.binding_simple = {
+  binding_simple_port (*atd port *): port_name;
+  binding_simple_requirer (*atd requirer *): component_name;
+  binding_simple_provider (*atd provider *): component_name
+}
+
+type binding_hierarchical = Stateful_json_v1_t.binding_hierarchical = {
+  binding_hierarchical_port_required (*atd port_required *): port_name;
+  binding_hierarchical_port_provided (*atd port_provided *): port_name;
+  binding_hierarchical_requirer (*atd requirer *): component_name;
+  binding_hierarchical_provider (*atd provider *): component_name
+}
+
+type binding = Stateful_json_v1_t.binding
 
 type configuration = Stateful_json_v1_t.configuration = {
   configuration_version (*atd version *): version;
@@ -200,7 +230,7 @@ val validate_repositories :
 
 val create_port_hierarchy :
   port_hierarchy_port: port_name ->
-  port_hierarchy_subport: port_name ->
+  port_hierarchy_subports: port_name list ->
   unit -> port_hierarchy
   (** Create a record of type {!port_hierarchy}. *)
 
@@ -226,12 +256,29 @@ val validate_component_type_name :
   Ag_util.Validation.path -> component_type_name -> Ag_util.Validation.error option
   (** Validate a value of type {!component_type_name}. *)
 
-val create_component_type :
-  component_type_name: component_type_name ->
-  component_type_states: state list ->
-  ?component_type_consume: (resource_name * resource_consumption) list ->
-  unit -> component_type
-  (** Create a record of type {!component_type}. *)
+val create_component_type_stateful :
+  component_type_stateful_name: component_type_name ->
+  component_type_stateful_states: state list ->
+  ?component_type_stateful_consume: (resource_name * resource_consumption) list ->
+  unit -> component_type_stateful
+  (** Create a record of type {!component_type_stateful}. *)
+
+val validate_component_type_stateful :
+  Ag_util.Validation.path -> component_type_stateful -> Ag_util.Validation.error option
+  (** Validate a value of type {!component_type_stateful}. *)
+
+val create_component_type_simple :
+  component_type_simple_name: component_type_name ->
+  ?component_type_simple_provide: (port_name * provide_arity) list ->
+  ?component_type_simple_require: (port_name * require_arity) list ->
+  ?component_type_simple_conflict: port_name list ->
+  ?component_type_simple_consume: (resource_name * resource_consumption) list ->
+  unit -> component_type_simple
+  (** Create a record of type {!component_type_simple}. *)
+
+val validate_component_type_simple :
+  Ag_util.Validation.path -> component_type_simple -> Ag_util.Validation.error option
+  (** Validate a value of type {!component_type_simple}. *)
 
 val validate_component_type :
   Ag_util.Validation.path -> component_type -> Ag_util.Validation.error option
@@ -291,24 +338,55 @@ val validate_component_name :
   Ag_util.Validation.path -> component_name -> Ag_util.Validation.error option
   (** Validate a value of type {!component_name}. *)
 
-val create_component :
-  component_name: component_name ->
+val create_component_stateful :
+  component_stateful_name: component_name ->
   component_type: component_type_name ->
-  component_state: state_name ->
-  component_location: location_name ->
-  unit -> component
-  (** Create a record of type {!component}. *)
+  component_stateful_state: state_name ->
+  component_stateful_location: location_name ->
+  unit -> component_stateful
+  (** Create a record of type {!component_stateful}. *)
+
+val validate_component_stateful :
+  Ag_util.Validation.path -> component_stateful -> Ag_util.Validation.error option
+  (** Validate a value of type {!component_stateful}. *)
+
+val create_component_simple :
+  component_simple_name: component_name ->
+  component_type: component_type_name ->
+  component_simple_location: location_name ->
+  unit -> component_simple
+  (** Create a record of type {!component_simple}. *)
+
+val validate_component_simple :
+  Ag_util.Validation.path -> component_simple -> Ag_util.Validation.error option
+  (** Validate a value of type {!component_simple}. *)
 
 val validate_component :
   Ag_util.Validation.path -> component -> Ag_util.Validation.error option
   (** Validate a value of type {!component}. *)
 
-val create_binding :
-  binding_port: port_name ->
-  binding_requirer: component_name ->
-  binding_provider: component_name ->
-  unit -> binding
-  (** Create a record of type {!binding}. *)
+val create_binding_simple :
+  binding_simple_port: port_name ->
+  binding_simple_requirer: component_name ->
+  binding_simple_provider: component_name ->
+  unit -> binding_simple
+  (** Create a record of type {!binding_simple}. *)
+
+val validate_binding_simple :
+  Ag_util.Validation.path -> binding_simple -> Ag_util.Validation.error option
+  (** Validate a value of type {!binding_simple}. *)
+
+val create_binding_hierarchical :
+  binding_hierarchical_port_required: port_name ->
+  binding_hierarchical_port_provided: port_name ->
+  binding_hierarchical_requirer: component_name ->
+  binding_hierarchical_provider: component_name ->
+  unit -> binding_hierarchical
+  (** Create a record of type {!binding_hierarchical}. *)
+
+val validate_binding_hierarchical :
+  Ag_util.Validation.path -> binding_hierarchical -> Ag_util.Validation.error option
+  (** Validate a value of type {!binding_hierarchical}. *)
 
 val validate_binding :
   Ag_util.Validation.path -> binding -> Ag_util.Validation.error option

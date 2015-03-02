@@ -43,7 +43,8 @@ let eNlt location_id component_type_id = Variable(Local_variable(location_id, Co
 let eNlp location_id port_id           = Variable(Local_variable(location_id, Port(port_id)))
 let eNlk location_id package_id        = Variable(Local_variable(location_id, Package(package_id)))
 
-let eB port_id providing_component_type_id requiring_component_type_id = Variable(Binding_variable(port_id, providing_component_type_id, requiring_component_type_id))
+let eB portp_id providing_component_type_id portr_id requiring_component_type_id =
+  Variable(Binding_variable(portp_id, providing_component_type_id, portr_id, requiring_component_type_id))
 
 let eR location_id repository_id = Variable(Local_repository_variable(location_id, repository_id))
 let eO location_id resource_id   = Variable(Local_resource_variable(location_id, resource_id))
@@ -57,91 +58,67 @@ let eU location_id = Variable(Location_used_variable(location_id))
 (*\*****************************************/*)
 
 (* flat model *)
-(*let ralfs_redundant_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
-  Zephyrus_log.log_constraint_execution "Compute Ralf's redundant require constraints\n";
-  Port_id_set.fold (fun port_id acc ->
-    Component_type_id_set.fold (fun requiring_component_type_id acc -> (
-      let requiring_component_type_arity_equal_zero : konstraint = ( (eNt requiring_component_type_id) =~ (constant 0) ) in
-      let requiring_component_type_require_arity : expression = constant_of_require_arity (get_component_type_require_arity requiring_component_type_id port_id) in
-      let sum_of_providing_component_type_global_arities : expression = sum (Component_type_id_set.map_to_list (fun providing_component_type -> eNt providing_component_type) (get_providers port_id) ) in
-      requiring_component_type_arity_equal_zero ||~~ (requiring_component_type_require_arity <=~ sum_of_providing_component_type_global_arities)
-    )::acc) (get_requirers port_id) acc
-  ) port_ids []*)
 
-let flat_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
+let require ~port_ids ~get_supports ~get_requirers ~get_providers ~get_component_type_require_arity = 
   Zephyrus_log.log_constraint_execution "Compute binding requires\n";
-  Port_id_set.fold (fun port_id acc ->
-    Component_type_id_set.fold (fun requiring_component_type_id acc -> (
-        ((constant_of_require_arity (get_component_type_require_arity requiring_component_type_id port_id)) *~ (eNt requiring_component_type_id))
-          <=~ (sum (Component_type_id_set.fold (fun providing_component_type acc -> (eB port_id providing_component_type requiring_component_type_id)::acc) (get_providers port_id) [])))::acc
+  Port_id_set.fold (fun port_id acc ->                                                     (* the global land *)
+    Component_type_id_set.fold (fun requiring_component_type_id acc -> (                   (* the land on requirers *)
+          ((constant_of_require_arity (get_component_type_require_arity requiring_component_type_id port_id)) *~ (eNt requiring_component_type_id))
+             <=~
+          (sum (Port_id_set.fold (fun support_id acc ->                                    (* the sum on all support of port_id *)
+                Component_type_id_set.fold (fun providing_component_type_id acc ->            (* the sum on all proviers of support_id *)
+                  (eB support_id providing_component_type_id port_id requiring_component_type_id)::acc) (get_providers support_id) acc) (get_supports port_id) [])
+          ))::acc
     ) (get_requirers port_id) acc
   ) port_ids []
 
-let require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
-  let flat_require            = flat_require            port_ids get_requirers get_providers get_component_type_require_arity in
-  let ralfs_redundant_require = ralfs_redundant_require port_ids get_requirers get_providers get_component_type_require_arity in
-  flat_require @ (if Settings.find Settings.ralfs_redundant_constraints then ralfs_redundant_require else [])
 
-let provide_with_fixed_infinity ~port_ids ~get_providers ~get_requirers ~get_component_type_provide_arity = 
-  Zephyrus_log.log_constraint_execution "Compute binding provides (with naive encoding of infinity as a fixed value)\n";
-  Port_id_set.fold (fun port_id acc ->
-    Component_type_id_set.fold (fun providing_component_type_id acc -> (
-          ((constant_of_provide_arity (get_component_type_provide_arity providing_component_type_id port_id)) *~ (eNt providing_component_type_id))
-          >=~ (sum (Component_type_id_set.fold (fun requiring_component_type_id acc -> (eB port_id providing_component_type_id requiring_component_type_id)::acc) (get_requirers port_id) [])))::acc
-    ) (get_providers port_id) acc
-  ) port_ids []
 
-let provide_with_advanced_infinity ~port_ids ~get_providers ~get_requirers ~get_component_type_provide_arity = 
+
+let provide ~port_ids ~get_subports ~get_providers ~get_requirers ~get_component_type_provide_arity = 
   Zephyrus_log.log_constraint_execution "Compute binding provides (with advanced encoding of infinity)\n";
   Port_id_set.fold (fun port_id acc ->
     Component_type_id_set.fold (fun providing_component_type_id acc ->
       let provide_arity = get_component_type_provide_arity providing_component_type_id port_id in
       match provide_arity with
-      | Finite_provide provide_arity ->
-          (* If the component type [providing_component_type] is providing the port [port_id] with a finite arity: *)
-
-          (* 1. Total number of bindings between components of type [providing_component_type] and any components which require port [port_id] 
-                must be equal or smaller than the total arity of port [port_id] provided by all the components of type [providing_component_type] present. *)
+      | Finite_provide provide_arity -> (* as in the paper *)
           (((constant provide_arity) *~ (eNt providing_component_type_id))
           	>=~ 
-          (sum (Component_type_id_set.map_to_list (fun requiring_component_type_id -> eB port_id providing_component_type_id requiring_component_type_id) (get_requirers port_id))))::acc
+          (sum (Port_id_set.fold (fun subport_id acc ->                                    (* the sum on all support of port_id *)
+                Component_type_id_set.fold (fun requiring_component_type_id acc ->            (* the sum on all proviers of support_id *)
+                  (eB port_id providing_component_type subport_id requiring_component_type_id)::acc) (get_requirers subnport_id) acc) (get_subports port_id) [])
+          ))::acc
 
-      | Infinite_provide ->
-          (* If the component type [providing_component_type] is providing the port [port_id] with an infinite arity: *)
-
+      | Infinite_provide -> (* If the component type [providing_component_type] is providing the port [port_id] with an infinite arity: *)
           (* 1. If there is no component of type [providing_component_type] present then there can be no bidings on port [port_id] 
                 between components of this type and components requiring port [port_id]. 
                 In other words: if at least one component of type [providing_component_type] is present, 
                 then the number of such bindings is not constrained at all. *)
-          let if_there_is_none_there_can_be_no_bindings : konstraint list =
-            Component_type_id_set.map_to_list (fun requiring_component_type_id ->
-              ((eNt providing_component_type_id) =~ (constant 0)) =>~~ ((eB port_id providing_component_type_id requiring_component_type_id) =~ (constant 0))
-            ) (get_requirers port_id) in
-          if_there_is_none_there_can_be_no_bindings @ acc
+            Port_id_set.fold(fun subport_id acc ->
+              Component_type_id_set.fold (fun requiring_component_type_id acc ->
+                (((eNt providing_component_type_id) =~ (constant 0)) =>~~ ((eB port_id providing_component_type_id subport_id requiring_component_type_id) =~ (constant 0)))::acc
+            ) (get_requirers subport_id) acc) (get_subports port_id) acc
     ) (get_providers port_id) acc
   ) port_ids []
 
-let binding ~port_ids ~get_requirers ~get_providers = 
+
+let binding ~port_ids ~get_supports ~get_requirers ~get_providers = 
   Zephyrus_log.log_constraint_execution "Compute binding unicitiy\n\n";
   Port_id_set.fold (fun port_id acc ->
     Component_type_id_set.fold (fun requiring_component_type_id acc ->
       Component_type_id_set.fold (fun providing_component_type_id acc ->
-        ((eB port_id providing_component_type_id requiring_component_type_id) <=~ ((eNt requiring_component_type_id) *~ (eNt providing_component_type_id)))::acc
+          ((sum (Port_id_set.map_to_list (fun support_id -> eB support_id providing_component_type_id port_id requiring_component_type_id) (get_supports port_id)))
+        <=~
+          ((eNt requiring_component_type_id) *~ (eNt providing_component_type_id)))::acc
       ) (get_providers port_id) acc
     ) (get_requirers port_id) acc
   ) port_ids []
 
-let conflict_naive ~port_ids ~get_conflicters ~get_component_type_provide_arity =
-  Zephyrus_log.log_constraint_execution "Compute binding conflicts (naive encoding)\n\n";
-  Port_id_set.fold (fun port_id acc ->
-    Component_type_id_set.fold (fun conflicter_component_type_id acc ->
-      (((eNt conflicter_component_type_id) >=~ (constant 1)) 
-      	=>~~ 
-      ((eNp port_id) =~ (constant_of_provide_arity (get_component_type_provide_arity conflicter_component_type_id port_id))))::acc
-    ) (get_conflicters port_id) acc
-  ) port_ids []
 
-let conflict_advanced ~port_ids ~get_conflicters ~get_providers =
+
+
+
+let conflict ~port_ids ~get_conflicters ~get_providers =
   Zephyrus_log.log_constraint_execution "Compute binding conflicts (advanced encoding)\n\n";
   Port_id_set.fold (fun port_id acc ->
     let conflicters = get_conflicters port_id in
@@ -314,3 +291,51 @@ let direct_incompatibilities ~incompatibilities ~location_ids =
       ) repository_incompatibilities []
     ) incompatibilities []
   ) location_ids []
+
+
+(*/*****************************************\*)
+(*|* 3. Annex Constraints (to guide solver) |*)
+(*\*****************************************/*)
+
+(*let ralfs_redundant_require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
+  Zephyrus_log.log_constraint_execution "Compute Ralf's redundant require constraints\n";
+  Port_id_set.fold (fun port_id acc ->
+    Component_type_id_set.fold (fun requiring_component_type_id acc -> (
+      let requiring_component_type_arity_equal_zero : konstraint = ( (eNt requiring_component_type_id) =~ (constant 0) ) in
+      let requiring_component_type_require_arity : expression = constant_of_require_arity (get_component_type_require_arity requiring_component_type_id port_id) in
+      let sum_of_providing_component_type_global_arities : expression = sum (Component_type_id_set.map_to_list (fun providing_component_type -> eNt providing_component_type) (get_providers port_id) ) in
+      requiring_component_type_arity_equal_zero ||~~ (requiring_component_type_require_arity <=~ sum_of_providing_component_type_global_arities)
+    )::acc) (get_requirers port_id) acc
+  ) port_ids []*)
+
+(*
+let require ~port_ids ~get_requirers ~get_providers ~get_component_type_require_arity = 
+  let flat_require            = flat_require            port_ids get_requirers get_providers get_component_type_require_arity in
+  let ralfs_redundant_require = ralfs_redundant_require port_ids get_requirers get_providers get_component_type_require_arity in
+  flat_require @ (if Settings.find Settings.ralfs_redundant_constraints then ralfs_redundant_require else [])
+*)
+
+
+
+(* (* DEPRECATED, mow using the version with true management of infinity *)
+let provide_with_fixed_infinity ~port_ids ~get_providers ~get_requirers ~get_component_type_provide_arity = 
+  Zephyrus_log.log_constraint_execution "Compute binding provides (with naive encoding of infinity as a fixed value)\n";
+  Port_id_set.fold (fun port_id acc ->
+    Component_type_id_set.fold (fun providing_component_type_id acc -> (
+          ((constant_of_provide_arity (get_component_type_provide_arity providing_component_type_id port_id)) *~ (eNt providing_component_type_id))
+          >=~ (sum (Component_type_id_set.fold (fun requiring_component_type_id acc -> (eB port_id providing_component_type_id requiring_component_type_id)::acc) (get_requirers port_id) [])))::acc
+    ) (get_providers port_id) acc
+  ) port_ids [] *)
+
+
+(*let conflict_naive ~port_ids ~get_conflicters ~get_component_type_provide_arity =
+  Zephyrus_log.log_constraint_execution "Compute binding conflicts (naive encoding)\n\n";
+  Port_id_set.fold (fun port_id acc ->
+    Component_type_id_set.fold (fun conflicter_component_type_id acc ->
+      (((eNt conflicter_component_type_id) >=~ (constant 1)) 
+      	=>~~ 
+      ((eNp port_id) =~ (constant_of_provide_arity (get_component_type_provide_arity conflicter_component_type_id port_id))))::acc
+    ) (get_conflicters port_id) acc
+  ) port_ids []
+*)
+

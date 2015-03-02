@@ -556,17 +556,20 @@ module Component_map = Map.Make(Component)
 (** 3.3. Bindings. *)
 
 class binding 
-  ~port
+  ~port_required
+  ~port_provided
   ~requirer
   ~provider = object (self : 'selftype)
 
-  val port     : port_id      = port     (** The port of this binding. *)
-  val requirer : component_id = requirer (** The id of the requiring component. *)
-  val provider : component_id = provider (** The id of the providing component. *)
+  val port_required : port_id      = port_required     (** The port of this binding. *)
+  val port_provided : port_id      = port_provided     (** The port of this binding. *)
+  val requirer      : component_id = requirer (** The id of the requiring component. *)
+  val provider      : component_id = provider (** The id of the providing component. *)
 
-  method port     : port_id      = port
-  method requirer : component_id = requirer
-  method provider : component_id = provider
+  method port_required : port_id      = port_required
+  method port_provided : port_id      = port_provided
+  method requirer      : component_id = requirer
+  method provider      : component_id = provider
 end
 
 module Binding = struct type t = binding let compare = compare end 

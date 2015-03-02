@@ -49,10 +49,6 @@ spec_const:
   | INT                      { $1 }
   | LPAREN spec_const RPAREN { $2 }
 
-/* Three names which types have to be distinguished.
-   In the context where they are used we do not know a priori if
-   a given name denotes a component type, a port or a package.
-   We need to find out using a universe. */
 component_type_name:
   | COMPONENT_TYPE_NAME               { $1 }
   | LPAREN component_type_name RPAREN { $2 }
@@ -66,8 +62,6 @@ package_name:
   | NAME                       { $1 }
   | LPAREN package_name RPAREN { $2 }
 
-/* These names always appear in a context which clearly
-   decides which one of them we mean. */
 repository_name:
   | NAME                          { $1 }
   | LPAREN repository_name RPAREN { $2 }
@@ -82,12 +76,13 @@ location_name:
 
 state_name:
   | NAME                     { $1 }
-  | COMPONENT_TYPE_NAME      { $1 }
   | LPAREN state_name RPAREN { $2 }  
 
 spec_variable_name:
   | NAME                             { $1 }
   | LPAREN spec_variable_name RPAREN { $2 }
+
+
 
 specification:
   | TRUE                                                                   { Abstract_io.SpecTrue              }
@@ -116,8 +111,10 @@ spec_expr:
 
 spec_element:
   | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecElementPackage       ($2, $4) }
-  | component_type_name COLON state_name                   { Abstract_io.SpecElementComponentType ($1, $3) }
-  | LPAREN component_type_name COLON state_name RPAREN     { Abstract_io.SpecElementComponentType ($2, $4) }
+  | component_type_name COLON state_name                   { Abstract_io.SpecElementComponentType (Component_type_state($1, $3)) }
+  | LPAREN component_type_name COLON state_name RPAREN     { Abstract_io.SpecElementComponentType (Component_type_state($1, $3)) }
+  | component_type_name                                    { Abstract_io.SpecElementComponentType (Component_type_simple($1   )) }
+  | LPAREN component_type_name RPAREN                      { Abstract_io.SpecElementComponentType (Component_type_simple($1   )) }
   | port_name                                              { Abstract_io.SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
     LCURLY spec_repository_constraints COLON 
@@ -145,8 +142,10 @@ spec_local_expr:
 
 spec_local_element:
   | LPAREN repository_name COMMA package_name RPAREN   { Abstract_io.SpecLocalElementPackage       ($2, $4) }
-  | component_type_name COLON state_name               { Abstract_io.SpecLocalElementComponentType ($1, $3) }
-  | LPAREN component_type_name COLON state_name RPAREN { Abstract_io.SpecLocalElementComponentType ($2, $4) }
+  | component_type_name COLON state_name               { Abstract_io.SpecLocalElementComponentType (Component_type_state($1, $3)) }
+  | LPAREN component_type_name COLON state_name RPAREN { Abstract_io.SpecLocalElementComponentType (Component_type_state($1, $3)) }
+  | component_type_name                                { Abstract_io.SpecLocalElementComponentType (Component_type_simple($1   )) }
+  | LPAREN component_type_name RPAREN                  { Abstract_io.SpecLocalElementComponentType (Component_type_simple($1   )) }
   | port_name                                          { Abstract_io.SpecLocalElementPort          ($1) }
   | LPAREN spec_local_element RPAREN                   { $2 }
 

@@ -35,11 +35,16 @@ let infinite_provide_arity_strings = [
 let default_infinite_provide_arity_string = "infinity"
 
 
+(*/************************************************************************\*)
+(*| 1. Translation of JSON to Abstract_io                                  |*)
+(*\************************************************************************/*)
+
 module To_abstract_io = struct
 
   module I = T
   module O = Stateful_abstract_io
 
+  (* 1. Translation of simple names and values *)
   let port_name           port_name'           = port_name'
   let resource_name       resource_name'       = resource_name'
   let component_type_name component_type_name' = component_type_name'
@@ -48,8 +53,6 @@ module To_abstract_io = struct
   let repository_name     repository_name'     = repository_name'
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
-
-  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
 
   let state_initial    state_initial'    = state_initial'
   let state_final      state_final'      = state_final'
@@ -69,6 +72,7 @@ module To_abstract_io = struct
   let single_require (port_name',     require_arity'       ) = (port_name     port_name',     require_arity        require_arity'       )
   let single_consume (resource_name', resource_consumption') = (resource_name resource_name', resource_consumption resource_consumption')
 
+  (* 2. Translation of universe *)
   let state state' = {
     O.state_name       = state_name              state'.I.state_name;
     O.state_initial    = state_initial           state'.I.state_initial;
@@ -79,11 +83,25 @@ module To_abstract_io = struct
     O.state_successors = state_successors        state'.I.state_successors;
   }
 
-  let component_type component_type' = {
-    O.component_type_name     = component_type_name     component_type'.I.component_type_name;
-    O.component_type_states   = List.map state          component_type'.I.component_type_states;
-    O.component_type_consume  = List.map single_consume component_type'.I.component_type_consume;
+  let component_type_stateful component_type' = {
+    O.component_type_name     = component_type_name       component_type'.I.component_type_stateful_name;
+    O.component_type_states   = With_state(List.map state component_type'.I.component_type_stateful_states);
+    O.component_type_consume  = List.map single_consume   component_type'.I.component_type_stateful_consume;
   }
+
+  let component_type_simple component_type' = {
+    O.component_type_name     = component_type_name     component_type'.I.component_type_simple_name;
+    O.component_type_states   = Without_state({ 
+      O.provide  = List.map single_provide component_type'.I.component_type_simple_provide;
+      O.require  = List.map single_require component_type'.I.component_type_simple_require;
+      O.conflict = List.map port_name      component_type'.I.component_type_simple_conflict;
+    }); 
+    O.component_type_consume  = List.map single_consume component_type'.I.component_type_simple_consume;
+  }
+
+  let component_type component_type' = match component_type' with
+    | O.`Component_type_simple  (c) -> component_type_simple   c
+    | O.`Component_type_stateful(c) -> component_type_stateful c
 
   let single_depend package_name_list = List.map package_name package_name_list
 
@@ -107,6 +125,11 @@ module To_abstract_io = struct
   let single_implementation (component_type_name', implementation_packages_list) = 
     (component_type_name component_type_name', List.map implementation_package implementation_packages_list)
 
+  let port_hierarchy (port, subports) = {
+    O.port_hierarchy_port = port_name port;
+    O.port_hierarchy_subport = List.map port_name subports;
+  }
+
   let universe universe' = {
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
     O.universe_implementation  = List.map single_implementation universe'.I.universe_implementation;
@@ -114,6 +137,7 @@ module To_abstract_io = struct
     O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
  }
 
+  (* 3. translation of configurations *)
   let location_cost location_cost' = location_cost'
 
   let single_provide_resources (resource_name', resource_provide_arity') = (resource_name resource_name', resource_provide_arity resource_provide_arity')
@@ -126,18 +150,42 @@ module To_abstract_io = struct
     O.location_cost               = location_cost                     location'.I.location_cost;
   }
 
-  let component component' = {
-    O.component_name     = component_name      component'.I.component_name;
-    O.component_type     = component_type_name component'.I.component_type;
-    O.component_state    = state_name          component'.I.component_state;
-    O.component_location = location_name       component'.I.component_location;
+  let component_stateful component' = {
+    O.component_name     = component_name      component'.I.component_stateful_name;
+    O.component_type     =  O.Component_type_state(
+                               component_type_name component'.I.component_stateful_type,
+                               state_name          component'.I.component_stateful_state);
+    O.component_location = location_name       component'.I.component_stateful_location;
   }
 
-  let binding binding' = {
-    O.binding_port     = port_name      binding'.I.binding_port;
-    O.binding_requirer = component_name binding'.I.binding_requirer;
-    O.binding_provider = component_name binding'.I.binding_provider;
+  let component_simple component' = {
+    O.component_name     = component_name      component'.I.component_simple_name;
+    O.component_type     = O.Component_type_simple(component_type_name component'.I.component_simple_type);
+    O.component_location = location_name       component'.I.component_simple_location;
   }
+
+  let component component' = match component' with
+  | `Component_simple  (c) -> component_simple   c
+  | `Component_stateful(c) -> component_stateful c
+  
+
+  let binding_hierarchical binding' = {
+    O.binding_port_required = port_name      binding'.I.binding_hierarchical_port_required;
+    O.binding_port_provided = port_name      binding'.I.binding_hierarchical_port_provided;
+    O.binding_requirer      = component_name binding'.I.binding_hierarchical_requirer;
+    O.binding_provider      = component_name binding'.I.binding_hierarchical_provider;
+  }
+
+  let binding_simple binding' = {
+    O.binding_port_required = port_name      binding'.I.binding_simple_port;
+    O.binding_port_provided = port_name      binding'.I.binding_simple_port;
+    O.binding_requirer      = component_name binding'.I.binding_simple_requirer;
+    O.binding_provider      = component_name binding'.I.binding_simple_provider;
+  }
+
+  let binding binding' = match binding' with
+  | Binding_hierarchical(b) -> binding_hierarchical b
+  | Binding_simple      (b) -> binding_simple b
 
   let configuration configuration' = {
     O.configuration_locations  = List.map location  configuration'.I.configuration_locations;
@@ -145,13 +193,22 @@ module To_abstract_io = struct
     O.configuration_bindings   = List.map binding   configuration'.I.configuration_bindings;
   }
 
+  (* 4. translation of specification is absent, because integrated in the parser *)
+  (* TODO: put that translation here ? *)
 end
+
+
+
+(*/************************************************************************\*)
+(*| 2. Translation of Abstract_io to JSON                                  |*)
+(*\************************************************************************/*)
 
 module Of_abstract_io = struct
   
   module I = Stateful_abstract_io
   module O = T
 
+  (* 1. Translation of simple names and values *)
   let port_name           port_name'           = port_name'
   let resource_name       resource_name'       = resource_name'
   let component_type_name component_type_name' = component_type_name'
@@ -161,7 +218,6 @@ module Of_abstract_io = struct
   let location_name       location_name'       = location_name'
   let component_name      component_name'      = component_name'
 
-  let port_hierarchy port_hierarchy' = { O.port_hierarchy_port = port_hierarchy'.I.port_hierarchy_port;  O.port_hierarchy_subport = port_hierarchy'.I.port_hierarchy_subport; }
 
   let state_initial    state_initial'    = state_initial'
   let state_final      state_final'      = state_final'
@@ -180,21 +236,39 @@ module Of_abstract_io = struct
   let single_require (port_name',     require_arity'       ) = (port_name     port_name',     require_arity        require_arity'       )
   let single_consume (resource_name', resource_consumption') = (resource_name resource_name', resource_consumption resource_consumption')
 
-  let state state' = {
+  (* 2. Translation of universe *)
+  let component_type_environment ce = (
+    List.map single_provide ce.I.provide;
+    List.map single_require ce.I.require;
+    List.map port_name      ce.I.conflict;
+  )
+
+  let state state' =
+    let (provide, require, conflict) = component_type_environment state'.I.state_ports in {
     O.state_name       = state_name              state'.I.state_name;
     O.state_initial    = state_initial           state'.I.state_initial;
     O.state_final      = state_final             state'.I.state_final;
-    O.state_provide    = List.map single_provide state'.I.state_provide;
-    O.state_require    = List.map single_require state'.I.state_require;
-    O.state_conflict   = List.map port_name      state'.I.state_conflict;
+    O.state_provide    = provide;
+    O.state_require    = require;
+    O.state_conflict   = conflict;
     O.state_successors = state_successors        state'.I.state_successors;
   }
 
-  let component_type component_type' = {
-    O.component_type_name     = component_type_name     component_type'.I.component_type_name;
-    O.component_type_states   = List.map state          component_type'.I.component_type_states;
-    O.component_type_consume  = List.map single_consume component_type'.I.component_type_consume;
-  }
+  let component_type component_type' =
+    let name    = component_type_name     component_type'.I.component_type_name in
+    let consume = List.map single_consume component_type'.I.component_type_consume in
+    match component_type'.I.component_type_states with
+    | With_state(states) -> `Component_type_stateful {
+       O.component_type_stateful_name    = name;
+       O.component_type_stateful_consume = consume;
+       O.component_type_stateful_states  =  List.map state states; }
+    | Without_state(ce) -> let (provide, require, conflict) = component_type_environment ce in `Component_type_simple {
+       O.component_type_simple_name     = name;
+       O.component_type_simple_consume  = consume;
+       O.component_type_simple_provide  = provide;
+       O.component_type_simple_require  = require;
+       O.component_type_simple_conflict = conflict; }
+
 
   let single_depend package_name_list = List.map package_name package_name_list
 
@@ -218,6 +292,12 @@ module Of_abstract_io = struct
   let single_implementation (component_type_name', implementation_packages_list) = 
     (component_type_name component_type_name', List.map implementation_package implementation_packages_list)
 
+
+  let port_hierarchy port_hierarchy' = (
+    port_name port_hierarchy'.I.port_hierarchy_port,
+    List.map port_name port_hierarchy'.I.port_hierarchy_subport
+  )
+
   let universe universe' = {
     O.universe_version         = 1;
     O.universe_component_types = List.map component_type        universe'.I.universe_component_types;
@@ -226,6 +306,7 @@ module Of_abstract_io = struct
     O.universe_port_hierarchy  = List.map port_hierarchy        universe'.I.universe_port_hierarchy;
   }
 
+  (* 3. translation of configurations *)
   let location_cost location_cost' = location_cost'
 
   let single_provide_resources (resource_name', resource_provide_arity') = (resource_name resource_name', resource_provide_arity resource_provide_arity')
@@ -238,17 +319,26 @@ module Of_abstract_io = struct
     O.location_cost               = location_cost                     location'.I.location_cost;
   }
 
-  let component component' = {
-    O.component_name     = component_name      component'.I.component_name;
-    O.component_type     = component_type_name component'.I.component_type;
-    O.component_state    = state_name          component'.I.component_state;
-    O.component_location = location_name       component'.I.component_location;
-  }
+  let component component' = 
+    let name     = component_name      component'.I.component_name in
+    let location = location_name       component'.I.component_location in
+    match component'.I.component_type with
+    | Component_type_simple(n)    -> `Component_simple {
+      O.component_simple_name     = name;
+      O.component_simple_type     = component_type_name n;
+      O.component_simple_location = location; }      
+    | Component_type_state (n, s) -> `Component_stateful {
+      O.component_stateful_name     = name;
+      O.component_stateful_type     = component_type_name n;
+      O.component_stateful_state    = state_name          s;
+      O.component_stateful_location = location; }
 
-  let binding binding' = {
-    O.binding_port     = port_name      binding'.I.binding_port;
-    O.binding_requirer = component_name binding'.I.binding_requirer;
-    O.binding_provider = component_name binding'.I.binding_provider;
+
+  let binding binding' = `Binding_hierarchical {
+    O.binding_port_provided = port_name      binding'.I.binding_port_provided;
+    O.binding_port_required = port_name      binding'.I.binding_port_required;
+    O.binding_requirer      = component_name binding'.I.binding_requirer;
+    O.binding_provider      = component_name binding'.I.binding_provider;
   }
 
   let configuration configuration' = {
@@ -258,4 +348,9 @@ module Of_abstract_io = struct
     O.configuration_bindings   = List.map binding   configuration'.I.configuration_bindings;
   }
 
+  (* 4. translation of specification is absent, because integrated in the parser *)
+  (* TODO: put that translation here ? *)
 end
+
+
+
