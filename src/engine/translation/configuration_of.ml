@@ -415,6 +415,7 @@ let solution (catalog : Data_model_catalog.closed_model_catalog option) (univers
     | None         -> None
     | Some catalog -> Some (new closed_model_catalog 
                               ~component_type_catalog: catalog#component_type
+                              ~component_type_subs_catalog: catalog#component_type_subs
                               ~port_catalog:           catalog#port
                               ~repository_catalog:     catalog#repository
                               ~package_catalog:        catalog#package

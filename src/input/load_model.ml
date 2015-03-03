@@ -30,9 +30,6 @@ open Data_model
 open Data_model_catalog
 
 
-(* TODO: replace mapping component_name <-> id to component_name+state <-> id *)
-(* For now, because of that, it cannot compile *)
-
 (* 0. Name Conversion *)
 
 let convert_resource_name          x = x
@@ -62,6 +59,7 @@ let model_catalog_of_abstract_io
 
   (* Mappings *)
   let component_type = new Component_type_catalog.catalog in (* component types *)
+  let component_type_subs = new Component_type_subs_catalog.catalog in
   let port           = new Port_catalog          .catalog in (* ports *)
   let repository     = new Repository_catalog    .catalog in (* repositories *)
   let package        = new Package_catalog       .catalog in (* packages *)
@@ -72,10 +70,12 @@ let model_catalog_of_abstract_io
 
   (* 1. Universe *)
     (* component_types *)
-  let add_component_type ct = match ct.Abstract_io.component_type_states with
-    | Abstract_io.Without_state _   -> component_type#add (Abstract_io.Component_type_simple ct.Abstract_io.component_type_name)
-    | Abstract_io.With_state states -> List.iter (fun s -> 
-         (component_type#add (Abstract_io.Component_type_state (ct.Abstract_io.component_type_name, s.Abstract_io.state_name)))) states in
+  let add_component_type ct =
+    let name = ct.Abstract_io.component_type_name in
+    match ct.Abstract_io.component_type_states with
+    | Abstract_io.Without_state _   -> component_type_subs#add_id_name_pair name [component_type#get_else_add (Abstract_io.Component_type_simple name)]
+    | Abstract_io.With_state states ->  component_type_subs#add_id_name_pair name (List.map (fun s -> 
+         (component_type#get_else_add (Abstract_io.Component_type_state (name, s.Abstract_io.state_name)))) states) in
     (* ports *)
   let add_component_type_ports ct = (* from components *)
     let add_component_environment_ports ce =
@@ -144,6 +144,7 @@ let model_catalog_of_abstract_io
   (* The meta-catalog object: *)
   new model_catalog 
     ~component_type_catalog: component_type
+    ~component_type_subs_catalog: component_type_subs
     ~port_catalog:           port
     ~repository_catalog:     repository
     ~package_catalog:        package
@@ -299,14 +300,14 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
 
   (* may add erroneous packages and component types *)
   let implementation = 
-    Component_type_id_map.of_list (fun (t, ks) -> 
-      (catalog#component_type#id_of_name (convert_component_type_name t), 
-       Package_id_set.of_list (fun (r, k) -> 
-         let r_name = convert_repository_name r in 
-         catalog#package#id_of_name (catalog#repository#id_of_name r_name, convert_package_name r_name k)
-       ) ks)
-    ) u.Abstract_io.universe_implementation in
-  
+    let l = List.fold_left (fun res (t, ks) ->
+      let s = Package_id_set.of_list (fun (r, k) -> 
+          let r_name = convert_repository_name r in 
+          catalog#package#id_of_name (catalog#repository#id_of_name r_name, convert_package_name r_name k)
+        ) ks in
+      res @ (List.map (fun ct -> (ct, s)) (catalog#component_type_subs#name_of_id t))
+    ) [] u.Abstract_io.universe_implementation in
+    Component_type_id_map.of_assoc_list l in
   new universe 
     ~subports:        subports
     ~supports:        supports

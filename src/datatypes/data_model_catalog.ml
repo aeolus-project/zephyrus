@@ -38,10 +38,25 @@ end
 module Repository_id_package_name_set = Data_common.Set.Make(Repository_id_package_name)
 module Repository_id_package_name_map = Data_common.Map.Make(Repository_id_package_name)
 
+module Component_type_subs = struct
+  type t = Data_model.component_type_id list
+  let compare = Pervasives.compare
+end
 
-
+module Component_type_subs_set = Data_common.Set.Make(Component_type_subs)
+module Component_type_subs_map = Data_common.Map.Make(Component_type_subs)
 
 module Fresh_id = Data_common.Fresh_integer_with_deprecated
+
+module Fresh_string_dummy = struct
+  type t = int
+  type id = string
+  let create    () = 0
+  let current   n  = ""
+  let next      n  = ""
+  let is_used   n s = false
+  let mark_used n s = ()
+end
 
 
 (*/************************************************************************\*)
@@ -51,6 +66,9 @@ module Fresh_id = Data_common.Fresh_integer_with_deprecated
 module Component_type_catalog     = Data_common.Catalog(Fresh_id)
                                       (Data_model.Component_type_id_set)(Abstract_io.Component_type_ref_set)
                                       (Data_model.Component_type_id_map)(Abstract_io.Component_type_ref_map)
+module Component_type_subs_catalog= Data_common.Catalog(Fresh_string_dummy)
+                                      (Abstract_io.Component_type_name_set)(Component_type_subs_set)
+                                      (Abstract_io.Component_type_name_map)(Component_type_subs_map)
 module Port_catalog               = Data_common.Catalog(Fresh_id)
                                       (Data_model.Port_id_set          )(Abstract_io.Port_name_set         )
                                       (Data_model.Port_id_map          )(Abstract_io.Port_name_map         )
@@ -107,6 +125,7 @@ module Component_obj_catalog      = Data_common.Catalog(Fresh_id)
 
 class model_catalog 
   ~component_type_catalog
+  ~component_type_subs_catalog
   ~port_catalog
   ~repository_catalog
   ~package_catalog
@@ -115,26 +134,28 @@ class model_catalog
   ~component_catalog
   = object
   
-  val    component_type_catalog : Component_type_catalog .catalog_iface = component_type_catalog
-  val    port_catalog           : Port_catalog           .catalog_iface = port_catalog
-  val    repository_catalog     : Repository_catalog     .catalog_iface = repository_catalog
-  val    package_catalog        : Package_catalog        .catalog_iface = package_catalog
-  val    resource_catalog       : Resource_catalog       .catalog_iface = resource_catalog
-  val    location_catalog       : Location_catalog       .catalog_iface = location_catalog
-  val    component_catalog      : Component_catalog      .catalog_iface = component_catalog
+  val    component_type_catalog      : Component_type_catalog      .catalog_iface = component_type_catalog
+  val    component_type_subs_catalog : Component_type_subs_catalog .catalog_iface = component_type_subs_catalog
+  val    port_catalog                : Port_catalog                .catalog_iface = port_catalog
+  val    repository_catalog          : Repository_catalog          .catalog_iface = repository_catalog
+  val    package_catalog             : Package_catalog             .catalog_iface = package_catalog
+  val    resource_catalog            : Resource_catalog            .catalog_iface = resource_catalog
+  val    location_catalog            : Location_catalog            .catalog_iface = location_catalog
+  val    component_catalog           : Component_catalog           .catalog_iface = component_catalog
 
-  method component_type         : Component_type_catalog .catalog_iface = component_type_catalog
-  method port                   : Port_catalog           .catalog_iface = port_catalog
-  method repository             : Repository_catalog     .catalog_iface = repository_catalog
-  method package                : Package_catalog        .catalog_iface = package_catalog
-  method resource               : Resource_catalog       .catalog_iface = resource_catalog
-  method location               : Location_catalog       .catalog_iface = location_catalog
-  method component              : Component_catalog      .catalog_iface = component_catalog
-
+  method component_type              : Component_type_catalog      .catalog_iface = component_type_catalog
+  method component_type_subs         : Component_type_subs_catalog .catalog_iface = component_type_subs_catalog
+  method port                        : Port_catalog                .catalog_iface = port_catalog
+  method repository                  : Repository_catalog          .catalog_iface = repository_catalog
+  method package                     : Package_catalog             .catalog_iface = package_catalog
+  method resource                    : Resource_catalog            .catalog_iface = resource_catalog
+  method location                    : Location_catalog            .catalog_iface = location_catalog
+  method component                   : Component_catalog           .catalog_iface = component_catalog
 end
 
 class closed_model_catalog 
   ~component_type_catalog
+  ~component_type_subs_catalog
   ~port_catalog
   ~repository_catalog
   ~package_catalog
@@ -144,6 +165,7 @@ class closed_model_catalog
   = object
   
   val    component_type_catalog : Component_type_catalog .closed_catalog_iface = component_type_catalog
+  val    component_type_subs_catalog : Component_type_subs_catalog .closed_catalog_iface = component_type_subs_catalog
   val    port_catalog           : Port_catalog           .closed_catalog_iface = port_catalog
   val    repository_catalog     : Repository_catalog     .closed_catalog_iface = repository_catalog
   val    package_catalog        : Package_catalog        .closed_catalog_iface = package_catalog
@@ -152,6 +174,7 @@ class closed_model_catalog
   val    component_catalog      : Component_catalog      .closed_catalog_iface = component_catalog
 
   method component_type         : Component_type_catalog .closed_catalog_iface = component_type_catalog
+  method component_type_subs         : Component_type_subs_catalog .closed_catalog_iface = component_type_subs_catalog
   method port                   : Port_catalog           .closed_catalog_iface = port_catalog
   method repository             : Repository_catalog     .closed_catalog_iface = repository_catalog
   method package                : Package_catalog        .closed_catalog_iface = package_catalog
@@ -164,6 +187,7 @@ end
 let close_model_catalog (model_catalog : model_catalog) : closed_model_catalog =
   new closed_model_catalog
     ~component_type_catalog: (Component_type_catalog.close_catalog model_catalog#component_type)
+    ~component_type_subs_catalog: (Component_type_subs_catalog.close_catalog model_catalog#component_type_subs)
     ~port_catalog:           (Port_catalog          .close_catalog model_catalog#port)
     ~repository_catalog:     (Repository_catalog    .close_catalog model_catalog#repository)
     ~package_catalog:        (Package_catalog       .close_catalog model_catalog#package)
