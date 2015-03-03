@@ -111,10 +111,10 @@ spec_expr:
 
 spec_element:
   | LPAREN repository_name COMMA package_name RPAREN       { Abstract_io.SpecElementPackage       ($2, $4) }
-  | component_type_name COLON state_name                   { Abstract_io.SpecElementComponentType (Component_type_state($1, $3)) }
-  | LPAREN component_type_name COLON state_name RPAREN     { Abstract_io.SpecElementComponentType (Component_type_state($1, $3)) }
-  | component_type_name                                    { Abstract_io.SpecElementComponentType (Component_type_simple($1   )) }
-  | LPAREN component_type_name RPAREN                      { Abstract_io.SpecElementComponentType (Component_type_simple($1   )) }
+  | component_type_name COLON state_name                   { Abstract_io.SpecElementComponentType (Abstract_io.Component_type_state($1, $3)) }
+  | LPAREN component_type_name COLON state_name RPAREN     { Abstract_io.SpecElementComponentType (Abstract_io.Component_type_state($2, $4)) }
+  | component_type_name                                    { Abstract_io.SpecElementComponentType (Abstract_io.Component_type_simple($1   )) }
+  | LPAREN component_type_name RPAREN                      { Abstract_io.SpecElementComponentType (Abstract_io.Component_type_simple($2   )) }
   | port_name                                              { Abstract_io.SpecElementPort          ($1) }
   | LPAREN spec_resource_constraints RPAREN 
     LCURLY spec_repository_constraints COLON 
@@ -142,10 +142,10 @@ spec_local_expr:
 
 spec_local_element:
   | LPAREN repository_name COMMA package_name RPAREN   { Abstract_io.SpecLocalElementPackage       ($2, $4) }
-  | component_type_name COLON state_name               { Abstract_io.SpecLocalElementComponentType (Component_type_state($1, $3)) }
-  | LPAREN component_type_name COLON state_name RPAREN { Abstract_io.SpecLocalElementComponentType (Component_type_state($1, $3)) }
-  | component_type_name                                { Abstract_io.SpecLocalElementComponentType (Component_type_simple($1   )) }
-  | LPAREN component_type_name RPAREN                  { Abstract_io.SpecLocalElementComponentType (Component_type_simple($1   )) }
+  | component_type_name COLON state_name               { Abstract_io.SpecLocalElementComponentType (Abstract_io.Component_type_state($1, $3)) }
+  | LPAREN component_type_name COLON state_name RPAREN { Abstract_io.SpecLocalElementComponentType (Abstract_io.Component_type_state($2, $4)) }
+  | component_type_name                                { Abstract_io.SpecLocalElementComponentType (Abstract_io.Component_type_simple($1   )) }
+  | LPAREN component_type_name RPAREN                  { Abstract_io.SpecLocalElementComponentType (Abstract_io.Component_type_simple($2   )) }
   | port_name                                          { Abstract_io.SpecLocalElementPort          ($1) }
   | LPAREN spec_local_element RPAREN                   { $2 }
 

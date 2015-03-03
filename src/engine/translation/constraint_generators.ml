@@ -86,7 +86,7 @@ let provide ~port_ids ~get_subports ~get_providers ~get_requirers ~get_component
           	>=~ 
           (sum (Port_id_set.fold (fun subport_id acc ->                                    (* the sum on all support of port_id *)
                 Component_type_id_set.fold (fun requiring_component_type_id acc ->            (* the sum on all proviers of support_id *)
-                  (eB port_id providing_component_type subport_id requiring_component_type_id)::acc) (get_requirers subnport_id) acc) (get_subports port_id) [])
+                  (eB port_id providing_component_type_id subport_id requiring_component_type_id)::acc) (get_requirers subport_id) acc) (get_subports port_id) [])
           ))::acc
 
       | Infinite_provide -> (* If the component type [providing_component_type] is providing the port [port_id] with an infinite arity: *)

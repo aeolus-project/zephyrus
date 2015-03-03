@@ -132,7 +132,7 @@ type component_stateful = {
   name                            : component_name;
   component_type_workaround 
     <json name="type"> 
-    <ocaml name="component_type"> : component_type_name;
+    <ocaml name="component_stateful_type"> : component_type_name;
   (* This is a little workaround around the little problem, that the word "type" is an ATD keyword. *)
   state                           : state_name; (* in case of statless *)
   location                        : location_name;
@@ -142,7 +142,7 @@ type component_simple = {
   name                            : component_name;
   component_type_workaround 
     <json name="type"> 
-    <ocaml name="component_type"> : component_type_name;
+    <ocaml name="component_simple_type"> : component_type_name;
   (* This is a little workaround around the little problem, that the word "type" is an ATD keyword. *)
   location                        : location_name;
 } <ocaml field_prefix="component_simple_">

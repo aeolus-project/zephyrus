@@ -26,7 +26,7 @@
 *)
 
 open Data_common
-(*open Data_model*)
+open Data_model
 open Data_model_catalog
 
 
@@ -72,19 +72,23 @@ let model_catalog_of_abstract_io
 
   (* 1. Universe *)
     (* component_types *)
-  let add_component_type ct = match ct.Abstract_io.component_type_state with
-    | Without_state _   -> component_type#add (Abstract_io.Component_type_simple ct.Abstract_io.component_type_name)
-    | With_state states -> List.iter (fun s -> 
+  let add_component_type ct = match ct.Abstract_io.component_type_states with
+    | Abstract_io.Without_state _   -> component_type#add (Abstract_io.Component_type_simple ct.Abstract_io.component_type_name)
+    | Abstract_io.With_state states -> List.iter (fun s -> 
          (component_type#add (Abstract_io.Component_type_state (ct.Abstract_io.component_type_name, s.Abstract_io.state_name)))) states in
     (* ports *)
   let add_component_type_ports ct = (* from components *)
-    List.iter port#add (List.map fst ct.Abstract_io.component_type_provide ); (* add provide  ports *)
-    List.iter port#add (List.map fst ct.Abstract_io.component_type_require ); (* add require  ports *)
-    List.iter port#add ct.Abstract_io.component_type_conflict   (* add conflict ports *)
+    let add_component_environment_ports ce =
+      List.iter port#add (List.map fst ce.Abstract_io.provide ); (* add provide  ports *)
+      List.iter port#add (List.map fst ce.Abstract_io.require ); (* add require  ports *)
+      List.iter port#add ce.Abstract_io.conflict   (* add conflict ports *) in
+    match ct.Abstract_io.component_type_states with
+    | Abstract_io.Without_state ce   -> add_component_environment_ports ce
+    | Abstract_io.With_state states -> List.iter (fun s -> add_component_environment_ports s.Abstract_io.state_ports) states
   in
   let add_port_dependency_ports pdep =  (* from port dependencies *)
     port#add pdep.Abstract_io.port_hierarchy_port;
-    List.iter port#add pdep.Abstract_io.port_hierarchy_subport
+    List.iter port#add pdep.Abstract_io.port_hierarchy_subports
   in
     (* repositories *)
   let add_repository r = repository#add (convert_repository_name r.Abstract_io.repository_name) in
@@ -158,7 +162,7 @@ let make_not_found_functions : ('id, 'name) make_not_found_functions =
     and name_not_found (name : 'name) : 'id   = failwith (Printf.sprintf "Load_model loaded catalog error: %s#id_of_name %s" catalog_name (string_of_name name))
   in (id_not_found, name_not_found)
 
-
+(*
 let model_catalog_of_abstract_io_with_exceptions (naming : closed_model_catalog) (make_not_found_functions : make_not_found_functions_workaround) : closed_model_catalog = 
   new closed_model_catalog
     ~component_type_catalog: (new Component_type_catalog .closed_catalog_with_exceptions naming#component_type (make_not_found_functions.workaround "component_type" String_of.component_type_id String_of.component_type_name))
@@ -168,6 +172,8 @@ let model_catalog_of_abstract_io_with_exceptions (naming : closed_model_catalog)
     ~resource_catalog:       (new Resource_catalog       .closed_catalog_with_exceptions naming#resource       (make_not_found_functions.workaround "resource"       String_of.resource_id       String_of.resource_name))
     ~location_catalog:       (new Location_catalog       .closed_catalog_with_exceptions naming#location       (make_not_found_functions.workaround "location"       String_of.location_id       String_of.location_name))
     ~component_catalog:      (new Component_catalog      .closed_catalog_with_exceptions naming#component      (make_not_found_functions.workaround "component"      String_of.component_id      String_of.component_name))
+*)
+let model_catalog_of_abstract_io_with_exceptions (naming : closed_model_catalog) (make_not_found_functions : make_not_found_functions_workaround) : closed_model_catalog = naming
 
 let load_catalog (universe : Abstract_io.universe option) (configuration : Abstract_io.configuration option) : Data_model_catalog.closed_model_catalog = 
   let model_catalog = model_catalog_of_abstract_io universe configuration in 
@@ -210,16 +216,16 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
       (* store the component type *)
       component_types#add_id_obj_pair id new_component_type in
     match t.Abstract_io.component_type_states with
-    | With_state(states) -> List.iter (fun state -> convert_component_type_simple
+    | Abstract_io.With_state(states) -> List.iter (fun state -> convert_component_type_simple
           (catalog#component_type#id_of_name (Abstract_io.Component_type_state (t.Abstract_io.component_type_name, state.Abstract_io.state_name)))
-          ((convert_component_type_name t.Abstract_io.component_type_name) ^ "!" ^ (convert_state_name state.Abstract_io.state_name))
+          (*((convert_component_type_name t.Abstract_io.component_type_name) ^ "!" ^ (convert_state_name state.Abstract_io.state_name))*)()
           (state.Abstract_io.state_ports.Abstract_io.provide)
           (state.Abstract_io.state_ports.Abstract_io.require)
           (state.Abstract_io.state_ports.Abstract_io.conflict)
           (t.Abstract_io.component_type_consume) ) states
-    | Without_state (ce) -> convert_component_type_simple
+    | Abstract_io.Without_state (ce) -> convert_component_type_simple
           (catalog#component_type#id_of_name (Abstract_io.Component_type_simple (t.Abstract_io.component_type_name)))
-          (convert_component_type_name t.Abstract_io.component_type_name)
+          (*(convert_component_type_name t.Abstract_io.component_type_name)*)()
           (ce.Abstract_io.provide)
           (ce.Abstract_io.require)
           (ce.Abstract_io.conflict)
@@ -274,12 +280,12 @@ let convert_universe (catalog : #closed_model_catalog) (u : Abstract_io.universe
 
   (* port dependencies *)
   let convert_port_dependencies l =
-    let subports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
-    let supports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.to_set catalog#port#ids) in
+    let subports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.map_to_list (fun x -> x) catalog#port#ids) in
+    let supports = Port_id_map.of_list (fun p -> (p,ref (Port_id_set.singleton p))) (Port_id_set.map_to_list (fun x -> x) catalog#port#ids) in
     List.iter (fun pdep -> let name_port = catalog#port#id_of_name pdep.Abstract_io.port_hierarchy_port in
         List.iter (fun subport -> let name_subport = catalog#port#id_of_name subport in
-            let s  = Port_id_map.find subports name in s := Port_id_set.add name_subport (!s);
-            let s' = Port_id_map.find supports name_subport in s' := Port_id_set.add name (!s')
+            let s  = Port_id_map.find name_port subports in s := Port_id_set.add name_subport (!s);
+            let s' = Port_id_map.find name_subport supports in s' := Port_id_set.add name_port (!s')
           ) pdep.Abstract_io.port_hierarchy_subports
         ) l;
      (Port_id_map.map (fun x -> !x) subports, Port_id_map.map (fun x -> !x) supports)
@@ -390,11 +396,12 @@ let convert_configuration (catalog : closed_model_catalog) (c : Abstract_io.conf
     
   (* bindings *)
   let convert_binding b =
-    let port     = catalog#port#id_of_name      (convert_port_name      b.Abstract_io.binding_port) in
+    let port_provided = catalog#port#id_of_name      (convert_port_name      b.Abstract_io.binding_port_provided) in
+    let port_required = catalog#port#id_of_name      (convert_port_name      b.Abstract_io.binding_port_required) in
     let requirer = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_requirer) in
     let provider = catalog#component#id_of_name (convert_component_name b.Abstract_io.binding_provider) in 
 
-    new binding ~port ~requirer ~provider in
+    new binding ~port_provided ~provider ~port_required ~requirer in
 
   (* configuration *)
   List.iter convert_location  c.Abstract_io.configuration_locations;

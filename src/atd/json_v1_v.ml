@@ -38,7 +38,7 @@ type port_name = Json_v1_t.port_name
 
 type port_hierarchy = Json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subport (*atd subport *): port_name list
 }
 
 type package_names = Json_v1_t.package_names
@@ -153,6 +153,9 @@ let validate_provide_arity = (
 let validate_port_name = (
   (fun _ _ -> None)
 )
+let validate__1 = (
+  fun _ _ -> None
+)
 let validate_port_hierarchy : _ -> port_hierarchy -> _ = (
   fun _ _ -> None
 )
@@ -169,9 +172,6 @@ let validate__3 = (
   fun _ _ -> None
 )
 let validate__2 = (
-  fun _ _ -> None
-)
-let validate__1 = (
   fun _ _ -> None
 )
 let validate_component_type : _ -> component_type -> _ = (

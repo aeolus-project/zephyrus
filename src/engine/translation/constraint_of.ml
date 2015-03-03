@@ -54,8 +54,8 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
   let package_ids        = universe#get_package_ids in
   let resource_ids       = universe#get_resource_ids in
   
-  let get_subports       = universe#get_subports in
-  let get_supports       = universe#get_supports in
+  let get_subports       = universe#get_sub_ports in
+  let get_supports       = universe#get_sup_ports in
   let get_requirers      = universe#get_requirers in
   let get_providers      = universe#get_providers in
   let get_conflicters    = universe#get_conflicters in

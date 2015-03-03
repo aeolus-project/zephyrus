@@ -207,7 +207,7 @@ class component_type
   val conflict : Port_id_set.t                            = conflict (** With which ports is this component type in conflict. *)
   val consume  : resource_consume_arity Resource_id_map.t = consume  (** Which resources does this component type consume and in what amounts. *)
 
-  method name : string = name  
+(*  method name : string = name   *)
   method provide (p : port_id)     : provide_arity          = try Port_id_map.find p provide with Not_found -> raise (Component_type_provide_port_not_found p)
   method provide_domain            : Port_id_set.t          = Port_id_map_extract_key.set_of_keys provide
   method require (p : port_id)     : require_arity          = try Port_id_map.find p require with Not_found -> raise (Component_type_require_port_not_found p)
@@ -297,23 +297,23 @@ module Repository_map = Map.Make(Repository)
 
 exception Universe_component_type_not_found of component_type_id
 exception Universe_repository_not_found     of repository_id
-exception Universe_port_not_found           of oprt_id
+exception Universe_port_not_found           of port_id
 exception Universe_package_not_found        of package_id
 exception Package_repository_not_found      of package_id
 
 class universe 
-  ?(subports        = Port_id_map.empty)
-  ?(supports        = Port_id_map.empty)
+  ?(subports       = Port_id_map.empty)
+  ?(supports       = Port_id_map.empty)
   ?(packages        = Package_id_map.empty)
   ?(resources       = Resource_id_set.empty)
   ?(component_types = Component_type_id_map.empty)
   ?(implementation  = Component_type_id_map.empty)
   ?(repositories    = Repository_id_map.empty)
-  () = object (self : 'selftype)
+  () = let tmp = subports in object (self : 'selftype)
 
   val subports        : Port_id_set.t Port_id_map.t              = subports
   val supports        : Port_id_set.t Port_id_map.t              = supports
-  val ports           : Port_id_set.t                            = (Port_id_map_extract_key.set_of_keys subports)
+  val ports           : Port_id_set.t                            = (Port_id_map_extract_key.set_of_keys tmp)
   val packages        : package Package_id_map.t                 = packages
   val resources       : Resource_id_set.t                        = resources
   val component_types : component_type Component_type_id_map.t   = component_types (** Component types available in this universe. *)
@@ -335,11 +335,11 @@ class universe
 
   method get_sub_ports  (id : port_id) : Port_id_set.t =
     try Port_id_map.find id subports
-    with Not_found -> raise (Universe_port_not_found p)
+    with Not_found -> raise (Universe_port_not_found id)
 
   method get_sup_ports  (id : port_id) : Port_id_set.t =
     try Port_id_map.find id supports
-    with Not_found -> raise (Universe_port_not_found p)
+    with Not_found -> raise (Universe_port_not_found id)
 
   method get_component_type (id : component_type_id) : component_type =
     try Component_type_id_map.find id component_types 

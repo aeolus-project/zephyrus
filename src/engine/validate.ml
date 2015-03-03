@@ -428,7 +428,7 @@ let configuration_consistency_internal (configuration : configuration) handle_va
 
 
   (* - Bindings - *)
-  Binding_set.iter (fun binding ->
+  Binding_set.iter (fun binding -> (* TODO: fix that validation
     let port_id     = binding#port in
     let requirer_id = binding#requirer in
     let provider_id = binding#provider in
@@ -441,7 +441,7 @@ let configuration_consistency_internal (configuration : configuration) handle_va
     (* Binding_provider_missing *)
     handle_validation
       (Component_id_set.mem provider_id configuration#get_component_ids)
-      (Model_inconsistent (Binding_provider_missing (port_id, requirer_id, provider_id)));
+      (Model_inconsistent (Binding_provider_missing (port_id, requirer_id, provider_id))); *)()
 
   ) configuration#get_bindings
 
@@ -494,7 +494,7 @@ let configuration_consistency_with_universe (universe : universe) (configuration
 
 
   (* - Bindings - *)
-  Binding_set.iter (fun binding ->
+  Binding_set.iter (fun binding -> (* TODO: fix that validation
     let port_id     = binding#port in
     let requirer_id = binding#requirer in
     let provider_id = binding#provider in
@@ -502,7 +502,7 @@ let configuration_consistency_with_universe (universe : universe) (configuration
     (* Binding_port_missing *)
     handle_validation
       (Port_id_set.mem port_id universe#get_port_ids)
-      (Model_inconsistent (Binding_port_missing (port_id, requirer_id, provider_id)));
+      (Model_inconsistent (Binding_port_missing (port_id, requirer_id, provider_id))); *)()
 
   ) configuration#get_bindings
 
@@ -558,7 +558,7 @@ let configuration_validation_flat (universe : universe) (configuration : configu
     (* Require_not_satisfied *)
     Port_id_set.iter (fun provided_port_id ->
       let bindings = Binding_set.filter (fun binding -> 
-        (binding#port = provided_port_id) && (binding#provider = component_id)
+        (binding#port_provided = provided_port_id) && (binding#provider = component_id)
       ) configuration#get_bindings in
 
       handle_validation
@@ -570,7 +570,7 @@ let configuration_validation_flat (universe : universe) (configuration : configu
 
     (* Provide_abused *)
     Port_id_set.iter (fun required_port_id ->
-      let bindings = Binding_set.filter (fun binding -> (binding#port = required_port_id) && (binding#requirer = component_id)) configuration#get_bindings in
+      let bindings = Binding_set.filter (fun binding -> (binding#port_required = required_port_id) && (binding#requirer = component_id)) configuration#get_bindings in
 
       handle_validation
         (component_type#require required_port_id <= Binding_set.cardinal bindings)

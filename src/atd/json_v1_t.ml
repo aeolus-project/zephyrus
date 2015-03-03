@@ -38,7 +38,7 @@ type port_name = string
 
 type port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subport (*atd subport *): port_name list
 }
 
 type package_names = (repository_name * package_name) list

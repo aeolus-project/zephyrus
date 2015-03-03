@@ -74,7 +74,7 @@ let () =
   (* === Load the model === *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
 
-  (* Handle benchmarks. *)
+  (* Handle benchmarks. *) (* TODO: repair benchmark 
   let (benchmark : Benchmarks.benchmark option) =
     Benchmarks.create_benchmark_of_benchmark_settings (Settings.find Settings.benchmark) in
 
@@ -89,7 +89,8 @@ let () =
           let abstract_io_initial_model          = Stateful_converter.To_stateless.initial_model stateful_abstract_io_initial_model in
           (* Zephyrus_log.log_data "stateless converted from stateful ==>\n" (lazy (Printf.sprintf "%s" (Yojson.Safe.prettify (Json_v1_j.string_of_universe (Json_v1.Of_abstract_io.universe (match abstract_io_initial_model.Abstract_io.universe with Some u -> u | None -> failwith "ohh")))))); *)
           abstract_io_initial_model)
-    | Some benchmark -> benchmark#initial_model () ) in
+    | Some benchmark -> benchmark#initial_model () ) in *)
+  let abstract_io_initial_model : Abstract_io.initial_model =Read_abstract_io.from_settings () in
 
   (* Translate the initial model to the internal representation (and create a global id <-> name catalog). *)
   let (catalog, initial_model) = Load_model.initial_model_of_abstract_io_initial_model abstract_io_initial_model in

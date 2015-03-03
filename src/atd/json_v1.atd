@@ -44,7 +44,7 @@ type resource_provide_arity = int (* Better name? *)
 
 type port_hierarchy = {
     port    : port_name;
-    subport : port_name;
+    subport : port_name list;
 } <ocaml field_prefix="port_hierarchy_">
 
 type component_type = {

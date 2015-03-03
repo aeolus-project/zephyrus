@@ -38,7 +38,7 @@ type port_name = Json_v1_t.port_name
 
 type port_hierarchy = Json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subport (*atd subport *): port_name list
 }
 
 type package_names = Json_v1_t.package_names
@@ -712,6 +712,22 @@ let read_port_name = (
 )
 let port_name_of_string s =
   read_port_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
+let write__1 = (
+  Ag_oj_run.write_list (
+    write_port_name
+  )
+)
+let string_of__1 ?(len = 1024) x =
+  let ob = Bi_outbuf.create len in
+  write__1 ob x;
+  Bi_outbuf.contents ob
+let read__1 = (
+  Ag_oj_run.read_list (
+    read_port_name
+  )
+)
+let _1_of_string s =
+  read__1 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_port_hierarchy : _ -> port_hierarchy -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -731,7 +747,7 @@ let write_port_hierarchy : _ -> port_hierarchy -> _ = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"subport\":";
     (
-      write_port_name
+      write__1
     )
       ob x.port_hierarchy_subport;
     Bi_outbuf.add_char ob '}';
@@ -795,7 +811,7 @@ let read_port_hierarchy = (
           | 1 ->
             let v =
               (
-                read_port_name
+                read__1
               ) p lb
             in
             Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -848,7 +864,7 @@ let read_port_hierarchy = (
             | 1 ->
               let v =
                 (
-                  read_port_name
+                  read__1
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -960,8 +976,8 @@ let read_component_type_name = (
 let component_type_name_of_string s =
   read_component_type_name (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__3 = (
-  Ag_oj_run.write_list (
-    write_port_name
+  Ag_oj_run.write_assoc_list (
+    write_require_arity
   )
 )
 let string_of__3 ?(len = 1024) x =
@@ -969,15 +985,15 @@ let string_of__3 ?(len = 1024) x =
   write__3 ob x;
   Bi_outbuf.contents ob
 let read__3 = (
-  Ag_oj_run.read_list (
-    read_port_name
+  Ag_oj_run.read_assoc_list (
+    read_require_arity
   )
 )
 let _3_of_string s =
   read__3 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write__2 = (
   Ag_oj_run.write_assoc_list (
-    write_require_arity
+    write_provide_arity
   )
 )
 let string_of__2 ?(len = 1024) x =
@@ -986,27 +1002,11 @@ let string_of__2 ?(len = 1024) x =
   Bi_outbuf.contents ob
 let read__2 = (
   Ag_oj_run.read_assoc_list (
-    read_require_arity
+    read_provide_arity
   )
 )
 let _2_of_string s =
   read__2 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
-let write__1 = (
-  Ag_oj_run.write_assoc_list (
-    write_provide_arity
-  )
-)
-let string_of__1 ?(len = 1024) x =
-  let ob = Bi_outbuf.create len in
-  write__1 ob x;
-  Bi_outbuf.contents ob
-let read__1 = (
-  Ag_oj_run.read_assoc_list (
-    read_provide_arity
-  )
-)
-let _1_of_string s =
-  read__1 (Yojson.Safe.init_lexer ()) (Lexing.from_string s)
 let write_component_type : _ -> component_type -> _ = (
   fun ob x ->
     Bi_outbuf.add_char ob '{';
@@ -1026,7 +1026,7 @@ let write_component_type : _ -> component_type -> _ = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"provide\":";
     (
-      write__1
+      write__2
     )
       ob x.component_type_provide;
     if !is_first then
@@ -1035,7 +1035,7 @@ let write_component_type : _ -> component_type -> _ = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"require\":";
     (
-      write__2
+      write__3
     )
       ob x.component_type_require;
     if !is_first then
@@ -1044,7 +1044,7 @@ let write_component_type : _ -> component_type -> _ = (
       Bi_outbuf.add_char ob ',';
     Bi_outbuf.add_string ob "\"conflict\":";
     (
-      write__3
+      write__1
     )
       ob x.component_type_conflict;
     if !is_first then
@@ -1151,7 +1151,7 @@ let read_component_type = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__1
+                  read__2
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -1160,7 +1160,7 @@ let read_component_type = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__2
+                  read__3
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 2 (Obj.repr v);
@@ -1169,7 +1169,7 @@ let read_component_type = (
             if not (Yojson.Safe.read_null_if_possible p lb) then (
               let v =
                 (
-                  read__3
+                  read__1
                 ) p lb
               in
               Obj.set_field (Obj.repr x) 3 (Obj.repr v);
@@ -1262,7 +1262,7 @@ let read_component_type = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__1
+                    read__2
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 1 (Obj.repr v);
@@ -1271,7 +1271,7 @@ let read_component_type = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__2
+                    read__3
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 2 (Obj.repr v);
@@ -1280,7 +1280,7 @@ let read_component_type = (
               if not (Yojson.Safe.read_null_if_possible p lb) then (
                 let v =
                   (
-                    read__3
+                    read__1
                   ) p lb
                 in
                 Obj.set_field (Obj.repr x) 3 (Obj.repr v);

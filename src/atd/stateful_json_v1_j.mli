@@ -117,14 +117,16 @@ type component_name = Stateful_json_v1_t.component_name
 
 type component_stateful = Stateful_json_v1_t.component_stateful = {
   component_stateful_name (*atd name *): component_name;
-  component_type (*atd component_type_workaround *): component_type_name;
+  component_stateful_type (*atd component_type_workaround *):
+    component_type_name;
   component_stateful_state (*atd state *): state_name;
   component_stateful_location (*atd location *): location_name
 }
 
 type component_simple = Stateful_json_v1_t.component_simple = {
   component_simple_name (*atd name *): component_name;
-  component_type (*atd component_type_workaround *): component_type_name;
+  component_simple_type (*atd component_type_workaround *):
+    component_type_name;
   component_simple_location (*atd location *): location_name
 }
 

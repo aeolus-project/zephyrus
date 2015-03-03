@@ -36,7 +36,7 @@ val eNk  : package_id                                        -> expression
 val eNlt : location_id -> component_type_id                  -> expression
 val eNlp : location_id -> port_id                            -> expression
 val eNlk : location_id -> package_id                         -> expression
-val eB   : port_id -> component_type_id -> component_type_id -> expression
+val eB   : port_id -> component_type_id -> port_id -> component_type_id -> expression
 val eR   : location_id -> repository_id                      -> expression
 val eO   : location_id -> resource_id                        -> expression
 val eU   : location_id                                       -> expression

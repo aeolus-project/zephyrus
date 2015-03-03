@@ -134,7 +134,7 @@ module type S = sig
 
   val configuration : Data_model.universe -> Data_model.configuration -> string
 
-  val model_catalog : Data_model_catalog.closed_model_catalog -> string
+  (* val model_catalog : Data_model_catalog.closed_model_catalog -> string *)
 end
 
 (** Three printing modules to choose. *)

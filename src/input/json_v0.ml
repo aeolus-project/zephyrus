@@ -59,7 +59,7 @@ module To_abstract_io = struct
   (* 2. Translation of universe *)
   let component_type component_type' = {
     O.component_type_name     = component_type_name     component_type'.I.component_type_name;
-    O.component_type_states   = Without_state({ 
+    O.component_type_states   = O.Without_state({ 
       O.provide  = List.map single_provide component_type'.I.component_type_provide;
       O.require  = List.map single_require component_type'.I.component_type_require;
       O.conflict = List.map port_name      component_type'.I.component_type_conflict;
@@ -167,9 +167,9 @@ module Of_abstract_io = struct
 
   (* 2. Translation of universe *)
   let component_type component_type' =
-    let (provide, require, conflict) = match component_type'.component_type_states with
-      | With_state _ -> raise I.Exception_incompatible_output_format
-      | Without_state(ce) -> (ce.I.provide, ce.I.require, ce.I.conflict) in {
+    let (provide, require, conflict) = match component_type'.I.component_type_states with
+      | I.With_state _ -> raise I.Exception_incompatible_output_format
+      | I.Without_state(ce) -> (ce.I.provide, ce.I.require, ce.I.conflict) in {
     O.component_type_name     = component_type_name     component_type'.I.component_type_name;
     O.component_type_provide  = List.map single_provide provide;
     O.component_type_require  = List.map single_require require;
@@ -217,11 +217,11 @@ module Of_abstract_io = struct
   }
 
   let component component' = 
-    let component_type_name = match component'.I.component_type with
-      | Component_type_state _  -> raise I.Exception_incompatible_output_format
-      | Component_type_simple n -> n in {
+    let name = match component'.I.component_type with
+      | I.Component_type_state _  -> raise I.Exception_incompatible_output_format
+      | I.Component_type_simple n -> n in {
     O.component_name     = component_name      component'.I.component_name;
-    O.component_type     = component_type_name component_type_name;
+    O.component_type     = component_type_name name;
     O.component_location = location_name       component'.I.component_location;
   }
 

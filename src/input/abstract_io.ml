@@ -169,7 +169,6 @@ type location = {
 type component = {
   component_name     : component_name;
   component_type     : component_type_ref;
-  component_state    : state_name;
   component_location : location_name
 }
 

@@ -38,7 +38,7 @@ type port_name = Json_v1_t.port_name
 
 type port_hierarchy = Json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subport (*atd subport *): port_name list
 }
 
 type package_names = Json_v1_t.package_names
@@ -165,7 +165,7 @@ val validate_port_name :
 
 val create_port_hierarchy :
   port_hierarchy_port: port_name ->
-  port_hierarchy_subport: port_name ->
+  port_hierarchy_subport: port_name list ->
   unit -> port_hierarchy
   (** Create a record of type {!port_hierarchy}. *)
 

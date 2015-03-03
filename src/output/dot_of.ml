@@ -133,8 +133,9 @@ let configuration_with_graph_settings (graph_settings : graph_settings) (univers
       Printf.sprintf "%s -> %s;" requirer_id provider_id in
     
     let string_of_binding_with_ports () : string = 
-      let p_name = String_of.port_name (Name_of.port_id b#port) in
-      Printf.sprintf "%s:%s -> %s:%s" requirer_id (required_port_id p_name) provider_id (provided_port_id p_name) in
+      let p_provided_name = String_of.port_name (Name_of.port_id b#port_provided) in
+      let p_required_name = String_of.port_name (Name_of.port_id b#port_required) in
+      Printf.sprintf "%s:%s -> %s:%s" requirer_id (required_port_id p_required_name) provider_id (provided_port_id p_provided_name) in
     
     if graph_settings.show_ports
     then string_of_binding_with_ports ()

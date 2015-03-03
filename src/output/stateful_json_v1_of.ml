@@ -40,6 +40,7 @@ let universe (data_model_universe : Data_model.universe) : string =
 
 let configuration (data_model_universe : Data_model.universe) (data_model_configuration : Data_model.configuration) : string =
   let abstract_io_configuration          = Abstract_io_of.configuration data_model_universe data_model_configuration in
-  let stateful_abstract_io_configuration = Stateful_converter.To_stateful.configuration abstract_io_configuration in
-  let json_configuration                 = Json.Of_abstract_io.configuration stateful_abstract_io_configuration in
+  let json_configuration                 = Json.Of_abstract_io.configuration abstract_io_configuration in
   Yojson.Safe.prettify (Json_j.string_of_configuration json_configuration)
+
+

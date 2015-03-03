@@ -133,7 +133,7 @@ module type S = sig
 
   val configuration : Data_model.universe -> Data_model.configuration -> string
 
-  val model_catalog : Data_model_catalog.closed_model_catalog -> string
+  (* val model_catalog : Data_model_catalog.closed_model_catalog -> string *)
 end
 
 
@@ -321,13 +321,13 @@ module Make =
     | Data_constraint.Package        (k) -> "N(" ^ (location_id l) ^ ", " ^ (package_id k) ^ ")"
 
   let variable v = match v with 
-    | Data_constraint.Simple_variable           (v)       -> spec_variable_name v
-    | Data_constraint.Global_variable           (e)       -> element e
-    | Data_constraint.Local_variable            (l,e)     -> local_element l e
-    | Data_constraint.Binding_variable          (p,t1,t2) -> "B(" ^ (port_id p) ^ ", " ^ (component_type_id t1) ^ ", " ^ (component_type_id t2) ^ ")"
-    | Data_constraint.Local_repository_variable (l,r)     -> "R(" ^ (location_id l) ^ ", " ^ (repository_id r) ^ ")"
-    | Data_constraint.Local_resource_variable   (l,r)     -> "O(" ^ (location_id l) ^ ", " ^ (resource_id r) ^ ")"
-    | Data_constraint.Location_used_variable    (l)       -> "U(" ^ (location_id l) ^ ")"
+    | Data_constraint.Simple_variable           (v)           -> spec_variable_name v
+    | Data_constraint.Global_variable           (e)           -> element e
+    | Data_constraint.Local_variable            (l,e)         -> local_element l e
+    | Data_constraint.Binding_variable          (pp,tp,pr,tr) -> "B(" ^ (port_id pp) ^ ", " ^ (component_type_id tp) ^ ", " ^ (port_id pr) ^ ", " ^ (component_type_id tr) ^ ")"
+    | Data_constraint.Local_repository_variable (l,r)         -> "R(" ^ (location_id l) ^ ", " ^ (repository_id r) ^ ")"
+    | Data_constraint.Local_resource_variable   (l,r)         -> "O(" ^ (location_id l) ^ ", " ^ (resource_id r) ^ ")"
+    | Data_constraint.Location_used_variable    (l)           -> "U(" ^ (location_id l) ^ ")"
 
   let unary_arith_op = function
     | Data_constraint.Abs -> "abs"
@@ -479,7 +479,7 @@ module Make =
 
     String.concat "" location_strings
 
-
+(*
     let model_catalog model_catalog = (* TODO: Not safe, as when we remove names, String_of will use the catalog itself for printing ... *)
 
       let module Component_type_id_map_extract_key   = Data_model.Component_type_id_map  .Set_of_keys(Data_model.Component_type_id_set)     in
@@ -514,7 +514,7 @@ module Make =
         "components";
         string_list (List.map component_id   (Data_model.Component_id_set  .elements model_catalog#component#ids));
         string_list (List.map component_name (Data_model.Component_name_set.elements model_catalog#component#names));
-      ]
+      ] *)
 end
 
 

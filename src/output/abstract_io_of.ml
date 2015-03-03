@@ -48,14 +48,22 @@ let universe (u : universe) =
   let resource_id_list = Resource_id_set.elements u#get_resource_ids in
     
   (* Component types. *)
-  let component_type ct_id = 
+  let component_type ct_id = (* TODO: fix the generation of that component type
     let ct = u#get_component_type ct_id in {
       Abstract_io.component_type_name     = component_type_id ct_id;
       Abstract_io.component_type_provide  = List.map (fun p -> (port_id p, provide_arity (ct#provide p))) (Port_id_set.elements ct#provide_domain);
       Abstract_io.component_type_require  = List.map (fun p -> (port_id p, require_arity (ct#require p))) (Port_id_set.elements ct#require_domain);
       Abstract_io.component_type_conflict = List.map port_id                                              (Port_id_set.elements (ct#conflict));
       Abstract_io.component_type_consume  = List.map (fun r -> (resource_id r, resource_consume_arity (ct#consume r))) resource_id_list
-    } in
+    } *) {
+      Abstract_io.component_type_name     = "toto";
+      Abstract_io.component_type_states = Abstract_io.Without_state ({
+        Abstract_io.provide = [];
+        Abstract_io.require = [];
+        Abstract_io.conflict = []
+      });
+      Abstract_io.component_type_consume = []
+   } in
 
   (* Packages. *)
   let package k_id = 
@@ -107,15 +115,16 @@ let configuration (u : universe) (c : configuration) =
   let component c_id = 
     let c = c#get_component c_id in {
       Abstract_io.component_name     = component_id      c_id;
-      Abstract_io.component_type     = component_type_id c#typ;
+      Abstract_io.component_type     = Abstract_io.Component_type_simple(component_type_id c#typ); (* TODO: Fix, and put the right reference here *)
       Abstract_io.component_location = location_id       c#location
     } in
 
   (* Bindings. *)
   let binding b = {
-      Abstract_io.binding_port     = port_id      b#port;
-      Abstract_io.binding_requirer = component_id b#requirer;
-      Abstract_io.binding_provider = component_id b#provider
+      Abstract_io.binding_port_provided  = port_id      b#port_provided;
+      Abstract_io.binding_provider = component_id b#provider;
+      Abstract_io.binding_port_required  = port_id      b#port_required;
+      Abstract_io.binding_requirer = component_id b#requirer
   } in
 
   (* The configuration: *)
@@ -124,3 +133,5 @@ let configuration (u : universe) (c : configuration) =
     Abstract_io.configuration_components = List.map component (Component_id_set.elements c#get_component_ids);
     Abstract_io.configuration_bindings   = List.map binding   (Binding_set.elements      c#get_bindings)
   }
+
+

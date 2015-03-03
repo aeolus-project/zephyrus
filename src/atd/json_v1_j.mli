@@ -38,7 +38,7 @@ type port_name = Json_v1_t.port_name
 
 type port_hierarchy = Json_v1_t.port_hierarchy = {
   port_hierarchy_port (*atd port *): port_name;
-  port_hierarchy_subport (*atd subport *): port_name
+  port_hierarchy_subport (*atd subport *): port_name list
 }
 
 type package_names = Json_v1_t.package_names
