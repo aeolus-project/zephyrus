@@ -419,5 +419,59 @@ module Int_set_map_match_requirers_with_providers =
   Match_requirers_with_providers(Int_set_map_requirer_provider_types)
 
 
+(***************************************************************)
+(***************************************************************)
+(***************************************************************)
+
+open Data_model
+
+module New_implementation = struct
+
+  (* Extract only solutions that we are interested in *)
+  let extract_binding solution = 
+    Data_constraint.Variable_map.filter (fun v _ -> match v with | Binding_variable _ -> true | _ -> false) solution
+
+  (* INIT: sort the ports in increasing order of dependencies *)
+  let rec sort_ports_rec acc seen unseen get_subports =
+    let new_seen_list = Port_id_set.fold (fun p_id l -> if Port_id_set.subset (get_subports p_id) seen then p_id::l else l) unseen [] in
+    let new_acc = acc @ new_seen_list in
+    let new_seen_set = Port_id_set.of_list_directly new_seen_list in
+    let new_unseen = Port_id_set.diff unseen new_seen_set in
+    if Port_id_set.is_empty new_unseen then new_acc else sort_ports_rec new_acc (Port_id_set.union seen new_seen_set) new_unseen get_subports
+  let sort_port port_id_set get_subports = sort_ports_rec [] Port_id_set.empty port_id_set get_subports
+
+  (* FULL THING: sort the requirement for bindings in the port order*)
+  let sort_binding_requirements solution port_id_set get_subports = 
+    let order = sort_port port_id_set get_subports in
+    List.flatten (List.map (fun p -> Data_constraint.Variable_map.to_assoc_list (
+      Data_constraint.Variable_map.filter (fun v _ -> match v with | Binding_variable(p,_,_,_) -> true | _ -> false ) solution
+    )) order)
+
+  (* sort the providers in decreasing order of provide *)
+  let sort_provider_rec provider_id_set get_capacity =
+    List.sort (fun ct1 ct2 -> (get_capacity ct2) - (get_capacity ct1)) (Component_type_id_set.map_to_list (fun x->x) provider_id_set)
+
+  (* create initial mapping component -> require and provide *)
+  module Component_provide = struct
+    type t = component_id * provide_arity
+    let compare = Pervasives.compare
+  end module Component_provide_set = Data_common.Set.Make(Component_provide)
+  module Component_require = struct
+    type t = component_id * require_arity
+    let compare = Pervasives.compare
+  end module Component_require_set = Data_common.Set.Make(Component_require)
+  let mappings component_id_set port_id_set get_type get_provide get_require =
+    let initial_provide = Port_id_map.of_assoc_list (Port_id_set.map_to_list (fun p -> (p, Component_provide_set.empty)) port_id_set) in
+    let initial_require = Port_id_map.of_assoc_list (Port_id_set.map_to_list (fun p -> (p, Component_require_set.empty)) port_id_set) in
+    Component_id_set.fold (fun c (mp, mr) ->
+      let t = get_type c in let provided = t#provide_domain in let required = t#require_domain in (
+        Port_id_set.fold (fun p mp -> Port_id_map.add p (Component_provide_set.add (c, t#provide p) (Port_id_map.find p mp)) mp) provided mp
+         ,
+        Port_id_set.fold (fun p mr -> Port_id_map.add p (Component_require_set.add (c, t#require p) (Port_id_map.find p mr)) mr) required mr
+    )) component_id_set (initial_provide, initial_require)
+
+
+end
+
 
 
