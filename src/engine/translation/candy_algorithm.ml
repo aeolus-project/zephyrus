@@ -489,12 +489,12 @@ module New_implementation = struct
     let requirers_left_ref : (component_id * require_arity) list ref = ref [] in (* the set of unsatisfy requirers *)
     let res = ref Data_model.Binding_set.empty in (* generated bindings *)
     while (!nb_ref > 0) && (!requirers_ref != []) do
-      match !requirers_ref with (* take one requirer *)
+      match !requirers_ref with (* take one requirer *) (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
       | (requirer_id, nb_required)::l -> (
         let nb_required_ref = ref nb_required in (* reference to the number of required port, because it will change over time *)
         let providers_ref = ref (extract_and_sort_providers port_provided_id !map_ref) in  (* the list of providers, in the right order *)
         while (!nb_ref > 0) && (!providers_ref != []) && (!nb_required_ref > 0) do
-        match !providers_ref with 
+        match !providers_ref with (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
         | (provider_id, nb_provided)::l -> (
           res := Data_model.Binding_set.add (new binding
                ~port_provided: port_provided_id
@@ -532,7 +532,7 @@ module New_implementation = struct
   let res = ref Binding_set.empty in
   (* 5. create the binding corresponding to the solution *)
   while !binding_number_list_ref != [] do
-    match !binding_number_list_ref with
+    match !binding_number_list_ref with (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
     | (Data_constraint.Binding_variable(pp, tp, pr, tr), nb)::l ->
       (* 6. extract the relevant parts of the mappings *)
       let mp_pp = Port_id_map.find pp !map_providers_ref in let mr_pr = Port_id_map.find pr !map_requirers_ref in
@@ -542,7 +542,7 @@ module New_implementation = struct
       let (new_mr_relevant, new_mp_relevant, new_bindings) = 
         generate_binding_from_one_spec pp mp_relevant pr mr_relevant nb in
       (* 8. update the two mappings with the new values *)
-      let merge_fun key v1 v2 = match (v1, v2) with | (_, None) -> v1 | (None, _) -> v2 in
+      let merge_fun key v1 v2 = match (v1, v2) with | (_, None) -> v1 | (_, _) -> v2 in
       let new_mp_pp = Component_id_map.merge merge_fun mp_irrelevant new_mp_relevant in
       let new_mr_pr = Component_id_map.merge merge_fun mr_irrelevant new_mr_relevant in
       map_providers_ref := Port_id_map.add pp new_mp_pp !map_providers_ref;

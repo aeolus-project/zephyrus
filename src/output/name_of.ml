@@ -28,13 +28,13 @@ let catalog_full : Data_model_catalog.closed_model_catalog option ref = ref None
 let set_catalog catalog = catalog_full := catalog
 let get_catalog ()      = !catalog_full
 
-let resource_f       = (string_of_int, (fun catalog -> catalog#resource#name_of_id)      )
-let component_type_f = (string_of_int, (fun catalog -> catalog#component_type#name_of_id))
-let port_f           = (string_of_int, (fun catalog -> catalog#port#name_of_id)          )
-let package_f        = (string_of_int, (fun catalog -> fun package_id -> let (_, package_name) = catalog#package#name_of_id package_id in package_name))
-let repository_f     = (string_of_int, (fun catalog -> catalog#repository#name_of_id)    )
-let location_f       = (string_of_int, (fun catalog -> catalog#location#name_of_id)      )
-let component_f      = (string_of_int, (fun catalog -> catalog#component#name_of_id)     )
+let resource_f       = (string_of_int, (fun catalog x -> Abstract_io.String_of.resource_name (catalog#resource#name_of_id x))       )
+let component_type_f = (string_of_int, (fun catalog x -> Abstract_io.String_of.component_type_ref (catalog#component_type#name_of_id x)) )
+let port_f           = (string_of_int, (fun catalog x -> Abstract_io.String_of.port_name (catalog#port#name_of_id x))          )
+let package_f        = (string_of_int, (fun catalog x -> let (_, y) = catalog#package#name_of_id x in Abstract_io.String_of.package_name y))
+let repository_f     = (string_of_int, (fun catalog x -> Abstract_io.String_of.repository_name (catalog#repository#name_of_id x))    )
+let location_f       = (string_of_int, (fun catalog x -> Abstract_io.String_of.location_name (catalog#location#name_of_id x))      )
+let component_f      = (string_of_int, (fun catalog x -> Abstract_io.String_of.component_name (catalog#component#name_of_id x))     )
 
 let object_name_of_id object_f =
   match get_catalog () with
@@ -43,10 +43,12 @@ let object_name_of_id object_f =
                     (fun id -> if id = -1 then "DEPRECATED" else ((snd object_f) catalog) id)
 
 let resource_id       id = object_name_of_id resource_f id
-(* let component_type_id id = object_name_of_id component_type_f id *)
-let component_type_id id = string_of_int id (* temporary hack, as Jakub wrongly supposed that inputs were always strings ... *)
+let component_type_id id = object_name_of_id component_type_f id
 let port_id           id = object_name_of_id port_f id
 let package_id        id = object_name_of_id package_f id
 let repository_id     id = object_name_of_id repository_f id
 let location_id       id = object_name_of_id location_f id
 let component_id      id = object_name_of_id component_f id
+
+
+

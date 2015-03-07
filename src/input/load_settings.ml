@@ -32,7 +32,7 @@
      2. set the second element of the pair
      3. optional: get the pair (any number of times we need) 
      4. reset the pair 
-  If an operation is performet out of this sequence it causes an exception (or simply an assertion fails). *)
+  If an operation is performed out of this sequence it causes an exception (or simply an assertion fails). *)
 module IncrementalPair: sig
   type ('a, 'b) t
   

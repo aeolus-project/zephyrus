@@ -64,17 +64,6 @@ type component_type_stateful = Stateful_json_v1_t.component_type_stateful = {
     (resource_name * resource_consumption) list
 }
 
-type component_type_simple = Stateful_json_v1_t.component_type_simple = {
-  component_type_simple_name (*atd name *): component_type_name;
-  component_type_simple_provide (*atd provide *):
-    (port_name * provide_arity) list;
-  component_type_simple_require (*atd require *):
-    (port_name * require_arity) list;
-  component_type_simple_conflict (*atd conflict *): port_name list;
-  component_type_simple_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
-
 type component_type = Stateful_json_v1_t.component_type
 
 type component_types = Stateful_json_v1_t.component_types
@@ -152,6 +141,17 @@ type configuration = Stateful_json_v1_t.configuration = {
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
+}
+
+type component_type_simple = Stateful_json_v1_t.component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
 }
 
 val validate_version :
@@ -259,19 +259,6 @@ val create_component_type_stateful :
 val validate_component_type_stateful :
   Ag_util.Validation.path -> component_type_stateful -> Ag_util.Validation.error option
   (** Validate a value of type {!component_type_stateful}. *)
-
-val create_component_type_simple :
-  component_type_simple_name: component_type_name ->
-  ?component_type_simple_provide: (port_name * provide_arity) list ->
-  ?component_type_simple_require: (port_name * require_arity) list ->
-  ?component_type_simple_conflict: port_name list ->
-  ?component_type_simple_consume: (resource_name * resource_consumption) list ->
-  unit -> component_type_simple
-  (** Create a record of type {!component_type_simple}. *)
-
-val validate_component_type_simple :
-  Ag_util.Validation.path -> component_type_simple -> Ag_util.Validation.error option
-  (** Validate a value of type {!component_type_simple}. *)
 
 val validate_component_type :
   Ag_util.Validation.path -> component_type -> Ag_util.Validation.error option
@@ -406,4 +393,17 @@ val create_configuration :
 val validate_configuration :
   Ag_util.Validation.path -> configuration -> Ag_util.Validation.error option
   (** Validate a value of type {!configuration}. *)
+
+val create_component_type_simple :
+  component_type_simple_name: component_type_name ->
+  ?component_type_simple_provide: (port_name * provide_arity) list ->
+  ?component_type_simple_require: (port_name * require_arity) list ->
+  ?component_type_simple_conflict: port_name list ->
+  ?component_type_simple_consume: (resource_name * resource_consumption) list ->
+  unit -> component_type_simple
+  (** Create a record of type {!component_type_simple}. *)
+
+val validate_component_type_simple :
+  Ag_util.Validation.path -> component_type_simple -> Ag_util.Validation.error option
+  (** Validate a value of type {!component_type_simple}. *)
 

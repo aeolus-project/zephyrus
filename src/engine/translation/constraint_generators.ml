@@ -102,12 +102,12 @@ let provide ~port_ids ~get_subports ~get_providers ~get_requirers ~get_component
   ) port_ids []
 
 
-let binding ~port_ids ~get_supports ~get_requirers ~get_providers = 
+let binding ~port_ids ~get_supports ~get_requirers ~get_providers ~get_provide_domain = 
   Zephyrus_log.log_constraint_execution "Compute binding unicitiy\n\n";
   Port_id_set.fold (fun port_id acc ->
     Component_type_id_set.fold (fun requiring_component_type_id acc ->
       Component_type_id_set.fold (fun providing_component_type_id acc ->
-          ((sum (Port_id_set.map_to_list (fun support_id -> eB support_id providing_component_type_id port_id requiring_component_type_id) (get_supports port_id)))
+          ((sum (Port_id_set.map_to_list (fun support_id -> eB support_id providing_component_type_id port_id requiring_component_type_id) (Port_id_set.inter (get_supports port_id) (get_provide_domain providing_component_type_id))))
         <=~
           ((eNt requiring_component_type_id) *~ (eNt providing_component_type_id)))::acc
       ) (get_providers port_id) acc

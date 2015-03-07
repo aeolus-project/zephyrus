@@ -64,17 +64,6 @@ type component_type_stateful = Stateful_json_v1_t.component_type_stateful = {
     (resource_name * resource_consumption) list
 }
 
-type component_type_simple = Stateful_json_v1_t.component_type_simple = {
-  component_type_simple_name (*atd name *): component_type_name;
-  component_type_simple_provide (*atd provide *):
-    (port_name * provide_arity) list;
-  component_type_simple_require (*atd require *):
-    (port_name * require_arity) list;
-  component_type_simple_conflict (*atd conflict *): port_name list;
-  component_type_simple_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
-
 type component_type = Stateful_json_v1_t.component_type
 
 type component_types = Stateful_json_v1_t.component_types
@@ -152,6 +141,17 @@ type configuration = Stateful_json_v1_t.configuration = {
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
+}
+
+type component_type_simple = Stateful_json_v1_t.component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
 }
 
 let validate_version = (
@@ -238,11 +238,8 @@ let validate__5 = (
 let validate_component_type_stateful : _ -> component_type_stateful -> _ = (
   fun _ _ -> None
 )
-let validate_component_type_simple : _ -> component_type_simple -> _ = (
-  fun _ _ -> None
-)
 let validate_component_type = (
-  fun _ _ -> None
+  validate_component_type_stateful
 )
 let validate__7 = (
   fun _ _ -> None
@@ -322,6 +319,9 @@ let validate_configuration : _ -> configuration -> _ = (
       validate_version
     ) (`Field "configuration_version" :: path) x.configuration_version
 )
+let validate_component_type_simple : _ -> component_type_simple -> _ = (
+  fun _ _ -> None
+)
 let create_state 
   ~state_name
   ?(state_initial = false)
@@ -377,20 +377,6 @@ let create_component_type_stateful
     component_type_stateful_name = component_type_stateful_name;
     component_type_stateful_states = component_type_stateful_states;
     component_type_stateful_consume = component_type_stateful_consume;
-  }
-let create_component_type_simple 
-  ~component_type_simple_name
-  ?(component_type_simple_provide = [])
-  ?(component_type_simple_require = [])
-  ?(component_type_simple_conflict = [])
-  ?(component_type_simple_consume = [])
-  () : component_type_simple =
-  {
-    component_type_simple_name = component_type_simple_name;
-    component_type_simple_provide = component_type_simple_provide;
-    component_type_simple_require = component_type_simple_require;
-    component_type_simple_conflict = component_type_simple_conflict;
-    component_type_simple_consume = component_type_simple_consume;
   }
 let create_universe 
   ~universe_version
@@ -483,4 +469,18 @@ let create_configuration
     configuration_locations = configuration_locations;
     configuration_components = configuration_components;
     configuration_bindings = configuration_bindings;
+  }
+let create_component_type_simple 
+  ~component_type_simple_name
+  ?(component_type_simple_provide = [])
+  ?(component_type_simple_require = [])
+  ?(component_type_simple_conflict = [])
+  ?(component_type_simple_consume = [])
+  () : component_type_simple =
+  {
+    component_type_simple_name = component_type_simple_name;
+    component_type_simple_provide = component_type_simple_provide;
+    component_type_simple_require = component_type_simple_require;
+    component_type_simple_conflict = component_type_simple_conflict;
+    component_type_simple_consume = component_type_simple_consume;
   }

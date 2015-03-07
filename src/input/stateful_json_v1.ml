@@ -100,9 +100,12 @@ module To_abstract_io = struct
     O.component_type_consume  = List.map single_consume component_type'.I.component_type_simple_consume;
   }
 
+(*
   let component_type component_type' = match component_type' with
     | `Component_type_simple  (c) -> component_type_simple   c
     | `Component_type_stateful(c) -> component_type_stateful c
+*)
+  let component_type component_type' = component_type_stateful component_type'
 
   let single_depend package_name_list = List.map package_name package_name_list
 
@@ -259,16 +262,16 @@ module Of_abstract_io = struct
     let name    = component_type_name     component_type'.I.component_type_name in
     let consume = List.map single_consume component_type'.I.component_type_consume in
     match component_type'.I.component_type_states with
-    | I.With_state(states) -> `Component_type_stateful {
+    | I.With_state(states) -> {(*`Component_type_stateful {*)
        O.component_type_stateful_name    = name;
        O.component_type_stateful_consume = consume;
        O.component_type_stateful_states  =  List.map state states; }
-    | I.Without_state(ce) -> let (provide, require, conflict) = component_type_environment ce in `Component_type_simple {
+    | I.Without_state(ce) -> failwith "temporary pb"(*let (provide, require, conflict) = component_type_environment ce in `Component_type_simple {
        O.component_type_simple_name     = name;
        O.component_type_simple_consume  = consume;
        O.component_type_simple_provide  = provide;
        O.component_type_simple_require  = require;
-       O.component_type_simple_conflict = conflict; }
+       O.component_type_simple_conflict = conflict; }*)
 
 
   let single_depend package_name_list = List.map package_name package_name_list

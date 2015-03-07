@@ -42,7 +42,7 @@ open Location_bound
 open Dot_of
 
 (* Latest version of JSON syntax is used for internal printing and as a default. *)
-module Json_of = Json_v1_of
+module Json_of = Stateful_json_v1_of
 
 let extract_and_check_option desc o = match o with
   | Some(a) -> a

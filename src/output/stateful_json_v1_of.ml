@@ -28,15 +28,10 @@ module Json   = Stateful_json_v1
 module Json_t = Json.T
 module Json_j = Json.J
 
-(*
-TODO: No universe conversion yet.
-
 let universe (data_model_universe : Data_model.universe) : string =
   let abstract_io_universe          = Abstract_io_of.universe data_model_universe in
-  let stateful_abstract_io_universe = Stateful_converter.To_stateful.universe abstract_io_universe in
-  let json_universe                 = Json.Of_abstract_io.universe stateful_abstract_io_universe in
+  let json_universe                 = Json.Of_abstract_io.universe abstract_io_universe in
   Yojson.Safe.prettify (Json_j.string_of_universe json_universe)
-*)
 
 let configuration (data_model_universe : Data_model.universe) (data_model_configuration : Data_model.configuration) : string =
   let abstract_io_configuration          = Abstract_io_of.configuration data_model_universe data_model_configuration in

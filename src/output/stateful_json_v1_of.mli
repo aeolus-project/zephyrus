@@ -23,7 +23,6 @@
     - datatypes/Data_model
 *)
 
-(*
+
 val universe      : Data_model.universe -> string
-*)
 val configuration : Data_model.universe -> Data_model.configuration -> string

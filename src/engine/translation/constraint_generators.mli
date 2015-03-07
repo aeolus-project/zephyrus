@@ -78,6 +78,7 @@ val binding :
      -> get_supports: (port_id -> Port_id_set.t)
      -> get_requirers:(port_id -> Component_type_id_set.t)
      -> get_providers:(port_id -> Component_type_id_set.t)
+     -> get_provide_domain:(component_type_id -> Port_id_set.t)
      -> konstraint list
 
 (*

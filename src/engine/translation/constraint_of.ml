@@ -59,7 +59,8 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
   let get_requirers      = universe#get_requirers in
   let get_providers      = universe#get_providers in
   let get_conflicters    = universe#get_conflicters in
-  
+  let get_provide_domain component_type_id = (universe#get_component_type component_type_id)#provide_domain in
+
   let get_component_type_require_arity component_type_id = (universe#get_component_type component_type_id)#require in
   let get_component_type_provide_arity component_type_id port_id = 
     let component_type = universe#get_component_type component_type_id in
@@ -86,7 +87,7 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
     Data_state.constraint_universe_component_type_require        = require ~port_ids ~get_supports ~get_requirers   ~get_providers ~get_component_type_require_arity;
     Data_state.constraint_universe_component_type_provide        = provide ~port_ids ~get_subports ~get_providers   ~get_requirers ~get_component_type_provide_arity;
     Data_state.constraint_universe_component_type_conflict       = conflict                       ~port_ids ~get_conflicters ~get_providers;
-    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers   ~get_providers ~get_provide_domain;
     Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
     Data_state.constraint_universe_location_package              = location_package               ~package_ids        ~location_ids;
     Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;
@@ -107,7 +108,7 @@ let universe ?(with_packages = true) (location_ids : Data_model.Location_id_set.
     Data_state.constraint_universe_component_type_require        = require ~port_ids ~get_supports ~get_requirers   ~get_providers ~get_component_type_require_arity;
     Data_state.constraint_universe_component_type_provide        = provide ~port_ids ~get_subports ~get_providers   ~get_requirers ~get_component_type_provide_arity;
     Data_state.constraint_universe_component_type_conflict       = conflict                       ~port_ids ~get_conflicters ~get_providers;
-    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers   ~get_providers;
+    Data_state.constraint_universe_binding_unicity               = binding                        ~port_ids ~get_supports ~get_requirers ~get_providers ~get_provide_domain;
     Data_state.constraint_universe_location_component_type       = location_component_type        ~component_type_ids ~location_ids;
     Data_state.constraint_universe_location_package              = [];
     Data_state.constraint_universe_location_port                 = location_port                  ~port_ids           ~location_ids;

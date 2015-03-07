@@ -266,5 +266,20 @@ type initial_model = {
   optimization_function : optimization_function option;  
 }
 
+module String_of = struct
+  let resource_name       x = x
+  let port_name           x = x
+  let component_type_name x = x
+  let state_name          x = x
+  let package_name        x = x
+  let repository_name     x = x
+  let location_name       x = x
+  let component_name      x = x
+  let component_type_ref  x = match x with
+    | Component_type_simple(n)  -> "c" ^ (component_type_name n)
+    | Component_type_state(n,s) -> "s" ^ (component_type_name n) ^ "_" ^ (state_name s)
+
+end
+
 
 

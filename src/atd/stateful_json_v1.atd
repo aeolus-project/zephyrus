@@ -60,6 +60,7 @@ type component_type_stateful = {
   ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
 } <ocaml field_prefix="component_type_stateful_">
 
+
 type component_type_simple = {
   name                           : component_type_name;
   ~provide  <ocaml default="[]"> : (port_name * provide_arity) list <json repr = "object">;
@@ -68,10 +69,12 @@ type component_type_simple = {
   ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
 } <ocaml field_prefix="component_type_simple_">
 
+(*
 type component_type = [
   | Component_type_simple of component_type_simple
   | Component_type_stateful of component_type_stateful
-]
+]*)
+type component_type = component_type_stateful
 
 type component_types = component_type list
 

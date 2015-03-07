@@ -64,21 +64,7 @@ type component_type_stateful = {
     (resource_name * resource_consumption) list
 }
 
-type component_type_simple = {
-  component_type_simple_name (*atd name *): component_type_name;
-  component_type_simple_provide (*atd provide *):
-    (port_name * provide_arity) list;
-  component_type_simple_require (*atd require *):
-    (port_name * require_arity) list;
-  component_type_simple_conflict (*atd conflict *): port_name list;
-  component_type_simple_consume (*atd consume *):
-    (resource_name * resource_consumption) list
-}
-
-type component_type = [
-    `Component_type_simple of component_type_simple
-  | `Component_type_stateful of component_type_stateful
-]
+type component_type = component_type_stateful
 
 type component_types = component_type list
 
@@ -161,4 +147,15 @@ type configuration = {
   configuration_locations (*atd locations *): location list;
   configuration_components (*atd components *): component list;
   configuration_bindings (*atd bindings *): binding list
+}
+
+type component_type_simple = {
+  component_type_simple_name (*atd name *): component_type_name;
+  component_type_simple_provide (*atd provide *):
+    (port_name * provide_arity) list;
+  component_type_simple_require (*atd require *):
+    (port_name * require_arity) list;
+  component_type_simple_conflict (*atd conflict *): port_name list;
+  component_type_simple_consume (*atd consume *):
+    (resource_name * resource_consumption) list
 }
