@@ -25,13 +25,13 @@
 open Data_model
 
 
-let component_type_id = Name_of.component_type_id
-let port_id           = Name_of.port_id
-let resource_id       = Name_of.resource_id
-let package_id        = Name_of.package_id
-let repository_id     = Name_of.repository_id
-let location_id       = Name_of.location_id
-let component_id      = Name_of.component_id
+let component_type_id = Data_state.component_type
+let port_id           = Data_state.port
+let resource_id       = Data_state.resource
+let package_id        = Data_state.package
+let repository_id     = Data_state.repository
+let location_id       = Data_state.location
+let component_id      = Data_state.component
 
 let provide_arity          x = match x with Infinite_provide -> Abstract_io.InfiniteProvide | Finite_provide(i) -> Abstract_io.FiniteProvide(i)
 let require_arity          x = x
@@ -89,7 +89,7 @@ let universe (u : universe) =
   (* The universe: *)
   {
     Abstract_io.universe_component_types = List.map component_type                     (Component_type_id_set.elements u#get_component_type_ids);
-    Abstract_io.universe_implementation  = List.map implementation_of_a_component_type (Component_type_id_set.elements u#get_component_type_ids);
+    Abstract_io.universe_implementation  = [](*List.map implementation_of_a_component_type (Component_type_id_set.elements u#get_component_type_ids)*);
     Abstract_io.universe_repositories    = List.map repository                         (Repository_id_set    .elements u#get_repository_ids);
     Abstract_io.universe_port_hierarchy  = []; (* TODO *)
   }
@@ -115,7 +115,7 @@ let configuration (u : universe) (c : configuration) =
   let component c_id = 
     let c = c#get_component c_id in {
       Abstract_io.component_name     = component_id      c_id;
-      Abstract_io.component_type     = Abstract_io.Component_type_simple(component_type_id c#typ); (* TODO: Fix, and put the right reference here *)
+      Abstract_io.component_type     = component_type_id c#typ;
       Abstract_io.component_location = location_id       c#location
     } in
 

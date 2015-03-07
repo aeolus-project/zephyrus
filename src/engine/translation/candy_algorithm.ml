@@ -509,6 +509,7 @@ module New_implementation = struct
 
   (* generating the binding specified by a variable B(pp, tp, pr, tr) *)
   let generate_binding_from_one_spec
+      res              (* reference to the set of already computed bindings *)
       port_provided_id (* the providing port used by the binding *)
       mp               (* mapping of component of the right type to how many provide they have on that port *)
       port_required_id (* the requiring port used by the binding *)
@@ -518,7 +519,7 @@ module New_implementation = struct
     let nb_ref = ref nb_binding in  (* reference to the number of bindings to create, because it will change over time *)
     let requirers_ref = ref (Component_id_map.to_assoc_list mr) in (* the requirers that we will (partially) satisfy *)
     let requirers_left_ref : (component_id * require_arity) list ref = ref [] in (* the set of unsatisfy requirers *)
-    let res = ref Data_model.Binding_set.empty in (* generated bindings *)
+    (*let res = ref Data_model.Binding_set.empty in (* generated bindings *)*)
     while (!nb_ref > 0) && (!requirers_ref != []) do
       match !requirers_ref with (* take one requirer *) (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
       | (requirer_id, nb_required)::l -> (
@@ -528,15 +529,17 @@ module New_implementation = struct
         match !providers_ref with (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
         | (provider_id, nb_provided)::l -> (
           providers_ref := l;
-          res := Data_model.Binding_set.add (new binding
-               ~port_provided: port_provided_id
-               ~provider:      provider_id
-               ~port_required: port_required_id
-               ~requirer:      requirer_id
-            ) !res; (* add the new binding to the set *)
-          nb_ref := !nb_ref - 1; nb_required_ref := !nb_required_ref - 1; (* update values *)
-          map_ref := Component_id_map.add provider_id (PArity.minus nb_provided PArity.one) !map_ref (* update map *)
-        ) done; (* now, update requirers_left_ref -- when the component is entirely satisfied, it is mapped to 0 and that will be then transfered to the mapping *)
+          (* this is done only if there doesn't exists already a binding (_,cp,pr,cr) *)
+          if(Data_model.Binding_set.is_empty (Data_model.Binding_set.filter (fun b -> (b#provider = provider_id) && (b#port_required = port_required_id) && (b#requirer = requirer_id)) !res)) then (
+            res := Data_model.Binding_set.add (new binding
+                 ~port_provided: port_provided_id
+                 ~provider:      provider_id
+                 ~port_required: port_required_id
+                 ~requirer:      requirer_id
+              ) !res; (* add the new binding to the set *)
+            nb_ref := !nb_ref - 1; nb_required_ref := !nb_required_ref - 1; (* update values *)
+            map_ref := Component_id_map.add provider_id (PArity.minus nb_provided PArity.one) !map_ref (* update map *)
+        )) done; (* now, update requirers_left_ref -- when the component is entirely satisfied, it is mapped to 0 and that will be then transfered to the mapping *)
         requirers_left_ref := (requirer_id, !nb_required_ref)::(!requirers_left_ref)
     ) done;  ((* now we need to compute the result *)
      List.fold_left (fun map (requirer_id, nb_required) -> Component_id_map.add requirer_id nb_required map)
@@ -580,7 +583,7 @@ module New_implementation = struct
       let (mr_relevant, mr_irrelevant) = partition_component_from_type mr_pr tr get_type_id in
       (* 7. generate the bindings for that B(pp, tp, pr, tr) *)
       let (new_mr_relevant, new_mp_relevant, new_bindings) = 
-        generate_binding_from_one_spec pp mp_relevant pr mr_relevant nb in
+        generate_binding_from_one_spec res pp mp_relevant pr mr_relevant nb in
       (* 8. update the two mappings with the new values *)
       let merge_fun key v1 v2 = match (v1, v2) with | (_, None) -> v1 | (_, _) -> v2 in
       let new_mp_pp = Component_id_map.merge merge_fun mp_irrelevant new_mp_relevant in

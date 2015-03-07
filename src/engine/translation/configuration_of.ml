@@ -431,7 +431,7 @@ let solution (catalog : Data_model_catalog.closed_model_catalog option) (univers
                               ~location_catalog:       catalog#location
                               ~component_catalog:      (Component_catalog.close_catalog component_catalog))) in
 
-  Name_of.set_catalog updated_catalog;
+  Data_state.set_catalog updated_catalog;
 
   let component_obj_catalog : Component_obj_catalog.obj_catalog_iface = Component_obj_catalog.of_set_of_objs component_set in
 

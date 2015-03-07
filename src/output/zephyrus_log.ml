@@ -27,10 +27,10 @@
 let out_channel = stdout
 
 (* core logging *)
-let log_panic str = Output_helper.println out_channel ("Zephyrus panic: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(23)
-let log_error str = Output_helper.println out_channel ("Zephyrus error: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(14)
+let log_panic str   = Output_helper.println out_channel ("Zephyrus panic: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(23)
+let log_error str   = Output_helper.println out_channel ("Zephyrus error: " ^ str ^ "\n\nExiting\n"); flush out_channel; exit(14)
 let log_warning str = Output_helper.print out_channel ("Zephyrus warning: " ^ str); flush out_channel
-let log_normal str = Output_helper.print out_channel str
+let log_normal str  = Output_helper.print out_channel str; flush out_channel
 
 (* stage logging *)
 module Stage =

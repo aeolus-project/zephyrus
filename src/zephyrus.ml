@@ -71,6 +71,7 @@ let () =
   Load_settings.load ();
   Zephyrus_log.log_settings ();
 
+
   (* === Load the model === *)
   Zephyrus_log.log_stage_new "LOAD SECTION";
 
@@ -96,7 +97,7 @@ let () =
   let (catalog, initial_model) = Load_model.initial_model_of_abstract_io_initial_model abstract_io_initial_model in
 
   (* Set the global id <-> name catalog. *)
-  Name_of.set_catalog (Some catalog);
+  Data_state.set_catalog (Some catalog);
 
   (* In every mode we need at least the universe and an initial configuration. *)
   let universe              = extract_and_check_option "universe"              initial_model.universe in

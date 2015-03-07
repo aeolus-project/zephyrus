@@ -1,5 +1,7 @@
 # Input
 
+verbose-level = 3
+
 input-stateful = y
 
 input-file-universe         = "tests/stateful-u-1.json"

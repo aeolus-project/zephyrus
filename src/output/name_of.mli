@@ -25,7 +25,7 @@
     - datatypes/Data_helper
 *)
 
-val set_catalog : Data_model_catalog.closed_model_catalog option -> unit
+(*val set_catalog : Data_model_catalog.closed_model_catalog option -> unit*)
 
 val resource_id       : Data_model.resource_id       -> string
 val port_id           : Data_model.port_id           -> string

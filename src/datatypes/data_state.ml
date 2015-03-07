@@ -30,6 +30,29 @@
 open Data_common
 open Data_model
 
+
+let catalog_full : Data_model_catalog.closed_model_catalog option ref = ref None
+
+exception Toto_exception
+
+let set_catalog catalog = catalog_full := catalog
+let monad f = match !catalog_full with
+  | None -> failwith "missing catalog"
+  | Some(catalog) -> f catalog
+
+
+let resource       x = monad (fun catalog -> catalog#resource#name_of_id x)
+let component_type x = monad (fun catalog -> catalog#component_type#name_of_id x)
+let port           x = monad (fun catalog -> catalog#port#name_of_id x)
+let package        x = monad (fun catalog -> snd(catalog#package#name_of_id x))
+let repository     x = monad (fun catalog -> catalog#repository#name_of_id x)
+let location       x = monad (fun catalog -> catalog#location#name_of_id x)
+let component      x = monad (fun catalog -> catalog#component#name_of_id x)
+
+
+
+
+
 (** Constraints *)
 
 open Data_constraint (* warning, type name clash with optimization_function coming from Data_model *)

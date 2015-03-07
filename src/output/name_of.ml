@@ -23,32 +23,27 @@
 *)
 
 (** The global catalog of id <-> name correspondence. *)
-let catalog_full : Data_model_catalog.closed_model_catalog option ref = ref None
 
-let set_catalog catalog = catalog_full := catalog
-let get_catalog ()      = !catalog_full
 
-let resource_f       = (string_of_int, (fun catalog x -> Abstract_io.String_of.resource_name (catalog#resource#name_of_id x))       )
-let component_type_f = (string_of_int, (fun catalog x -> Abstract_io.String_of.component_type_ref (catalog#component_type#name_of_id x)) )
-let port_f           = (string_of_int, (fun catalog x -> Abstract_io.String_of.port_name (catalog#port#name_of_id x))          )
-let package_f        = (string_of_int, (fun catalog x -> let (_, y) = catalog#package#name_of_id x in Abstract_io.String_of.package_name y))
-let repository_f     = (string_of_int, (fun catalog x -> Abstract_io.String_of.repository_name (catalog#repository#name_of_id x))    )
-let location_f       = (string_of_int, (fun catalog x -> Abstract_io.String_of.location_name (catalog#location#name_of_id x))      )
-let component_f      = (string_of_int, (fun catalog x -> Abstract_io.String_of.component_name (catalog#component#name_of_id x))     )
+(*let get_catalog ()      = !Data_state.catalog_full*)
+let monad (f1, f2) v = try f2 v with | Not_found -> f1 v
 
-let object_name_of_id object_f =
-  match get_catalog () with
-  | None         -> (fst object_f)
-  | Some catalog -> (* TODO: This is a dirty hack, we should just handle deprecated stuff better. *)
-                    (fun id -> if id = -1 then "DEPRECATED" else ((snd object_f) catalog) id)
+let resource_f       = (string_of_int, (fun x -> Abstract_io.String_of.resource_name (Printf.printf "DEBUG: Name_of 40\n"; flush stdout; Data_state.resource x)))
+let component_type_f = (string_of_int, (fun x -> Abstract_io.String_of.component_type_ref (Data_state.component_type x)))
+let port_f           = (string_of_int, (fun x -> Abstract_io.String_of.port_name (Data_state.port x)))
+let package_f        = (string_of_int, (fun x -> Abstract_io.String_of.package_name (Data_state.package x)))
+let repository_f     = (string_of_int, (fun x -> Abstract_io.String_of.repository_name (Data_state.repository x)))
+let location_f       = (string_of_int, (fun x -> Abstract_io.String_of.location_name (Data_state.location x)))
+let component_f      = (string_of_int, (fun x -> Abstract_io.String_of.component_name (Data_state.component x)))
 
-let resource_id       id = object_name_of_id resource_f id
-let component_type_id id = object_name_of_id component_type_f id
-let port_id           id = object_name_of_id port_f id
-let package_id        id = object_name_of_id package_f id
-let repository_id     id = object_name_of_id repository_f id
-let location_id       id = object_name_of_id location_f id
-let component_id      id = object_name_of_id component_f id
+
+let resource_id       id = monad resource_f id
+let component_type_id id = monad component_type_f id
+let port_id           id = monad port_f id
+let package_id        id = monad package_f id
+let repository_id     id = monad repository_f id
+let location_id       id = monad location_f id
+let component_id      id = monad component_f id
 
 
 
