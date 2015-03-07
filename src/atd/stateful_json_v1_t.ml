@@ -112,23 +112,7 @@ type component_stateful = {
   component_stateful_location (*atd location *): location_name
 }
 
-type component_simple = {
-  component_simple_name (*atd name *): component_name;
-  component_simple_type (*atd component_type_workaround *):
-    component_type_name;
-  component_simple_location (*atd location *): location_name
-}
-
-type component = [
-    `Component_simple of component_simple
-  | `Component_stateful of component_stateful
-]
-
-type binding_simple = {
-  binding_simple_port (*atd port *): port_name;
-  binding_simple_requirer (*atd requirer *): component_name;
-  binding_simple_provider (*atd provider *): component_name
-}
+type component = component_stateful
 
 type binding_hierarchical = {
   binding_hierarchical_port_required (*atd port_required *): port_name;
@@ -137,10 +121,7 @@ type binding_hierarchical = {
   binding_hierarchical_provider (*atd provider *): component_name
 }
 
-type binding = [
-    `Binding_hierarchical of binding_hierarchical
-  | `Binding_simple of binding_simple
-]
+type binding = binding_hierarchical
 
 type configuration = {
   configuration_version (*atd version *): version;
@@ -158,4 +139,17 @@ type component_type_simple = {
   component_type_simple_conflict (*atd conflict *): port_name list;
   component_type_simple_consume (*atd consume *):
     (resource_name * resource_consumption) list
+}
+
+type component_simple = {
+  component_simple_name (*atd name *): component_name;
+  component_simple_type (*atd component_type_workaround *):
+    component_type_name;
+  component_simple_location (*atd location *): location_name
+}
+
+type binding_simple = {
+  binding_simple_port (*atd port *): port_name;
+  binding_simple_requirer (*atd requirer *): component_name;
+  binding_simple_provider (*atd provider *): component_name
 }

@@ -427,13 +427,44 @@ open Data_model
 
 module New_implementation = struct
 
+  module PArity = struct
+    open Data_model
+
+    let minusone = Finite_provide (-1)
+    let zero     = Finite_provide 0
+    let one      = Finite_provide 1
+    let infty    = Infinite_provide
+
+    let of_int n = Finite_provide n
+    let of_provide_arity p = match p with | Finite_provide(n) -> of_int n | Infinite_provide -> infty
+    let of_require_arity = of_int
+    let of_resource_consume_arity = of_int
+    let of_resource_provide_arity = of_int
+
+    let minus v1 v2 = match (v1,v2) with
+      | (Finite_provide n1, Finite_provide n2) -> of_int (n1 - n2)
+      | (Finite_provide _ , _              ) -> minusone
+      | (_              , Finite_provide _ ) -> infty
+      | _  -> zero
+
+    let to_finite_value v = match v with
+      | Finite_provide v -> v
+      | Infinite_provide -> 1
+
+
+    let toString v = match v with
+      | Finite_provide n -> string_of_int n
+      | Infinite_provide -> "infty"
+  end
+
+
   (* Extract only solutions that we are interested in *) (* a little bit useless *)
   let extract_binding solution = 
     Data_constraint.Variable_map.filter (fun v _ -> match v with | Data_constraint.Binding_variable _ -> true | _ -> false) solution
 
   (* INIT: sort the ports in increasing order of dependencies *)
-  let rec sort_ports_rec acc seen unseen get_subports =
-    let new_seen_list = Port_id_set.fold (fun p_id l -> if Port_id_set.subset (get_subports p_id) seen then p_id::l else l) unseen [] in
+  let rec sort_ports_rec acc seen unseen get_subports = (* acc is the list of port *) (* seen is the set of all the port in acc *) (*  unseen is the set left to parse *)
+    let new_seen_list = Port_id_set.fold (fun p_id l -> if Port_id_set.subset (get_subports p_id) (Port_id_set.add p_id seen) then p_id::l else l) unseen [] in
     let new_acc = acc @ new_seen_list in
     let new_seen_set = Port_id_set.of_list_directly new_seen_list in
     let new_unseen = Port_id_set.diff unseen new_seen_set in
@@ -447,9 +478,9 @@ module New_implementation = struct
       Data_constraint.Variable_map.filter (fun v _ -> match v with | Data_constraint.Binding_variable(p,_,_,_) -> true | _ -> false ) solution
     )) order)
 
-  (* sort the providers in decreasing order of provide *)
+  (*(* sort the providers in decreasing order of provide *)
   let sort_provider_rec provider_id_set get_capacity =
-    List.sort (fun ct1 ct2 -> (get_capacity ct2) - (get_capacity ct1)) (Component_type_id_set.map_to_list (fun x->x) provider_id_set)
+    List.sort (fun ct1 ct2 -> PArity.minus (get_capacity ct2) (get_capacity ct1)) (Component_type_id_set.map_to_list (fun x->x) provider_id_set)*)
 
   (* create initial mapping component -> require and provide *)
   module Component_provide = struct
@@ -461,7 +492,7 @@ module New_implementation = struct
     let compare = Pervasives.compare
   end module Component_require_set = Data_common.Set.Make(Component_require)
 
-  let mappings component_id_set port_id_set get_type get_provide get_require =
+  let mappings component_id_set port_id_set get_type =
     let initial_provide = Port_id_map.of_assoc_list (Port_id_set.map_to_list (fun p -> (p, Component_id_map.empty)) port_id_set) in
     let initial_require = Port_id_map.of_assoc_list (Port_id_set.map_to_list (fun p -> (p, Component_id_map.empty)) port_id_set) in
     Component_id_set.fold (fun c (mp, mr) ->
@@ -474,7 +505,7 @@ module New_implementation = struct
   (* extract and sort the provider from a mapping *)
   let extract_and_sort_providers port_id mp =
     let l = Component_id_map.to_assoc_list mp in
-    List.sort (fun (_, n1) (_, n2) -> n2 - n1) l
+    List.sort (fun (_, n1) (_, n2) -> PArity.to_finite_value (PArity.minus n2 n1)) l
 
   (* generating the binding specified by a variable B(pp, tp, pr, tr) *)
   let generate_binding_from_one_spec
@@ -496,6 +527,7 @@ module New_implementation = struct
         while (!nb_ref > 0) && (!providers_ref != []) && (!nb_required_ref > 0) do
         match !providers_ref with (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
         | (provider_id, nb_provided)::l -> (
+          providers_ref := l;
           res := Data_model.Binding_set.add (new binding
                ~port_provided: port_provided_id
                ~provider:      provider_id
@@ -503,7 +535,7 @@ module New_implementation = struct
                ~requirer:      requirer_id
             ) !res; (* add the new binding to the set *)
           nb_ref := !nb_ref - 1; nb_required_ref := !nb_required_ref - 1; (* update values *)
-          map_ref := Component_id_map.add provider_id (nb_provided - 1) !map_ref (* update map *)
+          map_ref := Component_id_map.add provider_id (PArity.minus nb_provided PArity.one) !map_ref (* update map *)
         ) done; (* now, update requirers_left_ref -- when the component is entirely satisfied, it is mapped to 0 and that will be then transfered to the mapping *)
         requirers_left_ref := (requirer_id, !nb_required_ref)::(!requirers_left_ref)
     ) done;  ((* now we need to compute the result *)
@@ -518,22 +550,30 @@ module New_implementation = struct
 
 
   (* full algorithm *)
-  let binding_generation solution port_id_set get_subports component_id_set get_type_id get_component_type_from_id get_provide get_require =
+  let binding_generation solution port_id_set get_subports component_id_set get_type_id get_component_type_from_id =
   (* 1. trim the solution *)
+  Printf.printf "Trimming the solution\n"; flush stdout;
   let solution = extract_binding solution in
   (* 2. order the solution *)
+  Printf.printf "Ordering the solution\n"; flush stdout;
   let binding_number_list_ref = ref (sort_binding_requirements solution port_id_set get_subports) in
   (* 3. create the mappings *)
   let get_type_directly c = get_component_type_from_id (get_type_id c) in
-  let (mp, mr) = mappings component_id_set port_id_set get_type_directly get_provide get_require in
+  Printf.printf "Computing initial mappings\n"; flush stdout;
+  let (mp, mr) = mappings component_id_set port_id_set get_type_directly in
   let map_providers_ref = ref mp in
   let map_requirers_ref = ref mr in
+  Printf.printf "Initialization done\n"; flush stdout;
+  Printf.printf "mp = [%s]\n" (String.concat ", " (List.flatten (Port_id_map.to_list (fun (p,m) -> ((Component_id_map.to_list (fun (c,v) -> "(" ^ (string_of_int p) ^ ", " ^ (string_of_int c) ^ ", " ^ (PArity.toString v)  ^ ")") m))) mp))); flush stdout;
+  Printf.printf "mr = [%s]\n" (String.concat ", " (List.flatten (Port_id_map.to_list (fun (p,m) -> ((Component_id_map.to_list (fun (c,v) -> "(" ^ (string_of_int p) ^ ", " ^ (string_of_int c) ^ ", " ^ (string_of_int v)  ^ ")") m))) mr))); flush stdout;
+  Printf.printf "bindings = [%s]\n" (String.concat ", " (List.map (fun (v,n) -> match v with | Data_constraint.Binding_variable(pp,tp,pr,tr) -> Printf.sprintf "B(%i, %i, %i, %i)=%i" pp tp pr tr n) !binding_number_list_ref)); flush stdout;
   (* 4. initialize set of bindings *)
   let res = ref Binding_set.empty in
   (* 5. create the binding corresponding to the solution *)
   while !binding_number_list_ref != [] do
     match !binding_number_list_ref with (* WARNING: Not exhaustive => it's ok, it's been checked in the while loop *)
     | (Data_constraint.Binding_variable(pp, tp, pr, tr), nb)::l ->
+      binding_number_list_ref := l;
       (* 6. extract the relevant parts of the mappings *)
       let mp_pp = Port_id_map.find pp !map_providers_ref in let mr_pr = Port_id_map.find pr !map_requirers_ref in
       let (mp_relevant, mp_irrelevant) = partition_component_from_type mp_pp tp get_type_id in

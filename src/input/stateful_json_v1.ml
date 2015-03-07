@@ -105,7 +105,7 @@ module To_abstract_io = struct
     | `Component_type_simple  (c) -> component_type_simple   c
     | `Component_type_stateful(c) -> component_type_stateful c
 *)
-  let component_type component_type' = component_type_stateful component_type'
+  let component_type = component_type_stateful
 
   let single_depend package_name_list = List.map package_name package_name_list
 
@@ -168,9 +168,10 @@ module To_abstract_io = struct
     O.component_location = location_name       component'.I.component_simple_location;
   }
 
-  let component component' = match component' with
+  (* let component component' = match component' with
   | `Component_simple  (c) -> component_simple   c
-  | `Component_stateful(c) -> component_stateful c
+  | `Component_stateful(c) -> component_stateful c *)
+  let component = component_stateful
   
 
   let binding_hierarchical binding' = {
@@ -187,9 +188,10 @@ module To_abstract_io = struct
     O.binding_provider      = component_name binding'.I.binding_simple_provider;
   }
 
-  let binding binding' = match binding' with
+  (* let binding binding' = match binding' with
   | `Binding_hierarchical(b) -> binding_hierarchical b
-  | `Binding_simple      (b) -> binding_simple b
+  | `Binding_simple      (b) -> binding_simple b *)
+  let binding  = binding_hierarchical
 
   let configuration configuration' = {
     O.configuration_locations  = List.map location  configuration'.I.configuration_locations;
@@ -266,7 +268,7 @@ module Of_abstract_io = struct
        O.component_type_stateful_name    = name;
        O.component_type_stateful_consume = consume;
        O.component_type_stateful_states  =  List.map state states; }
-    | I.Without_state(ce) -> failwith "temporary pb"(*let (provide, require, conflict) = component_type_environment ce in `Component_type_simple {
+    | I.Without_state(ce) -> failwith "Unsupported universe syntax version! (stateful_json_v1 line 271)"(*let (provide, require, conflict) = component_type_environment ce in `Component_type_simple {
        O.component_type_simple_name     = name;
        O.component_type_simple_consume  = consume;
        O.component_type_simple_provide  = provide;
@@ -327,18 +329,18 @@ module Of_abstract_io = struct
     let name     = component_name      component'.I.component_name in
     let location = location_name       component'.I.component_location in
     match component'.I.component_type with
-    | I.Component_type_simple(n)    -> `Component_simple {
+    | I.Component_type_simple(n)    -> failwith "Unsupported universe syntax version! (stateful_json_v1 line 332)" (*`Component_simple {
       O.component_simple_name     = name;
       O.component_simple_type     = component_type_name n;
-      O.component_simple_location = location; }      
-    | I.Component_type_state (n, s) -> `Component_stateful {
+      O.component_simple_location = location; }*)      
+    | I.Component_type_state (n, s) -> (*`Component_stateful*) {
       O.component_stateful_name     = name;
       O.component_stateful_type     = component_type_name n;
       O.component_stateful_state    = state_name          s;
       O.component_stateful_location = location; }
 
 
-  let binding binding' = `Binding_hierarchical {
+  let binding binding' = (*`Binding_hierarchical*) {
     O.binding_hierarchical_port_provided = port_name      binding'.I.binding_port_provided;
     O.binding_hierarchical_port_required = port_name      binding'.I.binding_port_required;
     O.binding_hierarchical_requirer      = component_name binding'.I.binding_requirer;

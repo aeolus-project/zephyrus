@@ -112,20 +112,7 @@ type component_stateful = Stateful_json_v1_t.component_stateful = {
   component_stateful_location (*atd location *): location_name
 }
 
-type component_simple = Stateful_json_v1_t.component_simple = {
-  component_simple_name (*atd name *): component_name;
-  component_simple_type (*atd component_type_workaround *):
-    component_type_name;
-  component_simple_location (*atd location *): location_name
-}
-
 type component = Stateful_json_v1_t.component
-
-type binding_simple = Stateful_json_v1_t.binding_simple = {
-  binding_simple_port (*atd port *): port_name;
-  binding_simple_requirer (*atd requirer *): component_name;
-  binding_simple_provider (*atd provider *): component_name
-}
 
 type binding_hierarchical = Stateful_json_v1_t.binding_hierarchical = {
   binding_hierarchical_port_required (*atd port_required *): port_name;
@@ -152,6 +139,19 @@ type component_type_simple = Stateful_json_v1_t.component_type_simple = {
   component_type_simple_conflict (*atd conflict *): port_name list;
   component_type_simple_consume (*atd consume *):
     (resource_name * resource_consumption) list
+}
+
+type component_simple = Stateful_json_v1_t.component_simple = {
+  component_simple_name (*atd name *): component_name;
+  component_simple_type (*atd component_type_workaround *):
+    component_type_name;
+  component_simple_location (*atd location *): location_name
+}
+
+type binding_simple = Stateful_json_v1_t.binding_simple = {
+  binding_simple_port (*atd port *): port_name;
+  binding_simple_requirer (*atd requirer *): component_name;
+  binding_simple_provider (*atd provider *): component_name
 }
 
 val write_version :
@@ -734,26 +734,6 @@ val component_stateful_of_string :
   string -> component_stateful
   (** Deserialize JSON data of type {!component_stateful}. *)
 
-val write_component_simple :
-  Bi_outbuf.t -> component_simple -> unit
-  (** Output a JSON value of type {!component_simple}. *)
-
-val string_of_component_simple :
-  ?len:int -> component_simple -> string
-  (** Serialize a value of type {!component_simple}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_component_simple :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_simple
-  (** Input JSON data of type {!component_simple}. *)
-
-val component_simple_of_string :
-  string -> component_simple
-  (** Deserialize JSON data of type {!component_simple}. *)
-
 val write_component :
   Bi_outbuf.t -> component -> unit
   (** Output a JSON value of type {!component}. *)
@@ -773,26 +753,6 @@ val read_component :
 val component_of_string :
   string -> component
   (** Deserialize JSON data of type {!component}. *)
-
-val write_binding_simple :
-  Bi_outbuf.t -> binding_simple -> unit
-  (** Output a JSON value of type {!binding_simple}. *)
-
-val string_of_binding_simple :
-  ?len:int -> binding_simple -> string
-  (** Serialize a value of type {!binding_simple}
-      into a JSON string.
-      @param len specifies the initial length
-                 of the buffer used internally.
-                 Default: 1024. *)
-
-val read_binding_simple :
-  Yojson.Safe.lexer_state -> Lexing.lexbuf -> binding_simple
-  (** Input JSON data of type {!binding_simple}. *)
-
-val binding_simple_of_string :
-  string -> binding_simple
-  (** Deserialize JSON data of type {!binding_simple}. *)
 
 val write_binding_hierarchical :
   Bi_outbuf.t -> binding_hierarchical -> unit
@@ -873,4 +833,44 @@ val read_component_type_simple :
 val component_type_simple_of_string :
   string -> component_type_simple
   (** Deserialize JSON data of type {!component_type_simple}. *)
+
+val write_component_simple :
+  Bi_outbuf.t -> component_simple -> unit
+  (** Output a JSON value of type {!component_simple}. *)
+
+val string_of_component_simple :
+  ?len:int -> component_simple -> string
+  (** Serialize a value of type {!component_simple}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_component_simple :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> component_simple
+  (** Input JSON data of type {!component_simple}. *)
+
+val component_simple_of_string :
+  string -> component_simple
+  (** Deserialize JSON data of type {!component_simple}. *)
+
+val write_binding_simple :
+  Bi_outbuf.t -> binding_simple -> unit
+  (** Output a JSON value of type {!binding_simple}. *)
+
+val string_of_binding_simple :
+  ?len:int -> binding_simple -> string
+  (** Serialize a value of type {!binding_simple}
+      into a JSON string.
+      @param len specifies the initial length
+                 of the buffer used internally.
+                 Default: 1024. *)
+
+val read_binding_simple :
+  Yojson.Safe.lexer_state -> Lexing.lexbuf -> binding_simple
+  (** Input JSON data of type {!binding_simple}. *)
+
+val binding_simple_of_string :
+  string -> binding_simple
+  (** Deserialize JSON data of type {!binding_simple}. *)
 

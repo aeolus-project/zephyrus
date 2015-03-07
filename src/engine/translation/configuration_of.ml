@@ -257,14 +257,22 @@ open My_matching_algorithm.Int_set_map_requirer_provider_types
 
 
 (* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
-let generate_bindings (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
+let generate_bindings solution (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
+  let solution                   = Variable_map.of_assoc_list (Variable_set.map_to_list (fun v -> (v, solution#variable_values v)) solution#domain) in
+  let port_id_set                = universe#get_port_ids in
+  let get_subports               = universe#get_sub_ports in
+  let component_id_set           = component_ids in
+  let get_type_id                = fun id -> (get_component id)#typ in
+  let get_component_type_from_id = universe#get_component_type in
+  Candy_algorithm.New_implementation.binding_generation solution port_id_set get_subports component_id_set get_type_id get_component_type_from_id
+
 (*  let ordered_port_id_list = [] in (* we need to consider the port in order *)
     for the_port_in_the_list do
      for bindings_variables_whose_pp_is_the_port do
       let ordered_provider_component_list = [] in
       let non_ordered_requirer_component_list = []
        create_the_n_binding_as_stated_in_the_variable *)
-  Binding_set.empty (*
+(*  Binding_set.empty *)(*
 
 
   (* Get all the ports mentioned in the universe. *)
@@ -431,10 +439,13 @@ let solution (catalog : Data_model_catalog.closed_model_catalog option) (univers
   let bindings = 
     let component_ids : Component_id_set.t        = component_obj_catalog#ids in
     let get_component : component_id -> component = component_obj_catalog#obj_of_id in
-    generate_bindings universe component_ids get_component in
+    generate_bindings solution universe component_ids get_component in
 
   new configuration
     ~locations:  location_obj_catalog#id_to_obj_map
     ~components: component_obj_catalog#id_to_obj_map
     ~bindings:   bindings
     ()
+
+
+

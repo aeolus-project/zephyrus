@@ -69,8 +69,7 @@ type component_type_simple = {
   ~consume  <ocaml default="[]"> : (resource_name * resource_consumption) list <json repr = "object"> 
 } <ocaml field_prefix="component_type_simple_">
 
-(*
-type component_type = [
+(* type component_type = [
   | Component_type_simple of component_type_simple
   | Component_type_stateful of component_type_stateful
 ]*)
@@ -150,10 +149,11 @@ type component_simple = {
   location                        : location_name;
 } <ocaml field_prefix="component_simple_">
 
-type component = [
+(* type component = [
   | Component_simple of component_simple
   | Component_stateful of component_stateful
-]
+]*)
+type component = component_stateful
 
 type binding_hierarchical = {
   port_required : port_name;
@@ -168,10 +168,11 @@ type binding_simple = {
   provider      : component_name;
 } <ocaml field_prefix="binding_simple_">
 
-type binding = [
+(* type binding = [
   | Binding_hierarchical of binding_hierarchical
   | Binding_simple of binding_simple
-]
+] *)
+type binding = binding_hierarchical
 
 type configuration = {
   version                          : version;
