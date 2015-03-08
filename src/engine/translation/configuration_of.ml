@@ -258,7 +258,9 @@ open My_matching_algorithm.Int_set_map_requirer_provider_types
 
 (* Generate bindings which will be present in the final configuration (using the matching algorithm). *)
 let generate_bindings solution (universe : universe) (component_ids : Component_id_set.t) (get_component : component_id -> component) : Binding_set.t =
-  let solution                   = Variable_map.of_assoc_list (Variable_set.map_to_list (fun v -> (v, solution#variable_values v)) solution#domain) in
+  Printf.printf "Solution domain = [%s]\n" (String.concat ", " (Variable_set.map_to_list (fun v -> match v with | Binding_variable(pp,tp,pr,tr) -> Printf.sprintf "B(%i,%i,%i,%i)" pp tp pr tr | _ -> "bla") solution#domain)); flush stdout;
+  let solution                   = Variable_map.of_assoc_list (Variable_set.map_to_list (fun v -> (v, solution#variable_values v)) (Variable_set.filter (fun v -> match v with | Binding_variable _ -> true | _ -> false) solution#domain)) in
+  Printf.printf "Trimmed solution [%s]\n" (String.concat ", " (Variable_map.to_list (fun (v,n) -> match v with Binding_variable(pp,tp,pr,tr) -> Printf.sprintf "(B(%i,%i,%i,%i), %i)" pp tp pr tr n | _ -> "error") solution)); flush stdout;
   let port_id_set                = universe#get_port_ids in
   let get_subports               = universe#get_sub_ports in
   let component_id_set           = component_ids in

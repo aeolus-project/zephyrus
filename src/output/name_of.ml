@@ -28,7 +28,7 @@
 (*let get_catalog ()      = !Data_state.catalog_full*)
 let monad (f1, f2) v = try f2 v with | Not_found -> f1 v
 
-let resource_f       = (string_of_int, (fun x -> Abstract_io.String_of.resource_name (Printf.printf "DEBUG: Name_of 40\n"; flush stdout; Data_state.resource x)))
+let resource_f       = (string_of_int, (fun x -> Abstract_io.String_of.resource_name (Data_state.resource x)))
 let component_type_f = (string_of_int, (fun x -> Abstract_io.String_of.component_type_ref (Data_state.component_type x)))
 let port_f           = (string_of_int, (fun x -> Abstract_io.String_of.port_name (Data_state.port x)))
 let package_f        = (string_of_int, (fun x -> Abstract_io.String_of.package_name (Data_state.package x)))

@@ -458,10 +458,6 @@ module New_implementation = struct
   end
 
 
-  (* Extract only solutions that we are interested in *) (* a little bit useless *)
-  let extract_binding solution = 
-    Data_constraint.Variable_map.filter (fun v _ -> match v with | Data_constraint.Binding_variable _ -> true | _ -> false) solution
-
   (* INIT: sort the ports in increasing order of dependencies *)
   let rec sort_ports_rec acc seen unseen get_subports = (* acc is the list of port *) (* seen is the set of all the port in acc *) (*  unseen is the set left to parse *)
     let new_seen_list = Port_id_set.fold (fun p_id l -> if Port_id_set.subset (get_subports p_id) (Port_id_set.add p_id seen) then p_id::l else l) unseen [] in
@@ -471,12 +467,14 @@ module New_implementation = struct
     if Port_id_set.is_empty new_unseen then new_acc else sort_ports_rec new_acc (Port_id_set.union seen new_seen_set) new_unseen get_subports
   let sort_port port_id_set get_subports = sort_ports_rec [] Port_id_set.empty port_id_set get_subports
 
-  (* FULL THING: sort the requirement for bindings in the port order*)
+  (* FULL THING: sort the requirement for bindings in the port order*) (* TODO: This is where the BUG is *)
   let sort_binding_requirements solution port_id_set get_subports = 
     let order = sort_port port_id_set get_subports in
-    List.flatten (List.map (fun p -> Data_constraint.Variable_map.to_assoc_list (
-      Data_constraint.Variable_map.filter (fun v _ -> match v with | Data_constraint.Binding_variable(p,_,_,_) -> true | _ -> false ) solution
-    )) order)
+  Printf.printf "ordered ports = [%s]\n" (String.concat ", " (List.map (fun p -> Printf.sprintf "%i" p) order)); flush stdout; (* <- this is ok *)
+    List.flatten (List.map (fun p -> let res = Data_constraint.Variable_map.to_assoc_list (
+        Data_constraint.Variable_map.filter (fun v _ -> match v with | Data_constraint.Binding_variable(p',_,_,_) -> p = p' | _ -> false ) solution) in (* <- this is wrong as there's not always a variable for that port *)
+      Printf.printf "  bindings for port %i : [%s]\n" p (String.concat ", " (List.map (fun (v,_) ->  match v with | Data_constraint.Binding_variable(pp,tp,pr,tr) -> Printf.sprintf "B(%i,%i,%i,%i)" pp tp pr tr | _ -> "bla") res)); flush stdout; res
+    )order)
 
   (*(* sort the providers in decreasing order of provide *)
   let sort_provider_rec provider_id_set get_capacity =
@@ -552,11 +550,8 @@ module New_implementation = struct
     Component_id_map.partition (fun c _ -> (get_type c) = component_type_id) map
 
 
-  (* full algorithm *)
+  (* full algorithm *) (* we suppose that solution is only about bindings -- see configuration_of.ml *)
   let binding_generation solution port_id_set get_subports component_id_set get_type_id get_component_type_from_id =
-  (* 1. trim the solution *)
-  Printf.printf "Trimming the solution\n"; flush stdout;
-  let solution = extract_binding solution in
   (* 2. order the solution *)
   Printf.printf "Ordering the solution\n"; flush stdout;
   let binding_number_list_ref = ref (sort_binding_requirements solution port_id_set get_subports) in

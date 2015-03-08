@@ -102,5 +102,9 @@
 				}
 			]
 		}
-	]
+	],
+	"port_hierarchy": {
+		"@port": [ ["@port1", "@port2", "@port3"] ],
+		"@port1": [ ["@port3"] ]
+	}
 }
