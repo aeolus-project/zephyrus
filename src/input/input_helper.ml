@@ -39,8 +39,10 @@ let parse_standard parser lexer filename =
   match input_open filename with
   | None -> None
   | Some(filename, file) -> 
-    try Some (parser lexer (Lexing.from_channel file))
-    with Parsing.Parse_error -> (Zephyrus_log.log_input_file_error filename "does not have a valid syntax"; None)
+    let lexbuf = Lexing.from_channel file in
+    try Some (parser lexer lexbuf)
+    with _ -> (Zephyrus_log.log_input_file_error filename ("unexpected string \"" ^ (lexbuf.Lexing.lex_curr_p.Lexing.pos_fname) ^ "\" at line "
+                   ^ (string_of_int lexbuf.Lexing.lex_curr_p.Lexing.pos_lnum) ^ ":" ^ (string_of_int (lexbuf.Lexing.lex_curr_p.Lexing.pos_cnum - lexbuf.Lexing.lex_curr_p.Lexing.pos_bol))); None)
 
 let lines_of_file filename = 
   let lines = ref [] in
