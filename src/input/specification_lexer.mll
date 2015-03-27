@@ -97,6 +97,8 @@ rule token = parse
   | '('                { LPAREN }
   | ')'                { RPAREN }
 
+
+  (* TODO: put the distinction between the different name categories in the parser!!!!! *)
   (* Names *)
   
   (* Naming convention for component types: if first character is a capital letter, then it is a component type name. *)
