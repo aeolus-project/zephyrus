@@ -161,7 +161,7 @@ let () =
 
   (* === Perform the trimming === *)
   Zephyrus_log.log_stage_new "TRIMMING SECTION";
-
+  (*
   (* ====  Trim the universe ==== *)
   Zephyrus_log.log_stage_new "TRIMMING UNIVERSE";
   
@@ -262,8 +262,13 @@ let () =
 (*  Printf.printf "core    configuration = %s\n"  (Json_of.configuration u core_conf); *)
   (if not (Settings.find Settings.modifiable_configuration) 
    then Zephyrus_log.log_data "ANNEX CONFIGURATION ==>\n"  (lazy ((Json_of.configuration universe annex_conf) ^ "\n\n")));
-  
+
+
   Zephyrus_log.log_stage_end ();
+  *)
+  let core_conf = initial_configuration in
+  let annex_conf = new configuration () in
+  let variable_bounds = Data_state.get_variable_bounds None in  
   Zephyrus_log.log_stage_end ();
 
 
